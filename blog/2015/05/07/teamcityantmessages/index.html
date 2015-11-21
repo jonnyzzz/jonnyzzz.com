@@ -161,12 +161,27 @@
   href="https://github.com/jonnyzzz/TeamCity.AntMessages">TeamCity.AntMessages</a> Ant task library
   contains necessary tasks for Ant! The usage is the follows: </p>
 <script type="syntaxhighlighter"
-        class="brush:xml"><![CDATA[ <project basedir="." default="test"> <!-- here goes include --> <taskdef
-      resource="teamcity-messages.xml"> <classpath> <fileset dir="./build/libs-release"
-      includes="TeamCity.AntMessages-*.jar"/> </classpath> </taskdef> <!-- usage examples --> <target
-      name="test"> <teamcity-build-number number="222"/> <teamcity-artifacts artifacts="222"/> <teamcity-service-message
-      name="name" value="value"/> <teamcity-service-message name="name"> <param name="aaa" value="vvv"/>
-      <param name="aa2a" value="v2vv"/> </teamcity-service-message> </target> </project>]]>
+        class="brush:xml"><![CDATA[
+         <project basedir="." default="test"> <!-- here goes include -->
+    <taskdef
+            resource="teamcity-messages.xml">
+        <classpath>
+            <fileset dir="./build/libs-release"
+                     includes="TeamCity.AntMessages-*.jar"/>
+        </classpath>
+    </taskdef> <!-- usage examples -->
+    <target
+            name="test">
+        <teamcity-build-number number="222"/>
+        <teamcity-artifacts artifacts="222"/>
+        <teamcity-service-message
+                name="name" value="value"/>
+        <teamcity-service-message name="name">
+            <param name="aaa" value="vvv"/>
+            <param name="aa2a" value="v2vv"/>
+        </teamcity-service-message>
+    </target>
+</project>]]>
 </script>
 <h2>Download and use</h2>The sources and issue tracker is on <a
   href="https://github.com/jonnyzzz/TeamCity.AntMessages">Here</a>Binaries can be downloaded from <a
