@@ -4,7 +4,7 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-11-21T18:24:54+00:00</updated>
+<updated>2015-11-21T19:27:20+00:00</updated>
 <id>/</id>
 <author>
   <name>Eugene Petrenko</name>
@@ -36,12 +36,30 @@
   href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;TeamCity.AntMessages&lt;/a&gt; Ant task library
   contains necessary tasks for Ant! The usage is the follows: &lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot;
-        class=&quot;brush:xml&quot;&gt;&lt;![CDATA[ &lt;project basedir=&quot;.&quot; default=&quot;test&quot;&gt; &lt;!-- here goes include --&gt; &lt;taskdef
-      resource=&quot;teamcity-messages.xml&quot;&gt; &lt;classpath&gt; &lt;fileset dir=&quot;./build/libs-release&quot;
-      includes=&quot;TeamCity.AntMessages-*.jar&quot;/&gt; &lt;/classpath&gt; &lt;/taskdef&gt; &lt;!-- usage examples --&gt; &lt;target
-      name=&quot;test&quot;&gt; &lt;teamcity-build-number number=&quot;222&quot;/&gt; &lt;teamcity-artifacts artifacts=&quot;222&quot;/&gt; &lt;teamcity-service-message
-      name=&quot;name&quot; value=&quot;value&quot;/&gt; &lt;teamcity-service-message name=&quot;name&quot;&gt; &lt;param name=&quot;aaa&quot; value=&quot;vvv&quot;/&gt;
-      &lt;param name=&quot;aa2a&quot; value=&quot;v2vv&quot;/&gt; &lt;/teamcity-service-message&gt; &lt;/target&gt; &lt;/project&gt;]]&gt;
+        class=&quot;brush:xml&quot;&gt;&lt;![CDATA[
+&lt;project basedir=&quot;.&quot; default=&quot;test&quot;&gt;
+    &lt;!-- here goes include --&gt;
+    &lt;taskdef
+            resource=&quot;teamcity-messages.xml&quot;&gt;
+        &lt;classpath&gt;
+            &lt;fileset dir=&quot;./build/libs-release&quot;
+                     includes=&quot;TeamCity.AntMessages-*.jar&quot;/&gt;
+        &lt;/classpath&gt;
+    &lt;/taskdef&gt;
+
+    &lt;!-- usage examples --&gt;
+    &lt;target
+            name=&quot;test&quot;&gt;
+        &lt;teamcity-build-number number=&quot;222&quot;/&gt;
+        &lt;teamcity-artifacts artifacts=&quot;222&quot;/&gt;
+        &lt;teamcity-service-message
+                name=&quot;name&quot; value=&quot;value&quot;/&gt;
+        &lt;teamcity-service-message name=&quot;name&quot;&gt;
+            &lt;param name=&quot;aaa&quot; value=&quot;vvv&quot;/&gt;
+            &lt;param name=&quot;aa2a&quot; value=&quot;v2vv&quot;/&gt;
+        &lt;/teamcity-service-message&gt;
+    &lt;/target&gt;
+&lt;/project&gt;]]&gt;
 &lt;/script&gt;
 &lt;h2&gt;Download and use&lt;/h2&gt;The sources and issue tracker is on &lt;a
   href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;Here&lt;/a&gt;Binaries can be downloaded from &lt;a
