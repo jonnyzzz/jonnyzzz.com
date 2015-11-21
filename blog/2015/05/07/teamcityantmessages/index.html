@@ -162,14 +162,17 @@
   contains necessary tasks for Ant! The usage is the follows: </p>
 <script type="syntaxhighlighter"
         class="brush:xml"><![CDATA[
-         <project basedir="." default="test"> <!-- here goes include -->
+<project basedir="." default="test">
+    <!-- here goes include -->
     <taskdef
             resource="teamcity-messages.xml">
         <classpath>
             <fileset dir="./build/libs-release"
                      includes="TeamCity.AntMessages-*.jar"/>
         </classpath>
-    </taskdef> <!-- usage examples -->
+    </taskdef>
+
+    <!-- usage examples -->
     <target
             name="test">
         <teamcity-build-number number="222"/>
