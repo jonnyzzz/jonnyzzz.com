@@ -1,0 +1,361 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>NuGet Feed Authentication Research &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="nuget feed, .net, nuget, rant, nuget feed auth, credentials, opensource, persist, utility, build">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="NuGet Feed Authentication Research">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NuGet Feed Authentication Research">
+
+<meta property="og:url" content="/blog/2012/06/27/nuget-feed-authentication-research/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2012/06/27/nuget-feed-authentication-research/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#nuget feed" title="Pages tagged nuget feed">nuget feed</a></li><li><a href="/tags/#.net" title="Pages tagged .net">.net</a></li><li><a href="/tags/#nuget" title="Pages tagged nuget">nuget</a></li><li><a href="/tags/#rant" title="Pages tagged rant">rant</a></li><li><a href="/tags/#nuget feed auth" title="Pages tagged nuget feed auth">nuget feed auth</a></li><li><a href="/tags/#credentials" title="Pages tagged credentials">credentials</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#persist" title="Pages tagged persist">persist</a></li><li><a href="/tags/#utility" title="Pages tagged utility">utility</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
+        </ul>
+        
+          <h1 class="entry-title">NuGet Feed Authentication Research</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2012-06-27T14:20:00+02:00"><i class="fa fa-calendar-o"></i> June 27, 2012</time></span>
+        <span class="entry-date date modified"><time datetime="2012-06-27T14:20:14.010+02:00"><i class="fa fa-pencil"></i> June 27, 2012</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this blog post I describe all my experiments to support NuGet feed authentication.
+</p><h2>Introduction</h2><p>My goal was to make NuGet.exe usable in Continuous Integration
+  (i.e. <a href="http://blogs.jetbrains.com/dotnet/2011/08/native-nuget-support-in-teamcity/">here</a>)
+  scenarios in case one uses NuGet feed with authentication. In fact, I decided to make NuGet.exe client use <strong>persisted</strong>
+  credentials instead of asking user for them. </p><p>Why do I need that? That was easy. We receive many
+  questions in feedback on how to use authenticated NuGet feeds in builds or on Visual Studio. For example: <a
+    href="http://youtrack.jetbrains.com/issue/TW-20764">TW-20764</a>. I also have several similar requests on
+  <a href="https://twitter.com/#!/jonnyzzz">twitter</a></p><p>People start using their own
+  NuGet feeds. In a big company it's normal to have some NuGet packages to be hidden from everyone. That is
+  reasonable to involve authentication to the feeds. And that is reasonable to use NuGet.exe inside continuous
+  integration builds to fetch dependencies and/or to publish packages. NuGet.exe has to use packages source with
+  authentication work. This means one should provide credentials to NuGet to make it work in scripts without user
+  interaction. </p><h2>Current state description</h2><p>NuGet team realized they need to
+  provide authentication support. As far as I know NuGet claims to support feed credentials starting from <a
+    href="http://docs.nuget.org/docs/release-notes/nuget-1.5">NuGet 1.5</a>. That is nice to know the feature
+  is implemented inside NuGet core! </p><p>I read about some complains in the twitter that NuGet does
+  not persist entered passwords in Visual Studio. It turns out one need to re-enter passwords for every new Visual
+  Studio instance. </p> <h2>Code research</h2><p>Remember, my goal was to support continuous
+  integration scenarios. The idea was to make NuGet avoid asking a passwords. </p><p>What I did. First I
+  fetched sources of NuGet from <a href="http://nuget.codeplex.com">nuget.codeplex.com</a>, switched to
+  branch 2.0 (1ab57c30a3aee16c85ef72cf1aeb9511cf3eace4). </p><p>The first file I checked was <em>src\CommandLine\Program.cs</em>.
+  There I found how credentials provider is set-up in <em>Initialize</em> method: </p>
+<script
+  type="syntaxhighlighter" class="brush: csharp; "><![CDATA[ ... using (var container = new
+      CompositionContainer(catalog)) { var settings = GetCommandLineSettings(fileSystem); ... var packageSourceProvider
+      = new PackageSourceProvider(...); // Register an additional provider for the console specific application so that
+      the user // will be prompted if a proxy is set and credentials are required var credentialProvider = new
+      SettingsCredentialProvider(new ConsoleCredentialProvider(), packageSourceProvider, console);
+      HttpClient.DefaultCredentialProvider = credentialProvider; container.ComposeExportedValue<IConsole>(console);
+      container.ComposeExportedValue<ISettings>(settings); container.ComposeExportedValue<IPackageRepositoryFactory>(new
+      NuGet.Common.CommandLineRepositoryFactory()); container.ComposeExportedValue<IPackageSourceProvider>(packageSourceProvider);
+      container.ComposeExportedValue<ICredentialProvider>(credentialProvider); container.ComposeParts(this); } ...
+      ]]>
+</script><p>Here I noticed there is <strong>no way to provide my own credentials provider</strong>
+  from plugin. See/vote for related <a href="http://nuget.codeplex.com/workitem/1303">issue</a>. </p><p>Still,
+  there is a chance to provide settings that would make <em>SettingsCredentialProvider</em> load
+  settings from configuration. </p><h2>Digging NuGet.Config</h2><p>Next step was to check
+  how NuGet.exe loads configuration. Of course I knew there is shared <em>NuGet.Config</em> file that
+  stores all machine-wide settings. This does not work for me because there could be several running NuGet instances
+  and I could not let one instance access feeds from another. </p><p>In the same file
+  (<em>src\CommandLine\Program.cs</em>)
+  I found how Settings are loaded: </p>
+<script type="syntaxhighlighter" class="brush: csharp; "><![CDATA[
+      internal static ISettings GetCommandLineSettings(IFileSystem workingDirectory) { if
+      (workingDirectory.FileExists(Constants.SettingsFileName)) { return new Settings(workingDirectory); } return
+      Settings.LoadDefaultSettings(); } ]]>
+</script><p>And take <em>src/Core/Configuration/Settings.cs</em>:</p>
+<script
+  type="syntaxhighlighter" class="brush: csharp; "><![CDATA[ public static ISettings LoadDefaultSettings() {
+      string appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); if
+      (!String.IsNullOrEmpty(appDataPath)) { var defaultSettingsPath = Path.Combine(appDataPath, "NuGet"); var
+      fileSystem = new PhysicalFileSystem(defaultSettingsPath); try { return new Settings(fileSystem); } catch
+      (XmlException) { // Work Item 1531: If the config file is malformed and the constructor throws, NuGet fails to
+      load in VS. // Returning a null instance prevents us from silently failing. } } // If there is no AppData folder,
+      use a null file system to make the Settings object do nothing return NullSettings.Instance; } ]]>
+</script><p>So,
+  it looked like a chance for me to provide a non-global config file. Still, to make it work I should:</p>
+<ul>
+  <li>create
+    a NuGet.Config file in the working directory
+  </li>
+  <li>ensure the file is parseable by NuGet</li>
+</ul><p>This
+  looks to tricky. <strong>It is not possible to make NuGet use custom NuGet.Config file</strong>. I
+  created an <a href="http://nuget.codeplex.com/workitem/2364">issue</a>. I wish I could specify a path
+  to NuGet.Config file I want to use with an instance of NuGet.exe. </p> <h2>Storing Credentials</h2><p>Ok.
+  Now I know where config is. Next was to implement a plugin for NuGet.exe to store feed credentials into it. That
+  was not so complicated. The sources of the plugin are found <a
+    href="https://github.com/jonnyzzz/NuGet.Passwords">on GitHub</a>. </p><p>The first version of
+  code looked like:</p>
+<script type="syntaxhighlighter" class="brush: csharp; "><![CDATA[ protected
+      override void ExecuteCommandImpl() { var allSources = SourceProvider.LoadPackageSources().ToArray(); Func<PackageSource,
+      bool> predicate = x => Source.Equals(x.Source, StringComparison.InvariantCultureIgnoreCase); var source =
+      allSources.FirstOrDefault(predicate); if (source == null) { Console.WriteLine("No such source was found. Creating
+      new source..."); source = new PackageSource(Source, Source, true); } source.UserName = UserName; source.Password =
+      Password; SourceProvider.SavePackageSources( new[]{source}.Union(allSources.Where(x=>!predicate(x))).ToArray()
+      ); } ]]>
+</script> <p>This was easy. In plugin I simply create or update the feed entry adding
+  credentials. That was it. It looked to me that was all I needed to do!</p> <h2>NuGet Problems</h2><p>It
+  turned out, NuGet credentials provider <strong>does not work for <em>/$metadata</em> path</strong>.
+  That make NuGet to re-query for credentials. I created an <a href="http://nuget.codeplex.com/workitem/2379">issue</a>
+  for that too. It looked like current implementation of <em>SettingsCredentialProvider</em> does not
+  compare urls in the right way, thus requiring one to re-enter credentials. </p><p>The workaround for
+  it was easy. I made my plugin for NuGet to register two NuGet feeds. For given feed <em>http://host/feed</em>
+  I register enabled feed <em>http://host/feed</em> and than I register <strong>disabled</strong>
+  feed <em>http://host/feed<strong>/$metadata</strong></em>. Finally, that made both
+  NuGet.exe and NuGet in Visual Studio use provided credentials. </p> <h2>Post Mortem</h2><p>That
+  looked I found the way to make NuGet Authentication work inside continuous integration builds. I decided to make
+  it a try</p><p><strong>I failed.</strong></p><p>It turns out <strong><em>SettingsCredentialProvider</em>
+  does not take care to provide authentication for package stream urls</strong>. So NuGet.exe requested a
+  password to download a package. I expected NuGet.exe authentication mechanism would re-use feed credentials for it
+  too. </p><p>Unfortunately, <em>$/metadata</em> workaround idea failed here. It had to
+  provide an authentication for <strong>full package download URL</strong>. It is impossible to provide
+  explicit credentials for every package stream in the feed.</p><p>I create the <a
+  href="http://nuget.codeplex.com/workitem/2389">issue</a> for NuGet to handle it. This issue looks related
+  to <a href="http://nuget.codeplex.com/workitem/2379">issue 2379</a>. </p> <h2>Summary</h2><p>Currently
+  I failed to make NuGet authentication work smoothly in continuous integration scenario. I with I could implement
+  it at some moment in future. </p><p>I collected related issues in <a
+  href="http://youtrack.jetbrains.com/issue/TW-20764">TW-20764</a>. The list of NuGet issues for now is:</p>
+<ul>
+  <li><a href="http://nuget.codeplex.com/workitem/2389">2389</a></li>
+  <li><a
+    href="http://nuget.codeplex.com/workitem/2383">2383</a></li>
+  <li><a
+    href="http://nuget.codeplex.com/workitem/2379">2379</a></li>
+  <li><a
+    href="http://nuget.codeplex.com/workitem/1303">1303</a></li>
+  <li><a
+    href="http://nuget.codeplex.com/workitem/2364">2364</a></li>
+</ul><p><strong>Feel
+  free to vote for those issues!</strong></p><p>I like the idea of NuGet. I'd like to say thank
+  you for all who involved into NuGet development process. You are doing a great tool that solve problems for
+  people!</p><p>I hope we could make the described scenario work. I wish I could use command line or
+  create a plugin for NuGet to make feed authentication work.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2012/06/25/nuget-and-feed-passwords/" class="btn" title="NuGet and Feed Passwords">Previous</a>
+      
+      
+        <a href="/blog/2012/07/09/agent-parameters-story-updated/" class="btn" title="Agent parameters story updated">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>TeamCity.ServiceMessages Write API &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content=".net, nuget, library, opensource, package, ci, teamcity, c#, build, servicemessage">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="TeamCity.ServiceMessages Write API">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TeamCity.ServiceMessages Write API">
+
+<meta property="og:url" content="/blog/2011/11/15/teamcityservicemessages-write-api/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2011/11/15/teamcityservicemessages-write-api/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#.net" title="Pages tagged .net">.net</a></li><li><a href="/tags/#nuget" title="Pages tagged nuget">nuget</a></li><li><a href="/tags/#library" title="Pages tagged library">library</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#package" title="Pages tagged package">package</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#c#" title="Pages tagged c#">c#</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li><li><a href="/tags/#servicemessage" title="Pages tagged servicemessage">servicemessage</a></li>
+        </ul>
+        
+          <h1 class="entry-title">TeamCity.ServiceMessages Write API</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2011-11-15T16:17:00+01:00"><i class="fa fa-calendar-o"></i> November 15, 2011</time></span>
+        <span class="entry-date date modified"><time datetime="2011-11-16T15:41:58.209+01:00"><i class="fa fa-pencil"></i> November 16, 2011</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <div dir="ltr" style="text-align: left;" trbidi="on">Today I published
+  TeamCity.ServiceMessages v2.0 package which provides API for generating TeamCity specific service messages.
+  Service messages are described in the documentation page at <a
+    href="http://confluence.jetbrains.net/display/TCD7/Build+Script+Interaction+with+TeamCity">http://confluence.jetbrains.net/display/TCD7/Build+Script+Interaction+with+TeamCity</a><br
+  />
+
+  <h1>Introduction</h1>Do you know what service messages are? Service Messages are strings in the
+  following format: <br/>
+  <pre><strong>##teamcity[hello message='teamcity']</strong><br/></pre>
+  <p>TeamCity
+    uses Service Messages to provide simple API for a build scripts integration, i.e. build status reporting,
+    artifacts publishing, tests reporting and more. </p>
+
+  <p>For precise description of the format and
+    service messages usage in TeamCity, take a loot at <a
+      href="http://confluence.jetbrains.net/display/TCD7/Build+Script+Interaction+with+TeamCity">Build Script
+      Interaction with TeamCity</a> article. Service Messages introduce a communication protocol for map-like data
+    exchange between processes using stream, socket, HTTP or pipe. </p>
+
+  <p>Basic read-write API for service
+    messages was implemented in TeamCity.ServiceMessages library v1.0. There are blog posts describing it <a
+      href="/blog/2011/10/21/teamcity-service-messages-library-for/">here</a> and <a
+      href="http://blogs.jetbrains.com/teamcity/2011/10/24/teamcity-service-messages-library-for-net/">here</a>.
+  </p>
+
+  <h2>Reporting Tests</h2><pre class="brush : csharp">...<br/><br/>public
+      void ReportTests(...) {<br/> //Create a TeamCity message logger. <br/> using (var writer = new
+      TeamCityServiceMessages().CreateWriter())<br/> {<br/> using (var block = writer.OpenBlock("Big log
+      from TeamCity Service Messages block"))<br/> {<br/> //Let's open a test suite<br/> using(var
+      suite = block.OpenTestSuite("MyFavoriteTests.dll"))<br/> {<br/> //Let's report ignored test<br/>
+      using (var test = suite.OpenTest("This.Would.Log.Ignored.Test"))<br/> { <br/> test.WriteIgnored();<br
+    /> }<br/> //Let's report failed test<br/> using (var test =
+      suite.OpenTest("This.Would.Log.Failed.Test"))<br/> {<br/> test.WriteFailed("Assert failed", "Assert
+      failed stacktrace and more details");<br/> }<br/> //Let's report successful test with some output<br
+    /> using (var test = suite.OpenTest("This.Would.Log.Successful.Test"))<br/> {<br/>
+      test.WriteStdOutput("This is a test output to be shown in TeamCity UI");<br/> }<br/> } <br/>
+      }<br/> }<br/>}<br/></pre>
+  Thanks to C# <b>using</b> construction that
+  asserts service messages write API is used in the right way. As you open a block you may only use created object
+  to continue logging until you dispose it. TeamCity.ServiceMessages library contains assertions to avoid generating
+  invalid service message sequences. <br/>
+
+  <h2>Reporting Dynamic Build Artifact</h2><pre
+    class="brush : csharp">public void ReportCustomArtifact(string path) {<br/> using (var writer = new
+      TeamCityServiceMessages().CreateWriter(x =&gt; builder.AppendLine(x)))<br/> {<br/>
+      writer.PublishArtifact(path);<br/> }<br/>} <br/></pre>
+  <h2>Reporting Custom Build
+    Number</h2><pre class="brush : csharp">public void ReportNewBuildNumber(string buildNumber) {<br/>
+      using (var writer = new TeamCityServiceMessages().CreateWriter(x =&gt; builder.AppendLine(x)))<br/> {<br
+    /> writer.WriteBuildNumber(buildNumber);<br/> }<br/>} <br/></pre>
+  <h1>What's
+    Next</h1>There is a big number of other TeamCity service message that are supported by the implementation.
+  To find more information, see JetBrains.TeamCity.ServiceMessages.Write.Special.ITeamCityWriter and it's parent
+  interfaces. Here are some of supported messages: <br/>
+  <ul>
+    <li>Set build number</li>
+    <li>Set
+      build parameter
+    </li>
+    <li>Write message, warning or error</li>
+    <li>Publish build artifacts</li>
+    <li>Publish
+      build statistics value
+    </li>
+    <li>Open/Close block</li>
+    <li>Open/Close test suite</li>
+    <li>Open/Close
+      test
+    </li>
+    <li>Open/Close compilation block</li>
+    <li>and more...</li>
+  </ul>
+  <h1>API
+    Changes since v1.0</h1>I moved IServiceMessage interface from JetBrains.TeamCity.ServiceMessages.Read
+  namespace to JetBrains.TeamCity.ServiceMessages namespace. <br/>
+
+  <h1>Usage</h1>The library is
+  compiled for .NET 3.5. It is available as <a href="http://nuget.org/List/Packages/TeamCity.ServiceMessages">NuGet
+    package</a>: <br/>
+
+  <div style="-moz-border-radius: 6px; -moz-box-shadow: inset 6px 6px 14px rgba(0,
+      0, 0, 0.6), 1px 1px 4px rgba(102, 102, 102, 1.0); -webkit-border-radius: 6px; -webkit-box-shadow: inset 6px 6px
+      14px rgba(0, 0, 0, 0.6), 1px 1px 4px rgba(102, 102, 102, 1.0); background: -moz-linear-gradient(top, #5E5E5E,
+      black); background: -webkit-gradient(linear, 0 0, 0 100%, from(#5E5E5E), to(black)); background: black;
+      border-radius: 6px; border: 1px solid #C4C4C4; box-shadow: inset 6px 6px 14px rgba(0, 0, 0, 0.6), 1px 1px 4px
+      rgba(102, 102, 102, 1.0); filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0,
+      startColorstr='#5e5e5e', endColorstr='#000'); padding: 2em; text-shadow: 1px 1px 1px rgba(0, 0, 0, 1.0);">
+    <div
+      style="color: #e2e2e2; font-family: courier, monospace; font-size: 150%;">PM&gt; Install-Package
+      TeamCity.ServiceMessages
+    </div>
+  </div>
+  <p>Sources are available at <a
+    href="https://github.com/JetBrains/TeamCity.ServiceMessages">GitHub</a>. I setup a build configuration at
+    <a href="http://teamcity.codebetter.com/viewType.html?buildTypeId=bt506&tab=buildTypeStatusDiv">TeamCity.CodeBetter.Com</a>.
+  </p>
+
+  <p>Thanks to <a href="http://confluence.jetbrains.net/display/TW/NuGet+support">TeamCity
+    support for NuGet</a>, it automatically publishes the library as NuGet package to <a
+    href="http://nuget.org/List/Packages/TeamCity.ServiceMessages">NuGet.org</a>.
+  </p></div>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2011/10/21/teamcity-service-messages-library-for/" class="btn" title="TeamCity Service Messages Library for .NET">Previous</a>
+      
+      
+        <a href="/blog/2011/11/28/on-fly-code-generation-with-net/" class="btn" title="On-the-fly Code Generation with .NET Expression Trees">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

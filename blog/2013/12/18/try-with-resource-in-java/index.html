@@ -1,0 +1,323 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Try-With-Resource in Java &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="wtf, kotlin, java, syntax">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Try-With-Resource in Java">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Try-With-Resource in Java">
+
+<meta property="og:url" content="/blog/2013/12/18/try-with-resource-in-java/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2013/12/18/try-with-resource-in-java/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#wtf" title="Pages tagged wtf">wtf</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#syntax" title="Pages tagged syntax">syntax</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Try-With-Resource in Java</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2013-12-18T21:36:00+01:00"><i class="fa fa-calendar-o"></i> December 18, 2013</time></span>
+        <span class="entry-date date modified"><time datetime="2013-12-18T21:36:38.959+01:00"><i class="fa fa-pencil"></i> December 18, 2013</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>Starting from Java 1.7 we have new syntax: <a
+  href="http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">try-with-resource</a>.
+  Recently I had a chance to use it in a project. Main usage I had was for <a
+    href="https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html">logging contexts</a>. </p>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[ ProjectMDC.mdcStart(PROJECT, projectId)
+      try { //here goes the code under logging context } finally { ProjectMDC.mdcStop(PROJECT, projectId) } ]]>
+</script>
+<p>This code looks feasible for small examples, but things got complicated when one has big code block under
+  <em>try/finally</em>. Next approach is to use Java 1.7 try-with-resource. The approach is similar to
+  <a href="http://msdn.microsoft.com/en-us/library/yh598w02.aspx"><em>using</em> construction in
+    C#</a>. </p>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[ try
+      (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) { //here goes the code under logging
+      context } ]]>
+</script> <p><em>CloseableResource</em> is an interface inherited from
+  Java's standard <em>AutoCloseable</em>. The only reason for it is to avoid declared exceptions. The
+  implementation of an interface is following: </p>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+      public interface CloseableResource extends AutoCloseable { @Override void close(); }
+</script> <p>In
+  Java 1.7 it's unfortunately not allowed to use expression as resource in the try-with-resource statement. So I was
+  forced to have a dummy variable declaration there. So I named the variable with underscores to make it be
+  unusable. I with I could write something like this: <em>try(foo()) { /*code*/ }</em>. Nowadays this is
+  not supported. </p> <p>Meanwhile the pattern was good to use and I start using it in many places. In
+  some places I added <em>catch</em> clause for the try.</p>
+<script type="syntaxhighlighter"
+        class="brush: java"><![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+      //here goes the code under logging context } catch (MightyException e) { logger.error(e); } ]]>
+</script>
+<p>This code looks good, but it does not work as it was expected! I expected from it to call <em>logger.error</em>
+  <strong>under <em>ProjectMDC.mdc()</em> resource</strong> but it turned out <strong>the
+    <em>logger.error()</em> method is called AFTER <em>ProjectMDC.mdc()</em> context is closed</strong>.
+  The problem is that logging was expected to be logged <strong>with</strong> <em>ProjectMDC</em>
+  but it was not. So the only right code should be patched as follows</p>
+<script type="syntaxhighlighter"
+        class="brush: java"><![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+      try { //here goes the code under logging context } catch (MightyException e) { logger.error(e); } } ]]>
+</script>
+<p>This code is similar ugly as pre 1.7 code:</p>
+<script type="syntaxhighlighter" class="brush:
+      java"><![CDATA[ final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId); try { //here
+      goes the code under logging context } catch (MightyException e) { logger.error(e); } finally { ___.close(); } ]]>
+</script>
+<p>The only lack in the older code is that one have to declare <em>CloseableResource</em>
+  variable and than explicitly close it at end. There is one extra variable in code to take care of.</p> <h3>
+  Outcome</h3><p>The
+  sad outcome here is that brand new try-with-resource statement has the following misses</p>
+<ul>
+  <li>It's
+    not clear that resource is disposed <strong>before</strong> <em>catch</em> block call
+  </li>
+  <li>It's not allowed to put expression(s) as resources (remember <em>using</em> in <a
+    href="http://msdn.microsoft.com/en-us/library/yh598w02.aspx">C#</a>)
+  </li>
+  <li>Real usage code
+    turns out to be quite ugly (still)
+</ul> <h3>The Kotlin Way</h3><p>All this time I was
+  recalling how easy once could create one's own <em>using</em> in <a
+    href="http://kotlin.jetbrains.org/">Kotlin</a>. For example:</p>
+<script
+  type="syntaxhighlighter" class="brush: text"><![CDATA[ fun <T> using(project: Project, f: () -> T):
+      T { ProjectMDC.mdcStart(PROJECT, project) try { return f(); } finally { ProjectMDC.mdcStop(PROJECT, project) } }
+      ]]>
+</script> <p>Here I declared my own construction that is more useful in my project! So the
+  usages are following</p>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+      using(projectId) { //do some code } ]]>
+</script>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+      using(projectId) { try { //do some code } catch (e : Exception) { /// log me } } ]]>
+</script> <p>For
+  more Kotlin details, you may follow to the <a href="http://confluence.jetbrains.com/display/Kotlin/Functions">documentation</a>.
+</p>
+<p>The only thing is that this code looks more easy-to-understandable. In the long run, I'd say, this code
+  is more unlikely to contain bugs. Again this is only because simplicity of code</p> <h4>Done</h4><p>Be
+  careful with new Java syntax and read manuals with more attention. Happy coding and Happy Christmass and New Year</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2013/08/22/nodejs-and-nvm-and-grunt/" class="btn" title="Node.js and NVM and Grunt in TeamCity.Node">Previous</a>
+      
+      
+        <a href="/blog/2014/03/08/docker-vagrant-teamcity/" class="btn" title="Docker Vagrant TeamCity">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

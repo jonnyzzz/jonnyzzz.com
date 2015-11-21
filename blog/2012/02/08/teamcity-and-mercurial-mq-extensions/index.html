@@ -1,0 +1,291 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>TeamCity and Mercurial Mq Extensions &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="dvcs, hg, opensource, vcs, teamcity, mercurial, mq">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="TeamCity and Mercurial Mq Extensions">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TeamCity and Mercurial Mq Extensions">
+
+<meta property="og:url" content="/blog/2012/02/08/teamcity-and-mercurial-mq-extensions/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2012/02/08/teamcity-and-mercurial-mq-extensions/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#dvcs" title="Pages tagged dvcs">dvcs</a></li><li><a href="/tags/#hg" title="Pages tagged hg">hg</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#vcs" title="Pages tagged vcs">vcs</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#mercurial" title="Pages tagged mercurial">mercurial</a></li><li><a href="/tags/#mq" title="Pages tagged mq">mq</a></li>
+        </ul>
+        
+          <h1 class="entry-title">TeamCity and Mercurial Mq Extensions</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2012-02-08T08:29:00+01:00"><i class="fa fa-calendar-o"></i> February 08, 2012</time></span>
+        <span class="entry-date date modified"><time datetime="2012-02-08T08:29:22.137+01:00"><i class="fa fa-pencil"></i> February 08, 2012</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this post I show how to setup Mq patches with TeamCity build.</p> <p>First
+  of all, let's start with basics. I decided to use <a href="http://mercurial.selenic.com/wiki/MqExtension">Mq
+    extension</a> to deal with patches to a opensource library with sources under Mercurial. The goal was to
+  have a build configuration that fetches sources from the library repository, applies patches from patches
+  repository, builds, tests and packages the library. </p> <h3>Mq Basics</h3><p>For local
+  checkout on local machine to apply patches you need the following: </p>
+<ul>
+  <li>enable Mq
+    extension for your Mercurial
+  </li>
+  <li>hg clone remote-repo local-folder</li>
+  <li>hg clone
+    pathces-remote-repo local-folder/.hg/patches
+  </li>
+  <li>hg qpull -a</li>
+</ul><p>At the
+  end you see all your patches applied or you see a patch application error. For more details, please refer to
+  original Mq <a href="http://mercurial.selenic.com/wiki/MqExtension">docs</a>. </p> <h3>Setting
+  up TeamCity Checkout</h3><p>First we need to select checkout on agent for the build configuration as
+  we need to call Mercurial commands to apply patches. All <em>hg clone</em> commands are replaces with
+  TeamCity VCS root and checkout rules. TeamCity will take care of checkout better.</p><p>I add one VCS
+  root that checks out the library repository with no checkout rules and the one VCS root for patches repository
+  with checkout rules <i>+: . => .hg/patches</i> to checkout patches repository to patches repository
+  location.</p>
+<div class="separator" style="clear: both; text-align: center;"><a
+  href="http://1.bp.blogspot.com/-e-K405aiO4o/TyUVaM49dSI/AAAAAAAABvo/tA_y3Cux_Ks/s1600/Image_0110.png"
+  imageanchor="1" style=""><img border="0" height="46" width="320"
+                                src="http://1.bp.blogspot.com/-e-K405aiO4o/TyUVaM49dSI/AAAAAAAABvo/tA_y3Cux_Ks/s320/Image_0110.png"/></a>
+</div>
+<p>You need to set <em>Clean all files before build</em> to make TeamCity revert all changes
+  before the next build.</p><p>To make Mercurial checkout on agent work, check you have Mercurial
+  installed locally. <h3>Setting up the Patch</h3><p>Next step is to enable Mq extension (nice
+  that it's embedded into default Mercurial install) and apply the patch: </p>
+<script
+  type="syntaxhighlighter" class="brush:bash">#!/bin/sh #enable mercurial extension locally echo >>~/.hgrc
+      echo "[extensions]" >>~/.hgrc echo "mq =" >>~/.hgrc echo >>~/.hgrc #apply patches to the repo hg
+      qpush -a
+</script><p>I use <em>Command Line</em> build runner to call the script and put
+  it as the first build step. The command succeeds only if Mercurial was able to apply patches and thus the build
+  continues</p> <h3>Use</h3><p>I used the described approach for patches to <a
+  href="https://code.google.com/p/odata4j/">OData4j</a> library: <a
+  href="https://code.google.com/p/odata4j-patches">https://code.google.com/p/odata4j-patches</a>. I set up
+  <a href="http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt339&tab=buildTypeStatusDiv">TeamCity
+    Build Configuration</a> for that</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2011/12/15/teamcity-support-for-nuget-16/" class="btn" title="TeamCity Support for NuGet 1.6">Previous</a>
+      
+      
+        <a href="/blog/2012/03/07/nuget-server-in-pure-java/" class="btn" title="NuGet Server in pure Java">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

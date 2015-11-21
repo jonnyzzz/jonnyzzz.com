@@ -1,0 +1,304 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>How to pack agent plugin for TeamCity &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="teamcity plugin, teamcity agent, teamcity api, java">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="How to pack agent plugin for TeamCity">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to pack agent plugin for TeamCity">
+
+<meta property="og:url" content="/blog/2011/09/05/how-to-pack-agent-plugin-for-teamcity/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2011/09/05/how-to-pack-agent-plugin-for-teamcity/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#teamcity plugin" title="Pages tagged teamcity plugin">teamcity plugin</a></li><li><a href="/tags/#teamcity agent" title="Pages tagged teamcity agent">teamcity agent</a></li><li><a href="/tags/#teamcity api" title="Pages tagged teamcity api">teamcity api</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li>
+        </ul>
+        
+          <h1 class="entry-title">How to pack agent plugin for TeamCity</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2011-09-05T11:51:00+02:00"><i class="fa fa-calendar-o"></i> September 05, 2011</time></span>
+        <span class="entry-date date modified"><time datetime="2011-09-05T11:58:20.372+02:00"><i class="fa fa-pencil"></i> September 05, 2011</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        In this post I'll describe how to pack build <b>agent</b> plugins for TeamCity 6.5
+or newer. <br/><br/>To start, have a look at <a
+  href="http://confluence.jetbrains.net/display/TCD65/Plugins+Packaging">plugin development</a> page in
+TeamCity documentation. There you'll find information on how to prepare server-side plugin for TeamCity.
+Server-side plugin package may contain agent plugin(s). Below you'll find only description of agent-side plugins.
+<br/><br/>TeamCity build agent supports 3 type plugins:<br/>- old plugin type (with plugin
+name folder in .zip)<br/>- new plugin (with teamcity-plugin.xml)<br/>- tool plugin (with
+teamcity-plugin.xml)<br/><br/>Starting from pre 1.0 versions <strong>old plugin</strong>
+schema was widely used. Every plugin must be packaged in .zip file with following structure inside:<br/>
+<pre
+  style="font-face: monospace">agent-plugin-name.zip<br/> |<br/> - agent-plugin-name<br/> |<br
+/> - lib<br/> |<br/> - plugin.jar<br/> - plugin-lib.jar <br/></pre>There
+should be no other items in the root of .zip but folder with plugin name. TeamCity build agent detects and loads
+such plugins using shared classloader.<br/><br/>Starting from 6.5 we added <strong>new plugin</strong>
+schema of packing. For now, every plugin may be packed in more flexible structure:<br/>
+<pre
+  style="font-face: monospace">agent-plugin-name.zip<br/> |<br/> - teamcity-plugin.xml<br/>
+      - lib<br/> |<br/> plugin.jar<br/> plugin.lib <br/></pre>Plugin name now is
+obtained from plugin .zip file name. There is no plugin named folder inside a plugin archive. <br/>The main
+change is that now it's required to have
+<it>teamcity-plugin.xml</it> file under the root of agent
+plugin .zip file. <br/><br/>This file provides description of plugin (same as it is done on the
+server-side):<br/>
+<script type="syntaxhighlighter" class="brush: xml"><![CDATA[ <?xml
+      version="1.0" encoding="UTF-8"?><teamcity-agent-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-agent-plugin-v1-xml"> <plugin-deployment
+      use-separate-classloader="true"/></teamcity-agent-plugin>]]>
+</script><br/><br/>In
+TeamCity 6.5 we introduced <strong>tool plugin</strong> for agent. This is a kind of plugin without
+any classes loaded into runtime. If you like to deploy a tool, use the following teamcity-plugin.xml file:<br/>
+<script
+  type="syntaxhighlighter" class="brush: xml"><![CDATA[ <?xml version="1.0" encoding="UTF-8"?><teamcity-agent-plugin
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-agent-plugin-v1-xml"> <tool-deployment/></teamcity-agent-plugin>]]>
+</script><br
+/>Tool plugins for agent may be useful if you need to distribute a binary files only, i.e. git binaries or some
+other tool. For example: NuGet plugin for TeamCity creates a tool plugin for agent to distribute downloaded
+NuGet.exe to agents.<br/><br/>Do you like to see .xsd schema for teamcity-agent.xml. This is the
+schema:<br/>
+<script type="syntaxhighlighter" class="brush: xml"><![CDATA[ <?xml version="1.0"
+      encoding="utf-8"?><xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+      elementFormDefault="qualified" > <xs:element name="teamcity-agent-plugin"> <xs:complexType> <xs:sequence>
+      <xs:choice minOccurs="1" maxOccurs="1"> <xs:element name="plugin-deployment" minOccurs="1" maxOccurs="1">
+      <xs:complexType> <xs:sequence> <xs:element name="layout" type="TFileAttribures" minOccurs="0"
+      maxOccurs="1"/> </xs:sequence> <xs:attribute name="use-separate-classloader" type="xs:boolean"
+      default="false" use="optional"/> </xs:complexType> </xs:element> <xs:element
+      name="tool-deployment" minOccurs="1" maxOccurs="1"> <xs:complexType> <xs:sequence> <xs:element
+      name="layout" type="TFileAttribures" minOccurs="0" maxOccurs="1"/> </xs:sequence> </xs:complexType>
+      </xs:element> </xs:choice> </xs:sequence> </xs:complexType> </xs:element> <xs:complexType
+      name="TFileAttribures"> <xs:sequence> <xs:element name="executable-files" minOccurs="1" maxOccurs="1">
+      <xs:complexType> <xs:sequence> <xs:element name="include" minOccurs="1" maxOccurs="unbounded">
+      <xs:complexType> <xs:attribute name="name" type="xs:string"/> </xs:complexType> </xs:element>
+      </xs:sequence> </xs:complexType> </xs:element> </xs:sequence> </xs:complexType> </xs:schema>]]>
+</script><br
+/><br/>Agent tries to validate plugin-provided teamcity-plugin.xml file against given schema. If
+teamcity-plugin.xml is not valid plugin will be loaded, but no data from the descriptor is used.<br
+/>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2011/08/31/nuget-15-and-teamcity/" class="btn" title="NuGet 1.5 and TeamCity">Previous</a>
+      
+      
+        <a href="/blog/2011/09/08/msbuild-logging-tree/" class="btn" title="MSBuild Logging Tree">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

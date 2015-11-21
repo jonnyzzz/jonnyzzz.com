@@ -1,0 +1,293 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>New NuGet Support Features in TeamCity &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="nuget feed, .net, nuget, nuget feed auth, windows, teamcity plugin, ci, teamcity, build">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="New NuGet Support Features in TeamCity">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="New NuGet Support Features in TeamCity">
+
+<meta property="og:url" content="/blog/2013/01/11/new-nuget-support-features-in-teamcity/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2013/01/11/new-nuget-support-features-in-teamcity/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#nuget feed" title="Pages tagged nuget feed">nuget feed</a></li><li><a href="/tags/#.net" title="Pages tagged .net">.net</a></li><li><a href="/tags/#nuget" title="Pages tagged nuget">nuget</a></li><li><a href="/tags/#nuget feed auth" title="Pages tagged nuget feed auth">nuget feed auth</a></li><li><a href="/tags/#windows" title="Pages tagged windows">windows</a></li><li><a href="/tags/#teamcity plugin" title="Pages tagged teamcity plugin">teamcity plugin</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
+        </ul>
+        
+          <h1 class="entry-title">New NuGet Support Features in TeamCity</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2013-01-11T15:20:00+01:00"><i class="fa fa-calendar-o"></i> January 11, 2013</time></span>
+        <span class="entry-date date modified"><time datetime="2013-01-11T15:20:09.378+01:00"><i class="fa fa-pencil"></i> January 11, 2013</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this post I'll describe recent changes in NuGet Support: default NuGet and feed
+  authentication. All those changes are available in <a
+    href="https://github.com/JetBrains/teamcity-nuget-support/tree/v0.9">v0.9</a> branch. The branch is
+  compatible with TeamCity 7.1.x and we plan to bundle builds of it with TeamCity 8.0</p> <h3>Default
+  NuGet Selector</h3><p>It was quite complicated to update version of NuGet.exe that was selected in all
+  used NuGet build runners. Now it is possible to specify server-wide default version of NuGet in the server
+  administration. In runner and trigger settings you may now specify you want to use default version of NuGet
+  CommandLine</p> <a
+  href="http://1.bp.blogspot.com/-mN6nMG4gk2I/UPATuzOH7fI/AAAAAAAACPo/dIDQfts8ArE/s1600/Image_0034.png"
+  imageanchor="1" style=""><img border="0" height="92" width="320"
+                                src="http://1.bp.blogspot.com/-mN6nMG4gk2I/UPATuzOH7fI/AAAAAAAACPo/dIDQfts8ArE/s320/Image_0034.png"/></a>
+<p>In NuGet runner settings you'll see <strong>default</strong> item:</p> <a
+  href="http://1.bp.blogspot.com/-XaLVDDwJm9g/UPAT_k6A0GI/AAAAAAAACP0/H32fIRUQu4E/s1600/Image_0036.png"
+  imageanchor="1" style=""><img border="0" height="52" width="320"
+                                src="http://1.bp.blogspot.com/-XaLVDDwJm9g/UPAT_k6A0GI/AAAAAAAACP0/H32fIRUQu4E/s320/Image_0036.png"/></a>
+<p>Same option is also available for NuGet Dependency Trigger too:</p> <a
+  href="http://3.bp.blogspot.com/-CsbcNXrewPY/UPAWlfNTb8I/AAAAAAAACQo/GaCptOzRDlo/s1600/Image_0042.png"
+  imageanchor="1" style=""><img border="0" height="136" width="320"
+                                src="http://3.bp.blogspot.com/-CsbcNXrewPY/UPAWlfNTb8I/AAAAAAAACQo/GaCptOzRDlo/s320/Image_0042.png"/></a>
+<p>Now you no longer need to change runner settings to upgrade to newer version of NuGet</p> <h3>NuGet
+  Feed Authentication</h3><p>Recently I pushed support of Authenticated feed for TeamCity-provided build
+  runners and NuGet trigger. Support was implemented with help of the plugin for NuGet.exe</p> <p>To
+  enable authentication of a feed you need to add a <a
+    href="http://confluence.jetbrains.net/display/TCD7/Adding+Build+Features">Build Feature</a> called <strong>NuGet
+    Feed Credentials</strong>: </p> <a
+  href="http://1.bp.blogspot.com/-a296pAUuCHI/UPAVM3HfB8I/AAAAAAAACQE/s4JUM_hzu60/s1600/Image_0038.png"
+  imageanchor="1" style=""><img border="0" height="198" width="320"
+                                src="http://1.bp.blogspot.com/-a296pAUuCHI/UPAVM3HfB8I/AAAAAAAACQE/s4JUM_hzu60/s320/Image_0038.png"/></a>
+<p>We decided to leave NuGet Runners UI unchanged for now. I have in mind next feature to implement: <a
+  href="http://youtrack.jetbrains.com/issue/TW-20642">TW-20642</a>. If you have something to add, please
+  feel free to comment!. I believe there are a limited number of feeds that are used, so the right place to setup
+  things should be under server administration</p> <p>I added <em>usernama/password</em>
+  fields for NuGet Trigger settings:</p> <a
+  href="http://1.bp.blogspot.com/-24fBawMePgY/UPAWMzRfhoI/AAAAAAAACQY/_RPMelchfUI/s1600/Image_0040.png"
+  imageanchor="1" style=""><img border="0" height="320" width="249"
+                                src="http://1.bp.blogspot.com/-24fBawMePgY/UPAWMzRfhoI/AAAAAAAACQY/_RPMelchfUI/s320/Image_0040.png"/></a>
+<h3>TeamCity provided NuGet Feed</h3><p>It is now possible to use TeamCity provided NuGet feed
+  with authentication. I added <strong>teamcity.nuget.feed.auth.server</strong> configuration parameter
+  with URL to authenticated TeamCity's Feed. No you do not need to have guest-visible packages in order to fetch
+  them from dependent build configuration. </p><p>Use <strong>%teamcity.nuget.feed.auth.server%</strong>
+  as TeamCity provided NuGet Feed URL with basic authentication in TeamCity settings</p> <h2>Download
+  and Info:</h2><p>This version of NuGet plugin for TeamCity is planned to be bundled with TeamCity 8.0
+  EAP. Plugin is compatible with TeamCity 7.1.x. <p>For more information, see NuGet plugin home page at: <br
+/><a href="http://confluence.jetbrains.net/display/TW/NuGet+support">http://confluence.jetbrains.net/display/TW/NuGet+support</a><br
+/>or download a latest build from TeamCity <a
+  href="http://teamcity.jetbrains.com/repository/download/bt431/.lastSuccessful/dotNetPackagesSupport.zip">here</a></p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2013/01/10/transfer-environment-between-build-steps/" class="btn" title="Transfer Environment Between Build Steps">Previous</a>
+      
+      
+        <a href="/blog/2013/01/14/kotlin-nodejs-and-teamcity/" class="btn" title="Kotlin, Node.js and TeamCity">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,342 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>BDD Test Framework with Kotlin &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="bdd, test, opensource, test framework, kotlin, java, junit">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="BDD Test Framework with Kotlin">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="BDD Test Framework with Kotlin">
+
+<meta property="og:url" content="/blog/2013/03/27/bdd-test-framework-with-kotlin/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2013/03/27/bdd-test-framework-with-kotlin/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#bdd" title="Pages tagged bdd">bdd</a></li><li><a href="/tags/#test" title="Pages tagged test">test</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#test framework" title="Pages tagged test framework">test framework</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#junit" title="Pages tagged junit">junit</a></li>
+        </ul>
+        
+          <h1 class="entry-title">BDD Test Framework with Kotlin</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2013-03-27T00:44:00+01:00"><i class="fa fa-calendar-o"></i> March 27, 2013</time></span>
+        <span class="entry-date date modified"><time datetime="2013-03-27T00:44:54.445+01:00"><i class="fa fa-pencil"></i> March 27, 2013</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>Today I'll present what I've done for <a href="https://github.com/hhariri/spek">Spek</a>
+  project. Spek is the <a href="http://en.wikipedia.org/wiki/Behavior-driven_development">BDD</a> test
+  framework for <a href="http://kotlin.jetbrains.org">Kotlin</a></p><h2>Problem statement</h2><p>I
+  decided to make <a href="https://github.com/hhariri/spek">Spek</a> test framework to be supported by
+  existing java testing tools, starting from a test runner with <a href="http://www.jetbrains.com/idea/">IntelliJ
+    IDEA</a> to supporting <a href="https://github.com/hhariri/spek">Spek</a> test runs under build
+  scripts, <a href="http://www.jetbrains.com/teamcity/">TeamCity</a>, code coverage and so on. This list
+  looks too big to describe it one blog post, don't it? Ok, the idea behind is to re-use existing java test runner.
+</p> <p>There are two major testing frameworks for Java. First and the oldest one is <a
+  href="http://junit.org/">JUnit</a>. The second one is <a href="http://testng.org/doc/index.html">TestNG</a></p><p>From
+  the start I figured out how to extend JUnit in order to change the way it runs tests. Unfortunately, I found no
+  easy way on how to implement similar things with TestNG. (Personally, I prefer TestNG to JUnit :)</p> <h2>Tesing
+  Framework Details</h2><p>Let's start with small introduction to BDD-like testing frameworks. How
+  should look an ideal <a href="http://hadihariri.com/2012/04/11/what-bdd-has-taught-me/">BDD</a> test
+  framework use case? At least it should not contain extra language-specific code that makes it harder to read. <a
+    href="http://hadihariri.com/">Hadi</a> created an awesome <a
+    href="http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/">DSL</a>
+  for that in <a href="http://kotlin.jetbrains.org/">Kotlin</a>. This is how BDD test may look:</p>
+<script
+  type="syntaxhighlighter" class="brush: text"><![CDATA[ given("a calculator") { val calculator =
+      JCalculator() on("calling sum with two numbers") { val sum = calculator.sum(2, 4) it("should return the result of
+      adding the first number to the second number") { shouldEqual(6, sum) } } on("calling substract with two numbers")
+      { val subtract = calculator.subtract(4, 2) it("should return the result of substracting the second number from the
+      first number") { shouldEqual(2, subtract) } } } ]]>
+</script> <h2>Abstracting DSL</h2><h3>DSL
+  API</h3><p>First implementation of <a
+  href="http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/">Spek
+  DSL</a> was running all closures in-place. That was the thing I decided to change. For JUnit test runner
+  integration I was needed to have more control over tests code evaluation. </p><p>As side task I split
+  Spek DSL definitions from Spek DSL implementations. Finally, I migrated Spek DSL into the following API
+  definition:</p>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[ //main trait to be
+      implemented in Spek test base class public trait Spek { fun given(description: String, givenExpression: Given.() ->
+      Unit) } public trait Given { fun on(description: String, onExpression: On.() -> Unit) } public trait On { fun
+      it(description: String, itExpression: It.()->Unit) } public class It { fun shouldEqual<T>(expected: T,
+      actual: T) { assertEquals(expected, actual) } fun shouldNotEqual<T>(expected: T, actual: T) { assertNot {
+      expected == actual } } //and more assertions goes here } ]]>
+</script> <p>The only thing that is
+  missing in the code above is the implementation of <em>Spek</em> trait. Meanwhile, the code above
+  defines the rest of test API. </p> <h3>DSL Model</h3><p>I going to have a number of traits
+  to represents test execution stages:</p>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+      // root 'given' case trait TestFixtureAction { fun Description(): String fun performInit(): List<TestGivenAction>}
+      trait TestGivenAction { fun Description(): String fun performInit(): List<TestOnAction>} trait TestOnAction
+      { fun Description(): String fun performInit(): List<TestItAction>} trait TestItAction { fun Description():
+      String fun run() } ]]>
+</script> <p>Next is to provide implementation of methods <em>given,
+  on, it</em>. Let's start with <em>given</em> and <em>on</em>:</p>
+<script
+  type="syntaxhighlighter" class="brush: text"><![CDATA[ public fun given(description: String,
+      givenExpression: Given.() -> Unit): TestGivenAction { return object:TestGivenAction { public override fun
+      Description(): String = "given " + description public override fun performInit(): List<TestOnAction> { val g
+      = GivenImpl() g.givenExpression() return g.getActions() } } } ///this object holds all 'on' cases inside public
+      class GivenImpl: Given { private val recordedActions = arrayListOf<TestOnAction>() public fun getActions():
+      List<TestOnAction> = recordedActions public override fun on(description: String, onExpression: On.() ->
+      Unit) { recordedActions.add( object : TestOnAction { public override fun Description(): String = description
+      public override fun performInit(): List<TestItAction> { val o = OnImpl() o.onExpression() return
+      o.getActions() } }) } } ]]>
+</script> <p>The trick here is that execution of <em>onExpression</em>
+  function is moved inside anonymous class that is created by the method. So instead of executing all functions, it
+  records them. Another thing is that <em>onExpression</em> is an extension method for <em>On</em>
+  class, so call looks like member execution, i.e. <em>o.onExpression()</em>. Implementation of <em>On</em>
+  and <em>It</em> is mostly same-looking. Let's move to JUnit test runner.</p> <h2>JUnit</h2><p>Integration
+  with JUnit is simple. One need to mark test class with <em>@RunWith</em> annotation and provide a test
+  runner class with a constructor from <em>Class</em> that extends <a
+    href="http://junit.sourceforge.net/javadoc/org/junit/runner/Runner.html">Runner</a> class.</p><p>To
+  hide such details, I come up with tests base class. This class implements <em>Spek</em> trait and
+  provides JUnit specific setup</p>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+      RunWith(javaClass<JSpec<*>>()) public abstract class JUnitSpek : Spek { private val givens =
+      arrayListOf<TestGivenAction>() override fun given(description: String, givenExpression: Given.() -> Unit)
+      { givens.add(givenImpl(description, givenExpression)) } //possible workaround to cheat JUnit integration to treat
+      this class as test test public fun mockTest() {} //this method is only used by JSpec to get defined tests fun
+      allGivens() : List<TestGivenAction> = givens } ]]>
+</script> <p>With use of the base class for
+  Spek tests for JUnit looks like:</p>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+      public class calculatorSpecs : JUnitSpek() {{ given("condition") { ... } }} ]]>
+</script>
+<p>You may
+  notice here double {{ and }}. Those are used intentionally, because test model is constructed in class
+  constructor
+  with help of <em>given</em> method implementation. Then the model is used from <em>JSpec
+    <T>
+  </em>
+  class to implement <em>Runner</em> class from JUnit
+</p> <h2>Conclusions</h2><p>I
+  made many changes to <a href="https://github.com/hhariri/spek">Spek</a> BDD testing framework to
+  support tests execution both from Console and from JUnit. Thanks Hadi for accepting my pull request for Spek.</p><p>
+  Now
+  you could see your test runs with IDEA's JUnit runner!</p><a
+  href="http://3.bp.blogspot.com/-JY0r0Evr4lY/UU8UHbrebLI/AAAAAAAACRc/vmuR2wZ646M/s1600/Image_0042.png"
+  imageanchor="1"><img border="0"
+                       src="http://3.bp.blogspot.com/-JY0r0Evr4lY/UU8UHbrebLI/AAAAAAAACRc/vmuR2wZ646M/s320/Image_0042.png"/></a>
+<p>For more details, see source code of Spek <a href="https://github.com/hhariri/spek">here</a>.
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2013/01/14/kotlin-nodejs-and-teamcity/" class="btn" title="Kotlin, Node.js and TeamCity">Previous</a>
+      
+      
+        <a href="/blog/2013/04/27/github-change-status-on-branches/" class="btn" title="GitHub Change Status on Branches">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

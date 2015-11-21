@@ -1,0 +1,345 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Spring Framework Component Container Decomposition &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="IoC, JRE, Dependency Injection, DI, Component, Spring Framework, Spring IoC, classloaders, Spring, Component Container, java">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Spring Framework Component Container Decomposition">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Framework Component Container Decomposition">
+
+<meta property="og:url" content="/blog/2014/05/14/spring-framework-component-container/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2014/05/14/spring-framework-component-container/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#IoC" title="Pages tagged IoC">IoC</a></li><li><a href="/tags/#JRE" title="Pages tagged JRE">JRE</a></li><li><a href="/tags/#Dependency Injection" title="Pages tagged Dependency Injection">Dependency Injection</a></li><li><a href="/tags/#DI" title="Pages tagged DI">DI</a></li><li><a href="/tags/#Component" title="Pages tagged Component">Component</a></li><li><a href="/tags/#Spring Framework" title="Pages tagged Spring Framework">Spring Framework</a></li><li><a href="/tags/#Spring IoC" title="Pages tagged Spring IoC">Spring IoC</a></li><li><a href="/tags/#classloaders" title="Pages tagged classloaders">classloaders</a></li><li><a href="/tags/#Spring" title="Pages tagged Spring">Spring</a></li><li><a href="/tags/#Component Container" title="Pages tagged Component Container">Component Container</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Spring Framework Component Container Decomposition</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2014-05-14T22:30:00+02:00"><i class="fa fa-calendar-o"></i> May 14, 2014</time></span>
+        <span class="entry-date date modified"><time datetime="2014-05-14T22:30:21.167+02:00"><i class="fa fa-pencil"></i> May 14, 2014</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this post I explain how one could split one huge components container into a number
+  of smaller ones</p> <h2>Introduction</h2><p>Spring Framework Component Container (or
+  Spring Framework IoC Container) is an implementation of the <em><a
+    href="http://en.wikipedia.org/wiki/Inversion_of_control">Inversion of Control</a></em> principle.
+  This is also known as <em><a href="http://en.wikipedia.org/wiki/Dependency_injection">Dependency
+    Injection</a></em>. So a typical application is represented as a number of components (beans,
+  services; read java classes) with dependencies (either declared or auto discovered). The Component Container uses
+  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the <a
+    href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html">Spring Framework documentation</a></p>
+<h2>Problem statement</h2><p>Say you have an Application that uses IoC. It is now very easy to
+  add new components and to pass mostly every component as the dependency for the first one. But in the long run it
+  could lead to several issues. </p><p>The <strong>first</strong> one is that most of
+  components tend to depend transitively from most of the other components. So the Application turns into a knot of
+  undetachable dependencies. So unit tests transform into complex integration tests, where the most of the
+  Application components has to be created. </p><p>The <strong>second</strong>problem is
+  with library dependencies classpath. One could easily use library A, while library B is used in the other part of
+  the Application. Say A depends on C v1.0 and B depends on C v2.0. Here is the problem. The ideal solution is to
+  remove A and B libraries from main classpath and load each separately to get rid of the need of resolving an ideal
+  version of the library C. </p> <h2>Splitting components</h2><p>How could we solve those
+  issues? My answer is to split the application container into a number of sub containers. So we could hide some
+  component implementation details from the other components. We split one container into the root container and a
+  number of sub containers. The split would provide enough isolation both for component dependencies and for
+  classpaths. </p> <p>The split process could be done in the following way. We take one big component
+  (facade) and move all it's implementation details into a sub container. Iteratively we may hide all huge
+  components implementations from the rest of the application and thus resolve the <em>first</em> issue.
+</p> <p>Speaking of the library dependencies. Each of sub container could load classes from extended
+  classpath in a dedicated classloader. This helps to resolve the <em>second</em> issue. </p> <p>There
+  are another solutions for dependency isolation. For example, you may take a look at <a
+    href="http://en.wikipedia.org/wiki/OSGi">OSGi</a> framework. The solution below would be a much easier
+  and it is only up to you what solution to consider. </p> <h2>Implementation</h2><p>Say you
+  decided to split one component container in a number of sub containers. There is the list of tasks to implement:</p>
+<ul>
+  <li>Create
+    a sub container with parent of a root container (A)
+  </li>
+  <li>Make sub container scan classes from a
+    specific classloader (B)
+  </li>
+  <li>Allow components from a sub container to depend from components from
+    the root container (C)
+  </li>
+  <li>Declaratively export some components from a sub container to root
+    container (D)
+  </li>
+</ul> <h3>Simple Spring Sub Container (A, C)</h3><p>A child Spring
+  container (context) is created in the following way. Call the constructor of a <a
+    href="http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html">ClassPathXmlApplicationContext</a>.
+  Pass current container (from the <a
+    href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true">ApplicationContextAware</a>
+  interface implementation), specify configuration resources and the name. </p><p>The created sub
+  container includes parent container components in the dependencies resolution. </p> <p><strong>NOTE</strong>.
+  Sub container configuration resources must <strong>NOT</strong> overlap with configuration resources
+  of any other container in the application. Otherwise sub container may re-load all components from the application
+  and crash. </p> <p>I recommend to consider <em>classpath*:META-INF/app-root-configuration-*.xml</em>
+  for the root context and <em>classpath*:META-INF/app-child-configuration-*.xml</em> for a sub
+  container to avoid the possible clash. Same applies for classes scan for annotations as well</p> <p>We
+  put a sub container creation code into the root container component. The component implements <a
+    href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html">InitializingBean</a>
+  to trigger sub container start.</p> <h3>Using Custom Classloader (B)</h3><p>Spring
+  Framework provides API to specify custom classloader for the container. This is done in the following way:</p>
+<script
+  type="syntaxhighlighter" class="brush:java"><![CDATA[ final subLoader = createSubContextClassLoader(...);
+      new ClassPathXmlApplicationContext(..., myParentApplicationContext) { @Override protected void
+      initBeanDefinitionReader(@NotNull final XmlBeanDefinitionReader reader) { super.initBeanDefinitionReader(reader);
+      //here we set the right classloader reader.setBeanClassLoader(subLoader); setClassLoader(subLoader); } }; ]]>
+</script>
+<h3>Exporting components to the root container (D)</h3>
+<p>There is an expected need to be able
+  to export some component implementations back to the root container. This could be easily done via <a
+    href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory">BeanFactory</a>.
+  What we need is to declare a <strong>non generic</strong> getter methods in the sub container creating
+  component. The getter methods should be registered as factory methods in the root container (in .xml file or via
+  annotations). For the getter implementation you may simply call a wrapping method with explicit type over <em>ApplicationContext#
+    <T>getBean(Class
+      <T>
+        t)
+  </em>.
+</p><p><strong>NOTE</strong>. Using a generic factory method may leave the
+  container without knowing the exact type of the component. So application may randomly fail to resolve a component
+  dependencies in the container. That is only why I recommend to avoid generic factory methods for the scenario.
+</p> <h2>Usage example</h2><p>I decided to implement the pattern in the new application I
+  started. The main reason for me was to split the application classpath in to several modules to hide nasty
+  dependencies in them. I realised I need to avoid the dependency resolution hell. </p> <p>Thanks to the
+  pattern I split my application into several logical sub containers. This helped me to avoid dependencies hell. The
+  pattern also forced me to hide implementation details. I have several components in the root container that are
+  implemented by the number of internal components in sub containers. And each sub container depends on a number of
+  libraries with intersecting transitive dependencies sets. </p> <p>The definition of a sub-container in
+  the application is the following:</p>
+<script type="syntaxhighlighter" class="brush:java"><![CDATA[
+      @Component public class SubContext extends SubContextLoader { public SubContext() { super(/*name:*/ "Sub Context",
+      /*classpath dir:*/ "/WEB-INF/sub", /*spring config: */ "classpath*:/META-INF/vcs-service-hub-settings*.xml"); }
+      /** A SubFilter component implementation for ** the root container that created/loaded via sub container **/ @Bean
+      @NotNull public SubFilter getFilterComponent() { return myApplicationContext.getBean(SubFilter.class); } } ]]>
+</script>
+<p>To add the next sub container I only need to add a similar class to the root container. And that is it!
+</p> <h2>Conclusion</h2><p>Crazy, but one may use this technique recursively to provide
+  even better separation and/or interface/implementation design. </p><p>Hope I covered all details.
+  Please let me know if you'd like me to cover some gaps</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2014/04/26/named-stack-frames-for-jvm/" class="btn" title="Named Stack Frames for the JVM">Previous</a>
+      
+      
+        <a href="/blog/2014/11/02/teamcitynode-update/" class="btn" title="TeamCity.Node Update">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

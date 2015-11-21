@@ -1,0 +1,290 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Kotlin, Node.js and TeamCity &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="teamcity runner, teamcity plugin, ci, javascript, teamcity, teamcity agent, node.js, build, kotlin">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Kotlin, Node.js and TeamCity">
+
+<meta name="twitter:site" content="@jonnyzzz">
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin, Node.js and TeamCity">
+
+<meta property="og:url" content="/blog/2013/01/14/kotlin-nodejs-and-teamcity/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2013/01/14/kotlin-nodejs-and-teamcity/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<!-- Icons -->
+<!-- 16x16 -->
+<!--<link rel="shortcut icon" href="/favicon.ico">-->
+<!-- 32x32 -->
+<!--<link rel="shortcut icon" href="/favicon.png">-->
+<!-- 57x57 (precomposed) for iPhone 3GS, pre-2011 iPod Touch and older Android devices -->
+<!--<link rel="apple-touch-icon-precomposed" href="/images/apple-touch-icon-precomposed.png">-->
+<!-- 72x72 (precomposed) for 1st generation iPad, iPad 2 and iPad mini -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="72x72" href="/images/apple-touch-icon-72x72-precomposed.png">-->
+<!-- 114x114 (precomposed) for iPhone 4, 4S, 5 and post-2011 iPod Touch -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="114x114" href="/images/apple-touch-icon-114x114-precomposed.png">-->
+<!-- 144x144 (precomposed) for iPad 3rd and 4th generation -->
+<!--<link rel="apple-touch-icon-precomposed" sizes="144x144" href="/images/apple-touch-icon-144x144-precomposed.png">-->
+
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">Eugene @jonnyzzz Petrenko personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#teamcity runner" title="Pages tagged teamcity runner">teamcity runner</a></li><li><a href="/tags/#teamcity plugin" title="Pages tagged teamcity plugin">teamcity plugin</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#javascript" title="Pages tagged javascript">javascript</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#teamcity agent" title="Pages tagged teamcity agent">teamcity agent</a></li><li><a href="/tags/#node.js" title="Pages tagged node.js">node.js</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Kotlin, Node.js and TeamCity</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+        <span class="author vcard">By <span class="fn"></span></span>
+        <span class="entry-date date published"><time datetime="2013-01-14T09:35:00+01:00"><i class="fa fa-calendar-o"></i> January 14, 2013</time></span>
+        <span class="entry-date date modified"><time datetime="2013-01-14T12:10:56.150+01:00"><i class="fa fa-pencil"></i> January 14, 2013</time></span>
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this post I describe <a href="http://nodejs.org/">Node.js</a> support
+  plugin that was implemented in <a href="http://kotlin.jetbrains.org">Kotlin</a></p> <h2>Node.js</h2><p>The
+  goal of the plugin is to provide an initial support for Node.js scripts execution on TeamCity. Plugin does the
+  following:</p>
+<ul>
+  <li>Detects system installed Node.js on the agent machine, it adds <em>node.js</em>
+    configuration parameter with Node.js version
+  </li>
+  <li>Provides a build runner to start .js file or
+    script text
+  </li>
+</ul> <a
+  href="http://4.bp.blogspot.com/-IPV-ECzyd2k/UPO7NsOAhaI/AAAAAAAACQ8/L7LzAef2xr4/s1600/Image_0026.png"
+  imageanchor="1" style=""><img border="0" height="249" width="320"
+                                src="http://4.bp.blogspot.com/-IPV-ECzyd2k/UPO7NsOAhaI/AAAAAAAACQ8/L7LzAef2xr4/s320/Image_0026.png"/></a>
+<p>This is the runner settings page. Here you can provide script of .js file, script arguments and Node.js
+  additional arguments (aka options)</p> <h2>Kotlin</h2><p>In the plugin I decided to use
+  <a href="http://kotlin.jetbrains.org">Kotlin</a>. I compile the plugin to Java 1.6</p><p>TeamCity
+  requires plugin to extend some Java classes or interfaces and register implementations in Spring Framework
+  Dependency Injection. Classes that I implement with Kotlin are usable as Spring Beans without any extra tricks</p>
+<p>In the build runner implementation I had to handle several IO errors. For each error I needed to provide
+  specific error message. This code in Java requires to have many mostly similar try/catch blocks. With Kotlin I
+  solved it nicer, I declared the following function that takes base message and function body:</p>
+<script
+  type="syntaxhighlighter" class="brush: text"><![CDATA[ fun io<T>(errorMessage: String, body: () ->
+      T): T { try { return body() } catch (e: IOException) { throw RunBuildException("${errorMessage}.
+      ${e.getMessage()}", e) } } ]]>
+</script><p>This function accepts another function to execute. It
+  wraps execution with try/catch to re-throw the error adding details as another exception</p><p>The
+  runner code now turned out to be easy to read and simple:</p>
+<script type="syntaxhighlighter"
+        class="brush: text"><![CDATA[ //let's first create temp directory val tempScript = io("Failed to create temp
+      file") { getAgentTempDirectory() tempFile TempFileName("node", ".js") } //now let's write a some text there
+      io("Failed to write script to temp file") { FileUtil.writeFileAndReportErrors(tempScript, scriptText); } ]]>
+</script>
+<p>You may read more about <a href="http://kotlin.jetbrains.org">Kotlin here</a></p> <h2>Download</h2><p>TeamCide.Node
+  plugin source code is found <a href="https://github.com/jonnyzzz/TeamCity.Node">On GitHub</a>. You may
+  also checkout <a href="https://github.com/jonnyzzz/TeamCity.Node/tree/releases">releases</a> branch to
+  download plugin binaries</p><p>If you see plugin is missing something, please feel free to post an
+  issue or patch request</p><p>Plugin is compiled with TeamCity 7.1 and may work with TeamCity 7.0</p>
+<p>To install plugin, simply put downloaded plugin .zip file into <em>&lt;TeamCity Data Directory&gt;/plugins</em>
+  folder and restart TeamCity Server. For more details, there is <a
+    href="http://confluence.jetbrains.net/display/TCD7/Installing+Additional+Plugins">documentation</a></p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'eugenepetrenko'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2013/01/11/new-nuget-support-features-in-teamcity/" class="btn" title="New NuGet Support Features in TeamCity">Previous</a>
+      
+      
+        <a href="/blog/2013/03/27/bdd-test-framework-with-kotlin/" class="btn" title="BDD Test Framework with Kotlin">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
