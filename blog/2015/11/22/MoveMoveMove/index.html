@@ -5,14 +5,14 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8">
-<title>TeamCity.AntMessages &#8211; Eugene Petrenko</title>
+<title>New Site. New Domain. New Technologies &#8211; Eugene Petrenko</title>
 
-<meta name="keywords" content="free-time, opensource, teamcity plugin, teamcity, teamcity api, ant, servicemessage, java, TeamCity.AntMessages">
+<meta name="keywords" content="docker, jekyll, domain, virtual-environment, weekend">
 
   
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="TeamCity.AntMessages">
+<meta name="twitter:title" content="New Site. New Domain. New Technologies">
 
 <meta name="twitter:site" content="@jonnyzzz">
 <meta name="twitter:creator" content="@jonnyzzz">
@@ -23,16 +23,16 @@
 <!-- Open Graph -->
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="article">
-<meta property="og:title" content="TeamCity.AntMessages">
+<meta property="og:title" content="New Site. New Domain. New Technologies">
 
-<meta property="og:url" content="/blog/2015/05/07/teamcityantmessages/">
+<meta property="og:url" content="/blog/2015/11/22/MoveMoveMove/">
 <meta property="og:site_name" content="Eugene Petrenko">
 
 
 
 
 
-<link rel="canonical" href="/blog/2015/05/07/teamcityantmessages/">
+<link rel="canonical" href="/blog/2015/11/22/MoveMoveMove/">
 <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
 
 <!-- https://t.co/dKP3o1e -->
@@ -143,10 +143,10 @@
     <div class="entry-wrapper">
       <header class="entry-header">
         <ul class="entry-tags">
-          <li><a href="/tags/#free-time" title="Pages tagged free-time">free-time</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#teamcity plugin" title="Pages tagged teamcity plugin">teamcity plugin</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#teamcity api" title="Pages tagged teamcity api">teamcity api</a></li><li><a href="/tags/#ant" title="Pages tagged ant">ant</a></li><li><a href="/tags/#servicemessage" title="Pages tagged servicemessage">servicemessage</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#TeamCity.AntMessages" title="Pages tagged TeamCity.AntMessages">TeamCity.AntMessages</a></li>
+          <li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li><li><a href="/tags/#jekyll" title="Pages tagged jekyll">jekyll</a></li><li><a href="/tags/#domain" title="Pages tagged domain">domain</a></li><li><a href="/tags/#virtual-environment" title="Pages tagged virtual-environment">virtual-environment</a></li><li><a href="/tags/#weekend" title="Pages tagged weekend">weekend</a></li>
         </ul>
         
-          <h1 class="entry-title">TeamCity.AntMessages</h1>
+          <h1 class="entry-title">New Site. New Domain. New Technologies</h1>
         
       </header>
       <footer class="entry-meta">
@@ -156,50 +156,68 @@
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2015-05-07T02:50:00+02:00"><i class="fa fa-calendar-o"></i> May 07, 2015</time></span>
-        <span class="entry-date date modified"><time datetime="2015-05-07T02:50:23.925+02:00"><i class="fa fa-pencil"></i> May 07, 2015</time></span>
+        <span class="entry-date date published"><time datetime="2015-11-22T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 22, 2015</time></span>
+        
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         
         
       </footer>
       <div class="entry-content">
-        <p>You may know about <a
-  href="https://confluence.jetbrains.com/display/TCD9/Build+Script+Interaction+with+TeamCity">Service Messages</a>
-  that helps to integrate build with <a href="http://jetbrains.com/TeamCity?jonnyzzz">TeamCity</a>. Some
-  time ago I blogged about <a href="/blog/2012/12/17/teeamcityservicemessages-v30/">Service
-    Messages Tasks for C#</a></p><p>The <a
-  href="https://github.com/jonnyzzz/TeamCity.AntMessages">TeamCity.AntMessages</a> Ant task library
-  contains necessary tasks for Ant! The usage is the follows: </p>
-<script type="syntaxhighlighter"
-        class="brush:xml"><![CDATA[
-<project basedir="." default="test">
-    <!-- here goes include -->
-    <taskdef
-            resource="teamcity-messages.xml">
-        <classpath>
-            <fileset dir="./build/libs-release"
-                     includes="TeamCity.AntMessages-*.jar"/>
-        </classpath>
-    </taskdef>
+        <p>Some days ago I realized it’s possible to have mostly any web site 
+that is running behind <a href="https://pages.github.com">GitHub pages</a>.
+Finally I decided to update my current blog and to have a site on domain root.</p>
 
-    <!-- usage examples -->
-    <target
-            name="test">
-        <teamcity-build-number number="222"/>
-        <teamcity-artifacts artifacts="222"/>
-        <teamcity-service-message
-                name="name" value="value"/>
-        <teamcity-service-message name="name">
-            <param name="aaa" value="vvv"/>
-            <param name="aa2a" value="v2vv"/>
-        </teamcity-service-message>
-    </target>
-</project>]]>
-</script>
-<h2>Download and use</h2>The sources and issue tracker is on <a
-  href="https://github.com/jonnyzzz/TeamCity.AntMessages">Here</a>Binaries can be downloaded from <a
-  href="https://github.com/jonnyzzz/TeamCity.AntMessages/releases/tag/release-0.1">here</a>License is MIT.
-Some dependencies peaces are Apache 2.0
+<p>First of I started with <a href="https://jekyllrb.com/">Jekyll</a> instructions. 
+There were a number of tricks and recommendation 
+on GitHub on how to get it running in GitHub compatible way. I decided to
+have <em>setup-as-a-code</em>, to avoid complicated and no-repeatable configuration steps.
+I found <a href="https://github.com/jekyll/docker">jekyll docker</a>
+and started using it on Mac OS. To run docker is used 
+<a href="https://docs.docker.com/machine/">Docker Machine</a>
+The only trick were to open extra port in Virtual Box, and to docker-machine’s IP address to open site preview.
+<a href="https://github.com/jonnyzzz/jonnyzzz.com.jekyll/blob/master/jekyll.sh">This</a> is the script I use to run 
+the container.</p>
+
+<p>Sample site was created. <a href="https://help.github.com/articles/adding-a-cname-file-to-your-repository">CNAME</a>
+was added. DNS was updated.</p>
+
+<p>Initially I created a repository called <code>jonnyzzz.github.io</code> and <code>master</code> branch. Next I changed it 
+to <code>jonnyzzz.com</code> and put the site into <code>gh-pages</code> branch. The second option looks better to me as I have 
+several domains.</p>
+
+<p>I used <a href="http://import.jekyllrb.com/docs/blogger">jekyll-import</a> to import my older blog posts
+from Blogger.com. It was quite easy to run in my jekyll docker container. But I lost code formatting
+in imported posts. Re-formatted snippets manually.</p>
+
+<p>Next I was looking for a suitable theme for jekyll pages. It was 
+<a href="https://github.com/mmistakes/so-simple-theme">so-simple-theme</a>
+that I used and tuned. I event forked theme repository to have a change to 
+apply there updates to my pages.</p>
+
+<p>Next I added cookie policy warning via <a href="http://silktide.com/cookieconsent">Silktide</a>. 
+Really simple to use and it works well</p>
+
+<p>Created favicons via <a href="http://www.favicon-generator.org">http://www.favicon-generator.org/</a>. Had to install 
+Gimp via Homebrew to crop avatar image.</p>
+
+<p>I uploaded sources to <code>gh-pages</code> and it failed inside GitHub pages jekyll run. With only a 
+notification that it failed. No logs or hints were there from GitHub error. I gave it up.</p>
+
+<p>I moved sources to <code>master</code> branch and made <code>_site</code> folder (a default generator output folder) to be 
+another checkout repo checkout of <code>gh-pages</code> branch. Now I commit sources and generated site together. 
+I also added <code>.nojekyll</code> file to site, to make sure GitHub’s jekyll is disabled.</p>
+
+<p>Hadi <a href="http://hadihariri.com/2014/01/04/using-webstorm-to-maintain-a-jekyll-site">wrote</a> a 
+guide on how to write Jekyll posts. I followed it and start using <a href="https://www.jetbrains.com/webstorm/">WebStorm</a>.
+So now I have two VCS Roots in the project to commit to. The <code>_site</code> is updated automatically via running <code>jekyll server</code> in Docker.</p>
+
+<p>HTTPS is implemented via <a href="https://www.cloudflare.com/">cloudflare.com</a>. It was easy to install 
+and nice to use. But you’ll need to change domain name servers to CloudFlare’s.</p>
+
+<p>Finally, I created yet another stub site to implement redirect from <code>jonnyzzz.name</code>. In some weeks
+I’ll create similar redirect from <code>blog.jonnyzzz.name</code> too.</p>
+
+<p>Now I can author posts in Markdown. I like it! Welcome to the new site and blog.</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
@@ -231,10 +249,8 @@ Some dependencies peaces are Apache 2.0
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/blog/2014/11/02/teamcitynode-update/" class="btn" title="TeamCity.Node Update">Previous</a>
+        <a href="/blog/2015/05/07/teamcityantmessages/" class="btn" title="TeamCity.AntMessages">Previous</a>
       
-      
-        <a href="/blog/2015/11/22/MoveMoveMove/" class="btn" title="New Site. New Domain. New Technologies">Next</a>
       
     </nav><!-- /.pagination -->
   </article>

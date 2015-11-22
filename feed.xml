@@ -4,13 +4,88 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-11-22T21:08:35+00:00</updated>
+<updated>2015-11-22T22:17:41+00:00</updated>
 <id>/</id>
 <author>
   <name>Eugene Petrenko</name>
   <uri>/</uri>
   <email>eugene.petrenko@gmail.com</email>
 </author>
+
+
+  
+
+<entry>
+  <title type="html"><![CDATA[New Site. New Domain. New Technologies]]></title>
+  <link rel="alternate" type="text/html" href="/blog/2015/11/22/MoveMoveMove/" />
+  <id>/blog/2015/11/22/MoveMoveMove</id>
+  <published>2015-11-22T00:00:00+00:00</published>
+  <updated>2015-11-22T00:00:00+00:00</updated>
+  <author>
+    <name>Eugene Petrenko</name>
+    <uri></uri>
+    <email>eugene.petrenko@gmail.com</email>
+  </author>
+  <content type="html">
+    &lt;p&gt;Some days ago I realized it’s possible to have mostly any web site 
+that is running behind &lt;a href=&quot;https://pages.github.com&quot;&gt;GitHub pages&lt;/a&gt;.
+Finally I decided to update my current blog and to have a site on domain root.&lt;/p&gt;
+
+&lt;p&gt;First of I started with &lt;a href=&quot;https://jekyllrb.com/&quot;&gt;Jekyll&lt;/a&gt; instructions. 
+There were a number of tricks and recommendation 
+on GitHub on how to get it running in GitHub compatible way. I decided to
+have &lt;em&gt;setup-as-a-code&lt;/em&gt;, to avoid complicated and no-repeatable configuration steps.
+I found &lt;a href=&quot;https://github.com/jekyll/docker&quot;&gt;jekyll docker&lt;/a&gt;
+and started using it on Mac OS. To run docker is used 
+&lt;a href=&quot;https://docs.docker.com/machine/&quot;&gt;Docker Machine&lt;/a&gt;
+The only trick were to open extra port in Virtual Box, and to docker-machine’s IP address to open site preview.
+&lt;a href=&quot;https://github.com/jonnyzzz/jonnyzzz.com.jekyll/blob/master/jekyll.sh&quot;&gt;This&lt;/a&gt; is the script I use to run 
+the container.&lt;/p&gt;
+
+&lt;p&gt;Sample site was created. &lt;a href=&quot;https://help.github.com/articles/adding-a-cname-file-to-your-repository&quot;&gt;CNAME&lt;/a&gt;
+was added. DNS was updated.&lt;/p&gt;
+
+&lt;p&gt;Initially I created a repository called &lt;code&gt;jonnyzzz.github.io&lt;/code&gt; and &lt;code&gt;master&lt;/code&gt; branch. Next I changed it 
+to &lt;code&gt;jonnyzzz.com&lt;/code&gt; and put the site into &lt;code&gt;gh-pages&lt;/code&gt; branch. The second option looks better to me as I have 
+several domains.&lt;/p&gt;
+
+&lt;p&gt;I used &lt;a href=&quot;http://import.jekyllrb.com/docs/blogger&quot;&gt;jekyll-import&lt;/a&gt; to import my older blog posts
+from Blogger.com. It was quite easy to run in my jekyll docker container. But I lost code formatting
+in imported posts. Re-formatted snippets manually.&lt;/p&gt;
+
+&lt;p&gt;Next I was looking for a suitable theme for jekyll pages. It was 
+&lt;a href=&quot;https://github.com/mmistakes/so-simple-theme&quot;&gt;so-simple-theme&lt;/a&gt;
+that I used and tuned. I event forked theme repository to have a change to 
+apply there updates to my pages.&lt;/p&gt;
+
+&lt;p&gt;Next I added cookie policy warning via &lt;a href=&quot;http://silktide.com/cookieconsent&quot;&gt;Silktide&lt;/a&gt;. 
+Really simple to use and it works well&lt;/p&gt;
+
+&lt;p&gt;Created favicons via &lt;a href=&quot;http://www.favicon-generator.org&quot;&gt;http://www.favicon-generator.org/&lt;/a&gt;. Had to install 
+Gimp via Homebrew to crop avatar image.&lt;/p&gt;
+
+&lt;p&gt;I uploaded sources to &lt;code&gt;gh-pages&lt;/code&gt; and it failed inside GitHub pages jekyll run. With only a 
+notification that it failed. No logs or hints were there from GitHub error. I gave it up.&lt;/p&gt;
+
+&lt;p&gt;I moved sources to &lt;code&gt;master&lt;/code&gt; branch and made &lt;code&gt;_site&lt;/code&gt; folder (a default generator output folder) to be 
+another checkout repo checkout of &lt;code&gt;gh-pages&lt;/code&gt; branch. Now I commit sources and generated site together. 
+I also added &lt;code&gt;.nojekyll&lt;/code&gt; file to site, to make sure GitHub’s jekyll is disabled.&lt;/p&gt;
+
+&lt;p&gt;Hadi &lt;a href=&quot;http://hadihariri.com/2014/01/04/using-webstorm-to-maintain-a-jekyll-site&quot;&gt;wrote&lt;/a&gt; a 
+guide on how to write Jekyll posts. I followed it and start using &lt;a href=&quot;https://www.jetbrains.com/webstorm/&quot;&gt;WebStorm&lt;/a&gt;.
+So now I have two VCS Roots in the project to commit to. The &lt;code&gt;_site&lt;/code&gt; is updated automatically via running &lt;code&gt;jekyll server&lt;/code&gt; in Docker.&lt;/p&gt;
+
+&lt;p&gt;HTTPS is implemented via &lt;a href=&quot;https://www.cloudflare.com/&quot;&gt;cloudflare.com&lt;/a&gt;. It was easy to install 
+and nice to use. But you’ll need to change domain name servers to CloudFlare’s.&lt;/p&gt;
+
+&lt;p&gt;Finally, I created yet another stub site to implement redirect from &lt;code&gt;jonnyzzz.name&lt;/code&gt;. In some weeks
+I’ll create similar redirect from &lt;code&gt;blog.jonnyzzz.name&lt;/code&gt; too.&lt;/p&gt;
+
+&lt;p&gt;Now I can author posts in Markdown. I like it! Welcome to the new site and blog.&lt;/p&gt;
+
+    &lt;p&gt;&lt;a href=&quot;/blog/2015/11/22/MoveMoveMove/&quot;&gt;New Site. New Domain. New Technologies&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 22, 2015.&lt;/p&gt;
+  </content>
+</entry>
 
 
   
@@ -1533,70 +1608,6 @@ using (var messages = new TeamCityServiceMessages().CreateWriter()) {
   feedback from you!&lt;/p&gt;
 
     &lt;p&gt;&lt;a href=&quot;/blog/2012/09/13/github-status-api-in-teamcity-update/&quot;&gt;GitHub Status Api in TeamCity Update&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on September 13, 2012.&lt;/p&gt;
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[TeamCity Plugin Template]]></title>
-  <link rel="alternate" type="text/html" href="/blog/2012/09/10/teamcity-plugin-template/" />
-  <id>/blog/2012/09/10/teamcity-plugin-template</id>
-  <updated>2012-09-20T14:03:36.779+02:00T00:00:00-00:00</updated>
-  <published>2012-09-10T14:00:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri></uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Do you like to create a plugin for TeamCity. For me it&#39;s me best way to implement new
-  feature for TeamCity. We are working in the direction to put mostly all new functionality as plugins. &lt;/p&gt;&lt;p&gt;In
-  this post I&#39;ll describe my approach on how one can setup a project to develop new plugin for TeamCity. &lt;/p&gt;&lt;p&gt;A
-  plugins may have several parts &lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Server-Side - code that is running in TeamCity server&lt;/li&gt;
-  &lt;li&gt;&lt;a
-    href=&quot;/blog/2011/09/05/how-to-pack-agent-plugin-for-teamcity/&quot;&gt;Agent-Side&lt;/a&gt; - code
-    that is running on all build agents
-  &lt;/li&gt;
-&lt;/ul&gt;&lt;p&gt;My sample now &lt;strong&gt;only covers
-  server-side plugins&lt;/strong&gt;.&lt;/p&gt; &lt;h3&gt;Features inside&lt;/h3&gt;
-&lt;ul&gt;
-  &lt;li&gt;Pre-set
-    number of project libraries to simplify development
-  &lt;/li&gt;
-  &lt;li&gt;Artifact &#39;plugin-zip&#39; that creates a
-    TeamCity plugin .zip file
-  &lt;/li&gt;
-  &lt;li&gt;Artifact &#39;deploy&#39; that copies created plugin into TeamCity data
-    directory
-  &lt;/li&gt;
-  &lt;li&gt;Artifact &#39;idea-resolve-helper&#39; that is used to make IDEA resolve all jsp custom tags
-    that you may want to use in plugins
-  &lt;/li&gt;
-  &lt;li&gt;Run configuration &#39;Tomcat-6-TeamCity&#39;. You may use this
-    configuration to make IDEA run debugging of TeamCity server with your plugin deployed inside.
-  &lt;/li&gt;
-&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;
-&lt;h3&gt;Initialize environment&lt;/h3&gt;&lt;p&gt;The project is created in &lt;a
-  href=&quot;http://www.jetbrains.com/idea/&quot;&gt;Intellij IDEA&lt;/a&gt; 12 EAP. To run debugging of tomcat server with
-  your plugin you may need to have &lt;a
-    href=&quot;http://www.jetbrains.com/idea/features/editions_comparison_matrix.html?IC&quot;&gt;Ultimate edition&lt;/a&gt;&lt;p&gt;First
-  you need to checkout &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.PluginTemplate&quot;&gt;PluginTemplate&lt;/a&gt;
-  project from Git/GitHub.&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.PluginTemplate&quot;&gt;https://github.com/jonnyzzz/TeamCity.PluginTemplate&lt;/a&gt;
-&lt;/p&gt;&lt;p&gt;Check
-  project &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.PluginTemplate/blob/master/README.md&quot;&gt;readme&lt;/a&gt;
-  to find instructions to update necessary names in the plugin.&lt;/p&gt;&lt;p&gt;Project uses &lt;strong&gt;TeamCityDistribution&lt;/strong&gt;
-  environment variable as path to TeamCity installation directory (from .exe installed or unpacked .tar.gz).&lt;/p&gt;&lt;p&gt;You
-  need to add a tomcat application server in IDEA settings. The easiest way to to use tomcat that is bundled under
-  TeamCity distribution&lt;/p&gt; &lt;h3&gt;Future Work&lt;/h3&gt;&lt;p&gt;In the next post I&#39;ll describe some
-  number of tricks I used to make it work.&lt;/p&gt;&lt;p&gt;Have fun!&lt;/p&gt; &lt;h3&gt;If you use this template
-  project, please let me know!&lt;/h3&gt;
-
-    &lt;p&gt;&lt;a href=&quot;/blog/2012/09/10/teamcity-plugin-template/&quot;&gt;TeamCity Plugin Template&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on September 10, 2012.&lt;/p&gt;
   </content>
 </entry>
 
