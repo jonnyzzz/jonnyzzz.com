@@ -162,45 +162,70 @@
   href="http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html">try-with-resource</a>.
   Recently I had a chance to use it in a project. Main usage I had was for <a
     href="https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html">logging contexts</a>. </p>
-<script type="syntaxhighlighter" class="brush: java"><![CDATA[ ProjectMDC.mdcStart(PROJECT, projectId)
-      try { //here goes the code under logging context } finally { ProjectMDC.mdcStop(PROJECT, projectId) } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+ProjectMDC.mdcStart(PROJECT, projectId);
+try {
+  //here goes the code under logging context
+} finally {
+  ProjectMDC.mdcStop(PROJECT, projectId);
+}
+]]></script>
 <p>This code looks feasible for small examples, but things got complicated when one has big code block under
   <em>try/finally</em>. Next approach is to use Java 1.7 try-with-resource. The approach is similar to
   <a href="http://msdn.microsoft.com/en-us/library/yh598w02.aspx"><em>using</em> construction in
     C#</a>. </p>
-<script type="syntaxhighlighter" class="brush: java"><![CDATA[ try
-      (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) { //here goes the code under logging
-      context } ]]>
-</script> <p><em>CloseableResource</em> is an interface inherited from
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+try(CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  //here goes the code under loggingcontext
+}
+]]></script>
+<p><em>CloseableResource</em> is an interface inherited from
   Java's standard <em>AutoCloseable</em>. The only reason for it is to avoid declared exceptions. The
   implementation of an interface is following: </p>
 <script type="syntaxhighlighter" class="brush: java"><![CDATA[
-      public interface CloseableResource extends AutoCloseable { @Override void close(); }
-</script> <p>In
+public interface CloseableResource extends AutoCloseable {
+  @Override
+  void close();
+}
+]]></script> <p>In
   Java 1.7 it's unfortunately not allowed to use expression as resource in the try-with-resource statement. So I was
   forced to have a dummy variable declaration there. So I named the variable with underscores to make it be
   unusable. I with I could write something like this: <em>try(foo()) { /*code*/ }</em>. Nowadays this is
   not supported. </p> <p>Meanwhile the pattern was good to use and I start using it in many places. In
   some places I added <em>catch</em> clause for the try.</p>
-<script type="syntaxhighlighter"
-        class="brush: java"><![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-      //here goes the code under logging context } catch (MightyException e) { logger.error(e); } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  //here goes the code under logging context
+} catch (MightyException e) {
+  logger.error(e);
+}
+]]></script>
 <p>This code looks good, but it does not work as it was expected! I expected from it to call <em>logger.error</em>
   <strong>under <em>ProjectMDC.mdc()</em> resource</strong> but it turned out <strong>the
     <em>logger.error()</em> method is called AFTER <em>ProjectMDC.mdc()</em> context is closed</strong>.
   The problem is that logging was expected to be logged <strong>with</strong> <em>ProjectMDC</em>
   but it was not. So the only right code should be patched as follows</p>
-<script type="syntaxhighlighter"
-        class="brush: java"><![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-      try { //here goes the code under logging context } catch (MightyException e) { logger.error(e); } } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  try {
+    //here goes the code under logging context
+  } catch (MightyException e) {
+    logger.error(e);
+  }
+}
+]]></script>
+
 <p>This code is similar ugly as pre 1.7 code:</p>
-<script type="syntaxhighlighter" class="brush:
-      java"><![CDATA[ final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId); try { //here
-      goes the code under logging context } catch (MightyException e) { logger.error(e); } finally { ___.close(); } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush:java"><![CDATA[
+final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId);
+try {
+  //here goes the code under logging context
+} catch (MightyException e) {
+  logger.error(e);
+} finally {
+  ___.close();
+}
+]]></script>
 <p>The only lack in the older code is that one have to declare <em>CloseableResource</em>
   variable and than explicitly close it at end. There is one extra variable in code to take care of.</p> <h3>
   Outcome</h3><p>The
@@ -217,18 +242,30 @@
 </ul> <h3>The Kotlin Way</h3><p>All this time I was
   recalling how easy once could create one's own <em>using</em> in <a
     href="http://kotlin.jetbrains.org/">Kotlin</a>. For example:</p>
-<script
-  type="syntaxhighlighter" class="brush: text"><![CDATA[ fun <T> using(project: Project, f: () -> T):
-      T { ProjectMDC.mdcStart(PROJECT, project) try { return f(); } finally { ProjectMDC.mdcStop(PROJECT, project) } }
-      ]]>
-</script> <p>Here I declared my own construction that is more useful in my project! So the
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+fun <T> using(project: Project, f: () -> T): T {
+  ProjectMDC.mdcStart(PROJECT, project)
+  try {
+    return f();
+  } finally {
+    ProjectMDC.mdcStop(PROJECT, project)
+  }
+}
+]]></script>
+<p>Here I declared my own construction that is more useful in my project! So the
   usages are following</p>
 <script type="syntaxhighlighter" class="brush: text"><![CDATA[
       using(projectId) { //do some code } ]]>
 </script>
 <script type="syntaxhighlighter" class="brush: text"><![CDATA[
-      using(projectId) { try { //do some code } catch (e : Exception) { /// log me } } ]]>
-</script> <p>For
+using(projectId) {
+  try {
+    //do some code
+  } catch (e : Exception) {
+    /// log me
+  }
+}
+]]></script> <p>For
   more Kotlin details, you may follow to the <a href="http://confluence.jetbrains.com/display/Kotlin/Functions">documentation</a>.
 </p>
 <p>The only thing is that this code looks more easy-to-understandable. In the long run, I'd say, this code

@@ -176,47 +176,116 @@
     href="http://hadihariri.com/">Hadi</a> created an awesome <a
     href="http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/">DSL</a>
   for that in <a href="http://kotlin.jetbrains.org/">Kotlin</a>. This is how BDD test may look:</p>
-<script
-  type="syntaxhighlighter" class="brush: text"><![CDATA[ given("a calculator") { val calculator =
-      JCalculator() on("calling sum with two numbers") { val sum = calculator.sum(2, 4) it("should return the result of
-      adding the first number to the second number") { shouldEqual(6, sum) } } on("calling substract with two numbers")
-      { val subtract = calculator.subtract(4, 2) it("should return the result of substracting the second number from the
-      first number") { shouldEqual(2, subtract) } } } ]]>
-</script> <h2>Abstracting DSL</h2><h3>DSL
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+given("a calculator") {
+  val calculator = JCalculator()
+
+  on("calling sum with two numbers") {
+    val sum = calculator.sum(2, 4)
+    it("should return the result of adding the first number to the second number") {
+      shouldEqual(6, sum)
+    }
+  }
+
+  on("calling substract with two numbers") {
+    val subtract = calculator.subtract(4, 2)
+    it("should return the result of substracting the second number from the first number") {
+      shouldEqual(2, subtract)
+    }
+  }
+}
+]]></script>
+
+<h2>Abstracting DSL</h2><h3>DSL
   API</h3><p>First implementation of <a
   href="http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/">Spek
   DSL</a> was running all closures in-place. That was the thing I decided to change. For JUnit test runner
   integration I was needed to have more control over tests code evaluation. </p><p>As side task I split
   Spek DSL definitions from Spek DSL implementations. Finally, I migrated Spek DSL into the following API
   definition:</p>
-<script type="syntaxhighlighter" class="brush: text"><![CDATA[ //main trait to be
-      implemented in Spek test base class public trait Spek { fun given(description: String, givenExpression: Given.() ->
-      Unit) } public trait Given { fun on(description: String, onExpression: On.() -> Unit) } public trait On { fun
-      it(description: String, itExpression: It.()->Unit) } public class It { fun shouldEqual<T>(expected: T,
-      actual: T) { assertEquals(expected, actual) } fun shouldNotEqual<T>(expected: T, actual: T) { assertNot {
-      expected == actual } } //and more assertions goes here } ]]>
-</script> <p>The only thing that is
-  missing in the code above is the implementation of <em>Spek</em> trait. Meanwhile, the code above
-  defines the rest of test API. </p> <h3>DSL Model</h3><p>I going to have a number of traits
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+//main interface to be implemented in Spek test base class
+public interface Spek {
+  fun given(description: String, givenExpression: Given.() -> Unit)
+}
+
+public interface Given {
+  fun on(description: String, onExpression: On.() -> Unit)
+}
+
+public interface On {
+  fun it(description: String, itExpression: It.() -> Unit)
+}
+
+public class It {
+  fun shouldEqual<T>(expected: T, actual: T) {
+    assertEquals(expected, actual)
+  }
+
+  fun shouldNotEqual<T>(expected: T, actual: T) {
+    assertNot { expected == actual }
+  }
+
+  //and more assertions goes here
+}
+
+]]></script> <p>The only thing that is
+  missing in the code above is the implementation of <em>Spek</em> interface. Meanwhile, the code above
+  defines the rest of test API. </p> <h3>DSL Model</h3><p>I going to have a number of interfaces
   to represents test execution stages:</p>
 <script type="syntaxhighlighter" class="brush: text"><![CDATA[
-      // root 'given' case trait TestFixtureAction { fun Description(): String fun performInit(): List<TestGivenAction>}
-      trait TestGivenAction { fun Description(): String fun performInit(): List<TestOnAction>} trait TestOnAction
-      { fun Description(): String fun performInit(): List<TestItAction>} trait TestItAction { fun Description():
-      String fun run() } ]]>
-</script> <p>Next is to provide implementation of methods <em>given,
+// root 'given' case
+interface TestFixtureAction {
+  fun Description(): String
+  fun performInit(): List<TestGivenAction>
+}
+
+interface TestGivenAction {
+  fun Description(): String
+  fun performInit(): List<TestOnAction>
+}
+
+interface TestOnAction {
+  fun Description(): String
+  fun performInit(): List<TestItAction>
+}
+
+interface TestItAction {
+  fun Description(): String
+  fun run()
+}
+]]></script>
+<p>Next is to provide implementation of methods <em>given,
   on, it</em>. Let's start with <em>given</em> and <em>on</em>:</p>
-<script
-  type="syntaxhighlighter" class="brush: text"><![CDATA[ public fun given(description: String,
-      givenExpression: Given.() -> Unit): TestGivenAction { return object:TestGivenAction { public override fun
-      Description(): String = "given " + description public override fun performInit(): List<TestOnAction> { val g
-      = GivenImpl() g.givenExpression() return g.getActions() } } } ///this object holds all 'on' cases inside public
-      class GivenImpl: Given { private val recordedActions = arrayListOf<TestOnAction>() public fun getActions():
-      List<TestOnAction> = recordedActions public override fun on(description: String, onExpression: On.() ->
-      Unit) { recordedActions.add( object : TestOnAction { public override fun Description(): String = description
-      public override fun performInit(): List<TestItAction> { val o = OnImpl() o.onExpression() return
-      o.getActions() } }) } } ]]>
-</script> <p>The trick here is that execution of <em>onExpression</em>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+public fun given(description: String, givenExpression: Given.() -> Unit): TestGivenAction {
+  return object:TestGivenAction {
+    public override fun Description(): String = "given " + description
+    public override fun performInit(): List<TestOnAction> {
+      val g = GivenImpl()
+      g.givenExpression()
+      return g.getActions()
+    }
+  }
+}
+
+///this object holds all 'on' cases inside public
+class GivenImpl: Given {
+  private val recordedActions = arrayListOf<TestOnAction>()
+  public fun getActions(): List<TestOnAction> = recordedActions
+  public override fun on(description: String, onExpression: On.() -> Unit) {
+    recordedActions.add( object : TestOnAction {
+      public override fun Description(): String = description
+      public override fun performInit(): List<TestItAction> {
+        val o = OnImpl()
+        o.onExpression()
+        return o.getActions()
+      }
+    })
+  }
+}
+]]></script>
+<p>The trick here is that execution of <em>onExpression</em>
   function is moved inside anonymous class that is created by the method. So instead of executing all functions, it
   records them. Another thing is that <em>onExpression</em> is an extension method for <em>On</em>
   class, so call looks like member execution, i.e. <em>o.onExpression()</em>. Implementation of <em>On</em>
@@ -224,25 +293,31 @@
   with JUnit is simple. One need to mark test class with <em>@RunWith</em> annotation and provide a test
   runner class with a constructor from <em>Class</em> that extends <a
     href="http://junit.sourceforge.net/javadoc/org/junit/runner/Runner.html">Runner</a> class.</p><p>To
-  hide such details, I come up with tests base class. This class implements <em>Spek</em> trait and
+  hide such details, I come up with tests base class. This class implements <em>Spek</em> interface and
   provides JUnit specific setup</p>
 <script type="syntaxhighlighter" class="brush: text"><![CDATA[
-      RunWith(javaClass<JSpec<*>>()) public abstract class JUnitSpek : Spek { private val givens =
-      arrayListOf<TestGivenAction>() override fun given(description: String, givenExpression: Given.() -> Unit)
-      { givens.add(givenImpl(description, givenExpression)) } //possible workaround to cheat JUnit integration to treat
-      this class as test test public fun mockTest() {} //this method is only used by JSpec to get defined tests fun
-      allGivens() : List<TestGivenAction> = givens } ]]>
-</script> <p>With use of the base class for
+RunWith(javaClass<JSpec<*>>())
+public abstract class JUnitSpek : Spek {
+  private val givens = arrayListOf<TestGivenAction>()
+  override fun given(description: String, givenExpression: Given.() -> Unit) {
+    givens.add(givenImpl(description, givenExpression)) }
+    //possible workaround to cheat JUnit integration to treat this class as test test public fun mockTest() {}
+    //this method is only used by JSpec to get defined tests fun
+    allGivens() : List<TestGivenAction> = givens
+  }
+}
+]]></script>
+<p>With use of the base class for
   Spek tests for JUnit looks like:</p>
 <script type="syntaxhighlighter" class="brush: text"><![CDATA[
-      public class calculatorSpecs : JUnitSpek() {{ given("condition") { ... } }} ]]>
-</script>
+public class calculatorSpecs : JUnitSpek()  {{
+  given("condition") { ... }
+}}
+]]></script>
 <p>You may
   notice here double {{ and }}. Those are used intentionally, because test model is constructed in class
   constructor
-  with help of <em>given</em> method implementation. Then the model is used from <em>JSpec
-    <T>
-  </em>
+  with help of <em>given</em> method implementation. Then the model is used from <em>JSpec&lt;T&gt;</em>
   class to implement <em>Runner</em> class from JUnit
 </p> <h2>Conclusions</h2><p>I
   made many changes to <a href="https://github.com/hhariri/spek">Spek</a> BDD testing framework to

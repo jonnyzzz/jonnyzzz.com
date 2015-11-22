@@ -169,9 +169,10 @@
   you need to know the methods you like to call. The most easiest way is to play with the library from Visual Studio
   project</p><p>It's required to have a using statement in the powershell script in order to use the
   library properly. I found the following solution to it:</p>
-<pre class="brush : powershell"><br/>####
-      from http://blogs.msdn.com/b/powershell/archive/2009/03/12/reserving-keywords.aspx<br/>function
-      TeamCityUsing($obj, [scriptblock] $sb) <br/>{ <br/> try { <br/> & $sb <br/> }
+<pre class="brush : powershell"><br/>
+#### from http://blogs.msdn.com/b/powershell/archive/2009/03/12/reserving-keywords.aspx<br/>
+
+function TeamCityUsing($obj, [scriptblock] $sb) <br/>{ <br/> try { <br/> & $sb <br/> }
       finally { <br/> if ($obj -is [IDisposable]) { <br/> $obj.Dispose() <br/> } <br/> }
       <br/>} <br/></pre> <p>This script implements using statement in powershell making the
   library usage simple.</p> <h3>The Code</h3><p>Let's implement the code to report unit test

@@ -181,18 +181,27 @@
 <p>In the build runner implementation I had to handle several IO errors. For each error I needed to provide
   specific error message. This code in Java requires to have many mostly similar try/catch blocks. With Kotlin I
   solved it nicer, I declared the following function that takes base message and function body:</p>
-<script
-  type="syntaxhighlighter" class="brush: text"><![CDATA[ fun io<T>(errorMessage: String, body: () ->
-      T): T { try { return body() } catch (e: IOException) { throw RunBuildException("${errorMessage}.
-      ${e.getMessage()}", e) } } ]]>
-</script><p>This function accepts another function to execute. It
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+fun io<T>(errorMessage: String, body: () -> T): T {
+  try {
+    return body()
+  } catch (e: IOException) {
+    throw RunBuildException("${errorMessage}.${e.getMessage()}", e)
+  }
+}
+]]></script><p>This function accepts another function to execute. It
   wraps execution with try/catch to re-throw the error adding details as another exception</p><p>The
   runner code now turned out to be easy to read and simple:</p>
-<script type="syntaxhighlighter"
-        class="brush: text"><![CDATA[ //let's first create temp directory val tempScript = io("Failed to create temp
-      file") { getAgentTempDirectory() tempFile TempFileName("node", ".js") } //now let's write a some text there
-      io("Failed to write script to temp file") { FileUtil.writeFileAndReportErrors(tempScript, scriptText); } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+//let's first create temp directory
+val tempScript = io("Failed to create temp file") {
+  getAgentTempDirectory() tempFile TempFileName("node", ".js")
+}
+//now let's write a some text there
+io("Failed to write script to temp file") {
+  FileUtil.writeFileAndReportErrors(tempScript, scriptText);
+}
+]]></script>
 <p>You may read more about <a href="http://kotlin.jetbrains.org">Kotlin here</a></p> <h2>Download</h2><p>TeamCide.Node
   plugin source code is found <a href="https://github.com/jonnyzzz/TeamCity.Node">On GitHub</a>. You may
   also checkout <a href="https://github.com/jonnyzzz/TeamCity.Node/tree/releases">releases</a> branch to

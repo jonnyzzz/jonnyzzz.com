@@ -158,48 +158,95 @@
         
       </footer>
       <div class="entry-content">
-        <p>In this post I'd like to introduce my new Java library called <em>named-frames</em>.
-  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps</p>
-<h2>Motivation</h2><p>Time from time I look into feedback emails and application logs. Some of
+        <p>
+  In this post I'd like to introduce my new Java library called <em>named-frames</em>.
+  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps
+</p>
+<h2>Motivation</h2>
+<p>
+  Time from time I look into feedback emails and application logs. Some of
   such logs contain exceptions and thread dumps. It is always nice to know the build number of the product from
   which those dumps were captured. The truth is that the build number or the product version is usually not included
-  in the dump. </p><p>I had a dream to include the build number of the application and some other
-  meaningful data strait into execution call stack. So that every problem report contains those details, no matter
-  how the report was generated. </p><p>In addition to the build number you may include much more
-  information in the call stack. For example, current task names or any other data that is meaningful for faster
-  debugging. </p><h2>The Library Usage</h2> <p>The application should wrap it's code into
-  the call to the library in the following way:</p>
-<script type="syntaxhighlighter" class="brush: java"><![CDATA[
-      NamedStackFrame.global().frame("this is my named frame", new Runnable() { public void run() { //here goes the code
-      //capture stacktrace when execution is here } }); ]]>
-</script> <p>The captured stacktrace is the
-  following: </p>
-<script type="syntaxhighlighter" class="brush: text"><![CDATA[ java.lang.Exception
-      at com.some.corp.something.Some$1.run at _.this is my named frame._(JavaGeneratorTemplate.java:24) at
-      org.jonnyzzz.stack.NamedStackFrame.frame(NamedStackFrame.java:29) at
-      com.some.corp.something.toTheJob(SomeSource.java:50) ]]>
-</script> <p>The most exciting part of the
-  call stack is the line with <strong>dynamically generated</strong> string inside:
+  in the dump.
+</p>
 <p>
-  <script
-    type="syntaxhighlighter" class="brush: text"><![CDATA[ at _.this is my named
-      frame._(JavaGeneratorTemplate.java:24) ]]>
-  </script> <p>In the same way you may include as much <em>named
+  I had a dream to include the build number of the application and some other
+  meaningful data strait into execution call stack. So that every problem report contains those details, no matter
+  how the report was generated.
+</p>
+<p>
+  In addition to the build number you may include much more
+  information in the call stack. For example, current task names or any other data that is meaningful for faster
+  debugging.
+</p>
+<h2>The Library Usage</h2>
+<p>
+  The application should wrap it's code into
+  the call to the library in the following way:
+</p>
+
+<script type="syntaxhighlighter" class="brush: java"><![CDATA[
+NamedStackFrame.global().frame("this is my named frame", new Runnable() {
+  @Override
+  public void run() {
+    //here goes the code
+    //capture stacktrace when execution is here
+  }
+}); ]]></script>
+
+<p>
+  The captured stacktrace is the following:
+</p>
+
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+java.lang.Exception
+  at com.some.corp.something.Some$1.run at _.this is my named frame._(JavaGeneratorTemplate.java:24)
+  at org.jonnyzzz.stack.NamedStackFrame.frame(NamedStackFrame.java:29)
+  at com.some.corp.something.toTheJob(SomeSource.java:50)
+]]></script>
+
+<p>
+  The most exciting part of the
+  call stack is the line with <strong>dynamically generated</strong> string inside:
+</p>
+
+<script type="syntaxhighlighter" class="brush: text"><![CDATA[
+at _.this is my named frame._(JavaGeneratorTemplate.java:24)
+]]></script>
+
+<p>
+  In the same way you may include as much <em>named
   stack frames</em> as needed by wrapping each into a call to the <em>NamedStackFrame#frame()</em>
-  method. </p> <h2>Implementation details</h2><p>The library is implemented in pure Java
-  1.5, with Maven as a project model. I intentionally avoided any runtime dependencies in the library to avoid
-  dependencies hell in usages. </p> <p>The named method is added via dynamic code generation. I use the
+  method.
+</p>
+<h2>Implementation details</h2>
+<p>
+  The library is implemented in pure Java 1.5, with Maven as a project model.
+  I intentionally avoided any runtime dependencies in the library to avoid
+  dependencies hell in usages.
+</p>
+<p>The named method is added via dynamic code generation. I use the
   compiled class byte-code as the template for the code-generation. For each given unique stack frame name the
   library generates and loads a class into an internal classloader. The generated class is reused for all future
-  calls for the same stack frame name. </p> <p>It is important to notice, that each generated class
+  calls for the same stack frame name.
+</p>
+<p>
+  It is important to notice, that each generated class
   consumes space in the PermGen of the JVM. (This is changed in Java 1.8). I recommend to check if the full possible
   set of the used names in your program is limited and will not lead to PermGen OOMs. Unused loaded classes can be
-  garbage-collected by the JVM (depending on the provided JVM options) </p> <h2>Sources & Binaries</h2><p>The
-  library code is available under the <strong>MIT license</strong></p><p>The library is
-  available on GitHub: <a href="https://github.com/jonnyzzz/named-java-frames">https://github.com/jonnyzzz/named-java-frames</a>.
-</p><p>I published the snapshot build of the library into <a
-  href="https://github.com/jonnyzzz/named-java-frames">a maven repository</a>. In a several weeks I plan to
-  apply for the Maven Central publishing</p>
+  garbage-collected by the JVM (depending on the provided JVM options)
+</p>
+<h2>Sources & Binaries</h2>
+<p>
+  The
+  library code is available under the <strong>MIT license</strong>
+</p>
+<p>
+  The library is available on GitHub: <a href="https://github.com/jonnyzzz/named-java-frames">https://github.com/jonnyzzz/named-java-frames</a>.
+</p>
+<p>I published the snapshot build of the library into
+  <a href="https://github.com/jonnyzzz/named-java-frames">a maven repository</a>. In a several weeks I plan to apply for the Maven Central publishing
+</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->

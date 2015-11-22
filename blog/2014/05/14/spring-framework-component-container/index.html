@@ -158,37 +158,64 @@
         
       </footer>
       <div class="entry-content">
-        <p>In this post I explain how one could split one huge components container into a number
-  of smaller ones</p> <h2>Introduction</h2><p>Spring Framework Component Container (or
-  Spring Framework IoC Container) is an implementation of the <em><a
-    href="http://en.wikipedia.org/wiki/Inversion_of_control">Inversion of Control</a></em> principle.
-  This is also known as <em><a href="http://en.wikipedia.org/wiki/Dependency_injection">Dependency
-    Injection</a></em>. So a typical application is represented as a number of components (beans,
+        <p>
+  In this post I explain how one could split one huge components container into a number
+  of smaller ones
+</p>
+
+<h2>Introduction</h2>
+<p>
+  Spring Framework Component Container (or Spring Framework IoC Container) is an implementation of the
+  <em><a href="http://en.wikipedia.org/wiki/Inversion_of_control">Inversion of Control</a></em> principle.
+  This is also known as
+  <em><a href="http://en.wikipedia.org/wiki/Dependency_injection">Dependency Injection</a></em>.
+  So a typical application is represented as a number of components (beans,
   services; read java classes) with dependencies (either declared or auto discovered). The Component Container uses
-  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the <a
-    href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html">Spring Framework documentation</a></p>
-<h2>Problem statement</h2><p>Say you have an Application that uses IoC. It is now very easy to
+  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the
+  <a href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html">Spring Framework documentation</a>
+</p>
+<h2>Problem statement</h2>
+<p>Say you have an Application that uses IoC. It is now very easy to
   add new components and to pass mostly every component as the dependency for the first one. But in the long run it
-  could lead to several issues. </p><p>The <strong>first</strong> one is that most of
+  could lead to several issues.
+</p>
+<p>The <strong>first</strong> one is that most of
   components tend to depend transitively from most of the other components. So the Application turns into a knot of
   undetachable dependencies. So unit tests transform into complex integration tests, where the most of the
-  Application components has to be created. </p><p>The <strong>second</strong>problem is
+  Application components has to be created.
+</p>
+<p>
+  The <strong>second</strong>problem is
   with library dependencies classpath. One could easily use library A, while library B is used in the other part of
   the Application. Say A depends on C v1.0 and B depends on C v2.0. Here is the problem. The ideal solution is to
   remove A and B libraries from main classpath and load each separately to get rid of the need of resolving an ideal
-  version of the library C. </p> <h2>Splitting components</h2><p>How could we solve those
+  version of the library C.
+</p>
+<h2>Splitting components</h2>
+<p>How could we solve those
   issues? My answer is to split the application container into a number of sub containers. So we could hide some
   component implementation details from the other components. We split one container into the root container and a
   number of sub containers. The split would provide enough isolation both for component dependencies and for
-  classpaths. </p> <p>The split process could be done in the following way. We take one big component
+  classpaths.
+</p>
+<p>The split process could be done in the following way. We take one big component
   (facade) and move all it's implementation details into a sub container. Iteratively we may hide all huge
   components implementations from the rest of the application and thus resolve the <em>first</em> issue.
-</p> <p>Speaking of the library dependencies. Each of sub container could load classes from extended
-  classpath in a dedicated classloader. This helps to resolve the <em>second</em> issue. </p> <p>There
-  are another solutions for dependency isolation. For example, you may take a look at <a
-    href="http://en.wikipedia.org/wiki/OSGi">OSGi</a> framework. The solution below would be a much easier
-  and it is only up to you what solution to consider. </p> <h2>Implementation</h2><p>Say you
-  decided to split one component container in a number of sub containers. There is the list of tasks to implement:</p>
+</p>
+<p>Speaking of the library dependencies. Each of sub container could load classes from extended
+  classpath in a dedicated classloader. This helps to resolve the <em>second</em> issue.
+</p>
+<p>
+  There
+  are another solutions for dependency isolation. For example, you may take a look at
+  <a href="http://en.wikipedia.org/wiki/OSGi">OSGi</a> framework. The solution below would be a much easier
+  and it is only up to you what solution to consider.
+</p>
+<h2>Implementation</h2>
+<p>
+  Say you decided to split one component container in a number of sub containers. There is the list of tasks to implement:
+</p>
+
 <ul>
   <li>Create
     a sub container with parent of a root container (A)
@@ -202,60 +229,118 @@
   <li>Declaratively export some components from a sub container to root
     container (D)
   </li>
-</ul> <h3>Simple Spring Sub Container (A, C)</h3><p>A child Spring
-  container (context) is created in the following way. Call the constructor of a <a
-    href="http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html">ClassPathXmlApplicationContext</a>.
-  Pass current container (from the <a
-    href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true">ApplicationContextAware</a>
-  interface implementation), specify configuration resources and the name. </p><p>The created sub
-  container includes parent container components in the dependencies resolution. </p> <p><strong>NOTE</strong>.
+</ul>
+
+<h3>Simple Spring Sub Container (A, C)</h3>
+
+<p>A child Spring container (context) is created in the following way. Call the constructor of a
+  <a href="http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html">ClassPathXmlApplicationContext</a>.
+  Pass current container (from the
+  <a href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true">ApplicationContextAware</a>
+  interface implementation), specify configuration resources and the name.
+</p>
+<p>
+  The created sub
+  container includes parent container components in the dependencies resolution.
+</p>
+<p>
+  <strong>NOTE</strong>.
   Sub container configuration resources must <strong>NOT</strong> overlap with configuration resources
   of any other container in the application. Otherwise sub container may re-load all components from the application
-  and crash. </p> <p>I recommend to consider <em>classpath*:META-INF/app-root-configuration-*.xml</em>
+  and crash.
+</p>
+<p>I recommend to consider <em>classpath*:META-INF/app-root-configuration-*.xml</em>
   for the root context and <em>classpath*:META-INF/app-child-configuration-*.xml</em> for a sub
-  container to avoid the possible clash. Same applies for classes scan for annotations as well</p> <p>We
-  put a sub container creation code into the root container component. The component implements <a
-    href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html">InitializingBean</a>
-  to trigger sub container start.</p> <h3>Using Custom Classloader (B)</h3><p>Spring
-  Framework provides API to specify custom classloader for the container. This is done in the following way:</p>
-<script
-  type="syntaxhighlighter" class="brush:java"><![CDATA[ final subLoader = createSubContextClassLoader(...);
-      new ClassPathXmlApplicationContext(..., myParentApplicationContext) { @Override protected void
-      initBeanDefinitionReader(@NotNull final XmlBeanDefinitionReader reader) { super.initBeanDefinitionReader(reader);
-      //here we set the right classloader reader.setBeanClassLoader(subLoader); setClassLoader(subLoader); } }; ]]>
-</script>
+  container to avoid the possible clash. Same applies for classes scan for annotations as well
+</p>
+<p>
+  We put a sub container creation code into the root container component. The component implements
+  <a href="http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html">InitializingBean</a>
+  to trigger sub container start.
+</p>
+<h3>Using Custom Classloader (B)</h3>
+
+<p>
+  Spring Framework provides API to specify custom classloader for the container. This is done in the following way:
+</p>
+<script type="syntaxhighlighter" class="brush:java"><![CDATA[
+
+final subLoader = createSubContextClassLoader(...);
+new ClassPathXmlApplicationContext(..., myParentApplicationContext) {
+  @Override
+  protected void initBeanDefinitionReader(XmlBeanDefinitionReader reader) {
+    super.initBeanDefinitionReader(reader);
+
+    //here we set the right classloader
+    reader.setBeanClassLoader(subLoader);
+    setClassLoader(subLoader);
+  }
+};
+]]></script>
 <h3>Exporting components to the root container (D)</h3>
 <p>There is an expected need to be able
-  to export some component implementations back to the root container. This could be easily done via <a
-    href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory">BeanFactory</a>.
+  to export some component implementations back to the root container. This could be easily done via
+  <a href="http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory">BeanFactory</a>.
   What we need is to declare a <strong>non generic</strong> getter methods in the sub container creating
   component. The getter methods should be registered as factory methods in the root container (in .xml file or via
-  annotations). For the getter implementation you may simply call a wrapping method with explicit type over <em>ApplicationContext#
-    <T>getBean(Class
-      <T>
-        t)
-  </em>.
-</p><p><strong>NOTE</strong>. Using a generic factory method may leave the
+  annotations). For the getter implementation you may simply call a wrapping method with explicit type over
+  <em>ApplicationContext#&lt;T&gt;getBean(Class&lt;T&gt; t) </em>.
+</p>
+<p>
+  <strong>NOTE</strong>. Using a generic factory method may leave the
   container without knowing the exact type of the component. So application may randomly fail to resolve a component
   dependencies in the container. That is only why I recommend to avoid generic factory methods for the scenario.
-</p> <h2>Usage example</h2><p>I decided to implement the pattern in the new application I
+</p>
+<h2>Usage example</h2>
+<p>
+  I decided to implement the pattern in the new application I
   started. The main reason for me was to split the application classpath in to several modules to hide nasty
-  dependencies in them. I realised I need to avoid the dependency resolution hell. </p> <p>Thanks to the
+  dependencies in them. I realised I need to avoid the dependency resolution hell.
+</p>
+<p>
+  Thanks to the
   pattern I split my application into several logical sub containers. This helped me to avoid dependencies hell. The
   pattern also forced me to hide implementation details. I have several components in the root container that are
   implemented by the number of internal components in sub containers. And each sub container depends on a number of
-  libraries with intersecting transitive dependencies sets. </p> <p>The definition of a sub-container in
-  the application is the following:</p>
+  libraries with intersecting transitive dependencies sets.
+</p>
+<p>The definition of a sub-container in the application is the following:</p>
+
 <script type="syntaxhighlighter" class="brush:java"><![CDATA[
-      @Component public class SubContext extends SubContextLoader { public SubContext() { super(/*name:*/ "Sub Context",
-      /*classpath dir:*/ "/WEB-INF/sub", /*spring config: */ "classpath*:/META-INF/vcs-service-hub-settings*.xml"); }
-      /** A SubFilter component implementation for ** the root container that created/loaded via sub container **/ @Bean
-      @NotNull public SubFilter getFilterComponent() { return myApplicationContext.getBean(SubFilter.class); } } ]]>
-</script>
-<p>To add the next sub container I only need to add a similar class to the root container. And that is it!
-</p> <h2>Conclusion</h2><p>Crazy, but one may use this technique recursively to provide
-  even better separation and/or interface/implementation design. </p><p>Hope I covered all details.
-  Please let me know if you'd like me to cover some gaps</p>
+@Component
+public class SubContext extends SubContextLoader {
+  public SubContext() {
+    super(
+      /*name:*/
+      "Sub Context",
+      /*classpath dir:*/
+      "/WEB-INF/sub",
+      /*spring config: */
+      "classpath*:/META-INF/vcs-service-hub-settings*.xml");
+  }
+
+  /** A SubFilter component implementation for
+   ** the root container that created/loaded
+   ** via sub container
+   **/
+  @Bean
+  public SubFilter getFilterComponent() {
+    return myApplicationContext.getBean(SubFilter.class);
+  }
+}
+]]></script>
+<p>
+  To add the next sub container I only need to add a similar class to the root container. And that is it!
+</p>
+<h2>Conclusion</h2>
+<p>
+  Crazy, but one may use this technique recursively to provide
+  even better separation and/or interface/implementation design.
+</p>
+<p>
+  Hope I covered all details.
+  Please let me know if you'd like me to cover some gaps
+</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->

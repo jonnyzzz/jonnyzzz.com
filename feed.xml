@@ -4,7 +4,7 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-11-22T11:56:41+00:00</updated>
+<updated>2015-11-22T12:35:12+00:00</updated>
 <id>/</id>
 <author>
   <name>Eugene Petrenko</name>
@@ -86,13 +86,25 @@ Some dependencies peaces are Apache 2.0
     <email>me@jonnyzzz.com</email>
   </author>
   <content type="html">
-    &lt;h2&gt;Updates&lt;/h2&gt; Recently I closed the most voted feature of the plugin: Gulp
-support. &lt;br/&gt; Finally we now have &lt;strong&gt;&lt;a href=&quot;http://gulpjs.com/&quot;&gt;Gulp&lt;/a&gt;&lt;/strong&gt;
-runner support in the &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;TeamCity.Node&lt;/a&gt; plugin.
-&lt;h2&gt;Downloading TeamCity.Node&lt;/h2&gt;This plugin is provided under Apache 2.0 license. Sources (in
-Kotlin) are found on &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;. You may download
-compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;
-&lt;script data-gratipay-username=&quot;jonnyzzz&quot; src=&quot;//grtp.co/v1.js&quot;&gt;&lt;/script&gt;
+    &lt;h2&gt;Updates&lt;/h2&gt;
+
+&lt;p&gt;
+Recently I closed the most voted feature of the plugin: Gulp support.
+&lt;/p&gt;
+
+&lt;p&gt;
+  Finally we now have &lt;strong&gt;&lt;a href=&quot;http://gulpjs.com/&quot;&gt;Gulp&lt;/a&gt;&lt;/strong&gt;
+  runner support in the
+  &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;TeamCity.Node&lt;/a&gt; plugin.
+&lt;/p&gt;
+
+&lt;h2&gt;Downloading TeamCity.Node&lt;/h2&gt;
+
+This plugin is provided under Apache 2.0 license. Sources (in Kotlin) are found on
+&lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;.
+You may download compiled build from
+&lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;
+
 
     &lt;p&gt;&lt;a href=&quot;/blog/2014/11/02/teamcitynode-update/&quot;&gt;TeamCity.Node Update&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 02, 2014.&lt;/p&gt;
   </content>
@@ -114,37 +126,64 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
     <email>me@jonnyzzz.com</email>
   </author>
   <content type="html">
-    &lt;p&gt;In this post I explain how one could split one huge components container into a number
-  of smaller ones&lt;/p&gt; &lt;h2&gt;Introduction&lt;/h2&gt;&lt;p&gt;Spring Framework Component Container (or
-  Spring Framework IoC Container) is an implementation of the &lt;em&gt;&lt;a
-    href=&quot;http://en.wikipedia.org/wiki/Inversion_of_control&quot;&gt;Inversion of Control&lt;/a&gt;&lt;/em&gt; principle.
-  This is also known as &lt;em&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Dependency_injection&quot;&gt;Dependency
-    Injection&lt;/a&gt;&lt;/em&gt;. So a typical application is represented as a number of components (beans,
+    &lt;p&gt;
+  In this post I explain how one could split one huge components container into a number
+  of smaller ones
+&lt;/p&gt;
+
+&lt;h2&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;
+  Spring Framework Component Container (or Spring Framework IoC Container) is an implementation of the
+  &lt;em&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Inversion_of_control&quot;&gt;Inversion of Control&lt;/a&gt;&lt;/em&gt; principle.
+  This is also known as
+  &lt;em&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Dependency_injection&quot;&gt;Dependency Injection&lt;/a&gt;&lt;/em&gt;.
+  So a typical application is represented as a number of components (beans,
   services; read java classes) with dependencies (either declared or auto discovered). The Component Container uses
-  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the &lt;a
-    href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html&quot;&gt;Spring Framework documentation&lt;/a&gt;&lt;/p&gt;
-&lt;h2&gt;Problem statement&lt;/h2&gt;&lt;p&gt;Say you have an Application that uses IoC. It is now very easy to
+  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the
+  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html&quot;&gt;Spring Framework documentation&lt;/a&gt;
+&lt;/p&gt;
+&lt;h2&gt;Problem statement&lt;/h2&gt;
+&lt;p&gt;Say you have an Application that uses IoC. It is now very easy to
   add new components and to pass mostly every component as the dependency for the first one. But in the long run it
-  could lead to several issues. &lt;/p&gt;&lt;p&gt;The &lt;strong&gt;first&lt;/strong&gt; one is that most of
+  could lead to several issues.
+&lt;/p&gt;
+&lt;p&gt;The &lt;strong&gt;first&lt;/strong&gt; one is that most of
   components tend to depend transitively from most of the other components. So the Application turns into a knot of
   undetachable dependencies. So unit tests transform into complex integration tests, where the most of the
-  Application components has to be created. &lt;/p&gt;&lt;p&gt;The &lt;strong&gt;second&lt;/strong&gt;problem is
+  Application components has to be created.
+&lt;/p&gt;
+&lt;p&gt;
+  The &lt;strong&gt;second&lt;/strong&gt;problem is
   with library dependencies classpath. One could easily use library A, while library B is used in the other part of
   the Application. Say A depends on C v1.0 and B depends on C v2.0. Here is the problem. The ideal solution is to
   remove A and B libraries from main classpath and load each separately to get rid of the need of resolving an ideal
-  version of the library C. &lt;/p&gt; &lt;h2&gt;Splitting components&lt;/h2&gt;&lt;p&gt;How could we solve those
+  version of the library C.
+&lt;/p&gt;
+&lt;h2&gt;Splitting components&lt;/h2&gt;
+&lt;p&gt;How could we solve those
   issues? My answer is to split the application container into a number of sub containers. So we could hide some
   component implementation details from the other components. We split one container into the root container and a
   number of sub containers. The split would provide enough isolation both for component dependencies and for
-  classpaths. &lt;/p&gt; &lt;p&gt;The split process could be done in the following way. We take one big component
+  classpaths.
+&lt;/p&gt;
+&lt;p&gt;The split process could be done in the following way. We take one big component
   (facade) and move all it&#39;s implementation details into a sub container. Iteratively we may hide all huge
   components implementations from the rest of the application and thus resolve the &lt;em&gt;first&lt;/em&gt; issue.
-&lt;/p&gt; &lt;p&gt;Speaking of the library dependencies. Each of sub container could load classes from extended
-  classpath in a dedicated classloader. This helps to resolve the &lt;em&gt;second&lt;/em&gt; issue. &lt;/p&gt; &lt;p&gt;There
-  are another solutions for dependency isolation. For example, you may take a look at &lt;a
-    href=&quot;http://en.wikipedia.org/wiki/OSGi&quot;&gt;OSGi&lt;/a&gt; framework. The solution below would be a much easier
-  and it is only up to you what solution to consider. &lt;/p&gt; &lt;h2&gt;Implementation&lt;/h2&gt;&lt;p&gt;Say you
-  decided to split one component container in a number of sub containers. There is the list of tasks to implement:&lt;/p&gt;
+&lt;/p&gt;
+&lt;p&gt;Speaking of the library dependencies. Each of sub container could load classes from extended
+  classpath in a dedicated classloader. This helps to resolve the &lt;em&gt;second&lt;/em&gt; issue.
+&lt;/p&gt;
+&lt;p&gt;
+  There
+  are another solutions for dependency isolation. For example, you may take a look at
+  &lt;a href=&quot;http://en.wikipedia.org/wiki/OSGi&quot;&gt;OSGi&lt;/a&gt; framework. The solution below would be a much easier
+  and it is only up to you what solution to consider.
+&lt;/p&gt;
+&lt;h2&gt;Implementation&lt;/h2&gt;
+&lt;p&gt;
+  Say you decided to split one component container in a number of sub containers. There is the list of tasks to implement:
+&lt;/p&gt;
+
 &lt;ul&gt;
   &lt;li&gt;Create
     a sub container with parent of a root container (A)
@@ -158,60 +197,118 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
   &lt;li&gt;Declaratively export some components from a sub container to root
     container (D)
   &lt;/li&gt;
-&lt;/ul&gt; &lt;h3&gt;Simple Spring Sub Container (A, C)&lt;/h3&gt;&lt;p&gt;A child Spring
-  container (context) is created in the following way. Call the constructor of a &lt;a
-    href=&quot;http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html&quot;&gt;ClassPathXmlApplicationContext&lt;/a&gt;.
-  Pass current container (from the &lt;a
-    href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true&quot;&gt;ApplicationContextAware&lt;/a&gt;
-  interface implementation), specify configuration resources and the name. &lt;/p&gt;&lt;p&gt;The created sub
-  container includes parent container components in the dependencies resolution. &lt;/p&gt; &lt;p&gt;&lt;strong&gt;NOTE&lt;/strong&gt;.
+&lt;/ul&gt;
+
+&lt;h3&gt;Simple Spring Sub Container (A, C)&lt;/h3&gt;
+
+&lt;p&gt;A child Spring container (context) is created in the following way. Call the constructor of a
+  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html&quot;&gt;ClassPathXmlApplicationContext&lt;/a&gt;.
+  Pass current container (from the
+  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true&quot;&gt;ApplicationContextAware&lt;/a&gt;
+  interface implementation), specify configuration resources and the name.
+&lt;/p&gt;
+&lt;p&gt;
+  The created sub
+  container includes parent container components in the dependencies resolution.
+&lt;/p&gt;
+&lt;p&gt;
+  &lt;strong&gt;NOTE&lt;/strong&gt;.
   Sub container configuration resources must &lt;strong&gt;NOT&lt;/strong&gt; overlap with configuration resources
   of any other container in the application. Otherwise sub container may re-load all components from the application
-  and crash. &lt;/p&gt; &lt;p&gt;I recommend to consider &lt;em&gt;classpath*:META-INF/app-root-configuration-*.xml&lt;/em&gt;
+  and crash.
+&lt;/p&gt;
+&lt;p&gt;I recommend to consider &lt;em&gt;classpath*:META-INF/app-root-configuration-*.xml&lt;/em&gt;
   for the root context and &lt;em&gt;classpath*:META-INF/app-child-configuration-*.xml&lt;/em&gt; for a sub
-  container to avoid the possible clash. Same applies for classes scan for annotations as well&lt;/p&gt; &lt;p&gt;We
-  put a sub container creation code into the root container component. The component implements &lt;a
-    href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html&quot;&gt;InitializingBean&lt;/a&gt;
-  to trigger sub container start.&lt;/p&gt; &lt;h3&gt;Using Custom Classloader (B)&lt;/h3&gt;&lt;p&gt;Spring
-  Framework provides API to specify custom classloader for the container. This is done in the following way:&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[ final subLoader = createSubContextClassLoader(...);
-      new ClassPathXmlApplicationContext(..., myParentApplicationContext) { @Override protected void
-      initBeanDefinitionReader(@NotNull final XmlBeanDefinitionReader reader) { super.initBeanDefinitionReader(reader);
-      //here we set the right classloader reader.setBeanClassLoader(subLoader); setClassLoader(subLoader); } }; ]]&gt;
-&lt;/script&gt;
+  container to avoid the possible clash. Same applies for classes scan for annotations as well
+&lt;/p&gt;
+&lt;p&gt;
+  We put a sub container creation code into the root container component. The component implements
+  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html&quot;&gt;InitializingBean&lt;/a&gt;
+  to trigger sub container start.
+&lt;/p&gt;
+&lt;h3&gt;Using Custom Classloader (B)&lt;/h3&gt;
+
+&lt;p&gt;
+  Spring Framework provides API to specify custom classloader for the container. This is done in the following way:
+&lt;/p&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
+
+final subLoader = createSubContextClassLoader(...);
+new ClassPathXmlApplicationContext(..., myParentApplicationContext) {
+  @Override
+  protected void initBeanDefinitionReader(XmlBeanDefinitionReader reader) {
+    super.initBeanDefinitionReader(reader);
+
+    //here we set the right classloader
+    reader.setBeanClassLoader(subLoader);
+    setClassLoader(subLoader);
+  }
+};
+]]&gt;&lt;/script&gt;
 &lt;h3&gt;Exporting components to the root container (D)&lt;/h3&gt;
 &lt;p&gt;There is an expected need to be able
-  to export some component implementations back to the root container. This could be easily done via &lt;a
-    href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory&quot;&gt;BeanFactory&lt;/a&gt;.
+  to export some component implementations back to the root container. This could be easily done via
+  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory&quot;&gt;BeanFactory&lt;/a&gt;.
   What we need is to declare a &lt;strong&gt;non generic&lt;/strong&gt; getter methods in the sub container creating
   component. The getter methods should be registered as factory methods in the root container (in .xml file or via
-  annotations). For the getter implementation you may simply call a wrapping method with explicit type over &lt;em&gt;ApplicationContext#
-    &lt;T&gt;getBean(Class
-      &lt;T&gt;
-        t)
-  &lt;/em&gt;.
-&lt;/p&gt;&lt;p&gt;&lt;strong&gt;NOTE&lt;/strong&gt;. Using a generic factory method may leave the
+  annotations). For the getter implementation you may simply call a wrapping method with explicit type over
+  &lt;em&gt;ApplicationContext#&amp;lt;T&amp;gt;getBean(Class&amp;lt;T&amp;gt; t) &lt;/em&gt;.
+&lt;/p&gt;
+&lt;p&gt;
+  &lt;strong&gt;NOTE&lt;/strong&gt;. Using a generic factory method may leave the
   container without knowing the exact type of the component. So application may randomly fail to resolve a component
   dependencies in the container. That is only why I recommend to avoid generic factory methods for the scenario.
-&lt;/p&gt; &lt;h2&gt;Usage example&lt;/h2&gt;&lt;p&gt;I decided to implement the pattern in the new application I
+&lt;/p&gt;
+&lt;h2&gt;Usage example&lt;/h2&gt;
+&lt;p&gt;
+  I decided to implement the pattern in the new application I
   started. The main reason for me was to split the application classpath in to several modules to hide nasty
-  dependencies in them. I realised I need to avoid the dependency resolution hell. &lt;/p&gt; &lt;p&gt;Thanks to the
+  dependencies in them. I realised I need to avoid the dependency resolution hell.
+&lt;/p&gt;
+&lt;p&gt;
+  Thanks to the
   pattern I split my application into several logical sub containers. This helped me to avoid dependencies hell. The
   pattern also forced me to hide implementation details. I have several components in the root container that are
   implemented by the number of internal components in sub containers. And each sub container depends on a number of
-  libraries with intersecting transitive dependencies sets. &lt;/p&gt; &lt;p&gt;The definition of a sub-container in
-  the application is the following:&lt;/p&gt;
+  libraries with intersecting transitive dependencies sets.
+&lt;/p&gt;
+&lt;p&gt;The definition of a sub-container in the application is the following:&lt;/p&gt;
+
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
-      @Component public class SubContext extends SubContextLoader { public SubContext() { super(/*name:*/ &quot;Sub Context&quot;,
-      /*classpath dir:*/ &quot;/WEB-INF/sub&quot;, /*spring config: */ &quot;classpath*:/META-INF/vcs-service-hub-settings*.xml&quot;); }
-      /** A SubFilter component implementation for ** the root container that created/loaded via sub container **/ @Bean
-      @NotNull public SubFilter getFilterComponent() { return myApplicationContext.getBean(SubFilter.class); } } ]]&gt;
-&lt;/script&gt;
-&lt;p&gt;To add the next sub container I only need to add a similar class to the root container. And that is it!
-&lt;/p&gt; &lt;h2&gt;Conclusion&lt;/h2&gt;&lt;p&gt;Crazy, but one may use this technique recursively to provide
-  even better separation and/or interface/implementation design. &lt;/p&gt;&lt;p&gt;Hope I covered all details.
-  Please let me know if you&#39;d like me to cover some gaps&lt;/p&gt;
+@Component
+public class SubContext extends SubContextLoader {
+  public SubContext() {
+    super(
+      /*name:*/
+      &quot;Sub Context&quot;,
+      /*classpath dir:*/
+      &quot;/WEB-INF/sub&quot;,
+      /*spring config: */
+      &quot;classpath*:/META-INF/vcs-service-hub-settings*.xml&quot;);
+  }
+
+  /** A SubFilter component implementation for
+   ** the root container that created/loaded
+   ** via sub container
+   **/
+  @Bean
+  public SubFilter getFilterComponent() {
+    return myApplicationContext.getBean(SubFilter.class);
+  }
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;
+  To add the next sub container I only need to add a similar class to the root container. And that is it!
+&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;
+  Crazy, but one may use this technique recursively to provide
+  even better separation and/or interface/implementation design.
+&lt;/p&gt;
+&lt;p&gt;
+  Hope I covered all details.
+  Please let me know if you&#39;d like me to cover some gaps
+&lt;/p&gt;
 
     &lt;p&gt;&lt;a href=&quot;/blog/2014/05/14/spring-framework-component-container/&quot;&gt;Spring Framework Component Container Decomposition&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on May 14, 2014.&lt;/p&gt;
   </content>
@@ -233,48 +330,95 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
     <email>me@jonnyzzz.com</email>
   </author>
   <content type="html">
-    &lt;p&gt;In this post I&#39;d like to introduce my new Java library called &lt;em&gt;named-frames&lt;/em&gt;.
-  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps&lt;/p&gt;
-&lt;h2&gt;Motivation&lt;/h2&gt;&lt;p&gt;Time from time I look into feedback emails and application logs. Some of
+    &lt;p&gt;
+  In this post I&#39;d like to introduce my new Java library called &lt;em&gt;named-frames&lt;/em&gt;.
+  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps
+&lt;/p&gt;
+&lt;h2&gt;Motivation&lt;/h2&gt;
+&lt;p&gt;
+  Time from time I look into feedback emails and application logs. Some of
   such logs contain exceptions and thread dumps. It is always nice to know the build number of the product from
   which those dumps were captured. The truth is that the build number or the product version is usually not included
-  in the dump. &lt;/p&gt;&lt;p&gt;I had a dream to include the build number of the application and some other
-  meaningful data strait into execution call stack. So that every problem report contains those details, no matter
-  how the report was generated. &lt;/p&gt;&lt;p&gt;In addition to the build number you may include much more
-  information in the call stack. For example, current task names or any other data that is meaningful for faster
-  debugging. &lt;/p&gt;&lt;h2&gt;The Library Usage&lt;/h2&gt; &lt;p&gt;The application should wrap it&#39;s code into
-  the call to the library in the following way:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-      NamedStackFrame.global().frame(&quot;this is my named frame&quot;, new Runnable() { public void run() { //here goes the code
-      //capture stacktrace when execution is here } }); ]]&gt;
-&lt;/script&gt; &lt;p&gt;The captured stacktrace is the
-  following: &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ java.lang.Exception
-      at com.some.corp.something.Some$1.run at _.this is my named frame._(JavaGeneratorTemplate.java:24) at
-      org.jonnyzzz.stack.NamedStackFrame.frame(NamedStackFrame.java:29) at
-      com.some.corp.something.toTheJob(SomeSource.java:50) ]]&gt;
-&lt;/script&gt; &lt;p&gt;The most exciting part of the
-  call stack is the line with &lt;strong&gt;dynamically generated&lt;/strong&gt; string inside:
+  in the dump.
+&lt;/p&gt;
 &lt;p&gt;
-  &lt;script
-    type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ at _.this is my named
-      frame._(JavaGeneratorTemplate.java:24) ]]&gt;
-  &lt;/script&gt; &lt;p&gt;In the same way you may include as much &lt;em&gt;named
+  I had a dream to include the build number of the application and some other
+  meaningful data strait into execution call stack. So that every problem report contains those details, no matter
+  how the report was generated.
+&lt;/p&gt;
+&lt;p&gt;
+  In addition to the build number you may include much more
+  information in the call stack. For example, current task names or any other data that is meaningful for faster
+  debugging.
+&lt;/p&gt;
+&lt;h2&gt;The Library Usage&lt;/h2&gt;
+&lt;p&gt;
+  The application should wrap it&#39;s code into
+  the call to the library in the following way:
+&lt;/p&gt;
+
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
+NamedStackFrame.global().frame(&quot;this is my named frame&quot;, new Runnable() {
+  @Override
+  public void run() {
+    //here goes the code
+    //capture stacktrace when execution is here
+  }
+}); ]]&gt;&lt;/script&gt;
+
+&lt;p&gt;
+  The captured stacktrace is the following:
+&lt;/p&gt;
+
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+java.lang.Exception
+  at com.some.corp.something.Some$1.run at _.this is my named frame._(JavaGeneratorTemplate.java:24)
+  at org.jonnyzzz.stack.NamedStackFrame.frame(NamedStackFrame.java:29)
+  at com.some.corp.something.toTheJob(SomeSource.java:50)
+]]&gt;&lt;/script&gt;
+
+&lt;p&gt;
+  The most exciting part of the
+  call stack is the line with &lt;strong&gt;dynamically generated&lt;/strong&gt; string inside:
+&lt;/p&gt;
+
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+at _.this is my named frame._(JavaGeneratorTemplate.java:24)
+]]&gt;&lt;/script&gt;
+
+&lt;p&gt;
+  In the same way you may include as much &lt;em&gt;named
   stack frames&lt;/em&gt; as needed by wrapping each into a call to the &lt;em&gt;NamedStackFrame#frame()&lt;/em&gt;
-  method. &lt;/p&gt; &lt;h2&gt;Implementation details&lt;/h2&gt;&lt;p&gt;The library is implemented in pure Java
-  1.5, with Maven as a project model. I intentionally avoided any runtime dependencies in the library to avoid
-  dependencies hell in usages. &lt;/p&gt; &lt;p&gt;The named method is added via dynamic code generation. I use the
+  method.
+&lt;/p&gt;
+&lt;h2&gt;Implementation details&lt;/h2&gt;
+&lt;p&gt;
+  The library is implemented in pure Java 1.5, with Maven as a project model.
+  I intentionally avoided any runtime dependencies in the library to avoid
+  dependencies hell in usages.
+&lt;/p&gt;
+&lt;p&gt;The named method is added via dynamic code generation. I use the
   compiled class byte-code as the template for the code-generation. For each given unique stack frame name the
   library generates and loads a class into an internal classloader. The generated class is reused for all future
-  calls for the same stack frame name. &lt;/p&gt; &lt;p&gt;It is important to notice, that each generated class
+  calls for the same stack frame name.
+&lt;/p&gt;
+&lt;p&gt;
+  It is important to notice, that each generated class
   consumes space in the PermGen of the JVM. (This is changed in Java 1.8). I recommend to check if the full possible
   set of the used names in your program is limited and will not lead to PermGen OOMs. Unused loaded classes can be
-  garbage-collected by the JVM (depending on the provided JVM options) &lt;/p&gt; &lt;h2&gt;Sources &amp; Binaries&lt;/h2&gt;&lt;p&gt;The
-  library code is available under the &lt;strong&gt;MIT license&lt;/strong&gt;&lt;/p&gt;&lt;p&gt;The library is
-  available on GitHub: &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;https://github.com/jonnyzzz/named-java-frames&lt;/a&gt;.
-&lt;/p&gt;&lt;p&gt;I published the snapshot build of the library into &lt;a
-  href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;a maven repository&lt;/a&gt;. In a several weeks I plan to
-  apply for the Maven Central publishing&lt;/p&gt;
+  garbage-collected by the JVM (depending on the provided JVM options)
+&lt;/p&gt;
+&lt;h2&gt;Sources &amp; Binaries&lt;/h2&gt;
+&lt;p&gt;
+  The
+  library code is available under the &lt;strong&gt;MIT license&lt;/strong&gt;
+&lt;/p&gt;
+&lt;p&gt;
+  The library is available on GitHub: &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;https://github.com/jonnyzzz/named-java-frames&lt;/a&gt;.
+&lt;/p&gt;
+&lt;p&gt;I published the snapshot build of the library into
+  &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;a maven repository&lt;/a&gt;. In a several weeks I plan to apply for the Maven Central publishing
+&lt;/p&gt;
 
     &lt;p&gt;&lt;a href=&quot;/blog/2014/04/26/named-stack-frames-for-jvm/&quot;&gt;Named Stack Frames for the JVM&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on April 26, 2014.&lt;/p&gt;
   </content>
@@ -395,45 +539,70 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
   href=&quot;http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html&quot;&gt;try-with-resource&lt;/a&gt;.
   Recently I had a chance to use it in a project. Main usage I had was for &lt;a
     href=&quot;https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html&quot;&gt;logging contexts&lt;/a&gt;. &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[ ProjectMDC.mdcStart(PROJECT, projectId)
-      try { //here goes the code under logging context } finally { ProjectMDC.mdcStop(PROJECT, projectId) } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
+ProjectMDC.mdcStart(PROJECT, projectId);
+try {
+  //here goes the code under logging context
+} finally {
+  ProjectMDC.mdcStop(PROJECT, projectId);
+}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;This code looks feasible for small examples, but things got complicated when one has big code block under
   &lt;em&gt;try/finally&lt;/em&gt;. Next approach is to use Java 1.7 try-with-resource. The approach is similar to
   &lt;a href=&quot;http://msdn.microsoft.com/en-us/library/yh598w02.aspx&quot;&gt;&lt;em&gt;using&lt;/em&gt; construction in
     C#&lt;/a&gt;. &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[ try
-      (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) { //here goes the code under logging
-      context } ]]&gt;
-&lt;/script&gt; &lt;p&gt;&lt;em&gt;CloseableResource&lt;/em&gt; is an interface inherited from
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
+try(CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  //here goes the code under loggingcontext
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;&lt;em&gt;CloseableResource&lt;/em&gt; is an interface inherited from
   Java&#39;s standard &lt;em&gt;AutoCloseable&lt;/em&gt;. The only reason for it is to avoid declared exceptions. The
   implementation of an interface is following: &lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-      public interface CloseableResource extends AutoCloseable { @Override void close(); }
-&lt;/script&gt; &lt;p&gt;In
+public interface CloseableResource extends AutoCloseable {
+  @Override
+  void close();
+}
+]]&gt;&lt;/script&gt; &lt;p&gt;In
   Java 1.7 it&#39;s unfortunately not allowed to use expression as resource in the try-with-resource statement. So I was
   forced to have a dummy variable declaration there. So I named the variable with underscores to make it be
   unusable. I with I could write something like this: &lt;em&gt;try(foo()) { /*code*/ }&lt;/em&gt;. Nowadays this is
   not supported. &lt;/p&gt; &lt;p&gt;Meanwhile the pattern was good to use and I start using it in many places. In
   some places I added &lt;em&gt;catch&lt;/em&gt; clause for the try.&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot;
-        class=&quot;brush: java&quot;&gt;&lt;![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-      //here goes the code under logging context } catch (MightyException e) { logger.error(e); } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
+try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  //here goes the code under logging context
+} catch (MightyException e) {
+  logger.error(e);
+}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;This code looks good, but it does not work as it was expected! I expected from it to call &lt;em&gt;logger.error&lt;/em&gt;
   &lt;strong&gt;under &lt;em&gt;ProjectMDC.mdc()&lt;/em&gt; resource&lt;/strong&gt; but it turned out &lt;strong&gt;the
     &lt;em&gt;logger.error()&lt;/em&gt; method is called AFTER &lt;em&gt;ProjectMDC.mdc()&lt;/em&gt; context is closed&lt;/strong&gt;.
   The problem is that logging was expected to be logged &lt;strong&gt;with&lt;/strong&gt; &lt;em&gt;ProjectMDC&lt;/em&gt;
   but it was not. So the only right code should be patched as follows&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot;
-        class=&quot;brush: java&quot;&gt;&lt;![CDATA[ try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-      try { //here goes the code under logging context } catch (MightyException e) { logger.error(e); } } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
+try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
+  try {
+    //here goes the code under logging context
+  } catch (MightyException e) {
+    logger.error(e);
+  }
+}
+]]&gt;&lt;/script&gt;
+
 &lt;p&gt;This code is similar ugly as pre 1.7 code:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:
-      java&quot;&gt;&lt;![CDATA[ final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId); try { //here
-      goes the code under logging context } catch (MightyException e) { logger.error(e); } finally { ___.close(); } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
+final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId);
+try {
+  //here goes the code under logging context
+} catch (MightyException e) {
+  logger.error(e);
+} finally {
+  ___.close();
+}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;The only lack in the older code is that one have to declare &lt;em&gt;CloseableResource&lt;/em&gt;
   variable and than explicitly close it at end. There is one extra variable in code to take care of.&lt;/p&gt; &lt;h3&gt;
   Outcome&lt;/h3&gt;&lt;p&gt;The
@@ -450,18 +619,30 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
 &lt;/ul&gt; &lt;h3&gt;The Kotlin Way&lt;/h3&gt;&lt;p&gt;All this time I was
   recalling how easy once could create one&#39;s own &lt;em&gt;using&lt;/em&gt; in &lt;a
     href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;. For example:&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ fun &lt;T&gt; using(project: Project, f: () -&gt; T):
-      T { ProjectMDC.mdcStart(PROJECT, project) try { return f(); } finally { ProjectMDC.mdcStop(PROJECT, project) } }
-      ]]&gt;
-&lt;/script&gt; &lt;p&gt;Here I declared my own construction that is more useful in my project! So the
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+fun &lt;T&gt; using(project: Project, f: () -&gt; T): T {
+  ProjectMDC.mdcStart(PROJECT, project)
+  try {
+    return f();
+  } finally {
+    ProjectMDC.mdcStop(PROJECT, project)
+  }
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;Here I declared my own construction that is more useful in my project! So the
   usages are following&lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
       using(projectId) { //do some code } ]]&gt;
 &lt;/script&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      using(projectId) { try { //do some code } catch (e : Exception) { /// log me } } ]]&gt;
-&lt;/script&gt; &lt;p&gt;For
+using(projectId) {
+  try {
+    //do some code
+  } catch (e : Exception) {
+    /// log me
+  }
+}
+]]&gt;&lt;/script&gt; &lt;p&gt;For
   more Kotlin details, you may follow to the &lt;a href=&quot;http://confluence.jetbrains.com/display/Kotlin/Functions&quot;&gt;documentation&lt;/a&gt;.
 &lt;/p&gt;
 &lt;p&gt;The only thing is that this code looks more easy-to-understandable. In the long run, I&#39;d say, this code
@@ -685,47 +866,116 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
     href=&quot;http://hadihariri.com/&quot;&gt;Hadi&lt;/a&gt; created an awesome &lt;a
     href=&quot;http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/&quot;&gt;DSL&lt;/a&gt;
   for that in &lt;a href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;. This is how BDD test may look:&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ given(&quot;a calculator&quot;) { val calculator =
-      JCalculator() on(&quot;calling sum with two numbers&quot;) { val sum = calculator.sum(2, 4) it(&quot;should return the result of
-      adding the first number to the second number&quot;) { shouldEqual(6, sum) } } on(&quot;calling substract with two numbers&quot;)
-      { val subtract = calculator.subtract(4, 2) it(&quot;should return the result of substracting the second number from the
-      first number&quot;) { shouldEqual(2, subtract) } } } ]]&gt;
-&lt;/script&gt; &lt;h2&gt;Abstracting DSL&lt;/h2&gt;&lt;h3&gt;DSL
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+given(&quot;a calculator&quot;) {
+  val calculator = JCalculator()
+
+  on(&quot;calling sum with two numbers&quot;) {
+    val sum = calculator.sum(2, 4)
+    it(&quot;should return the result of adding the first number to the second number&quot;) {
+      shouldEqual(6, sum)
+    }
+  }
+
+  on(&quot;calling substract with two numbers&quot;) {
+    val subtract = calculator.subtract(4, 2)
+    it(&quot;should return the result of substracting the second number from the first number&quot;) {
+      shouldEqual(2, subtract)
+    }
+  }
+}
+]]&gt;&lt;/script&gt;
+
+&lt;h2&gt;Abstracting DSL&lt;/h2&gt;&lt;h3&gt;DSL
   API&lt;/h3&gt;&lt;p&gt;First implementation of &lt;a
   href=&quot;http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/&quot;&gt;Spek
   DSL&lt;/a&gt; was running all closures in-place. That was the thing I decided to change. For JUnit test runner
   integration I was needed to have more control over tests code evaluation. &lt;/p&gt;&lt;p&gt;As side task I split
   Spek DSL definitions from Spek DSL implementations. Finally, I migrated Spek DSL into the following API
   definition:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ //main trait to be
-      implemented in Spek test base class public trait Spek { fun given(description: String, givenExpression: Given.() -&gt;
-      Unit) } public trait Given { fun on(description: String, onExpression: On.() -&gt; Unit) } public trait On { fun
-      it(description: String, itExpression: It.()-&gt;Unit) } public class It { fun shouldEqual&lt;T&gt;(expected: T,
-      actual: T) { assertEquals(expected, actual) } fun shouldNotEqual&lt;T&gt;(expected: T, actual: T) { assertNot {
-      expected == actual } } //and more assertions goes here } ]]&gt;
-&lt;/script&gt; &lt;p&gt;The only thing that is
-  missing in the code above is the implementation of &lt;em&gt;Spek&lt;/em&gt; trait. Meanwhile, the code above
-  defines the rest of test API. &lt;/p&gt; &lt;h3&gt;DSL Model&lt;/h3&gt;&lt;p&gt;I going to have a number of traits
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+//main interface to be implemented in Spek test base class
+public interface Spek {
+  fun given(description: String, givenExpression: Given.() -&gt; Unit)
+}
+
+public interface Given {
+  fun on(description: String, onExpression: On.() -&gt; Unit)
+}
+
+public interface On {
+  fun it(description: String, itExpression: It.() -&gt; Unit)
+}
+
+public class It {
+  fun shouldEqual&lt;T&gt;(expected: T, actual: T) {
+    assertEquals(expected, actual)
+  }
+
+  fun shouldNotEqual&lt;T&gt;(expected: T, actual: T) {
+    assertNot { expected == actual }
+  }
+
+  //and more assertions goes here
+}
+
+]]&gt;&lt;/script&gt; &lt;p&gt;The only thing that is
+  missing in the code above is the implementation of &lt;em&gt;Spek&lt;/em&gt; interface. Meanwhile, the code above
+  defines the rest of test API. &lt;/p&gt; &lt;h3&gt;DSL Model&lt;/h3&gt;&lt;p&gt;I going to have a number of interfaces
   to represents test execution stages:&lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      // root &#39;given&#39; case trait TestFixtureAction { fun Description(): String fun performInit(): List&lt;TestGivenAction&gt;}
-      trait TestGivenAction { fun Description(): String fun performInit(): List&lt;TestOnAction&gt;} trait TestOnAction
-      { fun Description(): String fun performInit(): List&lt;TestItAction&gt;} trait TestItAction { fun Description():
-      String fun run() } ]]&gt;
-&lt;/script&gt; &lt;p&gt;Next is to provide implementation of methods &lt;em&gt;given,
+// root &#39;given&#39; case
+interface TestFixtureAction {
+  fun Description(): String
+  fun performInit(): List&lt;TestGivenAction&gt;
+}
+
+interface TestGivenAction {
+  fun Description(): String
+  fun performInit(): List&lt;TestOnAction&gt;
+}
+
+interface TestOnAction {
+  fun Description(): String
+  fun performInit(): List&lt;TestItAction&gt;
+}
+
+interface TestItAction {
+  fun Description(): String
+  fun run()
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;Next is to provide implementation of methods &lt;em&gt;given,
   on, it&lt;/em&gt;. Let&#39;s start with &lt;em&gt;given&lt;/em&gt; and &lt;em&gt;on&lt;/em&gt;:&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ public fun given(description: String,
-      givenExpression: Given.() -&gt; Unit): TestGivenAction { return object:TestGivenAction { public override fun
-      Description(): String = &quot;given &quot; + description public override fun performInit(): List&lt;TestOnAction&gt; { val g
-      = GivenImpl() g.givenExpression() return g.getActions() } } } ///this object holds all &#39;on&#39; cases inside public
-      class GivenImpl: Given { private val recordedActions = arrayListOf&lt;TestOnAction&gt;() public fun getActions():
-      List&lt;TestOnAction&gt; = recordedActions public override fun on(description: String, onExpression: On.() -&gt;
-      Unit) { recordedActions.add( object : TestOnAction { public override fun Description(): String = description
-      public override fun performInit(): List&lt;TestItAction&gt; { val o = OnImpl() o.onExpression() return
-      o.getActions() } }) } } ]]&gt;
-&lt;/script&gt; &lt;p&gt;The trick here is that execution of &lt;em&gt;onExpression&lt;/em&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+public fun given(description: String, givenExpression: Given.() -&gt; Unit): TestGivenAction {
+  return object:TestGivenAction {
+    public override fun Description(): String = &quot;given &quot; + description
+    public override fun performInit(): List&lt;TestOnAction&gt; {
+      val g = GivenImpl()
+      g.givenExpression()
+      return g.getActions()
+    }
+  }
+}
+
+///this object holds all &#39;on&#39; cases inside public
+class GivenImpl: Given {
+  private val recordedActions = arrayListOf&lt;TestOnAction&gt;()
+  public fun getActions(): List&lt;TestOnAction&gt; = recordedActions
+  public override fun on(description: String, onExpression: On.() -&gt; Unit) {
+    recordedActions.add( object : TestOnAction {
+      public override fun Description(): String = description
+      public override fun performInit(): List&lt;TestItAction&gt; {
+        val o = OnImpl()
+        o.onExpression()
+        return o.getActions()
+      }
+    })
+  }
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;The trick here is that execution of &lt;em&gt;onExpression&lt;/em&gt;
   function is moved inside anonymous class that is created by the method. So instead of executing all functions, it
   records them. Another thing is that &lt;em&gt;onExpression&lt;/em&gt; is an extension method for &lt;em&gt;On&lt;/em&gt;
   class, so call looks like member execution, i.e. &lt;em&gt;o.onExpression()&lt;/em&gt;. Implementation of &lt;em&gt;On&lt;/em&gt;
@@ -733,25 +983,31 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
   with JUnit is simple. One need to mark test class with &lt;em&gt;@RunWith&lt;/em&gt; annotation and provide a test
   runner class with a constructor from &lt;em&gt;Class&lt;/em&gt; that extends &lt;a
     href=&quot;http://junit.sourceforge.net/javadoc/org/junit/runner/Runner.html&quot;&gt;Runner&lt;/a&gt; class.&lt;/p&gt;&lt;p&gt;To
-  hide such details, I come up with tests base class. This class implements &lt;em&gt;Spek&lt;/em&gt; trait and
+  hide such details, I come up with tests base class. This class implements &lt;em&gt;Spek&lt;/em&gt; interface and
   provides JUnit specific setup&lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      RunWith(javaClass&lt;JSpec&lt;*&gt;&gt;()) public abstract class JUnitSpek : Spek { private val givens =
-      arrayListOf&lt;TestGivenAction&gt;() override fun given(description: String, givenExpression: Given.() -&gt; Unit)
-      { givens.add(givenImpl(description, givenExpression)) } //possible workaround to cheat JUnit integration to treat
-      this class as test test public fun mockTest() {} //this method is only used by JSpec to get defined tests fun
-      allGivens() : List&lt;TestGivenAction&gt; = givens } ]]&gt;
-&lt;/script&gt; &lt;p&gt;With use of the base class for
+RunWith(javaClass&lt;JSpec&lt;*&gt;&gt;())
+public abstract class JUnitSpek : Spek {
+  private val givens = arrayListOf&lt;TestGivenAction&gt;()
+  override fun given(description: String, givenExpression: Given.() -&gt; Unit) {
+    givens.add(givenImpl(description, givenExpression)) }
+    //possible workaround to cheat JUnit integration to treat this class as test test public fun mockTest() {}
+    //this method is only used by JSpec to get defined tests fun
+    allGivens() : List&lt;TestGivenAction&gt; = givens
+  }
+}
+]]&gt;&lt;/script&gt;
+&lt;p&gt;With use of the base class for
   Spek tests for JUnit looks like:&lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      public class calculatorSpecs : JUnitSpek() {{ given(&quot;condition&quot;) { ... } }} ]]&gt;
-&lt;/script&gt;
+public class calculatorSpecs : JUnitSpek()  {{
+  given(&quot;condition&quot;) { ... }
+}}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;You may
   notice here double {{ and }}. Those are used intentionally, because test model is constructed in class
   constructor
-  with help of &lt;em&gt;given&lt;/em&gt; method implementation. Then the model is used from &lt;em&gt;JSpec
-    &lt;T&gt;
-  &lt;/em&gt;
+  with help of &lt;em&gt;given&lt;/em&gt; method implementation. Then the model is used from &lt;em&gt;JSpec&amp;lt;T&amp;gt;&lt;/em&gt;
   class to implement &lt;em&gt;Runner&lt;/em&gt; class from JUnit
 &lt;/p&gt; &lt;h2&gt;Conclusions&lt;/h2&gt;&lt;p&gt;I
   made many changes to &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;Spek&lt;/a&gt; BDD testing framework to
@@ -806,18 +1062,27 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
 &lt;p&gt;In the build runner implementation I had to handle several IO errors. For each error I needed to provide
   specific error message. This code in Java requires to have many mostly similar try/catch blocks. With Kotlin I
   solved it nicer, I declared the following function that takes base message and function body:&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[ fun io&lt;T&gt;(errorMessage: String, body: () -&gt;
-      T): T { try { return body() } catch (e: IOException) { throw RunBuildException(&quot;${errorMessage}.
-      ${e.getMessage()}&quot;, e) } } ]]&gt;
-&lt;/script&gt;&lt;p&gt;This function accepts another function to execute. It
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+fun io&lt;T&gt;(errorMessage: String, body: () -&gt; T): T {
+  try {
+    return body()
+  } catch (e: IOException) {
+    throw RunBuildException(&quot;${errorMessage}.${e.getMessage()}&quot;, e)
+  }
+}
+]]&gt;&lt;/script&gt;&lt;p&gt;This function accepts another function to execute. It
   wraps execution with try/catch to re-throw the error adding details as another exception&lt;/p&gt;&lt;p&gt;The
   runner code now turned out to be easy to read and simple:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot;
-        class=&quot;brush: text&quot;&gt;&lt;![CDATA[ //let&#39;s first create temp directory val tempScript = io(&quot;Failed to create temp
-      file&quot;) { getAgentTempDirectory() tempFile TempFileName(&quot;node&quot;, &quot;.js&quot;) } //now let&#39;s write a some text there
-      io(&quot;Failed to write script to temp file&quot;) { FileUtil.writeFileAndReportErrors(tempScript, scriptText); } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
+//let&#39;s first create temp directory
+val tempScript = io(&quot;Failed to create temp file&quot;) {
+  getAgentTempDirectory() tempFile TempFileName(&quot;node&quot;, &quot;.js&quot;)
+}
+//now let&#39;s write a some text there
+io(&quot;Failed to write script to temp file&quot;) {
+  FileUtil.writeFileAndReportErrors(tempScript, scriptText);
+}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;You may read more about &lt;a href=&quot;http://kotlin.jetbrains.org&quot;&gt;Kotlin here&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;Download&lt;/h2&gt;&lt;p&gt;TeamCide.Node
   plugin source code is found &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;On GitHub&lt;/a&gt;. You may
   also checkout &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node/tree/releases&quot;&gt;releases&lt;/a&gt; branch to
@@ -1063,9 +1328,10 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
   you need to know the methods you like to call. The most easiest way is to play with the library from Visual Studio
   project&lt;/p&gt;&lt;p&gt;It&#39;s required to have a using statement in the powershell script in order to use the
   library properly. I found the following solution to it:&lt;/p&gt;
-&lt;pre class=&quot;brush : powershell&quot;&gt;&lt;br/&gt;####
-      from http://blogs.msdn.com/b/powershell/archive/2009/03/12/reserving-keywords.aspx&lt;br/&gt;function
-      TeamCityUsing($obj, [scriptblock] $sb) &lt;br/&gt;{ &lt;br/&gt; try { &lt;br/&gt; &amp; $sb &lt;br/&gt; }
+&lt;pre class=&quot;brush : powershell&quot;&gt;&lt;br/&gt;
+#### from http://blogs.msdn.com/b/powershell/archive/2009/03/12/reserving-keywords.aspx&lt;br/&gt;
+
+function TeamCityUsing($obj, [scriptblock] $sb) &lt;br/&gt;{ &lt;br/&gt; try { &lt;br/&gt; &amp; $sb &lt;br/&gt; }
       finally { &lt;br/&gt; if ($obj -is [IDisposable]) { &lt;br/&gt; $obj.Dispose() &lt;br/&gt; } &lt;br/&gt; }
       &lt;br/&gt;} &lt;br/&gt;&lt;/pre&gt; &lt;p&gt;This script implements using statement in powershell making the
   library usage simple.&lt;/p&gt; &lt;h3&gt;The Code&lt;/h3&gt;&lt;p&gt;Let&#39;s implement the code to report unit test
@@ -1122,24 +1388,39 @@ compiled build from &lt;a href=&quot;https://teamcity.jetbrains.com/viewType.htm
   you need is to call &lt;strong&gt;openFlow()&lt;/strong&gt; method to make the library know you log messages from
   different thread.&lt;/p&gt;&lt;p&gt;The library is designed to provide validation assertions to disallow breaking
   the designed way of service messages reporting.&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:
-      csharp&quot;&gt;&lt;![CDATA[ using (var messages = new TeamCityServiceMessages().CreateWriter()) { //Run actions in
-      several threads ExecuteInDifferentThreads(() =&gt; { using (var flow = messages.OpenFlow()) { //Here goes logging
-      in the thread } }); } ]]&gt;
-&lt;/script&gt; &lt;p&gt;You may also open custom flow within tests suite&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[ using (var messages = new
-      TeamCityServiceMessages().CreateWriter()) { using (var testSuite = messages.OpenTestSuite(&quot;tests suite&quot;)) {
-      ExecuteInDifferentThreads( () =&gt; { using (var flow = testSuite.OpenFlow()) { //Here goes logging in the thread
-      using (var test = flow.OpenTest(&quot;test.a.b.c.d.method&quot;)) { //report test output or test failure } } }); } } ]]&gt;
-&lt;/script&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:csharp&quot;&gt;&lt;![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  //Run actions in several threads
+  ExecuteInDifferentThreads(() =&gt; {
+    using (var flow = messages.OpenFlow()) {
+      //Here goes logging in the thread
+    }
+  });
+}
+]]&gt;&lt;/script&gt; &lt;p&gt;You may also open custom flow within tests suite&lt;/p&gt;
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  using (var testSuite = messages.OpenTestSuite(&quot;tests suite&quot;)) {
+    ExecuteInDifferentThreads( () =&gt; {
+      using (var flow = testSuite.OpenFlow()) {
+        //Here goes logging in the thread
+        using (var test = flow.OpenTest(&quot;test.a.b.c.d.method&quot;)) {
+          //report test output or test failure
+        }
+      }
+    });
+  }
+}
+]]&gt;&lt;/script&gt;
 &lt;p&gt;There were some changes to the classes of the library, that is why I called the version 3.0&lt;/p&gt;
 &lt;h3&gt;Changes in 2.0&lt;/h3&gt;&lt;p&gt;Added support of service message to report build problem&lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[ using (var messages = new
-      TeamCityServiceMessages().CreateWriter()) { messages.WriteBuildProblem(&quot;problem1&quot;, &quot;Failed to complete build
-      custom task&quot;); } ]]&gt;
-&lt;/script&gt; &lt;h3&gt;Changes in 3.0, 2.0 and 1.0&lt;/h3&gt;&lt;p&gt;I made ReSharper
+&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  messages.WriteBuildProblem(&quot;problem1&quot;, &quot;Failed to complete build custom task&quot;);
+}
+]]&gt;&lt;/script&gt;
+
+&lt;h3&gt;Changes in 3.0, 2.0 and 1.0&lt;/h3&gt;&lt;p&gt;I made ReSharper
   annotation classes internal in order to avoid confusions&lt;/p&gt;&lt;p&gt;Now the package contains build for .NET
   3.5 and build for .NET 4.0&lt;/p&gt;&lt;p&gt;Build configurations were moved to &lt;a
   href=&quot;http://teamcity.jetbrains.com/project.html?projectId=project75&amp;tab=projectOverview&quot;&gt;TeamCity.JetBrains.com&lt;/a&gt;

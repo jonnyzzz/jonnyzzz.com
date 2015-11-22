@@ -172,24 +172,39 @@
   you need is to call <strong>openFlow()</strong> method to make the library know you log messages from
   different thread.</p><p>The library is designed to provide validation assertions to disallow breaking
   the designed way of service messages reporting.</p>
-<script type="syntaxhighlighter" class="brush:
-      csharp"><![CDATA[ using (var messages = new TeamCityServiceMessages().CreateWriter()) { //Run actions in
-      several threads ExecuteInDifferentThreads(() => { using (var flow = messages.OpenFlow()) { //Here goes logging
-      in the thread } }); } ]]>
-</script> <p>You may also open custom flow within tests suite</p>
-<script
-  type="syntaxhighlighter" class="brush: csharp"><![CDATA[ using (var messages = new
-      TeamCityServiceMessages().CreateWriter()) { using (var testSuite = messages.OpenTestSuite("tests suite")) {
-      ExecuteInDifferentThreads( () => { using (var flow = testSuite.OpenFlow()) { //Here goes logging in the thread
-      using (var test = flow.OpenTest("test.a.b.c.d.method")) { //report test output or test failure } } }); } } ]]>
-</script>
+<script type="syntaxhighlighter" class="brush:csharp"><![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  //Run actions in several threads
+  ExecuteInDifferentThreads(() => {
+    using (var flow = messages.OpenFlow()) {
+      //Here goes logging in the thread
+    }
+  });
+}
+]]></script> <p>You may also open custom flow within tests suite</p>
+<script type="syntaxhighlighter" class="brush: csharp"><![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  using (var testSuite = messages.OpenTestSuite("tests suite")) {
+    ExecuteInDifferentThreads( () => {
+      using (var flow = testSuite.OpenFlow()) {
+        //Here goes logging in the thread
+        using (var test = flow.OpenTest("test.a.b.c.d.method")) {
+          //report test output or test failure
+        }
+      }
+    });
+  }
+}
+]]></script>
 <p>There were some changes to the classes of the library, that is why I called the version 3.0</p>
 <h3>Changes in 2.0</h3><p>Added support of service message to report build problem</p>
-<script
-  type="syntaxhighlighter" class="brush: csharp"><![CDATA[ using (var messages = new
-      TeamCityServiceMessages().CreateWriter()) { messages.WriteBuildProblem("problem1", "Failed to complete build
-      custom task"); } ]]>
-</script> <h3>Changes in 3.0, 2.0 and 1.0</h3><p>I made ReSharper
+<script type="syntaxhighlighter" class="brush: csharp"><![CDATA[
+using (var messages = new TeamCityServiceMessages().CreateWriter()) {
+  messages.WriteBuildProblem("problem1", "Failed to complete build custom task");
+}
+]]></script>
+
+<h3>Changes in 3.0, 2.0 and 1.0</h3><p>I made ReSharper
   annotation classes internal in order to avoid confusions</p><p>Now the package contains build for .NET
   3.5 and build for .NET 4.0</p><p>Build configurations were moved to <a
   href="http://teamcity.jetbrains.com/project.html?projectId=project75&tab=projectOverview">TeamCity.JetBrains.com</a>
