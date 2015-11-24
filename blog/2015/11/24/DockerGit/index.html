@@ -1,0 +1,454 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8">
+<title>Git in Docker &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="docker, git, integration tests, ci">
+
+  
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Git in Docker">
+
+<meta name="twitter:site" content="@jonnyzzz">
+<meta name="twitter:creator" content="@jonnyzzz">
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="/images/">
+
+<!-- Open Graph -->
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git in Docker">
+
+<meta property="og:url" content="/blog/2015/11/24/DockerGit/">
+<meta property="og:site_name" content="Eugene Petrenko">
+
+
+
+
+
+<link rel="canonical" href="/blog/2015/11/24/DockerGit/">
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="Eugene Petrenko Feed">
+
+<!-- https://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css">
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on">
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+<link rel="manifest" href="/images/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<!-- Begin Cookie Consent plugin by Silktide - http://silktide.com/cookieconsent -->
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+<!-- End Cookie Consent plugin -->
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li><li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#integration tests" title="Pages tagged integration tests">integration tests</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Git in Docker</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2015-11-24T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 24, 2015</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        
+        
+      </footer>
+      <div class="entry-content">
+        <p>Some uses <a href="https://docker.com">Docker</a> to run builds inside. 
+Some uses it to run tests inside. 
+Today I gonna cover my case, where I implement a command that runs inside a Docker container 
+and call it thousands of times during <a href="https://en.wikipedia.org/wiki/Continuous_integration">CI</a> 
+integration tests build.</p>
+
+<h2 id="problem-statement">Problem Statement</h2>
+<p>A project I work on uses <a href="http://git-scm.com">Git client</a>. 
+There are a number of Git client 
+version available. My need was to create integration tests 
+to make sure project works with a given Git client versions.</p>
+
+<p>Tests has to be implemented for Windows and Linux. Popular Git client 
+versions should be covered.
+For Windows I simply download binaries.
+For Linux this did not worked well. Too tricky to use public packages. 
+Let’s compile Git from sources.</p>
+
+<h2 id="building-git-client">Building Git Client</h2>
+<p>Git client is easy to checkout and compile. I use the following
+snippet for that</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">git_version</span><span class="o">=</span>&lt;a version of Git client to use&gt;
+<span class="nv">git_sources</span><span class="o">=</span><span class="s2">&quot;/gitz/src/git-${git_version}&quot;</span>
+<span class="nv">git_bin</span><span class="o">=</span><span class="s2">&quot;/gitz/bin/git-${git_version}&quot;</span>
+<span class="nv">git_sh</span><span class="o">=</span><span class="s2">&quot;/git-${git_version}.sh&quot;</span>
+
+mkdir -p <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>
+mkdir -p <span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span>
+
+wget -O <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git.tar.gz https://www.kernel.org/pub/software/scm/git/git-<span class="k">${</span><span class="nv">git_version</span><span class="k">}</span>.tar.gz
+tar xzf <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git.tar.gz -C <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>
+
+<span class="nb">pushd</span> <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git-<span class="k">${</span><span class="nv">git_version</span><span class="k">}</span>
+make <span class="nv">prefix</span><span class="o">=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span> all <span class="o">&amp;&amp;</span> make <span class="nv">prefix</span><span class="o">=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span> install
+<span class="nb">popd</span>
+
+<span class="nb">echo</span> <span class="s1">&#39;#!/bin/bash&#39;</span> &gt; <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span>
+<span class="nb">echo</span> <span class="s2">&quot;GIT_EXEC_PATH=${git_bin}/libexec/git-core PATH=${git_bin}/bin:\$PATH GITPERLLIB=${git_bin}/perl/blib/lib ${git_bin}/bin/git \&quot;\$@\&quot;&quot;</span> &gt; <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span>
+chmod a+rx <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span></code></pre></div>
+
+<p>The code above generates a starter script for Git client (e.g. <code>/git-1.7.2.sh</code>)</p>
+
+<p>Git build also requires a set of packages to be installed on the OS (for my case on CentOS)</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">yum update -y
+yum groupinstall -y <span class="s2">&quot;Development tools&quot;</span>
+yum install -y tar wget m4
+yum install -y autoconf
+yum install -y gcc
+yum install -y perl-ExtUtils-MakeMaker
+yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
+yum clean all</code></pre></div>
+
+<p>Well, building Git client</p>
+
+<ul>
+  <li>takes time</li>
+  <li>resources waste to re-build</li>
+  <li>requires
+    <ul>
+      <li>OS package install permissions  <br />
+=&gt; (aka <code>root</code> access to build machine),  <br />
+or</li>
+      <li>pre-configured CI build machines <br />
+=&gt; (aka eternal pain to update machine packages)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>How can we re-use Git binaries and have Git client available with no
+extra packages, build machined pre-configuration and other maintenance 
+activities?</p>
+
+<h2 id="build-git-client-in-docker-container">Build Git Client in Docker Container</h2>
+<p>What if I use Docker to build Git from binaries for all version I need?</p>
+
+<p>Well, benefits of Docker image and process are</p>
+
+<ul>
+  <li>isolation</li>
+  <li>recoverable configuration</li>
+  <li>no side-effects</li>
+  <li>no infrastructure maintenance costs</li>
+  <li>repeatable configuration</li>
+  <li>the only one requirement to have Docker installed on the CI machine</li>
+  <li>nearly no root access required (effectively Docker command means root access)</li>
+  <li>no dependency on CI machine packages / environment</li>
+  <li>binaries re-use via Docker image</li>
+</ul>
+
+<p>I created a <code>Dockerfile</code> where I compile selected versions of Git client 
+from sources and prepare bootstrap scripts (as shown above). All building 
+tasks were put in one <code>RUN</code> command to avoid too many 
+<a href="https://github.com/docker/docker/issues/1171">layers</a>.</p>
+
+<p>The Docker image I build is only updated to include new version of Git client.
+This is done quite rarely. The only requirement for CI machine is Docker.</p>
+
+<p>Now in my CI builds I can start a Docker container form a pre-built image 
+with required Git client version. This is the way to run repeatable
+integration tests.</p>
+
+<p>But, now I need to make my tests run inside the same container. This 
+is complicated…<br />
+and there are some packages were (not yet) installed in the container…</p>
+
+<h2 id="calling-docker-container-from-a-script">Calling Docker Container from a Script</h2>
+<p>The only requirement from integration tests is to have <code>git</code> command of given version in <code>PATH</code>.
+Let’s wrap Docker container call into a bash script than!</p>
+
+<p>First of I created a script like that (see <a href="https://docs.docker.com/engine/reference/run/">docker run docs</a>)</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">docker run GIT_CLIENT_IMAGES <span class="nv">$@</span></code></pre></div>
+
+<p>Well, it did not work, so I added volume with current directory: <code>-v $(pwd):/$(pwd)</code> and switched working 
+directory in Docker to it via <code>-w /$(pwd)</code>.<br />
+NOTE. This will not work if our <code>git</code> command is executed from non repository checkout root.</p>
+
+<p>Included <code>--rm</code> to avoid garbage from finished containers.</p>
+
+<p>Added <code>-i</code> to have the command run interactively.</p>
+
+<p>The only issue now was that all files changed or created in container were owned by root
+(because in Docker container I was running it under root and owners and permissions are transparent here)</p>
+
+<p>There are two solutions for that</p>
+
+<ul>
+  <li>run <code>chown</code> after each call</li>
+  <li>use same user in container</li>
+</ul>
+
+<p>Running <code>chown</code> is at least starting another process, dealing with exit codes and errors. I preferred 
+the second option. The <em>same user</em> means a user that has same <a href="https://en.wikipedia.org/wiki/User_identifier">UID</a> 
+and <a href="https://en.wikipedia.org/wiki/Group_identifier">GID</a>. 
+I added <code>-u $(id -u):$(id -g)</code> arguments.</p>
+
+<p>Finally, I implemented version selector as environment variable. There are also a number 
+of <a href="https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables">Git specific environment variables</a>
+that are to be sent to the container. This is done via <code>--env</code> arguments of Docker run command.</p>
+
+<p>Now I have</p>
+
+<ul>
+  <li>a pre-built Docker image with all Git clients</li>
+  <li>a script that pretends to be <code>git</code> command and delegates calls into a Docker container</li>
+</ul>
+
+<p>Having one dependency is better that having two. Let’s put it all together…</p>
+
+<h2 id="putting-all-together">Putting all together</h2>
+<p>It’s clear the start script depends on container. I put the script inside container. 
+Default container command prints the <code>git</code> script to STDOUT.</p>
+
+<p>The Git client setup bash script turned to be as follows:</p>
+
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">docker pull GIT_CLIENT_IMAGE
+docker run --rm GIT_CLIENT_IMAGE 2&gt;/dev/null &gt;git
+chmod +x git
+<span class="nv">PATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/git:<span class="nv">$PATH</span>
+<span class="nb">export </span>PATH
+
+<span class="nv">GIT_VERSION</span><span class="o">=</span>&lt;a version of Git client to use&gt;
+<span class="nb">export </span>GIT_VERSION
+
+<span class="c">#call integration tests</span></code></pre></div>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<ul>
+  <li>Host-OS independent way to run integration tests with different Git client versions.</li>
+  <li>It builds each Git client version only once.</li>
+  <li>Integration tests environment is not polluted with Git client build dependencies.</li>
+  <li>Can easily switch Linux distributive</li>
+  <li>Minimum overhead</li>
+  <li>Constant time Git client switch</li>
+</ul>
+
+<p>How it finally works. Custom <code>git</code> script is added to <code>PATH</code>. 
+For every call the script starts a fresh Docker container to perform
+the call. Git client of specified version is executed in it.
+STD streams and signals are bound transparently.
+Container is terminated and disposed at the end. 
+Integration tests calls <code>git</code> command hundreds times.</p>
+
+<h2 id="real-life">Real Life</h2>
+<p>I implemented the following infrastructure for my project. I use in-house 
+Docker registry to host latest Git clients image. It uses default Linux build machine
+image and it does not require specific permissions or packages, but Docker.</p>
+
+<p>Initial implementation was done in beginning of 2015, in the blog post I omitted 
+some implementation details that are now seems to be done easier.</p>
+
+<p>Currently I run tests for up to 10 versions of Git client. My observations 
+shows the slowdown about 2x in comparison with fully native Git client on Linux.
+Frankly, I have not yet tried to optimize performance of my scripts.</p>
+
+<p>Containerize with Pleasure!</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2015/11/22/MoveMoveMove/" class="btn" title="New Site. New Domain. New Technologies">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2015 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

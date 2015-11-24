@@ -4,13 +4,232 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="/feed.xml" />
 <link rel="alternate" type="text/html" href="" />
-<updated>2015-11-22T23:23:50+00:00</updated>
+<updated>2015-11-24T00:34:11+00:00</updated>
 <id>/</id>
 <author>
   <name>Eugene Petrenko</name>
   <uri>/</uri>
   <email>eugene.petrenko@gmail.com</email>
 </author>
+
+
+  
+
+<entry>
+  <title type="html"><![CDATA[Git in Docker]]></title>
+  <link rel="alternate" type="text/html" href="/blog/2015/11/24/DockerGit/" />
+  <id>/blog/2015/11/24/DockerGit</id>
+  <published>2015-11-24T00:00:00+00:00</published>
+  <updated>2015-11-24T00:00:00+00:00</updated>
+  <author>
+    <name>Eugene Petrenko</name>
+    <uri></uri>
+    <email>eugene.petrenko@gmail.com</email>
+  </author>
+  <content type="html">
+    &lt;p&gt;Some uses &lt;a href=&quot;https://docker.com&quot;&gt;Docker&lt;/a&gt; to run builds inside. 
+Some uses it to run tests inside. 
+Today I gonna cover my case, where I implement a command that runs inside a Docker container 
+and call it thousands of times during &lt;a href=&quot;https://en.wikipedia.org/wiki/Continuous_integration&quot;&gt;CI&lt;/a&gt; 
+integration tests build.&lt;/p&gt;
+
+&lt;h2 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h2&gt;
+&lt;p&gt;A project I work on uses &lt;a href=&quot;http://git-scm.com&quot;&gt;Git client&lt;/a&gt;. 
+There are a number of Git client 
+version available. My need was to create integration tests 
+to make sure project works with a given Git client versions.&lt;/p&gt;
+
+&lt;p&gt;Tests has to be implemented for Windows and Linux. Popular Git client 
+versions should be covered.
+For Windows I simply download binaries.
+For Linux this did not worked well. Too tricky to use public packages. 
+Let’s compile Git from sources.&lt;/p&gt;
+
+&lt;h2 id=&quot;building-git-client&quot;&gt;Building Git Client&lt;/h2&gt;
+&lt;p&gt;Git client is easy to checkout and compile. I use the following
+snippet for that&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
+&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/src/git-${git_version}&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/bin/git-${git_version}&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/git-${git_version}.sh&amp;quot;&lt;/span&gt;
+
+mkdir -p &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+mkdir -p &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+
+wget -O &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git.tar.gz https://www.kernel.org/pub/software/scm/git/git-&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.tar.gz
+tar xzf &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git.tar.gz -C &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;pushd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git-&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+make &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; all &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; make &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; install
+&lt;span class=&quot;nb&quot;&gt;popd&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;#!/bin/bash&amp;#39;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;GIT_EXEC_PATH=${git_bin}/libexec/git-core PATH=${git_bin}/bin:\$PATH GITPERLLIB=${git_bin}/perl/blib/lib ${git_bin}/bin/git \&amp;quot;\$@\&amp;quot;&amp;quot;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+chmod a+rx &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The code above generates a starter script for Git client (e.g. &lt;code&gt;/git-1.7.2.sh&lt;/code&gt;)&lt;/p&gt;
+
+&lt;p&gt;Git build also requires a set of packages to be installed on the OS (for my case on CentOS)&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;yum update -y
+yum groupinstall -y &lt;span class=&quot;s2&quot;&gt;&amp;quot;Development tools&amp;quot;&lt;/span&gt;
+yum install -y tar wget m4
+yum install -y autoconf
+yum install -y gcc
+yum install -y perl-ExtUtils-MakeMaker
+yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
+yum clean all&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Well, building Git client&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;takes time&lt;/li&gt;
+  &lt;li&gt;resources waste to re-build&lt;/li&gt;
+  &lt;li&gt;requires
+    &lt;ul&gt;
+      &lt;li&gt;OS package install permissions  &lt;br /&gt;
+=&amp;gt; (aka &lt;code&gt;root&lt;/code&gt; access to build machine),  &lt;br /&gt;
+or&lt;/li&gt;
+      &lt;li&gt;pre-configured CI build machines &lt;br /&gt;
+=&amp;gt; (aka eternal pain to update machine packages)&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;How can we re-use Git binaries and have Git client available with no
+extra packages, build machined pre-configuration and other maintenance 
+activities?&lt;/p&gt;
+
+&lt;h2 id=&quot;build-git-client-in-docker-container&quot;&gt;Build Git Client in Docker Container&lt;/h2&gt;
+&lt;p&gt;What if I use Docker to build Git from binaries for all version I need?&lt;/p&gt;
+
+&lt;p&gt;Well, benefits of Docker image and process are&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;isolation&lt;/li&gt;
+  &lt;li&gt;recoverable configuration&lt;/li&gt;
+  &lt;li&gt;no side-effects&lt;/li&gt;
+  &lt;li&gt;no infrastructure maintenance costs&lt;/li&gt;
+  &lt;li&gt;repeatable configuration&lt;/li&gt;
+  &lt;li&gt;the only one requirement to have Docker installed on the CI machine&lt;/li&gt;
+  &lt;li&gt;nearly no root access required (effectively Docker command means root access)&lt;/li&gt;
+  &lt;li&gt;no dependency on CI machine packages / environment&lt;/li&gt;
+  &lt;li&gt;binaries re-use via Docker image&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I created a &lt;code&gt;Dockerfile&lt;/code&gt; where I compile selected versions of Git client 
+from sources and prepare bootstrap scripts (as shown above). All building 
+tasks were put in one &lt;code&gt;RUN&lt;/code&gt; command to avoid too many 
+&lt;a href=&quot;https://github.com/docker/docker/issues/1171&quot;&gt;layers&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The Docker image I build is only updated to include new version of Git client.
+This is done quite rarely. The only requirement for CI machine is Docker.&lt;/p&gt;
+
+&lt;p&gt;Now in my CI builds I can start a Docker container form a pre-built image 
+with required Git client version. This is the way to run repeatable
+integration tests.&lt;/p&gt;
+
+&lt;p&gt;But, now I need to make my tests run inside the same container. This 
+is complicated…&lt;br /&gt;
+and there are some packages were (not yet) installed in the container…&lt;/p&gt;
+
+&lt;h2 id=&quot;calling-docker-container-from-a-script&quot;&gt;Calling Docker Container from a Script&lt;/h2&gt;
+&lt;p&gt;The only requirement from integration tests is to have &lt;code&gt;git&lt;/code&gt; command of given version in &lt;code&gt;PATH&lt;/code&gt;.
+Let’s wrap Docker container call into a bash script than!&lt;/p&gt;
+
+&lt;p&gt;First of I created a script like that (see &lt;a href=&quot;https://docs.docker.com/engine/reference/run/&quot;&gt;docker run docs&lt;/a&gt;)&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run GIT_CLIENT_IMAGES &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Well, it did not work, so I added volume with current directory: &lt;code&gt;-v $(pwd):/$(pwd)&lt;/code&gt; and switched working 
+directory in Docker to it via &lt;code&gt;-w /$(pwd)&lt;/code&gt;.&lt;br /&gt;
+NOTE. This will not work if our &lt;code&gt;git&lt;/code&gt; command is executed from non repository checkout root.&lt;/p&gt;
+
+&lt;p&gt;Included &lt;code&gt;--rm&lt;/code&gt; to avoid garbage from finished containers.&lt;/p&gt;
+
+&lt;p&gt;Added &lt;code&gt;-i&lt;/code&gt; to have the command run interactively.&lt;/p&gt;
+
+&lt;p&gt;The only issue now was that all files changed or created in container were owned by root
+(because in Docker container I was running it under root and owners and permissions are transparent here)&lt;/p&gt;
+
+&lt;p&gt;There are two solutions for that&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;run &lt;code&gt;chown&lt;/code&gt; after each call&lt;/li&gt;
+  &lt;li&gt;use same user in container&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Running &lt;code&gt;chown&lt;/code&gt; is at least starting another process, dealing with exit codes and errors. I preferred 
+the second option. The &lt;em&gt;same user&lt;/em&gt; means a user that has same &lt;a href=&quot;https://en.wikipedia.org/wiki/User_identifier&quot;&gt;UID&lt;/a&gt; 
+and &lt;a href=&quot;https://en.wikipedia.org/wiki/Group_identifier&quot;&gt;GID&lt;/a&gt;. 
+I added &lt;code&gt;-u $(id -u):$(id -g)&lt;/code&gt; arguments.&lt;/p&gt;
+
+&lt;p&gt;Finally, I implemented version selector as environment variable. There are also a number 
+of &lt;a href=&quot;https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables&quot;&gt;Git specific environment variables&lt;/a&gt;
+that are to be sent to the container. This is done via &lt;code&gt;--env&lt;/code&gt; arguments of Docker run command.&lt;/p&gt;
+
+&lt;p&gt;Now I have&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;a pre-built Docker image with all Git clients&lt;/li&gt;
+  &lt;li&gt;a script that pretends to be &lt;code&gt;git&lt;/code&gt; command and delegates calls into a Docker container&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Having one dependency is better that having two. Let’s put it all together…&lt;/p&gt;
+
+&lt;h2 id=&quot;putting-all-together&quot;&gt;Putting all together&lt;/h2&gt;
+&lt;p&gt;It’s clear the start script depends on container. I put the script inside container. 
+Default container command prints the &lt;code&gt;git&lt;/code&gt; script to STDOUT.&lt;/p&gt;
+
+&lt;p&gt;The Git client setup bash script turned to be as follows:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker pull GIT_CLIENT_IMAGE
+docker run --rm GIT_CLIENT_IMAGE 2&amp;gt;/dev/null &amp;gt;git
+chmod +x git
+&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;/git:&lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;PATH
+
+&lt;span class=&quot;nv&quot;&gt;GIT_VERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GIT_VERSION
+
+&lt;span class=&quot;c&quot;&gt;#call integration tests&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Host-OS independent way to run integration tests with different Git client versions.&lt;/li&gt;
+  &lt;li&gt;It builds each Git client version only once.&lt;/li&gt;
+  &lt;li&gt;Integration tests environment is not polluted with Git client build dependencies.&lt;/li&gt;
+  &lt;li&gt;Can easily switch Linux distributive&lt;/li&gt;
+  &lt;li&gt;Minimum overhead&lt;/li&gt;
+  &lt;li&gt;Constant time Git client switch&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;How it finally works. Custom &lt;code&gt;git&lt;/code&gt; script is added to &lt;code&gt;PATH&lt;/code&gt;. 
+For every call the script starts a fresh Docker container to perform
+the call. Git client of specified version is executed in it.
+STD streams and signals are bound transparently.
+Container is terminated and disposed at the end. 
+Integration tests calls &lt;code&gt;git&lt;/code&gt; command hundreds times.&lt;/p&gt;
+
+&lt;h2 id=&quot;real-life&quot;&gt;Real Life&lt;/h2&gt;
+&lt;p&gt;I implemented the following infrastructure for my project. I use in-house 
+Docker registry to host latest Git clients image. It uses default Linux build machine
+image and it does not require specific permissions or packages, but Docker.&lt;/p&gt;
+
+&lt;p&gt;Initial implementation was done in beginning of 2015, in the blog post I omitted 
+some implementation details that are now seems to be done easier.&lt;/p&gt;
+
+&lt;p&gt;Currently I run tests for up to 10 versions of Git client. My observations 
+shows the slowdown about 2x in comparison with fully native Git client on Linux.
+Frankly, I have not yet tried to optimize performance of my scripts.&lt;/p&gt;
+
+&lt;p&gt;Containerize with Pleasure!&lt;/p&gt;
+
+    &lt;p&gt;&lt;a href=&quot;/blog/2015/11/24/DockerGit/&quot;&gt;Git in Docker&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 24, 2015.&lt;/p&gt;
+  </content>
+</entry>
 
 
   
@@ -1573,41 +1792,6 @@ using (var messages = new TeamCityServiceMessages().CreateWriter()) {
 /&gt;&lt;/a&gt;
 
     &lt;p&gt;&lt;a href=&quot;/blog/2012/10/25/android-battery-tweet-application/&quot;&gt;Android Battery Tweet Application&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on October 25, 2012.&lt;/p&gt;
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[GitHub Status Api in TeamCity Update]]></title>
-  <link rel="alternate" type="text/html" href="/blog/2012/09/13/github-status-api-in-teamcity-update/" />
-  <id>/blog/2012/09/13/github-status-api-in-teamcity-update</id>
-  <updated>2012-09-13T12:58:49.805+02:00T00:00:00-00:00</updated>
-  <published>2012-09-13T12:58:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri></uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Update to &lt;a
-  href=&quot;/blog/2012/09/06/reporting-change-status-to-github/&quot;&gt;GitHub Status API plugin&lt;/a&gt;.
-  Settings were improved to allow one to specify GitHub repository name&lt;/p&gt; &lt;p&gt;New Settings contains the
-  following fields:&lt;/p&gt;&lt;a
-  href=&quot;http://4.bp.blogspot.com/-191uyz6NW4o/UE5AcQHCf8I/AAAAAAAACLA/X88b5w51Ik0/s1600/Image_0000.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;269&quot; width=&quot;320&quot;
-                                src=&quot;http://4.bp.blogspot.com/-191uyz6NW4o/UE5AcQHCf8I/AAAAAAAACLA/X88b5w51Ik0/s320/Image_0000.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;Make sure you specified repository owner name in the build feature&lt;/p&gt; &lt;p&gt;Sources are on
-  GitHub: &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.GitHub&quot;&gt;https://github.com/jonnyzzz/TeamCity.GitHub&lt;/a&gt;&lt;/p&gt;&lt;p&gt;
-  You
-  can download a build from our TeamCity: &lt;a
-  href=&quot;http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt398&amp;tab=buildTypeStatusDiv&quot;&gt;here&lt;/a&gt;.
-  Plugin is compiled with TeamCity 7.1 and may work with older versions&lt;/p&gt;&lt;p&gt;Looking forward to get a
-  feedback from you!&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;/blog/2012/09/13/github-status-api-in-teamcity-update/&quot;&gt;GitHub Status Api in TeamCity Update&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;&quot;&gt;Eugene Petrenko&lt;/a&gt; on September 13, 2012.&lt;/p&gt;
   </content>
 </entry>
 
