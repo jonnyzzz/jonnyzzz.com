@@ -1,0 +1,389 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Kotlin XML Binding &#8211; Eugene Petrenko</title>
+
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, xml, kotlin.xml.bind, jdom, dsl, gradle" />
+
+  
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Kotlin XML Binding -- Eugene Petrenko" />
+
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Kotlin XML Binding -- Eugene Petrenko" />
+
+<meta property="og:url" content="http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="xml" />
+
+<meta property="article:tag" content="kotlin.xml.bind" />
+
+<meta property="article:tag" content="jdom" />
+
+<meta property="article:tag" content="dsl" />
+
+<meta property="article:tag" content="gradle" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		        
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		        
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#xml" title="Pages tagged xml">xml</a></li><li><a href="/tags/#kotlin.xml.bind" title="Pages tagged kotlin.xml.bind">kotlin.xml.bind</a></li><li><a href="/tags/#jdom" title="Pages tagged jdom">jdom</a></li><li><a href="/tags/#dsl" title="Pages tagged dsl">dsl</a></li><li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Kotlin XML Binding</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+          
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2016-01-06T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 06, 2016</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,xml,kotlin.xml.bind,jdom,dsl,gradle&amp;text=Kotlin%20XML%20Binding&amp;url=http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>I like creating DSLs in <a href="https://kotlinlang.org/">Kotlin</a>. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.</p>
+
+<p>I was looking for a way to use XPath like queries for data binding. I did not want to parse 
+queries from raw strings. The DSL inherited some ideas from XPath queries.</p>
+
+<p>In Kotlin I used 
+<a href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated Properties</a>
+to achieve better readability, avoid explicit type names for serialization/deserialization rules.</p>
+
+<p>Let’s consider an example. Say you have an XML:</p>
+
+<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
+  <span class="nt">&lt;settings</span> <span class="na">type=</span><span class="s">&quot;q&quot;</span><span class="nt">&gt;</span>
+     <span class="nt">&lt;name&gt;</span>Foo<span class="nt">&lt;/name&gt;</span>
+  <span class="nt">&lt;/settings&gt;</span>
+  <span class="nt">&lt;keys&gt;</span>
+     <span class="nt">&lt;key&gt;</span>A<span class="nt">&lt;/key&gt;</span>
+     <span class="nt">&lt;key&gt;</span>B<span class="nt">&lt;/key&gt;</span>
+     <span class="nt">&lt;key&gt;</span>C<span class="nt">&lt;/key&gt;</span>   
+  <span class="nt">&lt;/keys&gt;</span>
+<span class="nt">&lt;/project&gt;</span></code></pre></div>
+
+<p>Thanks to the <a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a>, you may 
+parse it with the following DSL in Kotlin:</p>
+
+<div class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
+  <span class="k">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;name&quot;</span> <span class="p">/</span> <span class="n">XText</span>
+  <span class="k">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;keys&quot;</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
+  <span class="k">var</span> <span class="py">any</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;parameters&quot;</span> <span class="p">/</span> <span class="n">XAnyElements</span> <span class="p">/</span> <span class="n">XSub</span><span class="p">(</span><span class="n">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+  <span class="k">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XUnknown</span>
+<span class="p">}</span></code></pre></div>
+
+<p>Kotlin compiler infers types for properties, so one should not write types at all. 
+In the example above <code>type</code> and <code>name</code> properties are <code>String?</code>, 
+<code>keys</code> is <code>List&lt;String&gt;?</code>. <code>XAnyElements</code> means result will be as collection, <code>XSub</code> 
+parses sub-elements as <code>XSub</code> objects.</p>
+
+<p><a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a> provides serialization and deserialization.</p>
+
+<h1 id="sources--binaries">Sources / Binaries</h1>
+<p>Sources are on GitHub under Apache 2.0 license. Binaries are published to a maven repo.</p>
+
+<p>For more information, see <a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a> project on GitHub.</p>
+
+<h1 id="implementation-details">Implementation details</h1>
+<p>I use <a href="http://www.jdom.org/">JDOM</a> to work with XML. DSL is done in separate module that does not depend on JDOM directly.</p>
+
+<p>You may find API declarations <a href="https://github.com/jonnyzzz/kotlin.xml.bind/blob/master/api/src/main/kotlin/org/jonnyzzz/kotlin/xml/bind/XBind.API.kt">here</a>. 
+For every DSL <a href="https://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols">grammar rule</a> of the DSL I created an interface in Kotlin.</p>
+
+<p>The main trick is that expressions like <code>JXML / "keys" / XElements("key") / XText</code> returns an object
+that implements requirements of
+<a href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated Properties</a>
+.</p>
+
+<p>The library adds a tiny overhead on every object creation. So now to create an object (e.g. <code>Project</code> class above)
+it has to create a number of objects from the DSL that are used behind delegated properties. Reflections 
+are still in use to scan available object properties too on serialization/deserialization.</p>
+
+<p>For tests I created yet another DSL to generate XML easily. 
+You may find more details in <a href="https://github.com/jonnyzzz/kotlin.xml.dsl">kotlin.xml.dsl</a> on GitHub. 
+This is an example of unit test</p>
+
+<div class="highlight"><pre><code class="language-xml" data-lang="xml">@Test
+public fun test_read_any_element_does_not_include_parsed() {
+  class Data {
+    var X by JXML / &quot;x&quot; / XUnknown
+    var Y by JXML / &quot;Y&quot; / XUnknown
+    var Z by JXML / XAnyElements / XUnknown
+  }
+
+  val el = jdom(&quot;aaa&quot;) {
+    element(&quot;x&quot;) { text(&quot;yohoho&quot;)}
+    element(&quot;Y&quot;) { text(&quot;123&quot;)}
+    element(&quot;z&quot;) { text(&quot;www&quot;)}
+    element(&quot;p&quot;) { text(&quot;www&quot;)}
+  }
+
+  val d : Data = JDOM.load(el , Data::class.java)
+
+  Assert.assertEquals(d.Z?.size, 2)
+  Assert.assertEquals(d.Z?.get(0)?.name, &quot;z&quot;)
+  Assert.assertEquals(d.Z?.get(1)?.name, &quot;p&quot;)
+}</code></pre></div>
+
+<p>I use <a href="https://gradle.org/">Gradle</a> as project model now. 
+Artifacts are deployed to <a href="https://bintray.com/jonnyzzz/maven">Bintray</a></p>
+
+<h1 id="future-work">Future Work</h1>
+<p>The ides of the DSL are easily mapped to JSON too. So it’s possible to read/write/update JSON files in the same way<br />
+Get rid of reflections and use <a href="https://kotlinlang.org/docs/reference/object-declarations.html#companion-objects">Companion Objects</a><br />
+Support other XML implementations, not only JDOM<br />
+Improve, finalize and document binding DSL<br />
+Invite contributors!<br />
+Have more fun!</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2015/11/24/DockerGit/" class="btn" title="Git in Docker">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

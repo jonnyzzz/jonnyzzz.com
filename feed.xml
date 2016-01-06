@@ -4,13 +4,132 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="http://jonnyzzz.com/feed.xml" />
 <link rel="alternate" type="text/html" href="http://jonnyzzz.com" />
-<updated>2016-01-06T23:21:07+00:00</updated>
+<updated>2016-01-06T23:23:19+00:00</updated>
 <id>http://jonnyzzz.com/</id>
 <author>
   <name>Eugene Petrenko</name>
   <uri>http://jonnyzzz.com/</uri>
   <email>eugene.petrenko@gmail.com</email>
 </author>
+
+
+  
+
+<entry>
+  <title type="html"><![CDATA[Kotlin XML Binding]]></title>
+  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
+  <id>http://jonnyzzz.com/blog/2016/01/06/kotlin-xml</id>
+  <published>2016-01-06T00:00:00+00:00</published>
+  <updated>2016-01-06T00:00:00+00:00</updated>
+  <author>
+    <name>Eugene Petrenko</name>
+    <uri>http://jonnyzzz.com</uri>
+    <email>eugene.petrenko@gmail.com</email>
+  </author>
+  <content type="html">
+    &lt;p&gt;I like creating DSLs in &lt;a href=&quot;https://kotlinlang.org/&quot;&gt;Kotlin&lt;/a&gt;. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.&lt;/p&gt;
+
+&lt;p&gt;I was looking for a way to use XPath like queries for data binding. I did not want to parse 
+queries from raw strings. The DSL inherited some ideas from XPath queries.&lt;/p&gt;
+
+&lt;p&gt;In Kotlin I used 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/delegated-properties.html&quot;&gt;Delegated Properties&lt;/a&gt;
+to achieve better readability, avoid explicit type names for serialization/deserialization rules.&lt;/p&gt;
+
+&lt;p&gt;Let’s consider an example. Say you have an XML:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;project&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;settings&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+     &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;Foo&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/settings&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;keys&amp;gt;&lt;/span&gt;
+     &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;A&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+     &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;B&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
+     &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;C&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;   
+  &lt;span class=&quot;nt&quot;&gt;&amp;lt;/keys&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Thanks to the &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.bind&quot;&gt;kotlin.xml.bind&lt;/a&gt;, you may 
+parse it with the following DSL in Kotlin:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XAttribute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;type&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XText&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;keys&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;keys&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XElements&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;key&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XText&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;any&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;parameters&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XAnyElements&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XSub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sub&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;unknownElements&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XUnknown&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Kotlin compiler infers types for properties, so one should not write types at all. 
+In the example above &lt;code&gt;type&lt;/code&gt; and &lt;code&gt;name&lt;/code&gt; properties are &lt;code&gt;String?&lt;/code&gt;, 
+&lt;code&gt;keys&lt;/code&gt; is &lt;code&gt;List&amp;lt;String&amp;gt;?&lt;/code&gt;. &lt;code&gt;XAnyElements&lt;/code&gt; means result will be as collection, &lt;code&gt;XSub&lt;/code&gt; 
+parses sub-elements as &lt;code&gt;XSub&lt;/code&gt; objects.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.bind&quot;&gt;kotlin.xml.bind&lt;/a&gt; provides serialization and deserialization.&lt;/p&gt;
+
+&lt;h1 id=&quot;sources--binaries&quot;&gt;Sources / Binaries&lt;/h1&gt;
+&lt;p&gt;Sources are on GitHub under Apache 2.0 license. Binaries are published to a maven repo.&lt;/p&gt;
+
+&lt;p&gt;For more information, see &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.bind&quot;&gt;kotlin.xml.bind&lt;/a&gt; project on GitHub.&lt;/p&gt;
+
+&lt;h1 id=&quot;implementation-details&quot;&gt;Implementation details&lt;/h1&gt;
+&lt;p&gt;I use &lt;a href=&quot;http://www.jdom.org/&quot;&gt;JDOM&lt;/a&gt; to work with XML. DSL is done in separate module that does not depend on JDOM directly.&lt;/p&gt;
+
+&lt;p&gt;You may find API declarations &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.bind/blob/master/api/src/main/kotlin/org/jonnyzzz/kotlin/xml/bind/XBind.API.kt&quot;&gt;here&lt;/a&gt;. 
+For every DSL &lt;a href=&quot;https://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols&quot;&gt;grammar rule&lt;/a&gt; of the DSL I created an interface in Kotlin.&lt;/p&gt;
+
+&lt;p&gt;The main trick is that expressions like &lt;code&gt;JXML / &quot;keys&quot; / XElements(&quot;key&quot;) / XText&lt;/code&gt; returns an object
+that implements requirements of
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/delegated-properties.html&quot;&gt;Delegated Properties&lt;/a&gt;
+.&lt;/p&gt;
+
+&lt;p&gt;The library adds a tiny overhead on every object creation. So now to create an object (e.g. &lt;code&gt;Project&lt;/code&gt; class above)
+it has to create a number of objects from the DSL that are used behind delegated properties. Reflections 
+are still in use to scan available object properties too on serialization/deserialization.&lt;/p&gt;
+
+&lt;p&gt;For tests I created yet another DSL to generate XML easily. 
+You may find more details in &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.dsl&quot;&gt;kotlin.xml.dsl&lt;/a&gt; on GitHub. 
+This is an example of unit test&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;@Test
+public fun test_read_any_element_does_not_include_parsed() {
+  class Data {
+    var X by JXML / &amp;quot;x&amp;quot; / XUnknown
+    var Y by JXML / &amp;quot;Y&amp;quot; / XUnknown
+    var Z by JXML / XAnyElements / XUnknown
+  }
+
+  val el = jdom(&amp;quot;aaa&amp;quot;) {
+    element(&amp;quot;x&amp;quot;) { text(&amp;quot;yohoho&amp;quot;)}
+    element(&amp;quot;Y&amp;quot;) { text(&amp;quot;123&amp;quot;)}
+    element(&amp;quot;z&amp;quot;) { text(&amp;quot;www&amp;quot;)}
+    element(&amp;quot;p&amp;quot;) { text(&amp;quot;www&amp;quot;)}
+  }
+
+  val d : Data = JDOM.load(el , Data::class.java)
+
+  Assert.assertEquals(d.Z?.size, 2)
+  Assert.assertEquals(d.Z?.get(0)?.name, &amp;quot;z&amp;quot;)
+  Assert.assertEquals(d.Z?.get(1)?.name, &amp;quot;p&amp;quot;)
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;I use &lt;a href=&quot;https://gradle.org/&quot;&gt;Gradle&lt;/a&gt; as project model now. 
+Artifacts are deployed to &lt;a href=&quot;https://bintray.com/jonnyzzz/maven&quot;&gt;Bintray&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;future-work&quot;&gt;Future Work&lt;/h1&gt;
+&lt;p&gt;The ides of the DSL are easily mapped to JSON too. So it’s possible to read/write/update JSON files in the same way&lt;br /&gt;
+Get rid of reflections and use &lt;a href=&quot;https://kotlinlang.org/docs/reference/object-declarations.html#companion-objects&quot;&gt;Companion Objects&lt;/a&gt;&lt;br /&gt;
+Support other XML implementations, not only JDOM&lt;br /&gt;
+Improve, finalize and document binding DSL&lt;br /&gt;
+Invite contributors!&lt;br /&gt;
+Have more fun!&lt;/p&gt;
+
+
+    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/&quot;&gt;Kotlin XML Binding&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on January 06, 2016.&lt;/p&gt;
+
+  </content>
+</entry>
 
 
   
@@ -1759,58 +1878,6 @@ using (var messages = new TeamCityServiceMessages().CreateWriter()) {
   href=&quot;http://nuget.org/List/Packages/TeamCity.ServiceMessages&quot;&gt;NuGet.org&lt;/a&gt;. &lt;/p&gt;
 
     &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2012/12/17/teeamcityservicemessages-v30/&quot;&gt;TeamCity.ServiceMessages v3.0&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on December 17, 2012.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Android Battery Tweet Application]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2012/10/25/android-battery-tweet-application/" />
-  <id>http://jonnyzzz.com/blog/2012/10/25/android-battery-tweet-application</id>
-  <updated>2012-10-25T09:38:32.993+02:00T00:00:00-00:00</updated>
-  <published>2012-10-25T09:38:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;For time to time I noticed my Android phone is discharged and switched off.&lt;/p&gt;&lt;p&gt;That
-  was a real fun to find out that was the reason why alarm did not ring&lt;/p&gt; &lt;p&gt;To solve this issue I
-  decided to create a small Android application that makes an Android phone shout for charge &lt;/p&gt;&lt;p&gt;As
-  an option you may pair the application with your Twitter account to make it post a twitter update in case battery
-  is discharged to let your friends know you may disappear in offline for a while &lt;/p&gt;&lt;p&gt;Some Android
-  firmwares do not include battery charge level in the statusbar. It&#39;s possible with the app to include battery
-  charge level into notification status icon! &lt;/p&gt; &lt;p&gt;Checkout the application at &lt;a
-  href=&quot;https://play.google.com/store/apps/details?id=com.jonnyzzz.android.battery&quot;&gt;Google Play&lt;/a&gt;&lt;/p&gt;
-&lt;div&gt;&lt;a href=&quot;http://2.bp.blogspot.com/-F7tvLOGzy_4/UE-WEVG3kZI/AAAAAAAACLg/ACl3ZtA7_HU/s1600/alarm4.png&quot;
-        imageanchor=&quot;1&quot; style=&quot;float:left; &quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;192&quot;
-                                                  src=&quot;http://2.bp.blogspot.com/-F7tvLOGzy_4/UE-WEVG3kZI/AAAAAAAACLg/ACl3ZtA7_HU/s320/alarm4.png&quot;/&gt;&lt;/a&gt;
-  &lt;a href=&quot;http://3.bp.blogspot.com/-Zo4ZCOQtT5w/UIcZdOgN-SI/AAAAAAAACMY/V9RJ_hotD0U/s1600/settings4_level.png&quot;
-     imageanchor=&quot;1&quot; style=&quot;float:left;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;192&quot;
-                                              src=&quot;http://3.bp.blogspot.com/-Zo4ZCOQtT5w/UIcZdOgN-SI/AAAAAAAACMY/V9RJ_hotD0U/s320/settings4_level.png&quot;/&gt;&lt;/a&gt;
-  &lt;a href=&quot;http://2.bp.blogspot.com/-5iIaTwoOYVg/UIcaDQgfXKI/AAAAAAAACMk/C3PA4fTH7c0/s1600/settings4_level2.png&quot;
-     imageanchor=&quot;1&quot; style=&quot;float:left;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;192&quot;
-                                              src=&quot;http://2.bp.blogspot.com/-5iIaTwoOYVg/UIcaDQgfXKI/AAAAAAAACMk/C3PA4fTH7c0/s320/settings4_level2.png&quot;/&gt;&lt;/a&gt;
-  &lt;a href=&quot;http://2.bp.blogspot.com/-gQ4_VGtdqNo/UE-WbeBXcxI/AAAAAAAACL4/7ljW5kSLvUA/s1600/twitter.png&quot;
-     imageanchor=&quot;1&quot; style=&quot;float:left;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;192&quot;
-                                              src=&quot;http://2.bp.blogspot.com/-gQ4_VGtdqNo/UE-WbeBXcxI/AAAAAAAACL4/7ljW5kSLvUA/s320/twitter.png&quot;/&gt;&lt;/a&gt;
-  &lt;a href=&quot;http://4.bp.blogspot.com/-eC8h70r7vrM/UIeqUTGBIoI/AAAAAAAACM8/oi7VhGZ7rGA/s1600/status_level.png&quot;
-     imageanchor=&quot;1&quot; style=&quot;float:left;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;192&quot;
-                                              src=&quot;http://4.bp.blogspot.com/-eC8h70r7vrM/UIeqUTGBIoI/AAAAAAAACM8/oi7VhGZ7rGA/s320/status_level.png&quot;/&gt;&lt;/a&gt;
-&lt;/div&gt;
-&lt;div style=&quot;clear:both&quot;&gt;&lt;/div&gt; &lt;p&gt;Checkout the application at &lt;a
-  href=&quot;https://play.google.com/store/apps/details?id=com.jonnyzzz.android.battery&quot;&gt;Google Play&lt;/a&gt;&lt;/p&gt;
-&lt;a href=&quot;http://1.bp.blogspot.com/-h_V2PaWk0dI/UIermEwPmaI/AAAAAAAACNI/eB93gZhPmRU/s1600/qrcode.png&quot;
-   imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;350&quot; width=&quot;350&quot;
-                                 src=&quot;http://1.bp.blogspot.com/-h_V2PaWk0dI/UIermEwPmaI/AAAAAAAACNI/eB93gZhPmRU/s400/qrcode.png&quot;
-/&gt;&lt;/a&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2012/10/25/android-battery-tweet-application/&quot;&gt;Android Battery Tweet Application&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on October 25, 2012.&lt;/p&gt;
 
   </content>
 </entry>
