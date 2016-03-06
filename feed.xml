@@ -4,13 +4,74 @@
 <generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
 <link rel="self" type="application/atom+xml" href="http://jonnyzzz.com/feed.xml" />
 <link rel="alternate" type="text/html" href="http://jonnyzzz.com" />
-<updated>2016-01-07T00:27:53+00:00</updated>
+<updated>2016-03-06T16:02:08+00:00</updated>
 <id>http://jonnyzzz.com/</id>
 <author>
   <name>Eugene Petrenko</name>
   <uri>http://jonnyzzz.com/</uri>
   <email>eugene.petrenko@gmail.com</email>
 </author>
+
+
+  
+
+<entry>
+  <title type="html"><![CDATA[Using Gradle to download and run anything]]></title>
+  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner/" />
+  <id>http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner</id>
+  <published>2016-03-06T00:00:00+00:00</published>
+  <updated>2016-03-06T00:00:00+00:00</updated>
+  <author>
+    <name>Eugene Petrenko</name>
+    <uri>http://jonnyzzz.com</uri>
+    <email>eugene.petrenko@gmail.com</email>
+  </author>
+  <content type="html">
+    &lt;p&gt;There are so many small tasks that as solved via a tiny programs. Most of such programs 
+are to call several libraries to have an end-result. In the JVM world, most of those 
+libraries are downloadable from a maven repository.&lt;/p&gt;
+
+&lt;p&gt;It could be tricky in general to deliver dependencies for the script to run. There 
+are several possible ways to solve it.&lt;/p&gt;
+
+&lt;p&gt;I found an easy way to make Gradle download dependencies and run a script. 
+This makes the scripting done with groovy too.&lt;/p&gt;
+
+&lt;p&gt;Here goes an example to run an Amazon API and wrap it as Gradle task:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// List all dependencies for scripting here&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;classpath&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;com.amazonaws:aws-java-sdk:1.10.48&amp;#39;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Import what is necessay&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.amazonaws.auth.profile.ProfileCredentialsProvider&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.amazonaws.services.s3.AmazonS3Client&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;runScriptForAmazon&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// The script source goes here!&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s3client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AmazonS3Client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProfileCredentialsProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Working with endpoint: $s3client.endpoint&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The only trick here is that Gradle includes all script dependencies into classpath 
+where tasks are loaded and executed.&lt;/p&gt;
+
+&lt;p&gt;Even more, adding &lt;a href=&quot;https://docs.gradle.org/current/userguide/gradle_wrapper.html&quot;&gt;Gradle Wrapper&lt;/a&gt; 
+makes it runnable on eveny machine with JVM only. 
+(A &lt;code&gt;Wrapper&lt;/code&gt; task can be used to have Gradle generate wrapper scripts)&lt;/p&gt;
+
+&lt;p&gt;Happy scripting!&lt;/p&gt;
+
+    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner/&quot;&gt;Using Gradle to download and run anything&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on March 06, 2016.&lt;/p&gt;
+
+  </content>
+</entry>
 
 
   
@@ -1785,99 +1846,6 @@ function TeamCityUsing($obj, [scriptblock] $sb) &lt;br/&gt;{ &lt;br/&gt; try { &
 &lt;/p&gt;
 
     &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2012/12/17/teamcityservicemessages-from-powershell/&quot;&gt;TeamCity.ServiceMessages from Powershell&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on December 17, 2012.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[TeamCity.ServiceMessages v3.0]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2012/12/17/teeamcityservicemessages-v30/" />
-  <id>http://jonnyzzz.com/blog/2012/12/17/teeamcityservicemessages-v30</id>
-  <updated>2012-12-17T18:03:18.438+01:00T00:00:00-00:00</updated>
-  <published>2012-12-17T18:00:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I describe recent changes of &lt;a
-  href=&quot;https://github.com/JetBrains/TeamCity.ServiceMessages&quot;&gt;TeamCity.ServiceMessages&lt;/a&gt; library. I
-  wrote about the library &lt;a href=&quot;/blog/2011/11/15/teamcityservicemessages-write-api/&quot;&gt;here&lt;/a&gt;,
-  &lt;a href=&quot;/blog/2011/10/21/teamcity-service-messages-library-for/&quot;&gt;here&lt;/a&gt; and
-  &lt;a href=&quot;http://blogs.jetbrains.com/teamcity/2011/10/24/teamcity-service-messages-library-for-net/&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;I published TeamCity.ServiceMessages v3.0 package which provides API for generating TeamCity specific
-  service messages. Service messages are described in the &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/Build+Script+Interaction+with+TeamCity&quot;&gt;documentation page&lt;/a&gt;
-&lt;/p&gt;
-&lt;h3&gt;What&#39;s new in 3.0&lt;/h3&gt;&lt;p&gt;In the version 3.0 of TeamCity.ServiceMessages I added support for
-  TeamCity&#39;s flowId. Starting from this version you may log messages from several concurrently running threads. All
-  you need is to call &lt;strong&gt;openFlow()&lt;/strong&gt; method to make the library know you log messages from
-  different thread.&lt;/p&gt;&lt;p&gt;The library is designed to provide validation assertions to disallow breaking
-  the designed way of service messages reporting.&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:csharp&quot;&gt;&lt;![CDATA[
-using (var messages = new TeamCityServiceMessages().CreateWriter()) {
-  //Run actions in several threads
-  ExecuteInDifferentThreads(() =&gt; {
-    using (var flow = messages.OpenFlow()) {
-      //Here goes logging in the thread
-    }
-  });
-}
-]]&gt;&lt;/script&gt; &lt;p&gt;You may also open custom flow within tests suite&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[
-using (var messages = new TeamCityServiceMessages().CreateWriter()) {
-  using (var testSuite = messages.OpenTestSuite(&quot;tests suite&quot;)) {
-    ExecuteInDifferentThreads( () =&gt; {
-      using (var flow = testSuite.OpenFlow()) {
-        //Here goes logging in the thread
-        using (var test = flow.OpenTest(&quot;test.a.b.c.d.method&quot;)) {
-          //report test output or test failure
-        }
-      }
-    });
-  }
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;There were some changes to the classes of the library, that is why I called the version 3.0&lt;/p&gt;
-&lt;h3&gt;Changes in 2.0&lt;/h3&gt;&lt;p&gt;Added support of service message to report build problem&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: csharp&quot;&gt;&lt;![CDATA[
-using (var messages = new TeamCityServiceMessages().CreateWriter()) {
-  messages.WriteBuildProblem(&quot;problem1&quot;, &quot;Failed to complete build custom task&quot;);
-}
-]]&gt;&lt;/script&gt;
-
-&lt;h3&gt;Changes in 3.0, 2.0 and 1.0&lt;/h3&gt;&lt;p&gt;I made ReSharper
-  annotation classes internal in order to avoid confusions&lt;/p&gt;&lt;p&gt;Now the package contains build for .NET
-  3.5 and build for .NET 4.0&lt;/p&gt;&lt;p&gt;Build configurations were moved to &lt;a
-  href=&quot;http://teamcity.jetbrains.com/project.html?projectId=project75&amp;tab=projectOverview&quot;&gt;TeamCity.JetBrains.com&lt;/a&gt;
-&lt;/p&gt;
-&lt;h1&gt;Usage&lt;/h1&gt;The library is compiled for .NET 3.5 and/or .NET 4.0. It is available as &lt;a
-  href=&quot;http://nuget.org/List/Packages/TeamCity.ServiceMessages&quot;&gt;NuGet package&lt;/a&gt;: &lt;br/&gt;
-&lt;div
-  style=&quot;-moz-border-radius: 6px; -moz-box-shadow: inset 6px 6px 14px rgba(0, 0, 0, 0.6), 1px 1px 4px rgba(102, 102,
-      102, 1.0); -webkit-border-radius: 6px; -webkit-box-shadow: inset 6px 6px 14px rgba(0, 0, 0, 0.6), 1px 1px 4px
-      rgba(102, 102, 102, 1.0); background: -moz-linear-gradient(top, #5E5E5E, black); background:
-      -webkit-gradient(linear, 0 0, 0 100%, from(#5E5E5E), to(black)); background: black; border-radius: 6px; border:
-      1px solid #C4C4C4; box-shadow: inset 6px 6px 14px rgba(0, 0, 0, 0.6), 1px 1px 4px rgba(102, 102, 102, 1.0);
-      filter: progid:DXImageTransform.Microsoft.Gradient(GradientType=0, startColorstr=&#39;#5e5e5e&#39;, endColorstr=&#39;#000&#39;);
-      padding: 2em; text-shadow: 1px 1px 1px rgba(0, 0, 0, 1.0);&quot;&gt;
-  &lt;div style=&quot;color: #e2e2e2; font-family:
-      courier, monospace; font-size: 150%;&quot;&gt;PM&amp;gt; Install-Package TeamCity.ServiceMessages
-  &lt;/div&gt;
-&lt;/div&gt;&lt;p&gt;Sources
-  are available at &lt;a href=&quot;https://github.com/JetBrains/TeamCity.ServiceMessages&quot;&gt;GitHub&lt;/a&gt;. I setup a
-  build configuration at &lt;a
-    href=&quot;http://teamcity.jetbrains.com/project.html?projectId=project75&quot;&gt;TeamCity.JetBrains.com&lt;/a&gt;.
-&lt;/p&gt;&lt;p&gt;Thanks to &lt;a href=&quot;http://confluence.jetbrains.net/display/TW/NuGet+support&quot;&gt;TeamCity
-  support for NuGet&lt;/a&gt;, it automatically publishes the library as NuGet package to &lt;a
-  href=&quot;http://nuget.org/List/Packages/TeamCity.ServiceMessages&quot;&gt;NuGet.org&lt;/a&gt;. &lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2012/12/17/teeamcityservicemessages-v30/&quot;&gt;TeamCity.ServiceMessages v3.0&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on December 17, 2012.&lt;/p&gt;
 
   </content>
 </entry>
