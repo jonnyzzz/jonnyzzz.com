@@ -6,15 +6,21 @@
 <head>
 <meta charset="utf-8" />
 <title>Using Gradle to download and run anything &#8211; Eugene Petrenko</title>
+<meta name="description" content="There are so many small tasks that as solved via a tiny programs. Most of such programs 
+are to call several libraries to have an end-result. In the JVM world, most of those 
+libraries are downloadable from a maven repository.
 
+"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, maven, hint" />
-
-  
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="Using Gradle to download and run anything -- Eugene Petrenko" />
+<meta name="twitter:description" content="There are so many small tasks that as solved via a tiny programs. Most of such programs 
+are to call several libraries to have an end-result. In the JVM world, most of those 
+libraries are downloadable from a maven repository.
 
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -25,7 +31,11 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="Using Gradle to download and run anything -- Eugene Petrenko" />
+<meta property="og:description" content="There are so many small tasks that as solved via a tiny programs. Most of such programs 
+are to call several libraries to have an end-result. In the JVM world, most of those 
+libraries are downloadable from a maven repository.
 
+" />
 <meta property="og:url" content="http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
@@ -123,22 +133,17 @@
 	    <ul>
       
 		    
-		        
-		    
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
-		        
 		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
 		    
-		        
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
 		    
-		        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
 		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
@@ -173,7 +178,6 @@
       </header>
       <footer class="entry-meta">
         
-          
         
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
@@ -205,7 +209,7 @@ This makes the scripting done with groovy too.</p>
 
 <p>Here goes an example to run an Amazon API and wrap it as Gradle task:</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">repositories</span> <span class="o">{</span>
     <span class="n">jcenter</span><span class="o">();</span>
   <span class="o">}</span>
@@ -223,7 +227,7 @@ This makes the scripting done with groovy too.</p>
   <span class="c1">// The script source goes here!</span>
   <span class="kt">def</span> <span class="n">s3client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AmazonS3Client</span><span class="o">(</span><span class="k">new</span> <span class="n">ProfileCredentialsProvider</span><span class="o">())</span>
   <span class="n">println</span> <span class="s2">&quot;Working with endpoint: $s3client.endpoint&quot;</span>
-<span class="o">}</span></code></pre></div>
+<span class="o">}</span></code></pre></figure>
 
 <p>The only trick here is that Gradle includes all script dependencies into classpath 
 where tasks are loaded and executed.</p>
@@ -277,7 +281,7 @@ makes it runnable on eveny machine with JVM only.
   <footer role="contentinfo" class="entry-wrapper">
     
 
-<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
 <div class="social-icons">
 	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
 	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>

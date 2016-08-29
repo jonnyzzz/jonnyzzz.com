@@ -1,0 +1,456 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Proxy calls between classloaders &#8211; Eugene Petrenko</title>
+<meta name="description" content="There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, java, jvm, classloaders" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Proxy calls between classloaders -- Eugene Petrenko" />
+<meta name="twitter:description" content="There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Proxy calls between classloaders -- Eugene Petrenko" />
+<meta property="og:description" content="There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2016/08/29/classloader-proxy/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="classloaders" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2016/08/29/classloader-proxy/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#classloaders" title="Pages tagged classloaders">classloaders</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Proxy calls between classloaders</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2016-08-29T00:00:00+00:00"><i class="fa fa-calendar-o"></i> August 29, 2016</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=java,jvm,classloaders&amp;text=Proxy%20calls%20between%20classloaders&amp;url=http://jonnyzzz.com/blog/2016/08/29/classloader-proxy/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2016/08/29/classloader-proxy/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.</p>
+
+<p>I solved a simple puzzle with isolating classes I want to share.</p>
+
+<h1 id="backgrounds">Backgrounds</h1>
+
+<p>There are integration tests in a project. Those integration tests starts several web applications, 
+bind them together and to some black-box tests. 
+The vital part of such tests is to provide a classpath isolation between test classes and classes 
+of applications that are running.</p>
+
+<p>To start each of those web servers I use Jetty Embedded. Well, I load Jetty classes for each 
+web application I start within a separate classloaders hierarchy. I like Jetty, but I want to 
+isolate any side effects, thus loading it several times, thanks it’s tiny, is the way to go.</p>
+
+<p>All helper classes to start/stop/configure web applications forms an API that helps for a tests run.</p>
+
+<p>It turns out to be tricky to isolate those runner classes from a test classpath. From one hand we’d 
+like to have an APIs available for test class to use, from the other hand, it is still required 
+to make sure the classpath of web application, hence Jetty Embedded it not polluted with test module 
+dependencies.</p>
+
+<h1 id="the-problem">The Problem</h1>
+
+<p>Say we have and <code>API.jar</code> and <code>IMPL.jar</code>. We are looking on how to load the <code>IMPL.jar</code> with a clean
+classpath and still have a change to bind it to the <code>API.jar</code> that is a part of some other huge classpath.</p>
+
+<p>The goal is to the following:</p>
+
+<ul>
+  <li>Test framework uses <code>API.jar</code></li>
+  <li>IMPL.jar also uses <code>API.jar</code>, but it does not see any test-related classes</li>
+</ul>
+
+<p>The problem is that it is test framework / test runner that loading test classes. We are unlikely to change that.
+Otherwise we have to take care of test runners, IDEs, CI, debugging.</p>
+
+<h1 id="obvious-solutions">Obvious solutions</h1>
+<p>Load all classes within one JVM. This violates the task, but may be the easiest way. The future issue here 
+can be a jar hell, if one has different libraries used in the application / tests or the loader.</p>
+
+<p>Another solution could be in using OSGi. It’s a complicated framework that uses security manager to isolate
+classes visibility.</p>
+
+<p>Future solution with Java 9 modules is also a way to go. But for now, it’s too early.</p>
+
+<h1 id="just-classloading">Just Classloading</h1>
+
+<p>The most simple solution is to load classes with <em>child-first</em> classloader. This is <strong>NOT</strong> the way
+to isolate dependencies, but at least this is the way to have IMPL.jar dependencies win on classloading.</p>
+
+<p>There are at least two things to take case of</p>
+
+<h2 id="case-1--jvm-classes">Case 1 : JVM classes</h2>
+<p>Child first classloaders should still load JVM classes first.</p>
+
+<p>It may turn out the classpath contains some classes that are now included into JVM. Those classes are 
+still included into a package to provide a compatibility with older JVM versions. Those classes are 
+simply ignored by the JVM when default classloading is used.</p>
+
+<p>It may generate tricky issues when child first classloader attempts to load wrong classes since 
+those classes will likely register themselves in the OS.</p>
+
+<p>The solution here is the following. We crete a classloader:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
+
+<p>This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
+to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.</p>
+
+<h2 id="case-2-resources">Case 2: Resources</h2>
+
+<p>It’s so easy to implement child first classloader. It is also so easy to forget about resources. The child first
+strategy must be implemented for resources too. Otherwise, it may break some libraries which uses resources.</p>
+
+<p>Finally classloading with child first delegation does not solve the initial problem. It does not allow to 
+fully isolate test classes (e.g. test framework) from <code>IMPL.jar</code> classes</p>
+
+<h1 id="the-proxy-trick">The Proxy Trick</h1>
+
+<p>The idea is to load <code>API.jar</code> twice and than use to <code>java.lang.reflect.Proxy</code> to bind interfaces part from 
+tests classspath to implementations.</p>
+
+<p>A trick is to have yet another classloader with <code>null</code> as parent. The loader classpath includes 
+only <code>API.jar</code>, <code>IMPL.jar</code> and dependencies of <code>IMPL.jar</code>.</p>
+
+<p>Next we create a <code>java.lang.reflect.Proxy</code> to create an instance of an API interface that delegates
+to the implementation class that is loaded by the other classloader. We are not able to cast here,
+since we have <code>API.jar</code> loaded twice.</p>
+
+<p>Unfortunately, this will only work when API interface methods uses JVM classes as parameters 
+and return types. There are no common 
+classloaders between <code>IMPL.jar</code> and tests, thus ClassCastException will be thrown for other types.</p>
+
+<h1 id="recursive-proxy-trick">Recursive Proxy Trick</h1>
+
+<p>The last limitation can be solved by a bit more complicated trick of 3 steps</p>
+
+<ul>
+  <li>Create a proxy for API interface</li>
+  <li>In the implementation, check all parameter types and proxy every parameter with non system classloader</li>
+  <li>In the implementation, proxy return values in opposite way</li>
+  <li>Apply the following proxies recursively if <code>API.jar</code> interfaces are complex</li>
+</ul>
+
+<p>This approach allows to use JVM classes and <code>API.jar</code> interfaces between the bound. It will not work 
+with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>.</p>
+
+<p>The overall trick is implemented as follows</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="cm">/*</span>
+<span class="cm"> * creates a proxy for an object obj loaded in sourceLoader hierarchy </span>
+<span class="cm"> * that is visible in destLoader as destClass interface</span>
+<span class="cm"> * assuming all methods of destClass are implemented in obj</span>
+<span class="cm"> * exactly with same signature</span>
+<span class="cm">*/</span>
+<span class="n">Object</span> <span class="nf">proxy</span><span class="o">(</span><span class="kd">final</span> <span class="n">Object</span> <span class="n">obj</span><span class="o">,</span>
+             <span class="kd">final</span> <span class="n">ClassLoader</span> <span class="n">sourceLoader</span><span class="o">,</span>
+             <span class="kd">final</span> <span class="n">ClassLoader</span> <span class="n">destLoader</span><span class="o">,</span>
+             <span class="kd">final</span> <span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">destClass</span><span class="o">)</span> <span class="o">{</span>
+
+  <span class="k">return</span> <span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">destLoader</span><span class="o">,</span> <span class="k">new</span> <span class="n">Class</span><span class="o">&lt;?&gt;[]{</span><span class="n">destClass</span><span class="o">},</span>
+          <span class="o">(</span><span class="n">proxy</span><span class="o">,</span> <span class="n">method</span><span class="o">,</span> <span class="n">args</span><span class="o">)</span> <span class="o">-&gt;</span>
+                  <span class="n">threadClassLoader</span><span class="o">(</span><span class="n">sourceLoader</span><span class="o">,</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+                    <span class="kd">final</span> <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">mappedArgTypes</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Class</span><span class="o">&lt;?&gt;[</span><span class="n">args</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">?</span> <span class="mi">0</span> <span class="o">:</span> <span class="n">args</span><span class="o">.</span><span class="na">length</span><span class="o">];</span>
+                    <span class="kd">final</span> <span class="n">Object</span><span class="o">[]</span> <span class="n">mappedArgs</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Object</span><span class="o">[</span><span class="n">mappedArgTypes</span><span class="o">.</span><span class="na">length</span><span class="o">];</span>
+                    <span class="kd">final</span> <span class="n">Class</span><span class="o">&lt;?&gt;[]</span> <span class="n">sourceTypes</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="na">getParameterTypes</span><span class="o">();</span>
+                    
+                    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">args</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">mappedArgTypes</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+                      <span class="k">if</span> <span class="o">(</span><span class="n">sourceTypes</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                        <span class="n">mappedArgTypes</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">sourceTypes</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+                        <span class="n">mappedArgs</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+                      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                        <span class="n">mappedArgTypes</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">sourceLoader</span><span class="o">.</span><span class="na">loadClass</span><span class="o">(</span><span class="n">sourceTypes</span><span class="o">[</span><span class="n">i</span><span class="o">].</span><span class="na">getName</span><span class="o">());</span>
+                        <span class="n">mappedArgs</span><span class="o">[</span><span class="n">i</span><span class="o">]</span> <span class="o">=</span> <span class="n">proxy</span><span class="o">(</span><span class="n">args</span><span class="o">[</span><span class="n">i</span><span class="o">],</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">mappedArgTypes</span><span class="o">[</span><span class="n">i</span><span class="o">]);</span>
+                      <span class="o">}</span>
+                    <span class="o">}</span>
+
+                    <span class="kd">final</span> <span class="n">Method</span> <span class="n">realMethod</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getMethod</span><span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getName</span><span class="o">(),</span> <span class="n">mappedArgTypes</span><span class="o">);</span>
+                    <span class="kd">final</span> <span class="n">Object</span> <span class="n">result</span> <span class="o">=</span> <span class="n">realMethod</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">obj</span><span class="o">,</span> <span class="n">mappedArgs</span><span class="o">);</span>
+                    <span class="k">if</span> <span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+                      <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
+                    <span class="o">}</span>
+                    <span class="k">return</span> <span class="nf">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
+                  <span class="o">}));</span>
+  <span class="o">}</span></code></pre></figure>
+
+<h1 id="limitations">Limitations</h1>
+
+<p>Current implementation works only with API interfaces. It does not allow sharing classes or enums. 
+Enums from <code>API.jar</code> can be easily supported be adding an explicit checking. 
+Classes cannot be mapped this way. At least because it is not allowed in <code>java.lang.reflect.Proxy</code>. 
+From the other hand, it’s not clear how class state can be transferred at all.</p>
+
+<h1 id="side-note">Side Note</h1>
+
+<p>It may be necessary to change <code>Thread#contextClassloader</code> to the right one before calling a 
+method from different classloader. This trick makes dynamic classloading in libraries work 
+correctly for some cases. Otherwise, there is a possibility that a class from another classpath
+is created from <code>IMPL.jar</code> code (say, via <code>Class#forName</code> call)</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>I used the approach to implement integration tests that are running several web application 
+instances within one JVM. All instances are now isolated from each other and from tests classpath.</p>
+
+<p>Running everything within one JVM helps to avoid issues with leaked processes or applications as well as
+allows one to debug every application or even all applications easily!</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2016/03/08/gradle-for-dsl/" class="btn" title="A DSL Workbench with Gradle and Kotlin">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

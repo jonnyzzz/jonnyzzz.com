@@ -6,15 +6,21 @@
 <head>
 <meta charset="utf-8" />
 <title>A DSL Workbench with Gradle and Kotlin &#8211; Eugene Petrenko</title>
+<meta name="description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
+a continuous integration build easily.
 
+"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, kotlin, dsl, teamcity2dsl" />
-
-  
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="A DSL Workbench with Gradle and Kotlin -- Eugene Petrenko" />
+<meta name="twitter:description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
+a continuous integration build easily.
 
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -25,7 +31,11 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="A DSL Workbench with Gradle and Kotlin -- Eugene Petrenko" />
+<meta property="og:description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
+a continuous integration build easily.
 
+" />
 <meta property="og:url" content="http://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
@@ -125,22 +135,17 @@
 	    <ul>
       
 		    
-		        
-		    
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
-		        
 		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
 		    
-		        
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
 		    
-		        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
 		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
@@ -175,7 +180,6 @@
       </header>
       <footer class="entry-meta">
         
-          
         
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
@@ -240,7 +244,7 @@ All we need to know about TeamCity2DSL here are</p>
 
 <p>This is <code>build.gradle</code> script that is only required to have both TeamCity2DSL tasks (<code>dsl2xml</code> and <code>xml2dsl</code>) supported</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">repositories</span> <span class="o">{</span>
     <span class="n">jcenter</span><span class="o">()</span>
     <span class="n">mavenCentral</span><span class="o">()</span>
@@ -252,7 +256,7 @@ All we need to know about TeamCity2DSL here are</p>
   <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;org.jonnyzzz.teamcity.dsl&#39;</span></code></pre></div>
+<span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;org.jonnyzzz.teamcity.dsl&#39;</span></code></pre></figure>
 
 <p><em>NOTE</em>. Replace <code>&lt;PLUGIN VERSION&gt;</code> with the latest version 
 from the <a href="https://bintray.com/jonnyzzz/maven/teamcity2dsl/view">maven repository</a><br />
@@ -275,29 +279,29 @@ The Gradle plugin is implemented with Kotlin as well.</p>
 is selected from plugin dependency. This allows to avoid
 explicit configuration for Kotlin.</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">apply</span> <span class="o">{</span> <span class="n">config</span> <span class="o">-&gt;</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">apply</span> <span class="o">{</span> <span class="n">config</span> <span class="o">-&gt;</span>
   <span class="n">config</span><span class="o">.</span><span class="na">plugin</span><span class="o">(</span><span class="s2">&quot;java&quot;</span><span class="o">)</span>
   <span class="n">config</span><span class="o">.</span><span class="na">plugin</span><span class="o">(</span><span class="s2">&quot;kotlin&quot;</span><span class="o">)</span>
-<span class="o">}</span></code></pre></div>
+<span class="o">}</span></code></pre></figure>
 
 <p>The plugin includes DSL dependencies to itself into <code>compile</code> configuration. Those jars are predefined and 
 we make Gradle download them from Maven repository.</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">val</span> <span class="n">dsl2xml</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s2">&quot;dsl2xml&quot;</span><span class="o">,</span> <span class="nl">Dsl2Xml:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">)</span>
-<span class="n">dsl2xml</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">&quot;classes&quot;</span><span class="o">))</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">val</span> <span class="n">dsl2xml</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s2">&quot;dsl2xml&quot;</span><span class="o">,</span> <span class="nl">Dsl2Xml:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">)</span>
+<span class="n">dsl2xml</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">&quot;classes&quot;</span><span class="o">))</span></code></pre></figure>
 
 <p>Next, we include all <code>buildScript</code> block repositories into code repositories. This helps to avoid 
 duplicates in repositories declaration.</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">buildscript</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">forEach</span> <span class="o">{</span> <span class="n">project</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">it</span><span class="o">)</span> <span class="o">}</span></code></pre></div>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">buildscript</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">forEach</span> <span class="o">{</span> <span class="n">project</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">it</span><span class="o">)</span> <span class="o">}</span></code></pre></figure>
 
 <p>To add extra source directory we use the following code (that depends on Gradle’s Java plugin)</p>
 
-<div class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">println</span><span class="o">(</span><span class="s2">&quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&quot;</span><span class="o">)</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">println</span><span class="o">(</span><span class="s2">&quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&quot;</span><span class="o">)</span>
 <span class="n">val</span> <span class="n">sourceSets</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">convention</span><span class="o">.</span><span class="na">getPlugin</span><span class="o">(</span><span class="nl">JavaPluginConvention:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">).</span><span class="na">sourceSets</span>
 
 <span class="n">println</span><span class="o">(</span><span class="s2">&quot;Source sets: ${sourceSets.names}&quot;</span><span class="o">)</span>
-<span class="n">sourceSets</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">&quot;main&quot;</span><span class="o">).</span><span class="na">java</span><span class="o">.</span><span class="na">srcDir</span><span class="o">(</span> <span class="n">settings</span><span class="o">.</span><span class="na">dslPath</span><span class="o">!!.</span><span class="na">path</span> <span class="o">)</span></code></pre></div>
+<span class="n">sourceSets</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">&quot;main&quot;</span><span class="o">).</span><span class="na">java</span><span class="o">.</span><span class="na">srcDir</span><span class="o">(</span> <span class="n">settings</span><span class="o">.</span><span class="na">dslPath</span><span class="o">!!.</span><span class="na">path</span> <span class="o">)</span></code></pre></figure>
 
 <p>We know Kotlin plugin checks Java output path for kotlin sources too. So we depend here only on Java plugin,
 not on a private API of the Kotlin plugin.</p>
@@ -350,6 +354,8 @@ leading to easy-to-use and easy-to-adopt solution.</p>
         <a href="/blog/2016/03/06/gradle-all-maven-runner/" class="btn" title="Using Gradle to download and run anything">Previous</a>
       
       
+        <a href="/blog/2016/08/29/classloader-proxy/" class="btn" title="Proxy calls between classloaders">Next</a>
+      
     </nav><!-- /.pagination -->
   </article>
 </div><!-- /#main -->
@@ -358,7 +364,7 @@ leading to easy-to-use and easy-to-adopt solution.</p>
   <footer role="contentinfo" class="entry-wrapper">
     
 
-<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
 <div class="social-icons">
 	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
 	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>

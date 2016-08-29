@@ -5,16 +5,18 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>On-the-fly Code Generation with .NET Expression Trees &#8211; Eugene Petrenko</title>
+<title>NuGet Publish Build Runner &#8211; Eugene Petrenko</title>
+<meta name="description" content="TeamCity plugin for NuGet support v0.4 is out.
 
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, .net, codegeneration, c#" />
-
-  
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, .net, nuget, teamcity plugin, teamcity" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="On-the-fly Code Generation with .NET Expression Trees -- Eugene Petrenko" />
+<meta name="twitter:title" content="NuGet Publish Build Runner -- Eugene Petrenko" />
+<meta name="twitter:description" content="TeamCity plugin for NuGet support v0.4 is out.
 
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -24,9 +26,11 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="On-the-fly Code Generation with .NET Expression Trees -- Eugene Petrenko" />
+<meta property="og:title" content="NuGet Publish Build Runner -- Eugene Petrenko" />
+<meta property="og:description" content="TeamCity plugin for NuGet support v0.4 is out.
 
-<meta property="og:url" content="http://jonnyzzz.com/blog/2011/11/28/on-fly-code-generation-with-net/" />
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2011/07/21/nuget-publish-build-runner/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -38,9 +42,11 @@
 
 <meta property="article:tag" content=".net" />
 
-<meta property="article:tag" content="codegeneration" />
+<meta property="article:tag" content="nuget" />
 
-<meta property="article:tag" content="c#" />
+<meta property="article:tag" content="teamcity plugin" />
+
+<meta property="article:tag" content="teamcity" />
 
 
 
@@ -50,7 +56,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2011/11/28/on-fly-code-generation-with-net/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2011/07/21/nuget-publish-build-runner/" />
 <link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -123,22 +129,17 @@
 	    <ul>
       
 		    
-		        
-		    
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
-		        
 		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
 		    
-		        
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
 		    
-		        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
 		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
@@ -165,27 +166,26 @@
     <div class="entry-wrapper">
       <header class="entry-header">
         <ul class="entry-tags">
-          <li><a href="/tags/#.net" title="Pages tagged .net">.net</a></li><li><a href="/tags/#codegeneration" title="Pages tagged codegeneration">codegeneration</a></li><li><a href="/tags/#c#" title="Pages tagged c#">c#</a></li>
+          <li><a href="/tags/#.net" title="Pages tagged .net">.net</a></li><li><a href="/tags/#nuget" title="Pages tagged nuget">nuget</a></li><li><a href="/tags/#teamcity plugin" title="Pages tagged teamcity plugin">teamcity plugin</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li>
         </ul>
         
-          <h1 class="entry-title">On-the-fly Code Generation with .NET Expression Trees</h1>
+          <h1 class="entry-title">NuGet Publish Build Runner</h1>
         
       </header>
       <footer class="entry-meta">
         
-          
         
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2011-11-28T00:35:00+01:00"><i class="fa fa-calendar-o"></i> November 28, 2011</time></span>
-        <span class="entry-date date modified"><time datetime="2011-12-02T13:40:34.665+01:00"><i class="fa fa-pencil"></i> December 02, 2011</time></span>
+        <span class="entry-date date published"><time datetime="2011-07-21T22:32:00+00:00"><i class="fa fa-calendar-o"></i> July 21, 2011</time></span>
+        <span class="entry-date date modified"><time datetime="2011-07-22T00:32:54.053+02:00"><i class="fa fa-pencil"></i> July 22, 2011</time></span>
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=.net,codegeneration,c#&amp;text=On-the-fly%20Code%20Generation%20with%20.NET%20Expression%20Trees&amp;url=http://jonnyzzz.com/blog/2011/11/28/on-fly-code-generation-with-net/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+  <a href="https://twitter.com/intent/tweet?hashtags=.net,nuget,teamcityplugin,teamcity&amp;text=NuGet%20Publish%20Build%20Runner&amp;url=http://jonnyzzz.com/blog/2011/07/21/nuget-publish-build-runner/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2011/11/28/on-fly-code-generation-with-net/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2011/07/21/nuget-publish-build-runner/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
 </span>
 
 <!-- /.social-share -->
@@ -193,36 +193,25 @@
         
       </footer>
       <div class="entry-content">
-        <p>Recently I came to the task to fill a bunch of C# object properties from a Dictionary.
-  There were 10+ fields and I decided to use reflection to avoid writing and supporting dummy code on every object
-  change. </p><p>So I come up with code like: </p>
-<pre class="brush:csharp"><br/>
-      typeof(DataObject).GetProperties().Where(...).Select(x=>x.SetValue(instance, GetValue(x), null));<br/></pre>
-<p>Of course this code was not fast. I used Reflection and LINQ. The task was to make it work faster. First
-  I decided to drop all reflection code and write all bindings explicitly for every field. Than I come up with
-  another trick! </p> <p>Why not to make .NET LINQ Expressions runtime generate this code for me at
-  runtime. It was easy to implement and performance was close to hand-written. First, I moved all initialization of
-  Expressions outside of binding code. So the binding turned out to be an array iteration and delegates call. </p>
-<p>Let's see how to make Expressions generate a code for property binding. </p>
-<script
-  type="syntaxhighlighter" class="brush:csharp"><![CDATA[ public Action<T, P> GenerateBinder<T, P>(PropertyInfo
-      property) { //Assert type conversion is not needed if (typeof(P) != property.PropertyType) throw new
-      ArgumentException("Type parameter P must by == property type"); //Let's declare variable for value to set var data
-      = Expression.Parameter(typeof(P), "data"); //This parameter refers to the instance to call the property var
-      package = Expression.Parameter(typeof(T), "object"); //Let's create an Expression to bind the property Expression<Action<T,
-      P>> expression = Expression.Lambda<Action<T, P>>( Expression.Assign(
-      Expression.Property(package, property), data ), package, data); //This makes .NET runtime generate binding code
-      for me. return expression.Compile(); } ]]>
-</script> <p>Using this code I generate a code that sets
-  property value without reflection! </p> <p>The fun is that one may make a next step to include all
-  parsing and validation logic into this code and thus have a generated code for it. This is really handy that C#
-  allows to write the following code: </p>
-<script type="syntaxhighlighter" class="brush:csharp"> <![CDATA[
-      Expression<Func<string, object>> = o => DoSomeParsing(o); ]]>
-</script>
-<p>
-  This is a simplest way to get Expression tree for simple lambdas.
-</p>
+        TeamCity plugin for NuGet support <strong>v0.4</strong> is out.
+
+<br/>In this
+version I included a new build runner called "NuGet Packages Publish". This build runner helps you to publish
+(push) NuGet packages to a given feed (custom or default). Publishing of packages is done with help of nuget.exe
+push command. <br/><br/>Build runner settings are the following:<br/>
+<div
+  class="separator" style="clear: both; text-align: left;"><a
+  href="http://4.bp.blogspot.com/-usHp3z1j5RE/Tiil_ZvoonI/AAAAAAAABes/029i2nlOgW0/s1600/nuget-publish-runner.png"
+  imageanchor="1" style=""><img border="0" height="202" width="320"
+                                src="http://4.bp.blogspot.com/-usHp3z1j5RE/Tiil_ZvoonI/AAAAAAAABes/029i2nlOgW0/s320/nuget-publish-runner.png"/></a>
+</div><br
+/><h2>Download and Info:</h2>For more information, see NuGet plugin home page at:<br/><a
+  href="http://confluence.jetbrains.net/display/TW/NuGet+support">http://confluence.jetbrains.net/display/TW/NuGet+support</a>
+<br
+/>or read/update/report sources at<br/><a href="https://github.com/jonnyzzz/dotNetPackagesSupport">https://github.com/jonnyzzz/dotNetPackagesSupport</a>
+<br
+/>or download a latest build from TeamCity <a
+  href="http://teamcity.jetbrains.com/repository/download/bt324/.lastSuccessful/dotNetPackagesSupport.zip">here</a>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
@@ -254,10 +243,10 @@
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/blog/2011/11/15/teamcityservicemessages-write-api/" class="btn" title="TeamCity.ServiceMessages Write API">Previous</a>
+        <a href="/blog/2011/07/21/nuget-for-teamcity-plugin-breaking/" class="btn" title="NuGet for TeamCity plugin BREAKING CHANGE">Previous</a>
       
       
-        <a href="/blog/2011/12/02/playing-git/" class="btn" title="Playing Git">Next</a>
+        <a href="/blog/2011/08/31/nuget-15-and-teamcity/" class="btn" title="NuGet 1.5 and TeamCity">Next</a>
       
     </nav><!-- /.pagination -->
   </article>
@@ -267,7 +256,7 @@
   <footer role="contentinfo" class="entry-wrapper">
     
 
-<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
 <div class="social-icons">
 	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
 	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>

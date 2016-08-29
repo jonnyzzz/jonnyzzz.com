@@ -1,33 +1,173 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-<title type="text">Eugene Petrenko</title>
-<generator uri="https://github.com/jekyll/jekyll">Jekyll</generator>
-<link rel="self" type="application/atom+xml" href="http://jonnyzzz.com/feed.xml" />
-<link rel="alternate" type="text/html" href="http://jonnyzzz.com" />
-<updated>2016-03-06T18:10:15+00:00</updated>
-<id>http://jonnyzzz.com/</id>
-<author>
-  <name>Eugene Petrenko</name>
-  <uri>http://jonnyzzz.com/</uri>
-  <email>eugene.petrenko@gmail.com</email>
-</author>
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2016-08-29T22:27:12+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.&lt;/p&gt;
 
+&lt;p&gt;I solved a simple puzzle with isolating classes I want to share.&lt;/p&gt;
 
-  
+&lt;h1 id=&quot;backgrounds&quot;&gt;Backgrounds&lt;/h1&gt;
 
-<entry>
-  <title type="html"><![CDATA[A DSL Workbench with Gradle and Kotlin]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" />
-  <id>http://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl</id>
-  <published>2016-03-08T00:00:00+00:00</published>
-  <updated>2016-03-08T00:00:00+00:00</updated>
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+&lt;p&gt;There are integration tests in a project. Those integration tests starts several web applications, 
+bind them together and to some black-box tests. 
+The vital part of such tests is to provide a classpath isolation between test classes and classes 
+of applications that are running.&lt;/p&gt;
+
+&lt;p&gt;To start each of those web servers I use Jetty Embedded. Well, I load Jetty classes for each 
+web application I start within a separate classloaders hierarchy. I like Jetty, but I want to 
+isolate any side effects, thus loading it several times, thanks it’s tiny, is the way to go.&lt;/p&gt;
+
+&lt;p&gt;All helper classes to start/stop/configure web applications forms an API that helps for a tests run.&lt;/p&gt;
+
+&lt;p&gt;It turns out to be tricky to isolate those runner classes from a test classpath. From one hand we’d 
+like to have an APIs available for test class to use, from the other hand, it is still required 
+to make sure the classpath of web application, hence Jetty Embedded it not polluted with test module 
+dependencies.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-problem&quot;&gt;The Problem&lt;/h1&gt;
+
+&lt;p&gt;Say we have and &lt;code&gt;API.jar&lt;/code&gt; and &lt;code&gt;IMPL.jar&lt;/code&gt;. We are looking on how to load the &lt;code&gt;IMPL.jar&lt;/code&gt; with a clean
+classpath and still have a change to bind it to the &lt;code&gt;API.jar&lt;/code&gt; that is a part of some other huge classpath.&lt;/p&gt;
+
+&lt;p&gt;The goal is to the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Test framework uses &lt;code&gt;API.jar&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;IMPL.jar also uses &lt;code&gt;API.jar&lt;/code&gt;, but it does not see any test-related classes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The problem is that it is test framework / test runner that loading test classes. We are unlikely to change that.
+Otherwise we have to take care of test runners, IDEs, CI, debugging.&lt;/p&gt;
+
+&lt;h1 id=&quot;obvious-solutions&quot;&gt;Obvious solutions&lt;/h1&gt;
+&lt;p&gt;Load all classes within one JVM. This violates the task, but may be the easiest way. The future issue here 
+can be a jar hell, if one has different libraries used in the application / tests or the loader.&lt;/p&gt;
+
+&lt;p&gt;Another solution could be in using OSGi. It’s a complicated framework that uses security manager to isolate
+classes visibility.&lt;/p&gt;
+
+&lt;p&gt;Future solution with Java 9 modules is also a way to go. But for now, it’s too early.&lt;/p&gt;
+
+&lt;h1 id=&quot;just-classloading&quot;&gt;Just Classloading&lt;/h1&gt;
+
+&lt;p&gt;The most simple solution is to load classes with &lt;em&gt;child-first&lt;/em&gt; classloader. This is &lt;strong&gt;NOT&lt;/strong&gt; the way
+to isolate dependencies, but at least this is the way to have IMPL.jar dependencies win on classloading.&lt;/p&gt;
+
+&lt;p&gt;There are at least two things to take case of&lt;/p&gt;
+
+&lt;h2 id=&quot;case-1--jvm-classes&quot;&gt;Case 1 : JVM classes&lt;/h2&gt;
+&lt;p&gt;Child first classloaders should still load JVM classes first.&lt;/p&gt;
+
+&lt;p&gt;It may turn out the classpath contains some classes that are now included into JVM. Those classes are 
+still included into a package to provide a compatibility with older JVM versions. Those classes are 
+simply ignored by the JVM when default classloading is used.&lt;/p&gt;
+
+&lt;p&gt;It may generate tricky issues when child first classloader attempts to load wrong classes since 
+those classes will likely register themselves in the OS.&lt;/p&gt;
+
+&lt;p&gt;The solution here is the following. We crete a classloader:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;  &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jvmClassLoaderDelegate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
+to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.&lt;/p&gt;
+
+&lt;h2 id=&quot;case-2-resources&quot;&gt;Case 2: Resources&lt;/h2&gt;
+
+&lt;p&gt;It’s so easy to implement child first classloader. It is also so easy to forget about resources. The child first
+strategy must be implemented for resources too. Otherwise, it may break some libraries which uses resources.&lt;/p&gt;
+
+&lt;p&gt;Finally classloading with child first delegation does not solve the initial problem. It does not allow to 
+fully isolate test classes (e.g. test framework) from &lt;code&gt;IMPL.jar&lt;/code&gt; classes&lt;/p&gt;
+
+&lt;h1 id=&quot;the-proxy-trick&quot;&gt;The Proxy Trick&lt;/h1&gt;
+
+&lt;p&gt;The idea is to load &lt;code&gt;API.jar&lt;/code&gt; twice and than use to &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to bind interfaces part from 
+tests classspath to implementations.&lt;/p&gt;
+
+&lt;p&gt;A trick is to have yet another classloader with &lt;code&gt;null&lt;/code&gt; as parent. The loader classpath includes 
+only &lt;code&gt;API.jar&lt;/code&gt;, &lt;code&gt;IMPL.jar&lt;/code&gt; and dependencies of &lt;code&gt;IMPL.jar&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Next we create a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to create an instance of an API interface that delegates
+to the implementation class that is loaded by the other classloader. We are not able to cast here,
+since we have &lt;code&gt;API.jar&lt;/code&gt; loaded twice.&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, this will only work when API interface methods uses JVM classes as parameters 
+and return types. There are no common 
+classloaders between &lt;code&gt;IMPL.jar&lt;/code&gt; and tests, thus ClassCastException will be thrown for other types.&lt;/p&gt;
+
+&lt;h1 id=&quot;recursive-proxy-trick&quot;&gt;Recursive Proxy Trick&lt;/h1&gt;
+
+&lt;p&gt;The last limitation can be solved by a bit more complicated trick of 3 steps&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create a proxy for API interface&lt;/li&gt;
+  &lt;li&gt;In the implementation, check all parameter types and proxy every parameter with non system classloader&lt;/li&gt;
+  &lt;li&gt;In the implementation, proxy return values in opposite way&lt;/li&gt;
+  &lt;li&gt;Apply the following proxies recursively if &lt;code&gt;API.jar&lt;/code&gt; interfaces are complex&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This approach allows to use JVM classes and &lt;code&gt;API.jar&lt;/code&gt; interfaces between the bound. It will not work 
+with classes, since it is the limitation of &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The overall trick is implemented as follows&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; * creates a proxy for an object obj loaded in sourceLoader hierarchy &lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; * that is visible in destLoader as destClass interface&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; * assuming all methods of destClass are implemented in obj&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; * exactly with same signature&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;*/&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newProxyInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;destClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;},&lt;/span&gt;
+          &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+                  &lt;span class=&quot;n&quot;&gt;threadClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
+                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
+                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getParameterTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+                    
+                    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
+                      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]);&lt;/span&gt;
+                      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;realMethod&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;realMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getReturnType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getReturnType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
+                  &lt;span class=&quot;o&quot;&gt;}));&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;limitations&quot;&gt;Limitations&lt;/h1&gt;
+
+&lt;p&gt;Current implementation works only with API interfaces. It does not allow sharing classes or enums. 
+Enums from &lt;code&gt;API.jar&lt;/code&gt; can be easily supported be adding an explicit checking. 
+Classes cannot be mapped this way. At least because it is not allowed in &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt;. 
+From the other hand, it’s not clear how class state can be transferred at all.&lt;/p&gt;
+
+&lt;h1 id=&quot;side-note&quot;&gt;Side Note&lt;/h1&gt;
+
+&lt;p&gt;It may be necessary to change &lt;code&gt;Thread#contextClassloader&lt;/code&gt; to the right one before calling a 
+method from different classloader. This trick makes dynamic classloading in libraries work 
+correctly for some cases. Otherwise, there is a possibility that a class from another classpath
+is created from &lt;code&gt;IMPL.jar&lt;/code&gt; code (say, via &lt;code&gt;Class#forName&lt;/code&gt; call)&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;I used the approach to implement integration tests that are running several web application 
+instances within one JVM. All instances are now isolated from each other and from tests classpath.&lt;/p&gt;
+
+&lt;p&gt;Running everything within one JVM helps to avoid issues with leaked processes or applications as well as
+allows one to debug every application or even all applications easily!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="java" /><category term="jvm" /><category term="classloaders" /><summary>There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.</summary></entry><entry><title>A DSL Workbench with Gradle and Kotlin</title><link href="/blog/2016/03/08/gradle-for-dsl/" rel="alternate" type="text/html" title="A DSL Workbench with Gradle and Kotlin" /><published>2016-03-08T00:00:00+00:00</published><updated>2016-03-08T00:00:00+00:00</updated><id>/blog/2016/03/08/gradle-for-dsl</id><content type="html" xml:base="/blog/2016/03/08/gradle-for-dsl/">&lt;p&gt;Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
 a continuous integration build easily.&lt;/p&gt;
 
@@ -72,7 +212,7 @@ All we need to know about TeamCity2DSL here are&lt;/p&gt;
 
 &lt;p&gt;This is &lt;code&gt;build.gradle&lt;/code&gt; script that is only required to have both TeamCity2DSL tasks (&lt;code&gt;dsl2xml&lt;/code&gt; and &lt;code&gt;xml2dsl&lt;/code&gt;) supported&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
@@ -84,7 +224,7 @@ All we need to know about TeamCity2DSL here are&lt;/p&gt;
   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
 
-&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;org.jonnyzzz.teamcity.dsl&amp;#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;org.jonnyzzz.teamcity.dsl&amp;#39;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;&lt;em&gt;NOTE&lt;/em&gt;. Replace &lt;code&gt;&amp;lt;PLUGIN VERSION&amp;gt;&lt;/code&gt; with the latest version 
 from the &lt;a href=&quot;https://bintray.com/jonnyzzz/maven/teamcity2dsl/view&quot;&gt;maven repository&lt;/a&gt;&lt;br /&gt;
@@ -107,29 +247,29 @@ The Gradle plugin is implemented with Kotlin as well.&lt;/p&gt;
 is selected from plugin dependency. This allows to avoid
 explicit configuration for Kotlin.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;java&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;kotlin&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;The plugin includes DSL dependencies to itself into &lt;code&gt;compile&lt;/code&gt; configuration. Those jars are predefined and 
 we make Gradle download them from Maven repository.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dsl2xml&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;dsl2xml&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;Dsl2Xml:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dsl2xml&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getByName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;classes&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dsl2xml&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;dsl2xml&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;Dsl2Xml:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dsl2xml&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getByName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;classes&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Next, we include all &lt;code&gt;buildScript&lt;/code&gt; block repositories into code repositories. This helps to avoid 
 duplicates in repositories declaration.&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;buildscript&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;repositories&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;repositories&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;buildscript&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;repositories&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;repositories&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;To add extra source directory we use the following code (that depends on Gradle’s Java plugin)&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceSets&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;convention&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getPlugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;JavaPluginConvention:&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;sourceSets&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;Source sets: ${sourceSets.names}&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;sourceSets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getByName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;main&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;srcDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;settings&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dslPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!!.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;n&quot;&gt;sourceSets&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getByName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;main&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;srcDir&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;settings&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dslPath&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!!.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;path&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;We know Kotlin plugin checks Java output path for kotlin sources too. So we depend here only on Java plugin,
 not on a private API of the Kotlin plugin.&lt;/p&gt;
@@ -147,29 +287,9 @@ leading to easy-to-use and easy-to-adopt solution.&lt;/p&gt;
 
 &lt;p&gt;This pattern could be re-used for other applications.&lt;/p&gt;
 
-&lt;p&gt;Feel free to try &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity2DSL&quot;&gt;TeamCity2DSL&lt;/a&gt; for TeamCity project settings domain.&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/&quot;&gt;A DSL Workbench with Gradle and Kotlin&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on March 08, 2016.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Using Gradle to download and run anything]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner/" />
-  <id>http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner</id>
-  <published>2016-03-06T00:00:00+00:00</published>
-  <updated>2016-03-06T00:00:00+00:00</updated>
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;There are so many small tasks that as solved via a tiny programs. Most of such programs 
+&lt;p&gt;Feel free to try &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity2DSL&quot;&gt;TeamCity2DSL&lt;/a&gt; for TeamCity project settings domain.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="kotlin" /><category term="dsl" /><category term="teamcity2dsl" /><summary>Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
+a continuous integration build easily.</summary></entry><entry><title>Using Gradle to download and run anything</title><link href="/blog/2016/03/06/gradle-all-maven-runner/" rel="alternate" type="text/html" title="Using Gradle to download and run anything" /><published>2016-03-06T00:00:00+00:00</published><updated>2016-03-06T00:00:00+00:00</updated><id>/blog/2016/03/06/gradle-all-maven-runner</id><content type="html" xml:base="/blog/2016/03/06/gradle-all-maven-runner/">&lt;p&gt;There are so many small tasks that as solved via a tiny programs. Most of such programs 
 are to call several libraries to have an end-result. In the JVM world, most of those 
 libraries are downloadable from a maven repository.&lt;/p&gt;
 
@@ -181,7 +301,7 @@ This makes the scripting done with groovy too.&lt;/p&gt;
 
 &lt;p&gt;Here goes an example to run an Amazon API and wrap it as Gradle task:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
@@ -199,7 +319,7 @@ This makes the scripting done with groovy too.&lt;/p&gt;
   &lt;span class=&quot;c1&quot;&gt;// The script source goes here!&lt;/span&gt;
   &lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s3client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AmazonS3Client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProfileCredentialsProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Working with endpoint: $s3client.endpoint&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;The only trick here is that Gradle includes all script dependencies into classpath 
 where tasks are loaded and executed.&lt;/p&gt;
@@ -208,29 +328,9 @@ where tasks are loaded and executed.&lt;/p&gt;
 makes it runnable on eveny machine with JVM only. 
 (A &lt;code&gt;Wrapper&lt;/code&gt; task can be used to have Gradle generate wrapper scripts)&lt;/p&gt;
 
-&lt;p&gt;Happy scripting!&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2016/03/06/gradle-all-maven-runner/&quot;&gt;Using Gradle to download and run anything&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on March 06, 2016.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Kotlin XML Binding]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
-  <id>http://jonnyzzz.com/blog/2016/01/06/kotlin-xml</id>
-  <published>2016-01-06T00:00:00+00:00</published>
-  <updated>2016-01-06T00:00:00+00:00</updated>
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;I like creating DSLs in &lt;a href=&quot;https://kotlinlang.org/&quot;&gt;Kotlin&lt;/a&gt;. It was fun to try creating a DSL for
+&lt;p&gt;Happy scripting!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="maven" /><category term="hint" /><summary>There are so many small tasks that as solved via a tiny programs. Most of such programs 
+are to call several libraries to have an end-result. In the JVM world, most of those 
+libraries are downloadable from a maven repository.</summary></entry><entry><title>Kotlin XML Binding</title><link href="/blog/2016/01/06/kotlin-xml/" rel="alternate" type="text/html" title="Kotlin XML Binding" /><published>2016-01-06T00:00:00+00:00</published><updated>2016-01-06T00:00:00+00:00</updated><id>/blog/2016/01/06/kotlin-xml</id><content type="html" xml:base="/blog/2016/01/06/kotlin-xml/">&lt;p&gt;I like creating DSLs in &lt;a href=&quot;https://kotlinlang.org/&quot;&gt;Kotlin&lt;/a&gt;. It was fun to try creating a DSL for
 XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.&lt;/p&gt;
 
 &lt;p&gt;I was looking for a way to use XPath like queries for data binding. I did not want to parse 
@@ -242,7 +342,7 @@ to achieve better readability, avoid explicit type names for serialization/deser
 
 &lt;p&gt;Let’s consider an example. Say you have an XML:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;project&amp;gt;&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;project&amp;gt;&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;lt;settings&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;q&amp;quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
      &lt;span class=&quot;nt&quot;&gt;&amp;lt;name&amp;gt;&lt;/span&gt;Foo&lt;span class=&quot;nt&quot;&gt;&amp;lt;/name&amp;gt;&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/settings&amp;gt;&lt;/span&gt;
@@ -251,18 +351,18 @@ to achieve better readability, avoid explicit type names for serialization/deser
      &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;B&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;
      &lt;span class=&quot;nt&quot;&gt;&amp;lt;key&amp;gt;&lt;/span&gt;C&lt;span class=&quot;nt&quot;&gt;&amp;lt;/key&amp;gt;&lt;/span&gt;   
   &lt;span class=&quot;nt&quot;&gt;&amp;lt;/keys&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/project&amp;gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Thanks to the &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.bind&quot;&gt;kotlin.xml.bind&lt;/a&gt;, you may 
 parse it with the following DSL in Kotlin:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XAttribute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;type&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XText&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;keys&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;keys&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XElements&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;key&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XText&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;any&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;parameters&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XAnyElements&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XSub&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Sub&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
   &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;unknownElements&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JXML&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;XUnknown&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Kotlin compiler infers types for properties, so one should not write types at all. 
 In the example above &lt;code&gt;type&lt;/code&gt; and &lt;code&gt;name&lt;/code&gt; properties are &lt;code&gt;String?&lt;/code&gt;, 
@@ -295,7 +395,7 @@ are still in use to scan available object properties too on serialization/deseri
 You may find more details in &lt;a href=&quot;https://github.com/jonnyzzz/kotlin.xml.dsl&quot;&gt;kotlin.xml.dsl&lt;/a&gt; on GitHub. 
 This is an example of unit test&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;@Test
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-xml&quot; data-lang=&quot;xml&quot;&gt;@Test
 public fun test_read_any_element_does_not_include_parsed() {
   class Data {
     var X by JXML / &amp;quot;x&amp;quot; / XUnknown
@@ -315,7 +415,7 @@ public fun test_read_any_element_does_not_include_parsed() {
   Assert.assertEquals(d.Z?.size, 2)
   Assert.assertEquals(d.Z?.get(0)?.name, &amp;quot;z&amp;quot;)
   Assert.assertEquals(d.Z?.get(1)?.name, &amp;quot;p&amp;quot;)
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;I use &lt;a href=&quot;https://gradle.org/&quot;&gt;Gradle&lt;/a&gt; as project model now. 
 Artifacts are deployed to &lt;a href=&quot;https://bintray.com/jonnyzzz/maven&quot;&gt;Bintray&lt;/a&gt;&lt;/p&gt;
@@ -326,31 +426,10 @@ Get rid of reflections and use &lt;a href=&quot;https://kotlinlang.org/docs/refe
 Support other XML implementations, not only JDOM&lt;br /&gt;
 Improve, finalize and document binding DSL&lt;br /&gt;
 Invite contributors!&lt;br /&gt;
-Have more fun!&lt;/p&gt;
+Have more fun!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="xml" /><category term="kotlin.xml.bind" /><category term="jdom" /><category term="dsl" /><category term="gradle" /><category term="teamcity2dsl" /><summary>I like creating DSLs in Kotlin. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.</summary></entry><entry><title>Git in Docker</title><link href="/blog/2015/11/24/DockerGit/" rel="alternate" type="text/html" title="Git in Docker" /><published>2015-11-24T00:00:00+00:00</published><updated>2015-11-24T00:00:00+00:00</updated><id>/blog/2015/11/24/DockerGit</id><content type="html" xml:base="/blog/2015/11/24/DockerGit/">&lt;p&gt;Some uses &lt;a href=&quot;https://docker.com&quot;&gt;Docker&lt;/a&gt; to run builds inside.&lt;/p&gt;
 
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/&quot;&gt;Kotlin XML Binding&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on January 06, 2016.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Git in Docker]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2015/11/24/DockerGit/" />
-  <id>http://jonnyzzz.com/blog/2015/11/24/DockerGit</id>
-  <published>2015-11-24T00:00:00+00:00</published>
-  <updated>2015-11-24T00:00:00+00:00</updated>
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Some uses &lt;a href=&quot;https://docker.com&quot;&gt;Docker&lt;/a&gt; to run builds inside. 
-Some uses it to run tests inside. 
+&lt;p&gt;Some uses it to run tests inside. 
 Today I gonna cover my case, where I implement a command that runs inside a Docker container 
 and call it thousands of times during &lt;a href=&quot;https://en.wikipedia.org/wiki/Continuous_integration&quot;&gt;CI&lt;/a&gt; 
 integration tests build.&lt;/p&gt;
@@ -371,7 +450,8 @@ Let’s compile Git from sources.&lt;/p&gt;
 &lt;p&gt;Git client is easy to checkout and compile. I use the following
 snippet for that&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;  
+&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
 &lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/src/git-${git_version}&amp;quot;&lt;/span&gt;
 &lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/bin/git-${git_version}&amp;quot;&lt;/span&gt;
 &lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/git-${git_version}.sh&amp;quot;&lt;/span&gt;
@@ -388,20 +468,20 @@ make &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&
 
 &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;#!/bin/bash&amp;#39;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;GIT_EXEC_PATH=${git_bin}/libexec/git-core PATH=${git_bin}/bin:\$PATH GITPERLLIB=${git_bin}/perl/blib/lib ${git_bin}/bin/git \&amp;quot;\$@\&amp;quot;&amp;quot;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-chmod a+rx &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+chmod a+rx &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;The code above generates a starter script for Git client (e.g. &lt;code&gt;/git-1.7.2.sh&lt;/code&gt;)&lt;/p&gt;
 
 &lt;p&gt;Git build also requires a set of packages to be installed on the OS (for my case on CentOS)&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;yum update -y
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;yum update -y
 yum groupinstall -y &lt;span class=&quot;s2&quot;&gt;&amp;quot;Development tools&amp;quot;&lt;/span&gt;
 yum install -y tar wget m4
 yum install -y autoconf
 yum install -y gcc
 yum install -y perl-ExtUtils-MakeMaker
 yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
-yum clean all&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+yum clean all&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Well, building Git client&lt;/p&gt;
 
@@ -462,7 +542,7 @@ Let’s wrap Docker container call into a bash script than!&lt;/p&gt;
 
 &lt;p&gt;First of I created a script like that (see &lt;a href=&quot;https://docs.docker.com/engine/reference/run/&quot;&gt;docker run docs&lt;/a&gt;)&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run GIT_CLIENT_IMAGES &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run GIT_CLIENT_IMAGES &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;p&gt;Well, it did not work, so I added volume with current directory: &lt;code&gt;-v $(pwd):/$(pwd)&lt;/code&gt; and switched working 
 directory in Docker to it via &lt;code&gt;-w /$(pwd)&lt;/code&gt;.&lt;br /&gt;
@@ -506,7 +586,7 @@ Default container command prints the &lt;code&gt;git&lt;/code&gt; script to STDO
 
 &lt;p&gt;The Git client setup bash script turned to be as follows:&lt;/p&gt;
 
-&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker pull GIT_CLIENT_IMAGE
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker pull GIT_CLIENT_IMAGE
 docker run --rm GIT_CLIENT_IMAGE 2&amp;gt;/dev/null &amp;gt;git
 chmod +x git
 &lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;/git:&lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;
@@ -515,7 +595,7 @@ chmod +x git
 &lt;span class=&quot;nv&quot;&gt;GIT_VERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
 &lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GIT_VERSION
 
-&lt;span class=&quot;c&quot;&gt;#call integration tests&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span class=&quot;c&quot;&gt;#call integration tests&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
 
 &lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
 
@@ -547,29 +627,12 @@ some implementation details that are now seems to be done easier.&lt;/p&gt;
 shows the slowdown about 2x in comparison with fully native Git client on Linux.
 Frankly, I have not yet tried to optimize performance of my scripts.&lt;/p&gt;
 
-&lt;p&gt;Containerize with Pleasure!&lt;/p&gt;
+&lt;p&gt;Containerize with Pleasure!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="docker" /><category term="git" /><category term="integration tests" /><category term="ci" /><summary>Some uses Docker to run builds inside.
 
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2015/11/24/DockerGit/&quot;&gt;Git in Docker&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 24, 2015.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[New Site. New Domain. New Technologies]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2015/11/22/MoveMoveMove/" />
-  <id>http://jonnyzzz.com/blog/2015/11/22/MoveMoveMove</id>
-  <published>2015-11-22T00:00:00+00:00</published>
-  <updated>2015-11-22T00:00:00+00:00</updated>
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Some days ago I realized it’s possible to have mostly any web site 
+Some uses it to run tests inside. 
+Today I gonna cover my case, where I implement a command that runs inside a Docker container 
+and call it thousands of times during CI 
+integration tests build.</summary></entry><entry><title>New Site. New Domain. New Technologies</title><link href="/blog/2015/11/22/MoveMoveMove/" rel="alternate" type="text/html" title="New Site. New Domain. New Technologies" /><published>2015-11-22T00:00:00+00:00</published><updated>2015-11-22T00:00:00+00:00</updated><id>/blog/2015/11/22/MoveMoveMove</id><content type="html" xml:base="/blog/2015/11/22/MoveMoveMove/">&lt;p&gt;Some days ago I realized it’s possible to have mostly any web site 
 that is running behind &lt;a href=&quot;https://pages.github.com&quot;&gt;GitHub pages&lt;/a&gt;.
 Finally I decided to update my current blog and to have a site on domain root.&lt;/p&gt;
 
@@ -623,34 +686,15 @@ and nice to use. But you’ll need to change domain name servers to CloudFlare�
 &lt;p&gt;Finally, I created yet another stub site to implement redirect from &lt;code&gt;jonnyzzz.name&lt;/code&gt;. In some weeks
 I’ll create similar redirect from &lt;code&gt;blog.jonnyzzz.name&lt;/code&gt; too.&lt;/p&gt;
 
-&lt;p&gt;Now I can author posts in Markdown. I like it! Welcome to the new site and blog.&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2015/11/22/MoveMoveMove/&quot;&gt;New Site. New Domain. New Technologies&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 22, 2015.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[TeamCity.AntMessages]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2015/05/07/teamcityantmessages/" />
-  <id>http://jonnyzzz.com/blog/2015/05/07/teamcityantmessages</id>
-  <updated>2015-05-07T02:50:23.925+02:00T00:00:00-00:00</updated>
-  <published>2015-05-07T02:50:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;You may know about &lt;a
+&lt;p&gt;Now I can author posts in Markdown. I like it! Welcome to the new site and blog.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="docker" /><category term="jekyll" /><category term="domain" /><category term="virtual-environment" /><category term="weekend" /><summary>Some days ago I realized it’s possible to have mostly any web site 
+that is running behind GitHub pages.
+Finally I decided to update my current blog and to have a site on domain root.</summary></entry><entry><title>TeamCity.AntMessages</title><link href="/blog/2015/05/07/teamcityantmessages/" rel="alternate" type="text/html" title="TeamCity.AntMessages" /><published>2015-05-07T00:50:00+00:00</published><updated>2015-05-07T00:50:00+00:00</updated><id>/blog/2015/05/07/teamcityantmessages</id><content type="html" xml:base="/blog/2015/05/07/teamcityantmessages/">&lt;p&gt;You may know about &lt;a
   href=&quot;https://confluence.jetbrains.com/display/TCD9/Build+Script+Interaction+with+TeamCity&quot;&gt;Service Messages&lt;/a&gt;
   that helps to integrate build with &lt;a href=&quot;http://jetbrains.com/TeamCity?jonnyzzz&quot;&gt;TeamCity&lt;/a&gt;. Some
   time ago I blogged about &lt;a href=&quot;/blog/2012/12/17/teeamcityservicemessages-v30/&quot;&gt;Service
-    Messages Tasks for C#&lt;/a&gt;&lt;/p&gt;&lt;p&gt;The &lt;a
+    Messages Tasks for C#&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The &lt;a
   href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;TeamCity.AntMessages&lt;/a&gt; Ant task library
   contains necessary tasks for Ant! The usage is the follows: &lt;/p&gt;
 &lt;script type=&quot;syntaxhighlighter&quot;
@@ -682,30 +726,7 @@ I’ll create similar redirect from &lt;code&gt;blog.jonnyzzz.name&lt;/code&gt; 
 &lt;h2&gt;Download and use&lt;/h2&gt;The sources and issue tracker is on &lt;a
   href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;Here&lt;/a&gt;Binaries can be downloaded from &lt;a
   href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages/releases/tag/release-0.1&quot;&gt;here&lt;/a&gt;License is MIT.
-Some dependencies peaces are Apache 2.0
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2015/05/07/teamcityantmessages/&quot;&gt;TeamCity.AntMessages&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on May 07, 2015.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[TeamCity.Node Update]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2014/11/02/teamcitynode-update/" />
-  <id>http://jonnyzzz.com/blog/2014/11/02/teamcitynode-update</id>
-  <updated>2014-11-02T20:32:42.926+01:00T00:00:00-00:00</updated>
-  <published>2014-11-02T20:20:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;h2&gt;Updates&lt;/h2&gt;
+Some dependencies peaces are Apache 2.0</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="free-time" /><category term="opensource" /><category term="teamcity plugin" /><category term="teamcity" /><category term="teamcity api" /><category term="ant" /><category term="servicemessage" /><category term="java" /><category term="TeamCity.AntMessages" /></entry><entry><title>TeamCity.Node Update</title><link href="/blog/2014/11/02/teamcitynode-update/" rel="alternate" type="text/html" title="TeamCity.Node Update" /><published>2014-11-02T19:20:00+00:00</published><updated>2014-11-02T19:20:00+00:00</updated><id>/blog/2014/11/02/teamcitynode-update</id><content type="html" xml:base="/blog/2014/11/02/teamcitynode-update/">&lt;h2&gt;Updates&lt;/h2&gt;
 
 &lt;p&gt;
 Recently I closed the most voted feature of the plugin: Gulp support.
@@ -722,31 +743,7 @@ Recently I closed the most voted feature of the plugin: Gulp support.
 This plugin is provided under Apache 2.0 license. Sources (in Kotlin) are found on
 &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;.
 You may download compiled build from
-&lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;
-
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2014/11/02/teamcitynode-update/&quot;&gt;TeamCity.Node Update&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on November 02, 2014.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Spring Framework Component Container Decomposition]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2014/05/14/spring-framework-component-container/" />
-  <id>http://jonnyzzz.com/blog/2014/05/14/spring-framework-component-container</id>
-  <updated>2014-05-14T22:30:21.167+02:00T00:00:00-00:00</updated>
-  <published>2014-05-14T22:30:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;
+&lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="teamcity plugin" /><category term="gulp" /><category term="javascript" /><category term="teamcity" /><category term="teamcity api" /><category term="feature" /><category term="kotlin" /><category term="grunt" /><category term="github" /><category term="java" /><category term="TeamCity.Node" /></entry><entry><title>Spring Framework Component Container Decomposition</title><link href="/blog/2014/05/14/spring-framework-component-container/" rel="alternate" type="text/html" title="Spring Framework Component Container Decomposition" /><published>2014-05-14T20:30:00+00:00</published><updated>2014-05-14T20:30:00+00:00</updated><id>/blog/2014/05/14/spring-framework-component-container</id><content type="html" xml:base="/blog/2014/05/14/spring-framework-component-container/">&lt;p&gt;
   In this post I explain how one could split one huge components container into a number
   of smaller ones
 &lt;/p&gt;
@@ -787,7 +784,7 @@ You may download compiled build from
   classpaths.
 &lt;/p&gt;
 &lt;p&gt;The split process could be done in the following way. We take one big component
-  (facade) and move all it&#39;s implementation details into a sub container. Iteratively we may hide all huge
+  (facade) and move all it's implementation details into a sub container. Iteratively we may hide all huge
   components implementations from the rest of the application and thus resolve the &lt;em&gt;first&lt;/em&gt; issue.
 &lt;/p&gt;
 &lt;p&gt;Speaking of the library dependencies. Each of sub container could load classes from extended
@@ -927,34 +924,13 @@ public class SubContext extends SubContextLoader {
 &lt;/p&gt;
 &lt;p&gt;
   Hope I covered all details.
-  Please let me know if you&#39;d like me to cover some gaps
-&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2014/05/14/spring-framework-component-container/&quot;&gt;Spring Framework Component Container Decomposition&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on May 14, 2014.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Named Stack Frames for the JVM]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2014/04/26/named-stack-frames-for-jvm/" />
-  <id>http://jonnyzzz.com/blog/2014/04/26/named-stack-frames-for-jvm</id>
-  <updated>2014-04-26T21:20:00.079+02:00T00:00:00-00:00</updated>
-  <published>2014-04-26T20:49:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;
-  In this post I&#39;d like to introduce my new Java library called &lt;em&gt;named-frames&lt;/em&gt;.
+  Please let me know if you'd like me to cover some gaps
+&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="IoC" /><category term="JRE" /><category term="Dependency Injection" /><category term="DI" /><category term="Component" /><category term="Spring Framework" /><category term="Spring IoC" /><category term="classloaders" /><category term="Spring" /><category term="Component Container" /><category term="java" /><summary>In this post I explain how one could split one huge components container into a number
+  of smaller ones</summary></entry><entry><title>Named Stack Frames for the JVM</title><link href="/blog/2014/04/26/named-stack-frames-for-jvm/" rel="alternate" type="text/html" title="Named Stack Frames for the JVM" /><published>2014-04-26T18:49:00+00:00</published><updated>2014-04-26T18:49:00+00:00</updated><id>/blog/2014/04/26/named-stack-frames-for-jvm</id><content type="html" xml:base="/blog/2014/04/26/named-stack-frames-for-jvm/">&lt;p&gt;
+  In this post I'd like to introduce my new Java library called &lt;em&gt;named-frames&lt;/em&gt;.
   The library allows including runtime-generated information into JVM/Java stack traces and thread dumps
 &lt;/p&gt;
+
 &lt;h2&gt;Motivation&lt;/h2&gt;
 &lt;p&gt;
   Time from time I look into feedback emails and application logs. Some of
@@ -974,7 +950,7 @@ public class SubContext extends SubContextLoader {
 &lt;/p&gt;
 &lt;h2&gt;The Library Usage&lt;/h2&gt;
 &lt;p&gt;
-  The application should wrap it&#39;s code into
+  The application should wrap it's code into
   the call to the library in the following way:
 &lt;/p&gt;
 
@@ -1039,899 +1015,5 @@ at _.this is my named frame._(JavaGeneratorTemplate.java:24)
 &lt;/p&gt;
 &lt;p&gt;I published the snapshot build of the library into
   &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;a maven repository&lt;/a&gt;. In a several weeks I plan to apply for the Maven Central publishing
-&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2014/04/26/named-stack-frames-for-jvm/&quot;&gt;Named Stack Frames for the JVM&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on April 26, 2014.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Docker Vagrant TeamCity]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2014/03/08/docker-vagrant-teamcity/" />
-  <id>http://jonnyzzz.com/blog/2014/03/08/docker-vagrant-teamcity</id>
-  <updated>2014-03-09T10:22:30.005+01:00T00:00:00-00:00</updated>
-  <published>2014-03-08T15:00:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I&#39;ll introduce the brand new &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual&quot;&gt;TeamCity.Virtual&lt;/a&gt; plugin that supports execution
-  under virtual environments from &lt;a href=&quot;http://www.vagrantup.com/&quot;&gt;Vagrant&lt;/a&gt; or &lt;a
-    href=&quot;https://www.docker.io/&quot;&gt;Docker&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;Software is the problem&lt;/h2&gt;&lt;p&gt;Every
-  build running under CI requires some software/libraries/JVMs/* to be pre-configured on the machine. When your
-  setup has only one build agent everything is simple. But if you need an easy recreatable environment things get
-  more complicated. Every time you need to install some software on every build agent you have to do lots of routine
-  work. When there is a pool of build machines its getting overcomplicated&lt;/p&gt;&lt;p&gt;There exists at least
-  one way to cope with this complexity. Virtual machines. LinuX Containers. Thanks to &lt;a
-    href=&quot;http://www.vagrantup.com/&quot;&gt;Vagrant&lt;/a&gt; it became an easy, repeatable and scriptable solution. With
-  &lt;a href=&quot;http://en.wikipedia.org/wiki/LXC&quot;&gt;LinuX Containers&lt;/a&gt; (for example &lt;a
-    href=&quot;https://www.docker.io/&quot;&gt;Docker&lt;/a&gt;) things are even faster &lt;p&gt;&lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual&quot;&gt;TeamCity.Virtual&lt;/a&gt; plugin makes using &lt;a
-  href=&quot;https://www.docker.io/&quot;&gt;Docker&lt;/a&gt; and &lt;a href=&quot;http://www.vagrantup.com/&quot;&gt;Vagrant&lt;/a&gt;
-  in TeamCity as easy as using a build runner. So for example, you may run your &lt;a href=&quot;http://nodejs.org/&quot;&gt;nodejs&lt;/a&gt;
-  builds in a fresh environment of required version without any extra per-agent pre-configuration work&lt;/p&gt;
-&lt;h2&gt;&lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual&quot;&gt;TeamCity.Virtual&lt;/a&gt; plugin&lt;/h2&gt;&lt;p&gt;The
-  build runner is called &lt;strong&gt;Docker / Vagrant&lt;/strong&gt;. On the runner settings page you may specify
-  the virtual environment configuration to start and the script to execute inside it:&lt;/p&gt;
-&lt;div&gt;&lt;a
-  style=&quot;float:left;&quot;
-  href=&quot;http://3.bp.blogspot.com/-Q586fZBelDU/UxoOzV-POBI/AAAAAAAAE_U/uDOOmgwDHk0/s1600/Screenshot+2014-03-07+22.23.46.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; alt=&quot;Vagrant&quot;
-                       src=&quot;http://3.bp.blogspot.com/-Q586fZBelDU/UxoOzV-POBI/AAAAAAAAE_U/uDOOmgwDHk0/s320/Screenshot+2014-03-07+22.23.46.png&quot;
-/&gt;&lt;/a&gt;
-
-  &lt;div style=&quot;width:2em;float:left;&quot;&gt;&amp;nbsp;&lt;/div&gt;
-  &lt;a style=&quot;float:left;&quot;
-     href=&quot;http://2.bp.blogspot.com/-EEzlusoUZiY/UxsdSqBJIlI/AAAAAAAAE_0/f8oeCNkG_l0/s1600/Screenshot+2014-03-08+17.38.00.png&quot;
-     imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; alt=&quot;Docker&quot;
-                          src=&quot;http://2.bp.blogspot.com/-EEzlusoUZiY/UxsdSqBJIlI/AAAAAAAAE_0/f8oeCNkG_l0/s320/Screenshot+2014-03-08+17.38.00.png&quot;
-  /&gt;&lt;/a&gt;&lt;/div&gt;
-&lt;div style=&quot;clear:both&quot;&gt;&lt;/div&gt; &lt;h2&gt;Implementation Details&lt;/h2&gt;&lt;p&gt;The
-  plugin works as follows:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt; The plugin detects the installed on the build agent &lt;em&gt;Vagrant&lt;/em&gt;
-    and/or &lt;em&gt;Docker&lt;/em&gt; (so only compatible build agents will be used)
-  &lt;/li&gt;
-  &lt;li&gt; It starts
-    the virtual environment (box/container) on the build agent
-  &lt;/li&gt;
-  &lt;li&gt; Mounts the build checkout
-    directory into the started machine
-  &lt;/li&gt;
-  &lt;li&gt; Maps the working directory into machines path&lt;/li&gt;
-  &lt;li&gt;
-    Executes the provided script in the started virtual environment in the working directory
-  &lt;/li&gt;
-  &lt;li&gt;
-    Destroys the environment wiping all the state
-  &lt;/li&gt;
-&lt;/ul&gt; &lt;h3&gt;Settings&lt;/h3&gt;&lt;p&gt;Vagrant
-  box is specified via &lt;em&gt;Vagrantfile&lt;/em&gt;. For &lt;em&gt;Docker&lt;/em&gt; you need to specify image
-  name only&lt;/p&gt; &lt;h2&gt;Run experiments&lt;/h2&gt;&lt;p&gt;This is what you see in the build log of &lt;em&gt;Vagrant&lt;/em&gt;
-  VM command:&lt;/p&gt;&lt;a
-  href=&quot;http://4.bp.blogspot.com/-wqCwBVHoSUA/UxoPo06LF6I/AAAAAAAAE_c/dFStYMspM6I/s1600/Screenshot+2014-03-07+22.27.33.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://4.bp.blogspot.com/-wqCwBVHoSUA/UxoPo06LF6I/AAAAAAAAE_c/dFStYMspM6I/s320/Screenshot+2014-03-07+22.27.33.png&quot;
-/&gt;&lt;/a&gt; &lt;p&gt;Similar builds under &lt;em&gt;Docker&lt;/em&gt;:&lt;/p&gt;&lt;a
-  href=&quot;http://1.bp.blogspot.com/-pEaoiCMbMUc/UxoQIpT6V5I/AAAAAAAAE_k/EkfOPZ-L29w/s1600/Screenshot+2014-03-07+22.29.46.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://1.bp.blogspot.com/-pEaoiCMbMUc/UxoQIpT6V5I/AAAAAAAAE_k/EkfOPZ-L29w/s320/Screenshot+2014-03-07+22.29.46.png&quot;
-/&gt;&lt;/a&gt; &lt;h2&gt;What is is for&lt;/h2&gt;&lt;p&gt;In the next posts I&#39;ll cover details on how to use
-  TeamCity.Virtual plugin to run builds with &lt;em&gt;Nodejs&lt;/em&gt;, &lt;em&gt;JVM&lt;/em&gt;, &lt;em&gt;Android&lt;/em&gt;
-  and much more. Remember, all you need to configure for build agents is Docker or Vagrant. Here are links for
-  publicly available images: &lt;a href=&quot;http://www.vagrantbox.es/&quot;&gt;Vagrant Boxes&lt;/a&gt; and &lt;a
-    href=&quot;https://github.com/dotcloud/docker/wiki/Public-docker-images&quot;&gt;Docker Images&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;Download
-  and Run&lt;/h2&gt;&lt;p&gt;Plugin is implemented under Apache 2.0. Sources are on &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual&quot;&gt;GitHub&lt;/a&gt;. Builds are set up and running in &lt;a
-  href=&quot;http://teamcity.jetbrains.com/viewType.html?buildTypeId=TeamCityVirtual_Build&amp;guest=1&quot;&gt;TeamCity&lt;/a&gt;.
-&lt;/p&gt;&lt;p&gt;For more details, see &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual/blob/master/README.md&quot;&gt;README.md&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Your
-  &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Virtual/issues&quot;&gt;feedback&lt;/a&gt; is welcome! Share what you
-  think&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2014/03/08/docker-vagrant-teamcity/&quot;&gt;Docker Vagrant TeamCity&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on March 08, 2014.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Try-With-Resource in Java]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/12/18/try-with-resource-in-java/" />
-  <id>http://jonnyzzz.com/blog/2013/12/18/try-with-resource-in-java</id>
-  <updated>2013-12-18T21:36:38.959+01:00T00:00:00-00:00</updated>
-  <published>2013-12-18T21:36:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Starting from Java 1.7 we have new syntax: &lt;a
-  href=&quot;http://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html&quot;&gt;try-with-resource&lt;/a&gt;.
-  Recently I had a chance to use it in a project. Main usage I had was for &lt;a
-    href=&quot;https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html&quot;&gt;logging contexts&lt;/a&gt;. &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-ProjectMDC.mdcStart(PROJECT, projectId);
-try {
-  //here goes the code under logging context
-} finally {
-  ProjectMDC.mdcStop(PROJECT, projectId);
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;This code looks feasible for small examples, but things got complicated when one has big code block under
-  &lt;em&gt;try/finally&lt;/em&gt;. Next approach is to use Java 1.7 try-with-resource. The approach is similar to
-  &lt;a href=&quot;http://msdn.microsoft.com/en-us/library/yh598w02.aspx&quot;&gt;&lt;em&gt;using&lt;/em&gt; construction in
-    C#&lt;/a&gt;. &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-try(CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-  //here goes the code under loggingcontext
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;&lt;em&gt;CloseableResource&lt;/em&gt; is an interface inherited from
-  Java&#39;s standard &lt;em&gt;AutoCloseable&lt;/em&gt;. The only reason for it is to avoid declared exceptions. The
-  implementation of an interface is following: &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-public interface CloseableResource extends AutoCloseable {
-  @Override
-  void close();
-}
-]]&gt;&lt;/script&gt; &lt;p&gt;In
-  Java 1.7 it&#39;s unfortunately not allowed to use expression as resource in the try-with-resource statement. So I was
-  forced to have a dummy variable declaration there. So I named the variable with underscores to make it be
-  unusable. I with I could write something like this: &lt;em&gt;try(foo()) { /*code*/ }&lt;/em&gt;. Nowadays this is
-  not supported. &lt;/p&gt; &lt;p&gt;Meanwhile the pattern was good to use and I start using it in many places. In
-  some places I added &lt;em&gt;catch&lt;/em&gt; clause for the try.&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-  //here goes the code under logging context
-} catch (MightyException e) {
-  logger.error(e);
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;This code looks good, but it does not work as it was expected! I expected from it to call &lt;em&gt;logger.error&lt;/em&gt;
-  &lt;strong&gt;under &lt;em&gt;ProjectMDC.mdc()&lt;/em&gt; resource&lt;/strong&gt; but it turned out &lt;strong&gt;the
-    &lt;em&gt;logger.error()&lt;/em&gt; method is called AFTER &lt;em&gt;ProjectMDC.mdc()&lt;/em&gt; context is closed&lt;/strong&gt;.
-  The problem is that logging was expected to be logged &lt;strong&gt;with&lt;/strong&gt; &lt;em&gt;ProjectMDC&lt;/em&gt;
-  but it was not. So the only right code should be patched as follows&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-try (CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId)) {
-  try {
-    //here goes the code under logging context
-  } catch (MightyException e) {
-    logger.error(e);
-  }
-}
-]]&gt;&lt;/script&gt;
-
-&lt;p&gt;This code is similar ugly as pre 1.7 code:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
-final CloseableResource ___ = ProjectMDC.mdc(ProjectMDC.PROJECT, projectId);
-try {
-  //here goes the code under logging context
-} catch (MightyException e) {
-  logger.error(e);
-} finally {
-  ___.close();
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;The only lack in the older code is that one have to declare &lt;em&gt;CloseableResource&lt;/em&gt;
-  variable and than explicitly close it at end. There is one extra variable in code to take care of.&lt;/p&gt; &lt;h3&gt;
-  Outcome&lt;/h3&gt;&lt;p&gt;The
-  sad outcome here is that brand new try-with-resource statement has the following misses&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;It&#39;s
-    not clear that resource is disposed &lt;strong&gt;before&lt;/strong&gt; &lt;em&gt;catch&lt;/em&gt; block call
-  &lt;/li&gt;
-  &lt;li&gt;It&#39;s not allowed to put expression(s) as resources (remember &lt;em&gt;using&lt;/em&gt; in &lt;a
-    href=&quot;http://msdn.microsoft.com/en-us/library/yh598w02.aspx&quot;&gt;C#&lt;/a&gt;)
-  &lt;/li&gt;
-  &lt;li&gt;Real usage code
-    turns out to be quite ugly (still)
-&lt;/ul&gt; &lt;h3&gt;The Kotlin Way&lt;/h3&gt;&lt;p&gt;All this time I was
-  recalling how easy once could create one&#39;s own &lt;em&gt;using&lt;/em&gt; in &lt;a
-    href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;. For example:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-fun &lt;T&gt; using(project: Project, f: () -&gt; T): T {
-  ProjectMDC.mdcStart(PROJECT, project)
-  try {
-    return f();
-  } finally {
-    ProjectMDC.mdcStop(PROJECT, project)
-  }
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;Here I declared my own construction that is more useful in my project! So the
-  usages are following&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      using(projectId) { //do some code } ]]&gt;
-&lt;/script&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-using(projectId) {
-  try {
-    //do some code
-  } catch (e : Exception) {
-    /// log me
-  }
-}
-]]&gt;&lt;/script&gt; &lt;p&gt;For
-  more Kotlin details, you may follow to the &lt;a href=&quot;http://confluence.jetbrains.com/display/Kotlin/Functions&quot;&gt;documentation&lt;/a&gt;.
-&lt;/p&gt;
-&lt;p&gt;The only thing is that this code looks more easy-to-understandable. In the long run, I&#39;d say, this code
-  is more unlikely to contain bugs. Again this is only because simplicity of code&lt;/p&gt; &lt;h4&gt;Done&lt;/h4&gt;&lt;p&gt;Be
-  careful with new Java syntax and read manuals with more attention. Happy coding and Happy Christmass and New Year&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/12/18/try-with-resource-in-java/&quot;&gt;Try-With-Resource in Java&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on December 18, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Node.js and NVM and Grunt in TeamCity.Node]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/08/22/nodejs-and-nvm-and-grunt/" />
-  <id>http://jonnyzzz.com/blog/2013/08/22/nodejs-and-nvm-and-grunt</id>
-  <updated>2013-08-22T11:04:45.238+02:00T00:00:00-00:00</updated>
-  <published>2013-08-22T11:00:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In the previous &lt;a
-  href=&quot;/blog/2013/04/30/adding-grunt-support-to-teamcitynode/&quot;&gt;posts&lt;/a&gt; I wrote
-  about &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;Jonnyzzz.Node&lt;/a&gt; plugin that provides
-  support for Node.js, NPM, Grunt and Phantom.js in TeamCity. Today I&#39;m here to introduce NVM support in the plugin.
-  I&#39;d also shed light on Grunt runner improvements. &lt;/p&gt; &lt;h3&gt;NVM&lt;/h3&gt;&lt;p&gt; In the latest
-  builds of the plugin you&#39;ll find the build runner called &lt;strong&gt;Node.js NVM Installer&lt;/strong&gt;. This
-  build runner would install Node.js and Node Package Manager to your build agent machine with &lt;em&gt;no
-    pre-setup at all&lt;/em&gt;. As the implementation I use the amazing script from &lt;a
-    href=&quot;https://github.com/creationix/nvm&quot;&gt;creatonix/nvm&lt;/a&gt;. The build runner fetches the latest version
-  of the script from GitHub. Note, the script only works under Linux and MacOS. &lt;/p&gt; &lt;p&gt;The new runner
-  provides very simple settings. All you need is to specify version of Node.js. After build runner is executed, you
-  may simply use Node.js or Node.js NPM build runners or even call &lt;em&gt;node&lt;/em&gt; or &lt;em&gt;npm&lt;/em&gt;
-  command from any of you scripts/runners. &lt;/p&gt;&lt;a
-  href=&quot;http://4.bp.blogspot.com/-a2FJcRoUKa4/UhUfsdRnvsI/AAAAAAAADvs/h_AYOc4GImA/s1600/Image_0078.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://4.bp.blogspot.com/-a2FJcRoUKa4/UhUfsdRnvsI/AAAAAAAADvs/h_AYOc4GImA/s1600/Image_0078.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;You may use the &lt;em&gt;Node.js NVM Installer&lt;/em&gt; more than once within the build configuration.
-  So you may test/run your code under several Node.js version at once! &lt;/p&gt; &lt;h3&gt;Grunt&lt;/h3&gt;&lt;p&gt;There
-  were many requests in feedback to let Grant build runner use system-wide grunt instead of NPM fetched local grunt.
-  Starting from now you may select the preferred way you like Grunt runner to be executed! &lt;/p&gt;&lt;p&gt;It&#39;s
-  handy to refer to TeamCity properties from build scripts. Grunt scripts are not an exception to the rule. Starting
-  from now Grunt build runner would add &lt;em&gt;--teamcity.properties.all=&amp;lt;file.json&amp;gt;&lt;/em&gt;
-  parameter with path to a .json file that contains all TeamCity parameters serialized to JSON hash. So now you may
-  easily integrate your builds with TeamCity! You may use the following code to parse parameters in Grunt.js: &lt;/p&gt;
-&lt;script
-  type=&quot;syntaxhighlighter&quot; class=&quot;brush:js&quot;&gt;&lt;![CDATA[ var teamcityProperties =
-      grunt.file.readJSON(grunt.option(&quot;teamcity.properties.all&quot;)); //extract build number var buildNumber =
-      teamcityProperties[&quot;build.number&quot;]; ]]&gt;
-&lt;/script&gt; &lt;h3&gt;Downloading TeamCity.Node&lt;/h3&gt;&lt;p&gt;This
-  plugin is provided under Apache 2.0 license. Sources (in &lt;a href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;)
-  are found on &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;. You may download compiled
-  build from &lt;a href=&quot;http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/08/22/nodejs-and-nvm-and-grunt/&quot;&gt;Node.js and NVM and Grunt in TeamCity.Node&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on August 22, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Removing Unused Dependencies in IDEA Projects]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/05/13/removing-unused-dependencies-in-idea/" />
-  <id>http://jonnyzzz.com/blog/2013/05/13/removing-unused-dependencies-in-idea</id>
-  <updated>2013-05-13T12:24:43.774+02:00T00:00:00-00:00</updated>
-  <published>2013-05-13T12:24:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I write about &lt;a href=&quot;http://plugins.jetbrains.com/plugin?pr=&amp;pluginId=7222&quot;&gt;Jonnyzzz
-  Dependencies&lt;/a&gt; plugin that helps one to remove unused dependencies between modules and libraries &lt;/p&gt;
-&lt;h2&gt;Problem Statement&lt;/h2&gt;&lt;p&gt;Let&#39;s say you have a project of 20+ modules. This project is quite
-  old, there are a number of dependencies between modules and libraries. There were many people who pushed&lt;strike&gt;=commited&lt;/strike&gt;
-  changes to it. So the question is how to figure out and remove unused libraries and module dependencies. &lt;a
-    href=&quot;http://plugins.jetbrains.com/plugin?pr=&amp;pluginId=7222&quot;&gt;Jonnyzzz Dependencies&lt;/a&gt; plugin is
-  designed to help you to solve the issue easily&lt;/p&gt;&lt;p&gt;In the IDEA you&#39;ll find an action under main
-  menu: &lt;em&gt;Tools | Remove Unused Module Dependencies&lt;/em&gt;. Here you may analyze dependencies for
-  selected number of modules or for entire project. &lt;/p&gt;&lt;p&gt;Results of search are shown in the dialog.
-  Next you may remove &lt;strong&gt;all&lt;/strong&gt; dependencies in one click! &lt;/p&gt;&lt;a
-  href=&quot;http://3.bp.blogspot.com/-wsGxVBn0smM/UYA4iOm-6XI/AAAAAAAACVk/VrEiOtKVe1c/s1600/Image_0052.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://3.bp.blogspot.com/-wsGxVBn0smM/UYA4iOm-6XI/AAAAAAAACVk/VrEiOtKVe1c/s320/Image_0052.png&quot;/&gt;&lt;/a&gt;
-&lt;h2&gt;Plugin Implementation Details&lt;/h2&gt;&lt;p&gt;First of all, it was tricky to use &lt;em&gt;ReadAction/WriteAction&lt;/em&gt;
-  in IDEA API. Long running &lt;em&gt;ReadAction&lt;/em&gt; in plugin code could easily lead to deadlock. When IDEA
-  instance loses focus it attempts to get &lt;em&gt;WriteLock&lt;/em&gt; to persist project, so this would be a
-  deadlock with UI thread. The right thing is to to take &lt;em&gt;ReadLock&lt;/em&gt; only for show time slots (but
-  many times) &lt;/p&gt;&lt;p&gt;Implementation of the plugin is straightforward. For selected modules I take files,
-  there I take all references and resolve them. Resolved elements allows me to find actual set of dependencies. Next
-  I compute difference between project defined dependencies and actual computed dependencies. Thanks to a huge
-  number of IDEA API classes I implemented this search to run in all available processor cores&lt;/p&gt;&lt;p&gt;There
-  are integration tests in the plugin sources that helps me to check major plugin use-cases. That was amazing to
-  have integration tests framework!&lt;/p&gt;&lt;p&gt;It was nice experience to write a real working plugin for &lt;a
-  href=&quot;http://www.jetbrains.com/idea/&quot;&gt;Intellij IDEA&lt;/a&gt; platform!&lt;/p&gt;&lt;p&gt;This plugin analyzed
-  only COMPILE and TEST dependencies. PROVIDED and RUNTIME dependencies are not analyzed. &lt;/p&gt; &lt;h2&gt;Plugin
-  Sources&lt;/h2&gt;&lt;p&gt;You may download a build of the &lt;a href=&quot;http://plugins.jetbrains.com/plugin?pr=&amp;pluginId=7222&quot;&gt;plugin
-  repository&lt;/a&gt;. Plugin is provided under Apache 2.0 license. Sources are on &lt;a
-  href=&quot;https://github.com/jonnyzzz/IDEA.Dependencies&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/05/13/removing-unused-dependencies-in-idea/&quot;&gt;Removing Unused Dependencies in IDEA Projects&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on May 13, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Adding Grunt Support to TeamCity.Node]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/04/30/adding-grunt-support-to-teamcitynode/" />
-  <id>http://jonnyzzz.com/blog/2013/04/30/adding-grunt-support-to-teamcitynode</id>
-  <updated>2013-04-30T23:05:57.250+02:00T00:00:00-00:00</updated>
-  <published>2013-04-30T23:03:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I cover recent updates that I done to &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;TeamCity.Node&lt;/a&gt; plugin. I blogged about the plugin
-  &lt;a href=&quot;/blog/2013/01/14/kotlin-nodejs-and-teamcity/&quot;&gt;here&lt;/a&gt;. &lt;a
-    href=&quot;http://gruntjs.com/&quot;&gt;Grunt&lt;/a&gt; support is added to the plugin!&lt;/p&gt; &lt;h3&gt;Grunt Runner
-  implementation&lt;/h3&gt;&lt;p&gt;By default, this runner will only run on a build agent that has Node.js
-  detected. This is quite handy since Node.js is required to run Grunt&lt;/p&gt;&lt;p&gt;The Grunt runner checks if
-  you have &lt;em&gt;grunt&lt;/em&gt; and &lt;em&gt;grunt-cli&lt;/em&gt; dependency in your project&#39;s NPM packages
-  repository. (If you don&#39;t, you may add Node.js NPM runner to download dependencies for you!). Next it computes an
-  executable path to run Grunt &lt;/p&gt;&lt;p&gt;Runner settings UI looks in the following way: &lt;/p&gt;&lt;a
-  href=&quot;http://1.bp.blogspot.com/-rNAxJN3oTyk/UYAuoI_D4SI/AAAAAAAACVU/ZX_Um6eUFEw/s1600/Image_0048.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://1.bp.blogspot.com/-rNAxJN3oTyk/UYAuoI_D4SI/AAAAAAAACVU/ZX_Um6eUFEw/s320/Image_0048.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;This plugin also provides support for Node.js, Node.js Package Manager (NPM) and Phantom.js&lt;/p&gt;
-&lt;h3&gt;Downloading TeamCity.Node&lt;/h3&gt;&lt;p&gt;This plugin is provided under Apache 2.0 license. Sources
-  (in &lt;a href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;) are found on &lt;a
-    href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;. You may download compiled build from &lt;a
-    href=&quot;http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/04/30/adding-grunt-support-to-teamcitynode/&quot;&gt;Adding Grunt Support to TeamCity.Node&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on April 30, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[GitHub Change Status on Branches]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/04/27/github-change-status-on-branches/" />
-  <id>http://jonnyzzz.com/blog/2013/04/27/github-change-status-on-branches</id>
-  <updated>2013-04-27T00:30:19.304+02:00T00:00:00-00:00</updated>
-  <published>2013-04-27T00:30:00+02:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Recently I wrote about &lt;a
-  href=&quot;/blog/2012/09/06/reporting-change-status-to-github/&quot;&gt;GitHub commit status support
-  in
-  TeamCity&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Today I was shown (thanks &lt;a href=&quot;https://twitter.com/Vlad_P53&quot;&gt;Vlad&lt;/a&gt;!)
-  a post that GitHub started to show commit status on branches view! For more information you may see original &lt;a
-    href=&quot;https://github.com/blog/1484-check-the-status-of-your-branches&quot;&gt;GitHub blog post&lt;/a&gt;&lt;/p&gt;&lt;p&gt;The
-  fun thing is that &lt;a href=&quot;/blog/2012/09/06/reporting-change-status-to-github/&quot;&gt;TeamCity.GitHub&lt;/a&gt;
-  plugin reports that status for every branch. So to have statuses for branches you do not need even to update the
-  plugin! &lt;/p&gt; &lt;p&gt;Take a look what I see on my GitHub now!&lt;/p&gt;&lt;a
-  href=&quot;http://1.bp.blogspot.com/-3QHak8ZAZLU/UXr8weDCTLI/AAAAAAAACVE/SMk2xGVn7g8/s1600/Image_0044.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://1.bp.blogspot.com/-3QHak8ZAZLU/UXr8weDCTLI/AAAAAAAACVE/SMk2xGVn7g8/s320/Image_0044.png&quot;/&gt;&lt;/a&gt;
-&lt;h3&gt;Downloading and Installing TeamCity.GitHub plugin&lt;/h3&gt;&lt;p&gt;Sources are on GitHub: &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.GitHub&quot;&gt;https://github.com/jonnyzzz/TeamCity.GitHub&lt;/a&gt;&lt;/p&gt;&lt;p&gt;You
-  can download a build from our TeamCity: &lt;a
-    href=&quot;http://teamcity.jetbrains.com/viewType.html?buildTypeId=bt398&amp;tab=buildTypeStatusDiv&quot;&gt;here&lt;/a&gt;.
-  &lt;br/&gt;TeamCity.GitHub plugin is compiled with TeamCity 7.1. Is supports TeamCity 8.0 EAP and may work with
-  older versions.&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/04/27/github-change-status-on-branches/&quot;&gt;GitHub Change Status on Branches&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on April 27, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[BDD Test Framework with Kotlin]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/" />
-  <id>http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin</id>
-  <updated>2013-03-27T00:44:54.445+01:00T00:00:00-00:00</updated>
-  <published>2013-03-27T00:44:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;Today I&#39;ll present what I&#39;ve done for &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;Spek&lt;/a&gt;
-  project. Spek is the &lt;a href=&quot;http://en.wikipedia.org/wiki/Behavior-driven_development&quot;&gt;BDD&lt;/a&gt; test
-  framework for &lt;a href=&quot;http://kotlin.jetbrains.org&quot;&gt;Kotlin&lt;/a&gt;&lt;/p&gt;&lt;h2&gt;Problem statement&lt;/h2&gt;&lt;p&gt;I
-  decided to make &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;Spek&lt;/a&gt; test framework to be supported by
-  existing java testing tools, starting from a test runner with &lt;a href=&quot;http://www.jetbrains.com/idea/&quot;&gt;IntelliJ
-    IDEA&lt;/a&gt; to supporting &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;Spek&lt;/a&gt; test runs under build
-  scripts, &lt;a href=&quot;http://www.jetbrains.com/teamcity/&quot;&gt;TeamCity&lt;/a&gt;, code coverage and so on. This list
-  looks too big to describe it one blog post, don&#39;t it? Ok, the idea behind is to re-use existing java test runner.
-&lt;/p&gt; &lt;p&gt;There are two major testing frameworks for Java. First and the oldest one is &lt;a
-  href=&quot;http://junit.org/&quot;&gt;JUnit&lt;/a&gt;. The second one is &lt;a href=&quot;http://testng.org/doc/index.html&quot;&gt;TestNG&lt;/a&gt;&lt;/p&gt;&lt;p&gt;From
-  the start I figured out how to extend JUnit in order to change the way it runs tests. Unfortunately, I found no
-  easy way on how to implement similar things with TestNG. (Personally, I prefer TestNG to JUnit :)&lt;/p&gt; &lt;h2&gt;Tesing
-  Framework Details&lt;/h2&gt;&lt;p&gt;Let&#39;s start with small introduction to BDD-like testing frameworks. How
-  should look an ideal &lt;a href=&quot;http://hadihariri.com/2012/04/11/what-bdd-has-taught-me/&quot;&gt;BDD&lt;/a&gt; test
-  framework use case? At least it should not contain extra language-specific code that makes it harder to read. &lt;a
-    href=&quot;http://hadihariri.com/&quot;&gt;Hadi&lt;/a&gt; created an awesome &lt;a
-    href=&quot;http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/&quot;&gt;DSL&lt;/a&gt;
-  for that in &lt;a href=&quot;http://kotlin.jetbrains.org/&quot;&gt;Kotlin&lt;/a&gt;. This is how BDD test may look:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-given(&quot;a calculator&quot;) {
-  val calculator = JCalculator()
-
-  on(&quot;calling sum with two numbers&quot;) {
-    val sum = calculator.sum(2, 4)
-    it(&quot;should return the result of adding the first number to the second number&quot;) {
-      shouldEqual(6, sum)
-    }
-  }
-
-  on(&quot;calling substract with two numbers&quot;) {
-    val subtract = calculator.subtract(4, 2)
-    it(&quot;should return the result of substracting the second number from the first number&quot;) {
-      shouldEqual(2, subtract)
-    }
-  }
-}
-]]&gt;&lt;/script&gt;
-
-&lt;h2&gt;Abstracting DSL&lt;/h2&gt;&lt;h3&gt;DSL
-  API&lt;/h3&gt;&lt;p&gt;First implementation of &lt;a
-  href=&quot;http://hadihariri.com/2013/01/21/extension-function-literals-in-kotlin-or-how-to-enforce-restrictions-on-your-dsl/&quot;&gt;Spek
-  DSL&lt;/a&gt; was running all closures in-place. That was the thing I decided to change. For JUnit test runner
-  integration I was needed to have more control over tests code evaluation. &lt;/p&gt;&lt;p&gt;As side task I split
-  Spek DSL definitions from Spek DSL implementations. Finally, I migrated Spek DSL into the following API
-  definition:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-//main interface to be implemented in Spek test base class
-public interface Spek {
-  fun given(description: String, givenExpression: Given.() -&gt; Unit)
-}
-
-public interface Given {
-  fun on(description: String, onExpression: On.() -&gt; Unit)
-}
-
-public interface On {
-  fun it(description: String, itExpression: It.() -&gt; Unit)
-}
-
-public class It {
-  fun shouldEqual&lt;T&gt;(expected: T, actual: T) {
-    assertEquals(expected, actual)
-  }
-
-  fun shouldNotEqual&lt;T&gt;(expected: T, actual: T) {
-    assertNot { expected == actual }
-  }
-
-  //and more assertions goes here
-}
-
-]]&gt;&lt;/script&gt; &lt;p&gt;The only thing that is
-  missing in the code above is the implementation of &lt;em&gt;Spek&lt;/em&gt; interface. Meanwhile, the code above
-  defines the rest of test API. &lt;/p&gt; &lt;h3&gt;DSL Model&lt;/h3&gt;&lt;p&gt;I going to have a number of interfaces
-  to represents test execution stages:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-// root &#39;given&#39; case
-interface TestFixtureAction {
-  fun Description(): String
-  fun performInit(): List&lt;TestGivenAction&gt;
-}
-
-interface TestGivenAction {
-  fun Description(): String
-  fun performInit(): List&lt;TestOnAction&gt;
-}
-
-interface TestOnAction {
-  fun Description(): String
-  fun performInit(): List&lt;TestItAction&gt;
-}
-
-interface TestItAction {
-  fun Description(): String
-  fun run()
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;Next is to provide implementation of methods &lt;em&gt;given,
-  on, it&lt;/em&gt;. Let&#39;s start with &lt;em&gt;given&lt;/em&gt; and &lt;em&gt;on&lt;/em&gt;:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-public fun given(description: String, givenExpression: Given.() -&gt; Unit): TestGivenAction {
-  return object:TestGivenAction {
-    public override fun Description(): String = &quot;given &quot; + description
-    public override fun performInit(): List&lt;TestOnAction&gt; {
-      val g = GivenImpl()
-      g.givenExpression()
-      return g.getActions()
-    }
-  }
-}
-
-///this object holds all &#39;on&#39; cases inside public
-class GivenImpl: Given {
-  private val recordedActions = arrayListOf&lt;TestOnAction&gt;()
-  public fun getActions(): List&lt;TestOnAction&gt; = recordedActions
-  public override fun on(description: String, onExpression: On.() -&gt; Unit) {
-    recordedActions.add( object : TestOnAction {
-      public override fun Description(): String = description
-      public override fun performInit(): List&lt;TestItAction&gt; {
-        val o = OnImpl()
-        o.onExpression()
-        return o.getActions()
-      }
-    })
-  }
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;The trick here is that execution of &lt;em&gt;onExpression&lt;/em&gt;
-  function is moved inside anonymous class that is created by the method. So instead of executing all functions, it
-  records them. Another thing is that &lt;em&gt;onExpression&lt;/em&gt; is an extension method for &lt;em&gt;On&lt;/em&gt;
-  class, so call looks like member execution, i.e. &lt;em&gt;o.onExpression()&lt;/em&gt;. Implementation of &lt;em&gt;On&lt;/em&gt;
-  and &lt;em&gt;It&lt;/em&gt; is mostly same-looking. Let&#39;s move to JUnit test runner.&lt;/p&gt; &lt;h2&gt;JUnit&lt;/h2&gt;&lt;p&gt;Integration
-  with JUnit is simple. One need to mark test class with &lt;em&gt;@RunWith&lt;/em&gt; annotation and provide a test
-  runner class with a constructor from &lt;em&gt;Class&lt;/em&gt; that extends &lt;a
-    href=&quot;http://junit.sourceforge.net/javadoc/org/junit/runner/Runner.html&quot;&gt;Runner&lt;/a&gt; class.&lt;/p&gt;&lt;p&gt;To
-  hide such details, I come up with tests base class. This class implements &lt;em&gt;Spek&lt;/em&gt; interface and
-  provides JUnit specific setup&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-RunWith(javaClass&lt;JSpec&lt;*&gt;&gt;())
-public abstract class JUnitSpek : Spek {
-  private val givens = arrayListOf&lt;TestGivenAction&gt;()
-  override fun given(description: String, givenExpression: Given.() -&gt; Unit) {
-    givens.add(givenImpl(description, givenExpression)) }
-    //possible workaround to cheat JUnit integration to treat this class as test test public fun mockTest() {}
-    //this method is only used by JSpec to get defined tests fun
-    allGivens() : List&lt;TestGivenAction&gt; = givens
-  }
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;With use of the base class for
-  Spek tests for JUnit looks like:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-public class calculatorSpecs : JUnitSpek()  {{
-  given(&quot;condition&quot;) { ... }
-}}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;You may
-  notice here double {{ and }}. Those are used intentionally, because test model is constructed in class
-  constructor
-  with help of &lt;em&gt;given&lt;/em&gt; method implementation. Then the model is used from &lt;em&gt;JSpec&amp;lt;T&amp;gt;&lt;/em&gt;
-  class to implement &lt;em&gt;Runner&lt;/em&gt; class from JUnit
-&lt;/p&gt; &lt;h2&gt;Conclusions&lt;/h2&gt;&lt;p&gt;I
-  made many changes to &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;Spek&lt;/a&gt; BDD testing framework to
-  support tests execution both from Console and from JUnit. Thanks Hadi for accepting my pull request for Spek.&lt;/p&gt;&lt;p&gt;
-  Now
-  you could see your test runs with IDEA&#39;s JUnit runner!&lt;/p&gt;&lt;a
-  href=&quot;http://3.bp.blogspot.com/-JY0r0Evr4lY/UU8UHbrebLI/AAAAAAAACRc/vmuR2wZ646M/s1600/Image_0042.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot;
-                       src=&quot;http://3.bp.blogspot.com/-JY0r0Evr4lY/UU8UHbrebLI/AAAAAAAACRc/vmuR2wZ646M/s320/Image_0042.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;For more details, see source code of Spek &lt;a href=&quot;https://github.com/hhariri/spek&quot;&gt;here&lt;/a&gt;.
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/&quot;&gt;BDD Test Framework with Kotlin&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on March 27, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Kotlin, Node.js and TeamCity]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/01/14/kotlin-nodejs-and-teamcity/" />
-  <id>http://jonnyzzz.com/blog/2013/01/14/kotlin-nodejs-and-teamcity</id>
-  <updated>2013-01-14T12:10:56.150+01:00T00:00:00-00:00</updated>
-  <published>2013-01-14T09:35:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I describe &lt;a href=&quot;http://nodejs.org/&quot;&gt;Node.js&lt;/a&gt; support
-  plugin that was implemented in &lt;a href=&quot;http://kotlin.jetbrains.org&quot;&gt;Kotlin&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;Node.js&lt;/h2&gt;&lt;p&gt;The
-  goal of the plugin is to provide an initial support for Node.js scripts execution on TeamCity. Plugin does the
-  following:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Detects system installed Node.js on the agent machine, it adds &lt;em&gt;node.js&lt;/em&gt;
-    configuration parameter with Node.js version
-  &lt;/li&gt;
-  &lt;li&gt;Provides a build runner to start .js file or
-    script text
-  &lt;/li&gt;
-&lt;/ul&gt; &lt;a
-  href=&quot;http://4.bp.blogspot.com/-IPV-ECzyd2k/UPO7NsOAhaI/AAAAAAAACQ8/L7LzAef2xr4/s1600/Image_0026.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;249&quot; width=&quot;320&quot;
-                                src=&quot;http://4.bp.blogspot.com/-IPV-ECzyd2k/UPO7NsOAhaI/AAAAAAAACQ8/L7LzAef2xr4/s320/Image_0026.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;This is the runner settings page. Here you can provide script of .js file, script arguments and Node.js
-  additional arguments (aka options)&lt;/p&gt; &lt;h2&gt;Kotlin&lt;/h2&gt;&lt;p&gt;In the plugin I decided to use
-  &lt;a href=&quot;http://kotlin.jetbrains.org&quot;&gt;Kotlin&lt;/a&gt;. I compile the plugin to Java 1.6&lt;/p&gt;&lt;p&gt;TeamCity
-  requires plugin to extend some Java classes or interfaces and register implementations in Spring Framework
-  Dependency Injection. Classes that I implement with Kotlin are usable as Spring Beans without any extra tricks&lt;/p&gt;
-&lt;p&gt;In the build runner implementation I had to handle several IO errors. For each error I needed to provide
-  specific error message. This code in Java requires to have many mostly similar try/catch blocks. With Kotlin I
-  solved it nicer, I declared the following function that takes base message and function body:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-fun io&lt;T&gt;(errorMessage: String, body: () -&gt; T): T {
-  try {
-    return body()
-  } catch (e: IOException) {
-    throw RunBuildException(&quot;${errorMessage}.${e.getMessage()}&quot;, e)
-  }
-}
-]]&gt;&lt;/script&gt;&lt;p&gt;This function accepts another function to execute. It
-  wraps execution with try/catch to re-throw the error adding details as another exception&lt;/p&gt;&lt;p&gt;The
-  runner code now turned out to be easy to read and simple:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-//let&#39;s first create temp directory
-val tempScript = io(&quot;Failed to create temp file&quot;) {
-  getAgentTempDirectory() tempFile TempFileName(&quot;node&quot;, &quot;.js&quot;)
-}
-//now let&#39;s write a some text there
-io(&quot;Failed to write script to temp file&quot;) {
-  FileUtil.writeFileAndReportErrors(tempScript, scriptText);
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;You may read more about &lt;a href=&quot;http://kotlin.jetbrains.org&quot;&gt;Kotlin here&lt;/a&gt;&lt;/p&gt; &lt;h2&gt;Download&lt;/h2&gt;&lt;p&gt;TeamCide.Node
-  plugin source code is found &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;On GitHub&lt;/a&gt;. You may
-  also checkout &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node/tree/releases&quot;&gt;releases&lt;/a&gt; branch to
-  download plugin binaries&lt;/p&gt;&lt;p&gt;If you see plugin is missing something, please feel free to post an
-  issue or patch request&lt;/p&gt;&lt;p&gt;Plugin is compiled with TeamCity 7.1 and may work with TeamCity 7.0&lt;/p&gt;
-&lt;p&gt;To install plugin, simply put downloaded plugin .zip file into &lt;em&gt;&amp;lt;TeamCity Data Directory&amp;gt;/plugins&lt;/em&gt;
-  folder and restart TeamCity Server. For more details, there is &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/Installing+Additional+Plugins&quot;&gt;documentation&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/01/14/kotlin-nodejs-and-teamcity/&quot;&gt;Kotlin, Node.js and TeamCity&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on January 14, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[New NuGet Support Features in TeamCity]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/01/11/new-nuget-support-features-in-teamcity/" />
-  <id>http://jonnyzzz.com/blog/2013/01/11/new-nuget-support-features-in-teamcity</id>
-  <updated>2013-01-11T15:20:09.378+01:00T00:00:00-00:00</updated>
-  <published>2013-01-11T15:20:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I&#39;ll describe recent changes in NuGet Support: default NuGet and feed
-  authentication. All those changes are available in &lt;a
-    href=&quot;https://github.com/JetBrains/teamcity-nuget-support/tree/v0.9&quot;&gt;v0.9&lt;/a&gt; branch. The branch is
-  compatible with TeamCity 7.1.x and we plan to bundle builds of it with TeamCity 8.0&lt;/p&gt; &lt;h3&gt;Default
-  NuGet Selector&lt;/h3&gt;&lt;p&gt;It was quite complicated to update version of NuGet.exe that was selected in all
-  used NuGet build runners. Now it is possible to specify server-wide default version of NuGet in the server
-  administration. In runner and trigger settings you may now specify you want to use default version of NuGet
-  CommandLine&lt;/p&gt; &lt;a
-  href=&quot;http://1.bp.blogspot.com/-mN6nMG4gk2I/UPATuzOH7fI/AAAAAAAACPo/dIDQfts8ArE/s1600/Image_0034.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;92&quot; width=&quot;320&quot;
-                                src=&quot;http://1.bp.blogspot.com/-mN6nMG4gk2I/UPATuzOH7fI/AAAAAAAACPo/dIDQfts8ArE/s320/Image_0034.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;In NuGet runner settings you&#39;ll see &lt;strong&gt;default&lt;/strong&gt; item:&lt;/p&gt; &lt;a
-  href=&quot;http://1.bp.blogspot.com/-XaLVDDwJm9g/UPAT_k6A0GI/AAAAAAAACP0/H32fIRUQu4E/s1600/Image_0036.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;52&quot; width=&quot;320&quot;
-                                src=&quot;http://1.bp.blogspot.com/-XaLVDDwJm9g/UPAT_k6A0GI/AAAAAAAACP0/H32fIRUQu4E/s320/Image_0036.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;Same option is also available for NuGet Dependency Trigger too:&lt;/p&gt; &lt;a
-  href=&quot;http://3.bp.blogspot.com/-CsbcNXrewPY/UPAWlfNTb8I/AAAAAAAACQo/GaCptOzRDlo/s1600/Image_0042.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;136&quot; width=&quot;320&quot;
-                                src=&quot;http://3.bp.blogspot.com/-CsbcNXrewPY/UPAWlfNTb8I/AAAAAAAACQo/GaCptOzRDlo/s320/Image_0042.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;Now you no longer need to change runner settings to upgrade to newer version of NuGet&lt;/p&gt; &lt;h3&gt;NuGet
-  Feed Authentication&lt;/h3&gt;&lt;p&gt;Recently I pushed support of Authenticated feed for TeamCity-provided build
-  runners and NuGet trigger. Support was implemented with help of the plugin for NuGet.exe&lt;/p&gt; &lt;p&gt;To
-  enable authentication of a feed you need to add a &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/Adding+Build+Features&quot;&gt;Build Feature&lt;/a&gt; called &lt;strong&gt;NuGet
-    Feed Credentials&lt;/strong&gt;: &lt;/p&gt; &lt;a
-  href=&quot;http://1.bp.blogspot.com/-a296pAUuCHI/UPAVM3HfB8I/AAAAAAAACQE/s4JUM_hzu60/s1600/Image_0038.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;198&quot; width=&quot;320&quot;
-                                src=&quot;http://1.bp.blogspot.com/-a296pAUuCHI/UPAVM3HfB8I/AAAAAAAACQE/s4JUM_hzu60/s320/Image_0038.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;We decided to leave NuGet Runners UI unchanged for now. I have in mind next feature to implement: &lt;a
-  href=&quot;http://youtrack.jetbrains.com/issue/TW-20642&quot;&gt;TW-20642&lt;/a&gt;. If you have something to add, please
-  feel free to comment!. I believe there are a limited number of feeds that are used, so the right place to setup
-  things should be under server administration&lt;/p&gt; &lt;p&gt;I added &lt;em&gt;usernama/password&lt;/em&gt;
-  fields for NuGet Trigger settings:&lt;/p&gt; &lt;a
-  href=&quot;http://1.bp.blogspot.com/-24fBawMePgY/UPAWMzRfhoI/AAAAAAAACQY/_RPMelchfUI/s1600/Image_0040.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot; width=&quot;249&quot;
-                                src=&quot;http://1.bp.blogspot.com/-24fBawMePgY/UPAWMzRfhoI/AAAAAAAACQY/_RPMelchfUI/s320/Image_0040.png&quot;/&gt;&lt;/a&gt;
-&lt;h3&gt;TeamCity provided NuGet Feed&lt;/h3&gt;&lt;p&gt;It is now possible to use TeamCity provided NuGet feed
-  with authentication. I added &lt;strong&gt;teamcity.nuget.feed.auth.server&lt;/strong&gt; configuration parameter
-  with URL to authenticated TeamCity&#39;s Feed. No you do not need to have guest-visible packages in order to fetch
-  them from dependent build configuration. &lt;/p&gt;&lt;p&gt;Use &lt;strong&gt;%teamcity.nuget.feed.auth.server%&lt;/strong&gt;
-  as TeamCity provided NuGet Feed URL with basic authentication in TeamCity settings&lt;/p&gt; &lt;h2&gt;Download
-  and Info:&lt;/h2&gt;&lt;p&gt;This version of NuGet plugin for TeamCity is planned to be bundled with TeamCity 8.0
-  EAP. Plugin is compatible with TeamCity 7.1.x. &lt;p&gt;For more information, see NuGet plugin home page at: &lt;br
-/&gt;&lt;a href=&quot;http://confluence.jetbrains.net/display/TW/NuGet+support&quot;&gt;http://confluence.jetbrains.net/display/TW/NuGet+support&lt;/a&gt;&lt;br
-/&gt;or download a latest build from TeamCity &lt;a
-  href=&quot;http://teamcity.jetbrains.com/repository/download/bt431/.lastSuccessful/dotNetPackagesSupport.zip&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/01/11/new-nuget-support-features-in-teamcity/&quot;&gt;New NuGet Support Features in TeamCity&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on January 11, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Transfer Environment Between Build Steps]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/" />
-  <id>http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps</id>
-  <updated>2013-01-10T20:08:05.190+01:00T00:00:00-00:00</updated>
-  <published>2013-01-10T20:08:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I describe how one could transfer environment from one build step to
-  another&lt;/p&gt; &lt;p&gt;Suppose you have a build script (.sh or .bat) that patches, adds, or updates
-  environment variables to prepare things for the build. It looks handy to use TeamCity runners, but it could be a
-  real pain to specify all such variables explicitly.&lt;/p&gt; &lt;p&gt;Our goal is to make TeamCity build have the
-  same updated environment variables for all build steps.&lt;/p&gt; &lt;p&gt;Implementation is really simple. In the
-  example I use &lt;em&gt;vcvarsall.bat&lt;/em&gt; from Visual Studio 2010 to update environment variables. To call
-  the script I use &lt;a href=&quot;http://confluence.jetbrains.net/display/TCD65/Command+Line&quot;&gt;Command Line&lt;/a&gt;
-  build runner&#39;s Custom Script:&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-      rem - execute script to update environment call &quot;C:\Program Files (x86)\Microsoft Visual Studio
-      11.0\Common7\Tools\VsDevCmd.bat&quot; rem - make TeamCity update build environment %env.TEAMCITY_CAPTURE_ENV% ]]&gt;
-&lt;/script&gt;
-&lt;p style=&quot;font-size:80%&quot;&gt;&lt;strong&gt;*&lt;/strong&gt;Here I use &lt;em&gt;%env.TEAMCITY_CAPTURE_ENV%&lt;/em&gt;
-  instead of &lt;em&gt;%TEAMCITY_CAPTURE_ENV%&lt;/em&gt; only because TeamCity pre-processes &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD8/Defining+and+Using+Build+Parameters+in+Build+Configuration&quot;&gt;%references%&lt;/a&gt;.
-  So if you use do not use TeamCity&#39;s Command-Line runner Custom Script, you need to simply put &lt;em&gt;%TEAMCITY_CAPTURE_ENV%&lt;/em&gt;
-&lt;/p&gt;
-&lt;p&gt;The trick is that TeamCity provides environment variable called &lt;strong&gt;TEAMCITY_CAPTURE_ENV&lt;/strong&gt;.
-  This variable contains a path to an executable program that reports current environment variables back to TeamCity
-  as &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD8/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-AddingorChangingaBuildParameter&quot;&gt;service
-    messages&lt;/a&gt;&lt;/p&gt; &lt;p&gt;Changes in build variables are also show on &lt;em&gt;Build Parameters&lt;/em&gt;
-  tab of finished build:&lt;/p&gt;&lt;a
-  href=&quot;http://4.bp.blogspot.com/-U4R9VYVHeII/UO8RHNz-e7I/AAAAAAAACPU/mhm9P8tjGh8/s1600/Image_0032.png&quot;
-  imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;19&quot; width=&quot;320&quot;
-                                src=&quot;http://4.bp.blogspot.com/-U4R9VYVHeII/UO8RHNz-e7I/AAAAAAAACPU/mhm9P8tjGh8/s320/Image_0032.png&quot;/&gt;&lt;/a&gt;
-&lt;br
-/&gt;&lt;a href=&quot;http://4.bp.blogspot.com/-TvpfvuM4D_k/UO8NR1N3wLI/AAAAAAAACPA/y15JhjazV9o/s1600/Image_0030.png&quot;
-     imageanchor=&quot;1&quot; style=&quot;&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;130&quot; width=&quot;320&quot;
-                                   src=&quot;http://4.bp.blogspot.com/-TvpfvuM4D_k/UO8NR1N3wLI/AAAAAAAACPA/y15JhjazV9o/s320/Image_0030.png&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;In general, you may use those &lt;a
-  href=&quot;http://confluence.jetbrains.net/display/TCD8/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-AddingorChangingaBuildParameter&quot;&gt;service
-  messages&lt;/a&gt; to change any parameters of build, including configuration parameters, system properties or
-  environment variables. &lt;/p&gt; &lt;p&gt;You may use this trick starting from TeamCity 7.0&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/&quot;&gt;Transfer Environment Between Build Steps&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on January 10, 2013.&lt;/p&gt;
-
-  </content>
-</entry>
-
-
-  
-
-<entry>
-  <title type="html"><![CDATA[Configuring NuGet publish on TeamCity]]></title>
-  <link rel="alternate" type="text/html" href="http://jonnyzzz.com/blog/2012/12/19/configuring-nuget-publish-on-teamcity/" />
-  <id>http://jonnyzzz.com/blog/2012/12/19/configuring-nuget-publish-on-teamcity</id>
-  <updated>2012-12-19T10:30:46.316+01:00T00:00:00-00:00</updated>
-  <published>2012-12-19T10:30:00+01:00</published>
-  
-  <author>
-    <name>Eugene Petrenko</name>
-    <uri>http://jonnyzzz.com</uri>
-    <email>eugene.petrenko@gmail.com</email>
-  </author>
-  <content type="html">
-    &lt;p&gt;In this post I&#39;ll describe the solution I used to publish/promote builds of 3 version
-  of &lt;a href=&quot;https://github.com/JetBrains/TeamCity.ServiceMessages&quot;&gt;TeamCity.ServiceMessages&lt;/a&gt;
-  library to NuGet.org via TeamCity.&lt;/p&gt;&lt;h3&gt;Package Build Setup&lt;/h3&gt;&lt;p&gt;I moved &lt;a
-  href=&quot;https://github.com/JetBrains/TeamCity.ServiceMessages&quot;&gt;TeamCity.ServiceMessages&lt;/a&gt; builds to &lt;a
-  href=&quot;http://teamcity.jetbrains.com/&quot;&gt;teamcity.jetbrains.com&lt;/a&gt;. There are 3 active versions of the
-  library. It was necessary to re-use build setup in TeamCity. So I used &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/Build+Configuration+Template&quot;&gt;build configuration template&lt;/a&gt;
-  for it. The template contains steps to fetch NuGet dependencies, to patch &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/AssemblyInfo+Patcher&quot;&gt;assemblies version&lt;/a&gt;, to build
-  Visual Studio solution, to run NUnit tests under dotCover code coverage, and to package the library as NuGet
-  package. The template is parametrized by library version and Git branch name.&lt;/p&gt; &lt;p&gt;I decided to
-  avoid publishing from the template. It&#39;s not necessary to publish packages from all builds. I suppose, it&#39;s normal
-  to have some test builds prior to releasing them. So the goal is to create a specific build(s) to implement
-  publishing of selected package only&lt;/p&gt; &lt;h3&gt;Package Publish Setup&lt;/h3&gt;&lt;p&gt;The easiest way
-  to implement publishing is to create a build configuration for each of package versions. This would make me to
-  copy 3 same configurations.&lt;/p&gt; &lt;p&gt;There is another approach with help of &lt;a
-  href=&quot;http://confluence.jetbrains.net/display/TCD7/Typed+Parameters&quot;&gt;Typed Parameters&lt;/a&gt;.&lt;/p&gt;&lt;p&gt;I
-  created one build configuration with TeamCity reference instead of packages to publish in NuGet Publish runner:&lt;/p&gt;
-&lt;a href=&quot;http://1.bp.blogspot.com/-vs223E57nzY/UM8-u6YI3rI/AAAAAAAACNk/VtwHKOl6Ibw/s1600/Image_0014.png&quot;
-   imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;161&quot;
-                        src=&quot;http://1.bp.blogspot.com/-vs223E57nzY/UM8-u6YI3rI/AAAAAAAACNk/VtwHKOl6Ibw/s640/Image_0014.png&quot;
-                        width=&quot;640&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;Here I use the following &lt;strong&gt;*%serviceMessages.packagesToPublish%*.nupkg&lt;/strong&gt;. I can
-  specify wildcard as TeamCity Property in &lt;a
-    href=&quot;http://confluence.jetbrains.net/display/TCD7/Configuring+Build+Parameters&quot;&gt;&lt;em&gt;Build Parameters&lt;/em&gt;&lt;/a&gt;
-  section of build configuration settings.&lt;/p&gt;&lt;p&gt;Next I specify &lt;strong&gt;%serviceMessages.packagesToPublish%&lt;/strong&gt;
-  property for the Build Parameters section of build configuration configuration:&lt;/p&gt;
-&lt;div style=&quot;float:
-      left;&quot;&gt;&lt;a
-  href=&quot;http://2.bp.blogspot.com/-q-IJu-J7n7E/UM8_jWXf8uI/AAAAAAAACNw/qav2__vuqsQ/s1600/Image_0016.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot;
-                       src=&quot;http://2.bp.blogspot.com/-q-IJu-J7n7E/UM8_jWXf8uI/AAAAAAAACNw/qav2__vuqsQ/s320/Image_0016.png&quot;
-                       width=&quot;296&quot;/&gt;&lt;/a&gt;&lt;/div&gt;
-&lt;div
-  style=&quot;float: left;&quot;&gt;&lt;a
-  href=&quot;http://3.bp.blogspot.com/-_RUlN2fy_rg/UM8_oRkEcyI/AAAAAAAACN8/NVxVrs9036A/s1600/Image_0018.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;320&quot;
-                       src=&quot;http://3.bp.blogspot.com/-_RUlN2fy_rg/UM8_oRkEcyI/AAAAAAAACN8/NVxVrs9036A/s320/Image_0018.png&quot;
-                       width=&quot;316&quot;/&gt;&lt;/a&gt;&lt;/div&gt;
-&lt;div
-  style=&quot;clear: both;&quot;&gt;&lt;/div&gt; &lt;p&gt;Here I use &lt;a
-  href=&quot;http://confluence.jetbrains.net/display/TCD7/Typed+Parameters&quot;&gt;Typed Parameter&lt;/a&gt; to implement
-  drop-down. I also mark parameter as required in order to make TeamCity show custom run dialog for me on every run
-  button click. This build is started only implicitly, so I have no build triggers.&lt;/p&gt;&lt;p&gt;I added an
-  artifact dependency from all 3 of my build configurations. The values of
-  &lt;strong&gt;%serviceMessages.packagesToPublish%&lt;/strong&gt;
-  are selected in the way to select only one of 3 NuGet packages.&lt;/p&gt;&lt;a
-  href=&quot;http://4.bp.blogspot.com/-eCSuC7gbcc0/UM9BByZzFGI/AAAAAAAACOI/qT-3xB6FQSA/s1600/Image_0020.png&quot;
-  imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;113&quot;
-                       src=&quot;http://4.bp.blogspot.com/-eCSuC7gbcc0/UM9BByZzFGI/AAAAAAAACOI/qT-3xB6FQSA/s320/Image_0020.png&quot;
-                       width=&quot;320&quot;/&gt;&lt;/a&gt;
-&lt;h3&gt;Starting the Build&lt;/h3&gt;&lt;p&gt;Now when I start the publish build I see the following dialog&lt;/p&gt;
-&lt;a href=&quot;http://3.bp.blogspot.com/-mTrsOIKJOqw/UM9BYaa4HrI/AAAAAAAACOU/Gcd6690V_XQ/s1600/Image_0022.png&quot;
-   imageanchor=&quot;1&quot;&gt;&lt;img border=&quot;0&quot; height=&quot;134&quot;
-                        src=&quot;http://3.bp.blogspot.com/-mTrsOIKJOqw/UM9BYaa4HrI/AAAAAAAACOU/Gcd6690V_XQ/s320/Image_0022.png&quot;
-                        width=&quot;320&quot;/&gt;&lt;/a&gt;
-&lt;p&gt;I can select the the build configuration of the library with latest successful package I want to publish
-  with NuGet. Thanks to &lt;strong&gt;Dependencies&lt;/strong&gt; tab I can override the artifact if necessary.&lt;/p&gt;
-&lt;h3&gt;Side Notes&lt;/h3&gt;&lt;p&gt;Note, this trick will only work if you are able to write wildcards that
-  matches only necessary packages that were downloaded from one build configuration. From the other hand, you may
-  download packages from each configuration to different folders making wildcards even simpler&lt;/p&gt;&lt;p&gt;The
-  project is available &lt;a href=&quot;http://teamcity.jetbrains.com/project.html?projectId=project75&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-    &lt;p&gt;&lt;a href=&quot;http://jonnyzzz.com/blog/2012/12/19/configuring-nuget-publish-on-teamcity/&quot;&gt;Configuring NuGet publish on TeamCity&lt;/a&gt; was originally published by Eugene Petrenko at &lt;a href=&quot;http://jonnyzzz.com&quot;&gt;Eugene Petrenko&lt;/a&gt; on December 19, 2012.&lt;/p&gt;
-
-  </content>
-</entry>
-
-</feed>
+&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="library" /><category term="jvm" /><category term="opensource" /><category term="stacktrace" /><category term="frame" /><category term="stack" /><category term="java" /><category term="named-stack-frames" /><summary>In this post I'd like to introduce my new Java library called named-frames.
+  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps</summary></entry></feed>

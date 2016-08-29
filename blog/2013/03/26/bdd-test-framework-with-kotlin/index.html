@@ -6,15 +6,21 @@
 <head>
 <meta charset="utf-8" />
 <title>BDD Test Framework with Kotlin &#8211; Eugene Petrenko</title>
+<meta name="description" content="Today I'll present what I've done for Spek
+  project. Spek is the BDD test
+  framework for Kotlin
 
+"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, bdd, test, opensource, test framework, kotlin, java, junit" />
-
-  
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="BDD Test Framework with Kotlin -- Eugene Petrenko" />
+<meta name="twitter:description" content="Today I'll present what I've done for Spek
+  project. Spek is the BDD test
+  framework for Kotlin
 
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -25,8 +31,12 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="BDD Test Framework with Kotlin -- Eugene Petrenko" />
+<meta property="og:description" content="Today I'll present what I've done for Spek
+  project. Spek is the BDD test
+  framework for Kotlin
 
-<meta property="og:url" content="http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/" />
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2013/03/26/bdd-test-framework-with-kotlin/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -58,7 +68,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2013/03/26/bdd-test-framework-with-kotlin/" />
 <link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -131,22 +141,17 @@
 	    <ul>
       
 		    
-		        
-		    
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
-		        
 		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
 		    
-		        
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
 		    
-		        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
 		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
@@ -181,19 +186,18 @@
       </header>
       <footer class="entry-meta">
         
-          
         
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2013-03-27T00:44:00+01:00"><i class="fa fa-calendar-o"></i> March 27, 2013</time></span>
+        <span class="entry-date date published"><time datetime="2013-03-26T23:44:00+00:00"><i class="fa fa-calendar-o"></i> March 26, 2013</time></span>
         <span class="entry-date date modified"><time datetime="2013-03-27T00:44:54.445+01:00"><i class="fa fa-pencil"></i> March 27, 2013</time></span>
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=bdd,test,opensource,testframework,kotlin,java,junit&amp;text=BDD%20Test%20Framework%20with%20Kotlin&amp;url=http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+  <a href="https://twitter.com/intent/tweet?hashtags=bdd,test,opensource,testframework,kotlin,java,junit&amp;text=BDD%20Test%20Framework%20with%20Kotlin&amp;url=http://jonnyzzz.com/blog/2013/03/26/bdd-test-framework-with-kotlin/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2013/03/27/bdd-test-framework-with-kotlin/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2013/03/26/bdd-test-framework-with-kotlin/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
 </span>
 
 <!-- /.social-share -->
@@ -203,7 +207,9 @@
       <div class="entry-content">
         <p>Today I'll present what I've done for <a href="https://github.com/hhariri/spek">Spek</a>
   project. Spek is the <a href="http://en.wikipedia.org/wiki/Behavior-driven_development">BDD</a> test
-  framework for <a href="http://kotlin.jetbrains.org">Kotlin</a></p><h2>Problem statement</h2><p>I
+  framework for <a href="http://kotlin.jetbrains.org">Kotlin</a></p>
+
+<h2>Problem statement</h2><p>I
   decided to make <a href="https://github.com/hhariri/spek">Spek</a> test framework to be supported by
   existing java testing tools, starting from a test runner with <a href="http://www.jetbrains.com/idea/">IntelliJ
     IDEA</a> to supporting <a href="https://github.com/hhariri/spek">Spek</a> test runs under build
@@ -405,7 +411,7 @@ public class calculatorSpecs : JUnitSpek()  {{
         <a href="/blog/2013/01/14/kotlin-nodejs-and-teamcity/" class="btn" title="Kotlin, Node.js and TeamCity">Previous</a>
       
       
-        <a href="/blog/2013/04/27/github-change-status-on-branches/" class="btn" title="GitHub Change Status on Branches">Next</a>
+        <a href="/blog/2013/04/26/github-change-status-on-branches/" class="btn" title="GitHub Change Status on Branches">Next</a>
       
     </nav><!-- /.pagination -->
   </article>
@@ -415,7 +421,7 @@ public class calculatorSpecs : JUnitSpek()  {{
   <footer role="contentinfo" class="entry-wrapper">
     
 
-<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
 <div class="social-icons">
 	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
 	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>

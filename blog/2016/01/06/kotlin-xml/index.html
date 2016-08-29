@@ -6,15 +6,19 @@
 <head>
 <meta charset="utf-8" />
 <title>Kotlin XML Binding &#8211; Eugene Petrenko</title>
+<meta name="description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
 
+"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, xml, kotlin.xml.bind, jdom, dsl, gradle, teamcity2dsl" />
-
-  
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="Kotlin XML Binding -- Eugene Petrenko" />
+<meta name="twitter:description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
 
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -25,7 +29,10 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="Kotlin XML Binding -- Eugene Petrenko" />
+<meta property="og:description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
 
+" />
 <meta property="og:url" content="http://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
@@ -131,22 +138,17 @@
 	    <ul>
       
 		    
-		        
-		    
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
-		        
 		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
 		    
-		        
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
 		    
-		        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
 		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
@@ -181,7 +183,6 @@
       </header>
       <footer class="entry-meta">
         
-          
         
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
@@ -213,7 +214,7 @@ to achieve better readability, avoid explicit type names for serialization/deser
 
 <p>Let’s consider an example. Say you have an XML:</p>
 
-<div class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
   <span class="nt">&lt;settings</span> <span class="na">type=</span><span class="s">&quot;q&quot;</span><span class="nt">&gt;</span>
      <span class="nt">&lt;name&gt;</span>Foo<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;/settings&gt;</span>
@@ -222,18 +223,18 @@ to achieve better readability, avoid explicit type names for serialization/deser
      <span class="nt">&lt;key&gt;</span>B<span class="nt">&lt;/key&gt;</span>
      <span class="nt">&lt;key&gt;</span>C<span class="nt">&lt;/key&gt;</span>   
   <span class="nt">&lt;/keys&gt;</span>
-<span class="nt">&lt;/project&gt;</span></code></pre></div>
+<span class="nt">&lt;/project&gt;</span></code></pre></figure>
 
 <p>Thanks to the <a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a>, you may 
 parse it with the following DSL in Kotlin:</p>
 
-<div class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
   <span class="k">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
   <span class="k">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;name&quot;</span> <span class="p">/</span> <span class="n">XText</span>
   <span class="k">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;keys&quot;</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
   <span class="k">var</span> <span class="py">any</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;parameters&quot;</span> <span class="p">/</span> <span class="n">XAnyElements</span> <span class="p">/</span> <span class="n">XSub</span><span class="p">(</span><span class="n">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
   <span class="k">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XUnknown</span>
-<span class="p">}</span></code></pre></div>
+<span class="p">}</span></code></pre></figure>
 
 <p>Kotlin compiler infers types for properties, so one should not write types at all. 
 In the example above <code>type</code> and <code>name</code> properties are <code>String?</code>, 
@@ -266,7 +267,7 @@ are still in use to scan available object properties too on serialization/deseri
 You may find more details in <a href="https://github.com/jonnyzzz/kotlin.xml.dsl">kotlin.xml.dsl</a> on GitHub. 
 This is an example of unit test</p>
 
-<div class="highlight"><pre><code class="language-xml" data-lang="xml">@Test
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">@Test
 public fun test_read_any_element_does_not_include_parsed() {
   class Data {
     var X by JXML / &quot;x&quot; / XUnknown
@@ -286,7 +287,7 @@ public fun test_read_any_element_does_not_include_parsed() {
   Assert.assertEquals(d.Z?.size, 2)
   Assert.assertEquals(d.Z?.get(0)?.name, &quot;z&quot;)
   Assert.assertEquals(d.Z?.get(1)?.name, &quot;p&quot;)
-}</code></pre></div>
+}</code></pre></figure>
 
 <p>I use <a href="https://gradle.org/">Gradle</a> as project model now. 
 Artifacts are deployed to <a href="https://bintray.com/jonnyzzz/maven">Bintray</a></p>
@@ -343,7 +344,7 @@ Have more fun!</p>
   <footer role="contentinfo" class="entry-wrapper">
     
 
-<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="http://mademistakes.com/so-simple/" rel="nofollow">So Simple Theme</a>.</span>
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
 <div class="social-icons">
 	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
 	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
