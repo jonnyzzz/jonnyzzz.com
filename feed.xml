@@ -1,4 +1,170 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2016-08-29T22:27:12+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2016-09-02T11:00:06+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Building DSL Instead of an IDE Plugin</title><link href="/blog/2016/09/02/dsl-building/" rel="alternate" type="text/html" title="Building DSL Instead of an IDE Plugin" /><published>2016-09-02T00:00:00+00:00</published><updated>2016-09-02T00:00:00+00:00</updated><id>/blog/2016/09/02/dsl-building</id><content type="html" xml:base="/blog/2016/09/02/dsl-building/">&lt;p&gt;An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.&lt;/p&gt;
+
+&lt;h1 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h1&gt;
+
+&lt;p&gt;Most of us use quite smart IDEs daily with languages we use for development. IDE helps us not only
+to highlight keywords. It is able to check types, show errors, do refactoring, complete and analyze code.&lt;/p&gt;
+
+&lt;p&gt;Of course we spent some time working with languages that are not (or weakly) supported by an IDE. Those languages
+could be used for configurations files, logger settings, business rules, scripts, text files and so on.
+This is a specific domain where a language is used. It can be hard to read code on that language, it can
+be also hard to write it too. One may easily waste time writing incorrect code.&lt;/p&gt;
+
+&lt;p&gt;It’s the lack of decent IDE support for such languages. Let’s see how we can solve it&lt;/p&gt;
+
+&lt;p&gt;I will use \(Original Language\) term to refer to an unsupported language.&lt;/p&gt;
+
+&lt;h1 id=&quot;a-trivial-solution&quot;&gt;A Trivial Solution&lt;/h1&gt;
+
+&lt;p&gt;Say we have an \(Original Language\) we use, and there is no decent support for it in IDE.&lt;/p&gt;
+
+&lt;p&gt;The very first solution is to replace the \(Original Language\) with some other language.&lt;/p&gt;
+
+&lt;p&gt;Suppose the \(Original Language\) cannot be thrown away. And it’s likely there is a code on that language. 
+There has to be a system that accepts it too.&lt;/p&gt;
+
+&lt;p&gt;Okay. We may implement a plugin for our an IDE to support it.&lt;/p&gt;
+
+&lt;p&gt;Writing a plugin is a complicated task. One needs to know IDE API. Moreover, you’ll implement a parsing 
+so that it’d be fast enough to play well in IDE. The parser should also support invalid text input too, e.g. 
+incorrect code that is being entered. That can be tricky.&lt;/p&gt;
+
+&lt;p&gt;Well, a parser may not be necessary, if, say IDE support some base language, e.g. &lt;code&gt;.properties&lt;/code&gt; or &lt;code&gt;.xml&lt;/code&gt; format.
+But in that case a deep IDE APIs has to be used.&lt;/p&gt;
+
+&lt;p&gt;Finally, a plugin will depend on IDE. Meaning it has to be updated to work with newer IDE versions. It’s not in
+our control to lock an IDE version.&lt;/p&gt;
+
+&lt;p&gt;This can be done, but, there’s an &lt;strong&gt;alternative way&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-dsl-way&quot;&gt;The DSL Way&lt;/h1&gt;
+
+&lt;p&gt;Everyone uses their IDE. And of course there is a language we use daily. For example, it could be
+&lt;a href=&quot;http://www.oracle.com/technetwork/java/index.html&quot;&gt;Java&lt;/a&gt;,
+&lt;a href=&quot;http://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt;,
+&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt;,
+&lt;a href=&quot;https://golang.org/&quot;&gt;Go&lt;/a&gt;, 
+&lt;a href=&quot;http://www.groovy-lang.org/&quot;&gt;Groovy&lt;/a&gt;.
+We know for sure, an IDE is smart on those languages.&lt;/p&gt;
+
+&lt;p&gt;My idea is to an \(Original Language\), which is unsupported by an IDE, into a code in a supported language. 
+I will use a \(Target Language \) term for it. Next, run the 
+code to have a code in a \(Original Language\) back. As shown on the diagram below:&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{equation}
+\begin{array}[c]{ccccc}
+
+&amp;&amp;API Library \\
+&amp;&amp; \Big\uparrow \mbox{uses}\\
+Original Language &amp; \xrightarrow{\mbox{generate}} &amp; Generated Code &amp; \xrightarrow{\mbox{execute}} &amp; Target Language \\
+&amp;&amp; Target Language \\
+\end{array}
+\end{equation} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;To implement it we need&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;\(generator\), a program that reads a valid code in the \(Original Language\) and generates a code in the \(Target Language \)&lt;/li&gt;
+  &lt;li&gt;\(API Library\), a peace of code that includes all definition required for a generated code to be more readable&lt;/li&gt;
+  &lt;li&gt;\(execute\), a peace of code that makes compiled generated code in the \(Target Language \) to emit a code in the \(Original Language\)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The goal of those transformations is to have a readable \(Generated Code \). Refactorings for \(Generated Code \) 
+in \(Target Language \) are projected to the \(Original Language\).&lt;/p&gt;
+
+&lt;h1 id=&quot;selecting-a-target-language&quot;&gt;Selecting a Target Language&lt;/h1&gt;
+
+&lt;p&gt;Most we need from a \( Target Language \) is a decent IDE support.&lt;/p&gt;
+
+&lt;p&gt;We shall select a \( Target Language \) with a good readability for everyone. 
+Languages with better DSL or fluent APIs capabilities are likely to play better.&lt;/p&gt;
+
+&lt;p&gt;Static typing is a nice to have. It makes it harder to make a error. Moreover, 
+it’s likely to require no setup for an IDE to work. For some dynamic languages
+an additional &lt;a href=&quot;https://confluence.jetbrains.com/display/GRVY/Scripting+IDE+for+DSL+awareness&quot;&gt;helper&lt;/a&gt; may be required.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-dsl-way-benefits&quot;&gt;The DSL Way Benefits&lt;/h1&gt;
+
+&lt;p&gt;The DSL Way approach projects all features from an \( Target Language \) into a \(Original Language\). 
+We can say an \(Original Language\) is extended with all possible high-level features of a \( Target Language \).
+For example, we can use functions, loops, conditions, libraries and so on. There is no need to 
+have a support for such constructs in the \(Original Language\).
+One may also tune a \(generator\) to say fold duplicates in the input into a loops or functions.&lt;/p&gt;
+
+&lt;p&gt;Thanks to \(API Library\) we have good readability. It’s a creativity part here. But if implemented correctly, 
+it improves readability drastically.&lt;/p&gt;
+
+&lt;p&gt;The parsing is easier to implement for The DSL Way approach. We only need to have it supporting valid inputs. By induction,
+we start with a valid code and generate a valid code. It’s way more complex for The IDE Plugin case.&lt;/p&gt;
+
+&lt;p&gt;Refactorings and code analysis features for a \(Target Language \) are projected to a \(Original Language\). All 
+what is needed is to design \(API Library\) and \(generator\) in the right way. Say you need a &lt;em&gt;find usages&lt;/em&gt; 
+for some domain object. To have it, you may make a \(generator\) declare and use a variable for such entities. 
+Once variables are used, rename feature is implemented for free.&lt;/p&gt;
+
+&lt;h1 id=&quot;example&quot;&gt;Example&lt;/h1&gt;
+
+&lt;p&gt;Let’s consider &lt;a href=&quot;http://logging.apache.org/log4j/1.2/&quot;&gt;Log4j&lt;/a&gt; configuration in &lt;code&gt;.properties&lt;/code&gt; file as \(Original Language\).&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-properties&quot; data-lang=&quot;properties&quot;&gt;&lt;span class=&quot;na&quot;&gt;log4j.rootLogger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;ERROR,stdout&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO,stdout&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# meaningful comment goes here&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega.itl.web.metrics&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO&lt;/span&gt;
+
+&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.ConsoleAppender&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.PatternLayout&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout.ConversionPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I decided to use &lt;a href=&quot;https://www.jetbrains.com/idea/&quot;&gt;IntelliJ IDEA&lt;/a&gt; as IDE 
+and &lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as \(Target Language \).&lt;/p&gt;
+
+&lt;p&gt;The configuration below can be turned into the following Kotlin code.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;stdout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega.itl.web.metrics&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The evaluation of this Kotlin program yields the similar &lt;code&gt;.properties&lt;/code&gt; file back.&lt;/p&gt;
+
+&lt;p&gt;The DSL code is way easier to read and to write.&lt;/p&gt;
+
+&lt;p&gt;Thanks to Kotlin static typed DSLs, IntelliJ IDEA understands the code well, warns all incorrect usages,
+code complete all possibilities.&lt;/p&gt;
+
+&lt;p&gt;Moreover, using such DSL is the way to implement automatic tests for your log4j configurations.
+One may easily setup automatic tests task as a part of their continuous integration, since the code has no dependency on 
+an IDE part.&lt;/p&gt;
+
+&lt;p&gt;It opens the way to reuse common configuration files as well as to run.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;In the post we discussed The DSL Way of doing an IDE support &lt;strong&gt;without&lt;/strong&gt; writing any IDE related code. 
+The created DSL can be used not only with IDE. It can easily be re-used in any possible applications like code sharing,
+automatic test, continuous integration and so on.&lt;/p&gt;
+
+&lt;p&gt;You may follow to &lt;a href=&quot;/blog/2016/03/08/gradle-for-dsl/&quot;&gt;this post&lt;/a&gt; for details on how to create decent package
+for The DSL Way toolset&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="dsl" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><summary>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary></entry><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
 one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.&lt;/p&gt;
 
 &lt;p&gt;I solved a simple puzzle with isolating classes I want to share.&lt;/p&gt;
@@ -926,94 +1092,4 @@ public class SubContext extends SubContextLoader {
   Hope I covered all details.
   Please let me know if you'd like me to cover some gaps
 &lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="IoC" /><category term="JRE" /><category term="Dependency Injection" /><category term="DI" /><category term="Component" /><category term="Spring Framework" /><category term="Spring IoC" /><category term="classloaders" /><category term="Spring" /><category term="Component Container" /><category term="java" /><summary>In this post I explain how one could split one huge components container into a number
-  of smaller ones</summary></entry><entry><title>Named Stack Frames for the JVM</title><link href="/blog/2014/04/26/named-stack-frames-for-jvm/" rel="alternate" type="text/html" title="Named Stack Frames for the JVM" /><published>2014-04-26T18:49:00+00:00</published><updated>2014-04-26T18:49:00+00:00</updated><id>/blog/2014/04/26/named-stack-frames-for-jvm</id><content type="html" xml:base="/blog/2014/04/26/named-stack-frames-for-jvm/">&lt;p&gt;
-  In this post I'd like to introduce my new Java library called &lt;em&gt;named-frames&lt;/em&gt;.
-  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps
-&lt;/p&gt;
-
-&lt;h2&gt;Motivation&lt;/h2&gt;
-&lt;p&gt;
-  Time from time I look into feedback emails and application logs. Some of
-  such logs contain exceptions and thread dumps. It is always nice to know the build number of the product from
-  which those dumps were captured. The truth is that the build number or the product version is usually not included
-  in the dump.
-&lt;/p&gt;
-&lt;p&gt;
-  I had a dream to include the build number of the application and some other
-  meaningful data strait into execution call stack. So that every problem report contains those details, no matter
-  how the report was generated.
-&lt;/p&gt;
-&lt;p&gt;
-  In addition to the build number you may include much more
-  information in the call stack. For example, current task names or any other data that is meaningful for faster
-  debugging.
-&lt;/p&gt;
-&lt;h2&gt;The Library Usage&lt;/h2&gt;
-&lt;p&gt;
-  The application should wrap it's code into
-  the call to the library in the following way:
-&lt;/p&gt;
-
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: java&quot;&gt;&lt;![CDATA[
-NamedStackFrame.global().frame(&quot;this is my named frame&quot;, new Runnable() {
-  @Override
-  public void run() {
-    //here goes the code
-    //capture stacktrace when execution is here
-  }
-}); ]]&gt;&lt;/script&gt;
-
-&lt;p&gt;
-  The captured stacktrace is the following:
-&lt;/p&gt;
-
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-java.lang.Exception
-  at com.some.corp.something.Some$1.run at _.this is my named frame._(JavaGeneratorTemplate.java:24)
-  at org.jonnyzzz.stack.NamedStackFrame.frame(NamedStackFrame.java:29)
-  at com.some.corp.something.toTheJob(SomeSource.java:50)
-]]&gt;&lt;/script&gt;
-
-&lt;p&gt;
-  The most exciting part of the
-  call stack is the line with &lt;strong&gt;dynamically generated&lt;/strong&gt; string inside:
-&lt;/p&gt;
-
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush: text&quot;&gt;&lt;![CDATA[
-at _.this is my named frame._(JavaGeneratorTemplate.java:24)
-]]&gt;&lt;/script&gt;
-
-&lt;p&gt;
-  In the same way you may include as much &lt;em&gt;named
-  stack frames&lt;/em&gt; as needed by wrapping each into a call to the &lt;em&gt;NamedStackFrame#frame()&lt;/em&gt;
-  method.
-&lt;/p&gt;
-&lt;h2&gt;Implementation details&lt;/h2&gt;
-&lt;p&gt;
-  The library is implemented in pure Java 1.5, with Maven as a project model.
-  I intentionally avoided any runtime dependencies in the library to avoid
-  dependencies hell in usages.
-&lt;/p&gt;
-&lt;p&gt;The named method is added via dynamic code generation. I use the
-  compiled class byte-code as the template for the code-generation. For each given unique stack frame name the
-  library generates and loads a class into an internal classloader. The generated class is reused for all future
-  calls for the same stack frame name.
-&lt;/p&gt;
-&lt;p&gt;
-  It is important to notice, that each generated class
-  consumes space in the PermGen of the JVM. (This is changed in Java 1.8). I recommend to check if the full possible
-  set of the used names in your program is limited and will not lead to PermGen OOMs. Unused loaded classes can be
-  garbage-collected by the JVM (depending on the provided JVM options)
-&lt;/p&gt;
-&lt;h2&gt;Sources &amp; Binaries&lt;/h2&gt;
-&lt;p&gt;
-  The
-  library code is available under the &lt;strong&gt;MIT license&lt;/strong&gt;
-&lt;/p&gt;
-&lt;p&gt;
-  The library is available on GitHub: &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;https://github.com/jonnyzzz/named-java-frames&lt;/a&gt;.
-&lt;/p&gt;
-&lt;p&gt;I published the snapshot build of the library into
-  &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;a maven repository&lt;/a&gt;. In a several weeks I plan to apply for the Maven Central publishing
-&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="library" /><category term="jvm" /><category term="opensource" /><category term="stacktrace" /><category term="frame" /><category term="stack" /><category term="java" /><category term="named-stack-frames" /><summary>In this post I'd like to introduce my new Java library called named-frames.
-  The library allows including runtime-generated information into JVM/Java stack traces and thread dumps</summary></entry></feed>
+  of smaller ones</summary></entry></feed>

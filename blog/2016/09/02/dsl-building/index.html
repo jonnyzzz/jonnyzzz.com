@@ -1,0 +1,452 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Building DSL Instead of an IDE Plugin &#8211; Eugene Petrenko</title>
+<meta name="description" content="An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, dsl, kotlin, jvm, ide" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Building DSL Instead of an IDE Plugin -- Eugene Petrenko" />
+<meta name="twitter:description" content="An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Building DSL Instead of an IDE Plugin -- Eugene Petrenko" />
+<meta property="og:description" content="An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2016/09/02/dsl-building/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="dsl" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="ide" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2016/09/02/dsl-building/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#dsl" title="Pages tagged dsl">dsl</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#ide" title="Pages tagged ide">ide</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Building DSL Instead of an IDE Plugin</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2016-09-02T00:00:00+00:00"><i class="fa fa-calendar-o"></i> September 02, 2016</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=dsl,kotlin,jvm,ide&amp;text=Building%20DSL%20Instead%20of%20an%20IDE%20Plugin&amp;url=http://jonnyzzz.com/blog/2016/09/02/dsl-building/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2016/09/02/dsl-building/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</p>
+
+<h1 id="problem-statement">Problem Statement</h1>
+
+<p>Most of us use quite smart IDEs daily with languages we use for development. IDE helps us not only
+to highlight keywords. It is able to check types, show errors, do refactoring, complete and analyze code.</p>
+
+<p>Of course we spent some time working with languages that are not (or weakly) supported by an IDE. Those languages
+could be used for configurations files, logger settings, business rules, scripts, text files and so on.
+This is a specific domain where a language is used. It can be hard to read code on that language, it can
+be also hard to write it too. One may easily waste time writing incorrect code.</p>
+
+<p>It’s the lack of decent IDE support for such languages. Let’s see how we can solve it</p>
+
+<p>I will use \(Original Language\) term to refer to an unsupported language.</p>
+
+<h1 id="a-trivial-solution">A Trivial Solution</h1>
+
+<p>Say we have an \(Original Language\) we use, and there is no decent support for it in IDE.</p>
+
+<p>The very first solution is to replace the \(Original Language\) with some other language.</p>
+
+<p>Suppose the \(Original Language\) cannot be thrown away. And it’s likely there is a code on that language. 
+There has to be a system that accepts it too.</p>
+
+<p>Okay. We may implement a plugin for our an IDE to support it.</p>
+
+<p>Writing a plugin is a complicated task. One needs to know IDE API. Moreover, you’ll implement a parsing 
+so that it’d be fast enough to play well in IDE. The parser should also support invalid text input too, e.g. 
+incorrect code that is being entered. That can be tricky.</p>
+
+<p>Well, a parser may not be necessary, if, say IDE support some base language, e.g. <code>.properties</code> or <code>.xml</code> format.
+But in that case a deep IDE APIs has to be used.</p>
+
+<p>Finally, a plugin will depend on IDE. Meaning it has to be updated to work with newer IDE versions. It’s not in
+our control to lock an IDE version.</p>
+
+<p>This can be done, but, there’s an <strong>alternative way</strong>.</p>
+
+<h1 id="the-dsl-way">The DSL Way</h1>
+
+<p>Everyone uses their IDE. And of course there is a language we use daily. For example, it could be
+<a href="http://www.oracle.com/technetwork/java/index.html">Java</a>,
+<a href="http://www.scala-lang.org/">Scala</a>,
+<a href="https://kotlinlang.org">Kotlin</a>,
+<a href="https://golang.org/">Go</a>, 
+<a href="http://www.groovy-lang.org/">Groovy</a>.
+We know for sure, an IDE is smart on those languages.</p>
+
+<p>My idea is to an \(Original Language\), which is unsupported by an IDE, into a code in a supported language. 
+I will use a \(Target Language \) term for it. Next, run the 
+code to have a code in a \(Original Language\) back. As shown on the diagram below:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{equation}
+\begin{array}[c]{ccccc}
+
+&&API Library \\
+&& \Big\uparrow \mbox{uses}\\
+Original Language & \xrightarrow{\mbox{generate}} & Generated Code & \xrightarrow{\mbox{execute}} & Target Language \\
+&& Target Language \\
+\end{array}
+\end{equation} %]]></script>
+
+<p>To implement it we need</p>
+<ul>
+  <li>\(generator\), a program that reads a valid code in the \(Original Language\) and generates a code in the \(Target Language \)</li>
+  <li>\(API Library\), a peace of code that includes all definition required for a generated code to be more readable</li>
+  <li>\(execute\), a peace of code that makes compiled generated code in the \(Target Language \) to emit a code in the \(Original Language\)</li>
+</ul>
+
+<p>The goal of those transformations is to have a readable \(Generated Code \). Refactorings for \(Generated Code \) 
+in \(Target Language \) are projected to the \(Original Language\).</p>
+
+<h1 id="selecting-a-target-language">Selecting a Target Language</h1>
+
+<p>Most we need from a \( Target Language \) is a decent IDE support.</p>
+
+<p>We shall select a \( Target Language \) with a good readability for everyone. 
+Languages with better DSL or fluent APIs capabilities are likely to play better.</p>
+
+<p>Static typing is a nice to have. It makes it harder to make a error. Moreover, 
+it’s likely to require no setup for an IDE to work. For some dynamic languages
+an additional <a href="https://confluence.jetbrains.com/display/GRVY/Scripting+IDE+for+DSL+awareness">helper</a> may be required.</p>
+
+<h1 id="the-dsl-way-benefits">The DSL Way Benefits</h1>
+
+<p>The DSL Way approach projects all features from an \( Target Language \) into a \(Original Language\). 
+We can say an \(Original Language\) is extended with all possible high-level features of a \( Target Language \).
+For example, we can use functions, loops, conditions, libraries and so on. There is no need to 
+have a support for such constructs in the \(Original Language\).
+One may also tune a \(generator\) to say fold duplicates in the input into a loops or functions.</p>
+
+<p>Thanks to \(API Library\) we have good readability. It’s a creativity part here. But if implemented correctly, 
+it improves readability drastically.</p>
+
+<p>The parsing is easier to implement for The DSL Way approach. We only need to have it supporting valid inputs. By induction,
+we start with a valid code and generate a valid code. It’s way more complex for The IDE Plugin case.</p>
+
+<p>Refactorings and code analysis features for a \(Target Language \) are projected to a \(Original Language\). All 
+what is needed is to design \(API Library\) and \(generator\) in the right way. Say you need a <em>find usages</em> 
+for some domain object. To have it, you may make a \(generator\) declare and use a variable for such entities. 
+Once variables are used, rename feature is implemented for free.</p>
+
+<h1 id="example">Example</h1>
+
+<p>Let’s consider <a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration in <code>.properties</code> file as \(Original Language\).</p>
+
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
+<span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO,stdout</span>
+<span class="c"># meaningful comment goes here</span>
+<span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
+
+<span class="na">log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
+<span class="na">log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
+<span class="na">log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n</span></code></pre></figure>
+
+<p>I decided to use <a href="https://www.jetbrains.com/idea/">IntelliJ IDEA</a> as IDE 
+and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
+
+<p>The configuration below can be turned into the following Kotlin code.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+  <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
+      <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">rootLogger</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">ERROR</span>
+    <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
+  <span class="p">}</span>
+
+  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega.itl.web.metrics&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
+  <span class="p">}</span>
+
+  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
+    <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The evaluation of this Kotlin program yields the similar <code>.properties</code> file back.</p>
+
+<p>The DSL code is way easier to read and to write.</p>
+
+<p>Thanks to Kotlin static typed DSLs, IntelliJ IDEA understands the code well, warns all incorrect usages,
+code complete all possibilities.</p>
+
+<p>Moreover, using such DSL is the way to implement automatic tests for your log4j configurations.
+One may easily setup automatic tests task as a part of their continuous integration, since the code has no dependency on 
+an IDE part.</p>
+
+<p>It opens the way to reuse common configuration files as well as to run.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In the post we discussed The DSL Way of doing an IDE support <strong>without</strong> writing any IDE related code. 
+The created DSL can be used not only with IDE. It can easily be re-used in any possible applications like code sharing,
+automatic test, continuous integration and so on.</p>
+
+<p>You may follow to <a href="/blog/2016/03/08/gradle-for-dsl/">this post</a> for details on how to create decent package
+for The DSL Way toolset</p>
+
+<p><em>PS</em>. Do you have more examples for \(Original Language\)? Please share in comments below</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2016/08/29/classloader-proxy/" class="btn" title="Proxy calls between classloaders">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
