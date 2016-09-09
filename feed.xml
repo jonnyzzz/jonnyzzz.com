@@ -1,4 +1,294 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2016-09-05T16:59:18+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Building DSL Instead of an IDE Plugin</title><link href="/blog/2016/09/02/dsl-building/" rel="alternate" type="text/html" title="Building DSL Instead of an IDE Plugin" /><published>2016-09-02T00:00:00+00:00</published><updated>2016-09-02T00:00:00+00:00</updated><id>/blog/2016/09/02/dsl-building</id><content type="html" xml:base="/blog/2016/09/02/dsl-building/">&lt;p&gt;An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2016-09-09T13:25:55+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Crafting Log4j Configuration DSL</title><link href="/blog/2016/09/09/log4j-dsl/" rel="alternate" type="text/html" title="Crafting Log4j Configuration DSL" /><published>2016-09-09T00:00:00+00:00</published><updated>2016-09-09T00:00:00+00:00</updated><id>/blog/2016/09/09/log4j-dsl</id><content type="html" xml:base="/blog/2016/09/09/log4j-dsl/">&lt;p&gt;In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it&lt;/p&gt;
+
+&lt;h1 id=&quot;the-problem&quot;&gt;The Problem&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://logging.apache.org/log4j/1.2/&quot;&gt;Log4j&lt;/a&gt; configuration can be 
+either in &lt;code&gt;.xml&lt;/code&gt; file or in &lt;code&gt;.properties&lt;/code&gt; files. Both formats are not 
+supported well in IDEs.&lt;/p&gt;
+
+&lt;p&gt;I’ll show how to create a decent IDE support for Log4j configuration files
+&lt;em&gt;without&lt;/em&gt; writing an IDE plugin at all. We illustrate 
+how &lt;a href=&quot;/blog/2016/09/02/dsl-building/&quot;&gt;The DSL Way&lt;/a&gt; is applied here.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-basic-assumptions&quot;&gt;The Basic Assumptions&lt;/h1&gt;
+
+&lt;p&gt;I decided to use &lt;a href=&quot;https://www.jetbrains.com/idea/&quot;&gt;IntelliJ IDEA&lt;/a&gt; as an IDE 
+and &lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as \(Target Language \).&lt;/p&gt;
+
+&lt;p&gt;Kotlin is a static typed opensource language by JetBrains. It’s easy to learn
+and use. For us it’s vital that is has a static typed 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html&quot;&gt;DSLs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-original-language&quot;&gt;The Original Language&lt;/h1&gt;
+
+&lt;p&gt;A configuration of a Log4j loggers looks like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-properties&quot; data-lang=&quot;properties&quot;&gt; 
+ &lt;span class=&quot;na&quot;&gt;log4j.rootLogger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;ERROR,stdout&lt;/span&gt;
+ &lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO&lt;/span&gt;
+ &lt;span class=&quot;c&quot;&gt;# meaningful comment goes here&lt;/span&gt;
+ &lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega.itl.web.metrics&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO&lt;/span&gt;
+ &lt;span class=&quot;na&quot;&gt;log4j.appender.stdout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.ConsoleAppender&lt;/span&gt;
+ &lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.PatternLayout&lt;/span&gt;
+ &lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout.ConversionPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;a-transformation&quot;&gt;A Transformation&lt;/h1&gt;
+
+&lt;p&gt;Let’s implement the following scheme for Log4j configurations in &lt;code&gt;.properties&lt;/code&gt; file format.&lt;/p&gt;
+
+&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
+\begin{equation}
+\begin{array}[c]{ccccc}
+
+&amp;&amp;DSL Library \\
+&amp;&amp; \Big\uparrow \mbox{uses}\\
+Log4j .properties &amp; \xrightarrow{\mbox{generate}} &amp; Generated Code &amp; \xrightarrow{\mbox{execute}} &amp; Log4j .properties \\
+&amp;&amp; Kotlin Code \\
+\end{array}
+\end{equation} %]]&gt;&lt;/script&gt;
+
+&lt;p&gt;See &lt;a href=&quot;/blog/2016/09/02/dsl-building/&quot;&gt;The DSL Way&lt;/a&gt; post for more details on the approach&lt;/p&gt;
+
+&lt;p&gt;The implementation of \(generate\) and \(execute\) transitions is an engineering task of average complexity.
+Below I focus mostly on a creativity part – on a build of a DSL API that provides good readability, refactoring 
+and find-usages in an IDE&lt;/p&gt;
+
+&lt;h1 id=&quot;building-a-dsls&quot;&gt;Building a DSLs&lt;/h1&gt;
+
+&lt;p&gt;Creating a DSL is a repeating process. You create a first version of it, check how it looks and how one 
+can use it. Next some improvements are done. Next you repeat. At some point you have a nice solution.&lt;/p&gt;
+
+&lt;p&gt;Building a DSL requires detailed knowledge of \(Target Language\), you should understand how 
+to translate any strings into some valid expression in your language.
+I would recommend checking the following articles on &lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; to learn 
+more about how DSLs are created:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html&quot;&gt;Type-Safe builder in Kotlin&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/reference/delegated-properties.html&quot;&gt;Delegated properties&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html&quot;&gt;Operator overloading&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/tutorials/koans.html&quot;&gt;Kotlin Koans&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;step-0-a-straightforward-dsl&quot;&gt;Step 0. A Straightforward DSL&lt;/h1&gt;
+
+&lt;p&gt;We start with simplistic thing.&lt;br /&gt;
+As a starting point we need an entry function &lt;code&gt;log4j&lt;/code&gt;, a builder interface &lt;code&gt;Log4J&lt;/code&gt; with 
+two methods &lt;code&gt;comment&lt;/code&gt; and &lt;code&gt;param&lt;/code&gt;. &lt;code&gt;Log4JBase&lt;/code&gt; is added here for compatibility with future
+code samples.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; 
+&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;comment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JBase&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;log4j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Please follow to &lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; documentation for better understanting 
+of the code above.&lt;/p&gt;
+
+&lt;p&gt;This allows us to \(generate\) the following Kotlin code for a Logger configurations&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; &lt;span class=&quot;n&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.rootLogger&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ERROR,stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.logger.corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;INFO&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;comment&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;meaningful comment goes here&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.logger.corp.mega.itl.web.metrics&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;INFO&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.ConsoleAppender&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.PatternLayout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout.ConversionPattern&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;At that point we have a trivial DSL. Next we will be improving it. There is still no support 
+for semantic checks or model. We now have all Kotlin language features opened for crafting 
+a &lt;code&gt;.properties&lt;/code&gt; file. The DSL Way handles &lt;code&gt;.properties&lt;/code&gt; escaping allowing us to write strings as is.&lt;/p&gt;
+
+&lt;p&gt;Using Kotlin here creates a way to meta-extend the original format. We are able now to 
+use functions, conditions, string manipulation, libraries and everything we have in Kotlin. 
+All such tools are projected into the \(Original Language\), a &lt;code&gt;.properties&lt;/code&gt; file. A \(generator\) 
+can be smart to generate a compact code with use of Kotlin features. It may, for example,
+fold duplicates into loops or function calls.&lt;/p&gt;
+
+&lt;p&gt;Let’s make the DSL for Log4j configuration more expressive and readable&lt;/p&gt;
+
+&lt;h1 id=&quot;step-1-improving-the-dsl&quot;&gt;Step 1. Improving the DSL&lt;/h1&gt;
+
+&lt;p&gt;There is a wellknown parameter &lt;code&gt;log4j.rootLogger&lt;/code&gt;. IDE code completion is unaware about
+a fancy property one should use. A user also may not know which is the right property. 
+Finally, one may misprint the name of it. 
+Let’s replace it with an explicit call. For an 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension property&lt;/a&gt; in Kotlin is used&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.rootLogger&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Read API is not implemented&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now the improved part is&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;c1&quot;&gt;//instead of&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.rootLogger&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;step-2-builders-for-appenders&quot;&gt;Step 2. Builders for Appenders&lt;/h1&gt;
+
+&lt;p&gt;Let’s take a look on the code&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.ConsoleAppender&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.PatternLayout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout.ConversionPattern&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Log4j uses a key name encoding to achieve the goal. This requires one to re-type similar strings 
+on and one. This may be a source of typos. From the other hand, this can be hard to read.
+Let’s avoid constant repeating strings and make those lines more expressive. For that we define
+the following &lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension methods&lt;/a&gt; in the 
+\(DSL Library\).&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+           
+&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JAppender&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLayout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JBase&lt;/span&gt; &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And this allows us to tune the \(generator\) to have the following Kotlin code&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//use this&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.ConsoleAppender&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.PatternLayout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;ConversionPattern&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//instead of&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.ConsoleAppender&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;org.apache.log4j.PatternLayout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.appender.stdout.layout.ConversionPattern&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;             
+   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;step-3-builder-for-loggers&quot;&gt;Step 3. Builder for Loggers&lt;/h1&gt;
+
+&lt;p&gt;Let’s simplify the rest of Log4j configuration code. Consider the following code&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;ERROR,stdout&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.logger.corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;INFO&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;param&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;log4j.additivity.corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;false&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here we refer to a logger called &lt;code&gt;stdout&lt;/code&gt; by typing it’s name as a string. There are several keys used to encode
+the logger. Let’s normalize values and improve readability by spliting appender binging and level.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JBase&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;additivity&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Boolean&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLevel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;List&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;category&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLogger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Log4J&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Log4JLogger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now the generated code would look like that&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;additivity&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now one can specify parameters explicitly. And it reads way better.&lt;/p&gt;
+
+&lt;h1 id=&quot;step-1--2--3-outcome&quot;&gt;Step 1 &amp;amp; 2 &amp;amp; 3. Outcome&lt;/h1&gt;
+
+&lt;p&gt;At that point we managed to remove all common strings, encoded keys and values. Readability is now 
+better as we replaced all bare &lt;code&gt;Log4J#param&lt;/code&gt; calls with a dedicated API calls from a dedicated builders.&lt;/p&gt;
+
+&lt;p&gt;There is a domain model created. We now have Logger, Appender, Layout entities. Each with a dedicated 
+interfaces. Semantic checks are now implemented on compilation, meaning incorrect code would not compile at all. 
+The rest of checks are implemented in the \(emitter\) implementation from the other.&lt;/p&gt;
+
+&lt;p&gt;Thanks to Kotlin static typed DSLs, IntelliJ IDEA understands code and provides code completion and navigation
+for every expression.&lt;/p&gt;
+
+&lt;p&gt;The DSL code is more typo-resistant. All strings are now used once. There are no more tricky-encoded keys too. It’ 
+much harder now to author a misprint.&lt;/p&gt;
+
+&lt;p&gt;The generated DSL code is more expressive. One can read it and understand the meaning. There is no requirement 
+to know Kotlin for that&lt;/p&gt;
+
+&lt;h1 id=&quot;step-4-find-usages-and-rename-for-appenders&quot;&gt;Step 4. Find Usages and Rename for Appenders&lt;/h1&gt;
+
+&lt;p&gt;Now we are ready to implement an IDE feature. We’d like to be able to rename appenders as well as be able to see
+where a given appender is used.&lt;/p&gt;
+
+&lt;p&gt;For every possible IDE feature we need for \(Original Language\). We need to find an equivalent construction 
+in the \(Target Language\) and a similarly looking IDE feature for \(Target Language\). Next we shall
+find the way to use such construction in the DSL.&lt;/p&gt;
+
+&lt;p&gt;For appender usages and rename feature the Kotlin variable declaration suites the best.&lt;/p&gt;
+
+&lt;p&gt;We introduce &lt;code&gt;Log4JAppenderRef&lt;/code&gt; interface. Make &lt;code&gt;Log4J#appender&lt;/code&gt; function to return it. Next, in logger
+configuration we replace the type of appender from &lt;code&gt;String&lt;/code&gt; into &lt;code&gt;Log4JAppenderRef&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now appender usages are found via the respective variable usages. The appender name is specified only 
+in &lt;code&gt;Log4JLogger#appender&lt;/code&gt; function call. All other places uses the variable. Not it’s safe to 
+rename appender by changing this field.&lt;/p&gt;
+
+&lt;h1 id=&quot;outcome&quot;&gt;Outcome&lt;/h1&gt;
+
+&lt;p&gt;This is a DSL for Log4j configurations usage example&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;stdout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega.itl.web.metrics&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Creating a DSL is a iterative process. It is strongly dependent on subjective things like ‘readability’ 
+or ‘good looking’. Different DSLs are possible. And the way they are created depends on one’s taste.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;By those steps we turned a &lt;code&gt;.properties&lt;/code&gt; file of Log4j configuration into a well-looking DSL code in Kotlin. 
+The DSL Way is implemented with that DSL and provides IDE support for authoring and reading Log4j configuration
+files.&lt;/p&gt;
+
+&lt;p&gt;The \(generator\) and \(execution\) parts implementation details are left uncovered. You may ask me
+for details in the comments.&lt;/p&gt;
+
+&lt;p&gt;The DSL we created illustrates how once can turn a IDE language support problem 
+into &lt;a href=&quot;/blog/2016/09/02/dsl-building/&quot;&gt;The DSL Way&lt;/a&gt; approach.&lt;/p&gt;
+
+&lt;p&gt;You may have a look (or contribute) to the project sources on &lt;a href=&quot;https://github.com/jonnyzzz/Log4j2DSL&quot;&gt;my GitHub&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;You may follow to &lt;a href=&quot;/blog/2016/03/08/gradle-for-dsl/&quot;&gt;this post&lt;/a&gt; for details on how to create 
+a zero-configuration package for such DSLs and for The DSL Way approach.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="log4j" /><category term="logging" /><category term="dsl" /><category term="the dsl way" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><summary>In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it</summary></entry><entry><title>Building DSL Instead of an IDE Plugin</title><link href="/blog/2016/09/02/dsl-building/" rel="alternate" type="text/html" title="Building DSL Instead of an IDE Plugin" /><published>2016-09-02T00:00:00+00:00</published><updated>2016-09-02T00:00:00+00:00</updated><id>/blog/2016/09/02/dsl-building</id><content type="html" xml:base="/blog/2016/09/02/dsl-building/">&lt;p&gt;An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.&lt;/p&gt;
 
 &lt;h1 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h1&gt;
 
@@ -162,9 +452,9 @@ The created DSL can be used not only with IDE. It can easily be re-used in any p
 automatic test, continuous integration and so on.&lt;/p&gt;
 
 &lt;p&gt;You may follow to &lt;a href=&quot;/blog/2016/03/08/gradle-for-dsl/&quot;&gt;this post&lt;/a&gt; for details on how to create decent package
-for The DSL Way toolset&lt;/p&gt;
+for The DSL Way toolset.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="dsl" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><summary>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary></entry><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
+&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="dsl" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><category term="the dsl way" /><summary>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary></entry><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
 one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.&lt;/p&gt;
 
 &lt;p&gt;I solved a simple puzzle with isolating classes I want to share.&lt;/p&gt;
@@ -453,7 +743,7 @@ leading to easy-to-use and easy-to-adopt solution.&lt;/p&gt;
 
 &lt;p&gt;This pattern could be re-used for other applications.&lt;/p&gt;
 
-&lt;p&gt;Feel free to try &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity2DSL&quot;&gt;TeamCity2DSL&lt;/a&gt; for TeamCity project settings domain.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="kotlin" /><category term="dsl" /><category term="teamcity2dsl" /><summary>Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
+&lt;p&gt;Feel free to try &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity2DSL&quot;&gt;TeamCity2DSL&lt;/a&gt; for TeamCity project settings domain.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="kotlin" /><category term="dsl" /><category term="teamcity2dsl" /><category term="the dsl way" /><summary>Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
 a continuous integration build easily.</summary></entry><entry><title>Using Gradle to download and run anything</title><link href="/blog/2016/03/06/gradle-all-maven-runner/" rel="alternate" type="text/html" title="Using Gradle to download and run anything" /><published>2016-03-06T00:00:00+00:00</published><updated>2016-03-06T00:00:00+00:00</updated><id>/blog/2016/03/06/gradle-all-maven-runner</id><content type="html" xml:base="/blog/2016/03/06/gradle-all-maven-runner/">&lt;p&gt;There are so many small tasks that as solved via a tiny programs. Most of such programs 
 are to call several libraries to have an end-result. In the JVM world, most of those 
@@ -592,7 +882,7 @@ Get rid of reflections and use &lt;a href=&quot;https://kotlinlang.org/docs/refe
 Support other XML implementations, not only JDOM&lt;br /&gt;
 Improve, finalize and document binding DSL&lt;br /&gt;
 Invite contributors!&lt;br /&gt;
-Have more fun!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="xml" /><category term="kotlin.xml.bind" /><category term="jdom" /><category term="dsl" /><category term="gradle" /><category term="teamcity2dsl" /><summary>I like creating DSLs in Kotlin. It was fun to try creating a DSL for
+Have more fun!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="xml" /><category term="kotlin.xml.bind" /><category term="jdom" /><category term="dsl" /><category term="gradle" /><category term="teamcity2dsl" /><category term="the dsl way" /><summary>I like creating DSLs in Kotlin. It was fun to try creating a DSL for
 XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.</summary></entry><entry><title>Git in Docker</title><link href="/blog/2015/11/24/DockerGit/" rel="alternate" type="text/html" title="Git in Docker" /><published>2015-11-24T00:00:00+00:00</published><updated>2015-11-24T00:00:00+00:00</updated><id>/blog/2015/11/24/DockerGit</id><content type="html" xml:base="/blog/2015/11/24/DockerGit/">&lt;p&gt;Some uses &lt;a href=&quot;https://docker.com&quot;&gt;Docker&lt;/a&gt; to run builds inside.&lt;/p&gt;
 
 &lt;p&gt;Some uses it to run tests inside. 
@@ -909,187 +1199,4 @@ Recently I closed the most voted feature of the plugin: Gulp support.
 This plugin is provided under Apache 2.0 license. Sources (in Kotlin) are found on
 &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity.Node&quot;&gt;GitHub&lt;/a&gt;.
 You may download compiled build from
-&lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="teamcity plugin" /><category term="gulp" /><category term="javascript" /><category term="teamcity" /><category term="teamcity api" /><category term="feature" /><category term="kotlin" /><category term="grunt" /><category term="github" /><category term="java" /><category term="TeamCity.Node" /></entry><entry><title>Spring Framework Component Container Decomposition</title><link href="/blog/2014/05/14/spring-framework-component-container/" rel="alternate" type="text/html" title="Spring Framework Component Container Decomposition" /><published>2014-05-14T20:30:00+00:00</published><updated>2014-05-14T20:30:00+00:00</updated><id>/blog/2014/05/14/spring-framework-component-container</id><content type="html" xml:base="/blog/2014/05/14/spring-framework-component-container/">&lt;p&gt;
-  In this post I explain how one could split one huge components container into a number
-  of smaller ones
-&lt;/p&gt;
-
-&lt;h2&gt;Introduction&lt;/h2&gt;
-&lt;p&gt;
-  Spring Framework Component Container (or Spring Framework IoC Container) is an implementation of the
-  &lt;em&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Inversion_of_control&quot;&gt;Inversion of Control&lt;/a&gt;&lt;/em&gt; principle.
-  This is also known as
-  &lt;em&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Dependency_injection&quot;&gt;Dependency Injection&lt;/a&gt;&lt;/em&gt;.
-  So a typical application is represented as a number of components (beans,
-  services; read java classes) with dependencies (either declared or auto discovered). The Component Container uses
-  an .xml configuration files and/or Annotations on java classes. For more details you may refer to the
-  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html&quot;&gt;Spring Framework documentation&lt;/a&gt;
-&lt;/p&gt;
-&lt;h2&gt;Problem statement&lt;/h2&gt;
-&lt;p&gt;Say you have an Application that uses IoC. It is now very easy to
-  add new components and to pass mostly every component as the dependency for the first one. But in the long run it
-  could lead to several issues.
-&lt;/p&gt;
-&lt;p&gt;The &lt;strong&gt;first&lt;/strong&gt; one is that most of
-  components tend to depend transitively from most of the other components. So the Application turns into a knot of
-  undetachable dependencies. So unit tests transform into complex integration tests, where the most of the
-  Application components has to be created.
-&lt;/p&gt;
-&lt;p&gt;
-  The &lt;strong&gt;second&lt;/strong&gt;problem is
-  with library dependencies classpath. One could easily use library A, while library B is used in the other part of
-  the Application. Say A depends on C v1.0 and B depends on C v2.0. Here is the problem. The ideal solution is to
-  remove A and B libraries from main classpath and load each separately to get rid of the need of resolving an ideal
-  version of the library C.
-&lt;/p&gt;
-&lt;h2&gt;Splitting components&lt;/h2&gt;
-&lt;p&gt;How could we solve those
-  issues? My answer is to split the application container into a number of sub containers. So we could hide some
-  component implementation details from the other components. We split one container into the root container and a
-  number of sub containers. The split would provide enough isolation both for component dependencies and for
-  classpaths.
-&lt;/p&gt;
-&lt;p&gt;The split process could be done in the following way. We take one big component
-  (facade) and move all it's implementation details into a sub container. Iteratively we may hide all huge
-  components implementations from the rest of the application and thus resolve the &lt;em&gt;first&lt;/em&gt; issue.
-&lt;/p&gt;
-&lt;p&gt;Speaking of the library dependencies. Each of sub container could load classes from extended
-  classpath in a dedicated classloader. This helps to resolve the &lt;em&gt;second&lt;/em&gt; issue.
-&lt;/p&gt;
-&lt;p&gt;
-  There
-  are another solutions for dependency isolation. For example, you may take a look at
-  &lt;a href=&quot;http://en.wikipedia.org/wiki/OSGi&quot;&gt;OSGi&lt;/a&gt; framework. The solution below would be a much easier
-  and it is only up to you what solution to consider.
-&lt;/p&gt;
-&lt;h2&gt;Implementation&lt;/h2&gt;
-&lt;p&gt;
-  Say you decided to split one component container in a number of sub containers. There is the list of tasks to implement:
-&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Create
-    a sub container with parent of a root container (A)
-  &lt;/li&gt;
-  &lt;li&gt;Make sub container scan classes from a
-    specific classloader (B)
-  &lt;/li&gt;
-  &lt;li&gt;Allow components from a sub container to depend from components from
-    the root container (C)
-  &lt;/li&gt;
-  &lt;li&gt;Declaratively export some components from a sub container to root
-    container (D)
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3&gt;Simple Spring Sub Container (A, C)&lt;/h3&gt;
-
-&lt;p&gt;A child Spring container (context) is created in the following way. Call the constructor of a
-  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.0.M3/reference/html/ch05s07.html&quot;&gt;ClassPathXmlApplicationContext&lt;/a&gt;.
-  Pass current container (from the
-  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/context/ApplicationContextAware.html?is-external=true&quot;&gt;ApplicationContextAware&lt;/a&gt;
-  interface implementation), specify configuration resources and the name.
-&lt;/p&gt;
-&lt;p&gt;
-  The created sub
-  container includes parent container components in the dependencies resolution.
-&lt;/p&gt;
-&lt;p&gt;
-  &lt;strong&gt;NOTE&lt;/strong&gt;.
-  Sub container configuration resources must &lt;strong&gt;NOT&lt;/strong&gt; overlap with configuration resources
-  of any other container in the application. Otherwise sub container may re-load all components from the application
-  and crash.
-&lt;/p&gt;
-&lt;p&gt;I recommend to consider &lt;em&gt;classpath*:META-INF/app-root-configuration-*.xml&lt;/em&gt;
-  for the root context and &lt;em&gt;classpath*:META-INF/app-child-configuration-*.xml&lt;/em&gt; for a sub
-  container to avoid the possible clash. Same applies for classes scan for annotations as well
-&lt;/p&gt;
-&lt;p&gt;
-  We put a sub container creation code into the root container component. The component implements
-  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/api/org/springframework/beans/factory/InitializingBean.html&quot;&gt;InitializingBean&lt;/a&gt;
-  to trigger sub container start.
-&lt;/p&gt;
-&lt;h3&gt;Using Custom Classloader (B)&lt;/h3&gt;
-
-&lt;p&gt;
-  Spring Framework provides API to specify custom classloader for the container. This is done in the following way:
-&lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
-
-final subLoader = createSubContextClassLoader(...);
-new ClassPathXmlApplicationContext(..., myParentApplicationContext) {
-  @Override
-  protected void initBeanDefinitionReader(XmlBeanDefinitionReader reader) {
-    super.initBeanDefinitionReader(reader);
-
-    //here we set the right classloader
-    reader.setBeanClassLoader(subLoader);
-    setClassLoader(subLoader);
-  }
-};
-]]&gt;&lt;/script&gt;
-&lt;h3&gt;Exporting components to the root container (D)&lt;/h3&gt;
-&lt;p&gt;There is an expected need to be able
-  to export some component implementations back to the root container. This could be easily done via
-  &lt;a href=&quot;http://docs.spring.io/spring/docs/3.0.x/reference/beans.html#beans-beanfactory&quot;&gt;BeanFactory&lt;/a&gt;.
-  What we need is to declare a &lt;strong&gt;non generic&lt;/strong&gt; getter methods in the sub container creating
-  component. The getter methods should be registered as factory methods in the root container (in .xml file or via
-  annotations). For the getter implementation you may simply call a wrapping method with explicit type over
-  &lt;em&gt;ApplicationContext#&amp;lt;T&amp;gt;getBean(Class&amp;lt;T&amp;gt; t) &lt;/em&gt;.
-&lt;/p&gt;
-&lt;p&gt;
-  &lt;strong&gt;NOTE&lt;/strong&gt;. Using a generic factory method may leave the
-  container without knowing the exact type of the component. So application may randomly fail to resolve a component
-  dependencies in the container. That is only why I recommend to avoid generic factory methods for the scenario.
-&lt;/p&gt;
-&lt;h2&gt;Usage example&lt;/h2&gt;
-&lt;p&gt;
-  I decided to implement the pattern in the new application I
-  started. The main reason for me was to split the application classpath in to several modules to hide nasty
-  dependencies in them. I realised I need to avoid the dependency resolution hell.
-&lt;/p&gt;
-&lt;p&gt;
-  Thanks to the
-  pattern I split my application into several logical sub containers. This helped me to avoid dependencies hell. The
-  pattern also forced me to hide implementation details. I have several components in the root container that are
-  implemented by the number of internal components in sub containers. And each sub container depends on a number of
-  libraries with intersecting transitive dependencies sets.
-&lt;/p&gt;
-&lt;p&gt;The definition of a sub-container in the application is the following:&lt;/p&gt;
-
-&lt;script type=&quot;syntaxhighlighter&quot; class=&quot;brush:java&quot;&gt;&lt;![CDATA[
-@Component
-public class SubContext extends SubContextLoader {
-  public SubContext() {
-    super(
-      /*name:*/
-      &quot;Sub Context&quot;,
-      /*classpath dir:*/
-      &quot;/WEB-INF/sub&quot;,
-      /*spring config: */
-      &quot;classpath*:/META-INF/vcs-service-hub-settings*.xml&quot;);
-  }
-
-  /** A SubFilter component implementation for
-   ** the root container that created/loaded
-   ** via sub container
-   **/
-  @Bean
-  public SubFilter getFilterComponent() {
-    return myApplicationContext.getBean(SubFilter.class);
-  }
-}
-]]&gt;&lt;/script&gt;
-&lt;p&gt;
-  To add the next sub container I only need to add a similar class to the root container. And that is it!
-&lt;/p&gt;
-&lt;h2&gt;Conclusion&lt;/h2&gt;
-&lt;p&gt;
-  Crazy, but one may use this technique recursively to provide
-  even better separation and/or interface/implementation design.
-&lt;/p&gt;
-&lt;p&gt;
-  Hope I covered all details.
-  Please let me know if you'd like me to cover some gaps
-&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="IoC" /><category term="JRE" /><category term="Dependency Injection" /><category term="DI" /><category term="Component" /><category term="Spring Framework" /><category term="Spring IoC" /><category term="classloaders" /><category term="Spring" /><category term="Component Container" /><category term="java" /><summary>In this post I explain how one could split one huge components container into a number
-  of smaller ones</summary></entry></feed>
+&lt;a href=&quot;https://teamcity.jetbrains.com/viewType.html?buildTypeId=bt434&quot;&gt;TeamCity&lt;/a&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="teamcity plugin" /><category term="gulp" /><category term="javascript" /><category term="teamcity" /><category term="teamcity api" /><category term="feature" /><category term="kotlin" /><category term="grunt" /><category term="github" /><category term="java" /><category term="TeamCity.Node" /></entry></feed>

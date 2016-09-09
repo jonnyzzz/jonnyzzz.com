@@ -1,0 +1,585 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Crafting Log4j Configuration DSL &#8211; Eugene Petrenko</title>
+<meta name="description" content="In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, log4j, logging, dsl, the dsl way, kotlin, jvm, ide" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Crafting Log4j Configuration DSL -- Eugene Petrenko" />
+<meta name="twitter:description" content="In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Crafting Log4j Configuration DSL -- Eugene Petrenko" />
+<meta property="og:description" content="In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2016/09/09/log4j-dsl/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="log4j" />
+
+<meta property="article:tag" content="logging" />
+
+<meta property="article:tag" content="dsl" />
+
+<meta property="article:tag" content="the dsl way" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="ide" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2016/09/09/log4j-dsl/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#log4j" title="Pages tagged log4j">log4j</a></li><li><a href="/tags/#logging" title="Pages tagged logging">logging</a></li><li><a href="/tags/#dsl" title="Pages tagged dsl">dsl</a></li><li><a href="/tags/#the dsl way" title="Pages tagged the dsl way">the dsl way</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#ide" title="Pages tagged ide">ide</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Crafting Log4j Configuration DSL</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2016-09-09T00:00:00+00:00"><i class="fa fa-calendar-o"></i> September 09, 2016</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=log4j,logging,dsl,thedslway,kotlin,jvm,ide&amp;text=Crafting%20Log4j%20Configuration%20DSL&amp;url=http://jonnyzzz.com/blog/2016/09/09/log4j-dsl/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2016/09/09/log4j-dsl/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>In this post I show how to implement The DSL Way to manage 
+Log4j configuration and extend an IDE without writing a plugin for it</p>
+
+<h1 id="the-problem">The Problem</h1>
+
+<p><a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration can be 
+either in <code>.xml</code> file or in <code>.properties</code> files. Both formats are not 
+supported well in IDEs.</p>
+
+<p>I’ll show how to create a decent IDE support for Log4j configuration files
+<em>without</em> writing an IDE plugin at all. We illustrate 
+how <a href="/blog/2016/09/02/dsl-building/">The DSL Way</a> is applied here.</p>
+
+<h1 id="the-basic-assumptions">The Basic Assumptions</h1>
+
+<p>I decided to use <a href="https://www.jetbrains.com/idea/">IntelliJ IDEA</a> as an IDE 
+and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
+
+<p>Kotlin is a static typed opensource language by JetBrains. It’s easy to learn
+and use. For us it’s vital that is has a static typed 
+<a href="https://kotlinlang.org/docs/reference/type-safe-builders.html">DSLs</a>.</p>
+
+<h1 id="the-original-language">The Original Language</h1>
+
+<p>A configuration of a Log4j loggers looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"> 
+ <span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
+ <span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO</span>
+ <span class="c"># meaningful comment goes here</span>
+ <span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
+ <span class="na">log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
+ <span class="na">log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
+ <span class="na">log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n</span></code></pre></figure>
+
+<h1 id="a-transformation">A Transformation</h1>
+
+<p>Let’s implement the following scheme for Log4j configurations in <code>.properties</code> file format.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{equation}
+\begin{array}[c]{ccccc}
+
+&&DSL Library \\
+&& \Big\uparrow \mbox{uses}\\
+Log4j .properties & \xrightarrow{\mbox{generate}} & Generated Code & \xrightarrow{\mbox{execute}} & Log4j .properties \\
+&& Kotlin Code \\
+\end{array}
+\end{equation} %]]></script>
+
+<p>See <a href="/blog/2016/09/02/dsl-building/">The DSL Way</a> post for more details on the approach</p>
+
+<p>The implementation of \(generate\) and \(execute\) transitions is an engineering task of average complexity.
+Below I focus mostly on a creativity part – on a build of a DSL API that provides good readability, refactoring 
+and find-usages in an IDE</p>
+
+<h1 id="building-a-dsls">Building a DSLs</h1>
+
+<p>Creating a DSL is a repeating process. You create a first version of it, check how it looks and how one 
+can use it. Next some improvements are done. Next you repeat. At some point you have a nice solution.</p>
+
+<p>Building a DSL requires detailed knowledge of \(Target Language\), you should understand how 
+to translate any strings into some valid expression in your language.
+I would recommend checking the following articles on <a href="https://kotlinlang.org">Kotlin</a> to learn 
+more about how DSLs are created:</p>
+<ul>
+  <li><a href="https://kotlinlang.org/docs/reference/type-safe-builders.html">Type-Safe builder in Kotlin</a></li>
+  <li><a href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated properties</a></li>
+  <li><a href="https://kotlinlang.org/docs/reference/operator-overloading.html">Operator overloading</a></li>
+  <li><a href="https://kotlinlang.org/docs/tutorials/koans.html">Kotlin Koans</a></li>
+</ul>
+
+<h1 id="step-0-a-straightforward-dsl">Step 0. A Straightforward DSL</h1>
+
+<p>We start with simplistic thing.<br />
+As a starting point we need an entry function <code>log4j</code>, a builder interface <code>Log4J</code> with 
+two methods <code>comment</code> and <code>param</code>. <code>Log4JBase</code> is added here for compatibility with future
+code samples.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<span class="n">interface</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">comment</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
+  <span class="k">fun</span> <span class="nf">param</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">interface</span> <span class="n">Log4J</span><span class="p">:</span> <span class="n">Log4JBase</span>
+
+<span class="k">fun</span> <span class="nf">log4j</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">Log4J</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> </code></pre></figure>
+
+<p>Please follow to <a href="https://kotlinlang.org">Kotlin</a> documentation for better understanting 
+of the code above.</p>
+
+<p>This allows us to \(generate\) the following Kotlin code for a Logger configurations</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="n">log4j</span> <span class="p">{</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.rootLogger&quot;</span><span class="p">,</span> <span class="s">&quot;ERROR,stdout&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.logger.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;INFO&quot;</span><span class="p">)</span>
+  <span class="n">comment</span><span class="p">(</span><span class="s">&quot;meaningful comment goes here&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.logger.corp.mega.itl.web.metrics&quot;</span><span class="p">,</span> <span class="s">&quot;INFO&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout.ConversionPattern&quot;</span><span class="p">,</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span><span class="p">)</span>
+ <span class="p">}</span></code></pre></figure>
+
+<p>At that point we have a trivial DSL. Next we will be improving it. There is still no support 
+for semantic checks or model. We now have all Kotlin language features opened for crafting 
+a <code>.properties</code> file. The DSL Way handles <code>.properties</code> escaping allowing us to write strings as is.</p>
+
+<p>Using Kotlin here creates a way to meta-extend the original format. We are able now to 
+use functions, conditions, string manipulation, libraries and everything we have in Kotlin. 
+All such tools are projected into the \(Original Language\), a <code>.properties</code> file. A \(generator\) 
+can be smart to generate a compact code with use of Kotlin features. It may, for example,
+fold duplicates into loops or function calls.</p>
+
+<p>Let’s make the DSL for Log4j configuration more expressive and readable</p>
+
+<h1 id="step-1-improving-the-dsl">Step 1. Improving the DSL</h1>
+
+<p>There is a wellknown parameter <code>log4j.rootLogger</code>. IDE code completion is unaware about
+a fancy property one should use. A user also may not know which is the right property. 
+Finally, one may misprint the name of it. 
+Let’s replace it with an explicit call. For an 
+<a href="https://kotlinlang.org/docs/reference/extensions.html">extension property</a> in Kotlin is used</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">var</span> <span class="py">Log4J</span><span class="p">.</span><span class="n">rootLogger</span> <span class="p">:</span> <span class="n">String</span>
+  <span class="k">set</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="p">=</span> <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.rootLogger&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+  <span class="k">get</span><span class="p">()</span> <span class="p">=</span> <span class="k">throw</span> <span class="n">Error</span><span class="p">(</span><span class="s">&quot;Read API is not implemented&quot;</span><span class="p">)</span></code></pre></figure>
+
+<p>Now the improved part is</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+  <span class="n">rootLogger</span> <span class="p">=</span> <span class="s">&quot;stdout&quot;</span>
+
+  <span class="c1">//instead of</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.rootLogger&quot;</span><span class="p">,</span> <span class="s">&quot;stdout&quot;</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<h1 id="step-2-builders-for-appenders">Step 2. Builders for Appenders</h1>
+
+<p>Let’s take a look on the code</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span>
+  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout.ConversionPattern&quot;</span><span class="p">,</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span><span class="p">)</span></code></pre></figure>
+
+<p>Log4j uses a key name encoding to achieve the goal. This requires one to re-type similar strings 
+on and one. This may be a source of typos. From the other hand, this can be hard to read.
+Let’s avoid constant repeating strings and make those lines more expressive. For that we define
+the following <a href="https://kotlinlang.org/docs/reference/extensions.html">extension methods</a> in the 
+\(DSL Library\).</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">Log4J</span><span class="p">.</span><span class="n">appender</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="k">type</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JAppender</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+           
+<span class="n">interface</span> <span class="n">Log4JAppender</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">layout</span><span class="p">(</span><span class="k">type</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLayout</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">interface</span> <span class="n">Log4JLayout</span> <span class="p">:</span> <span class="n">Log4JBase</span> </code></pre></figure>
+
+<p>And this allows us to tune the \(generator\) to have the following Kotlin code</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="c1">//use this</span>
+<span class="n">appender</span><span class="p">(</span><span class="s">&quot;stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">layout</span><span class="p">(</span><span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">param</span><span class="p">(</span><span class="s">&quot;ConversionPattern&quot;</span><span class="p">,</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">//instead of</span>
+<span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span>
+<span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span>
+<span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout.ConversionPattern&quot;</span><span class="p">,</span>             
+   </code></pre></figure>
+
+<h1 id="step-3-builder-for-loggers">Step 3. Builder for Loggers</h1>
+
+<p>Let’s simplify the rest of Log4j configuration code. Consider the following code</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">rootLogger</span> <span class="p">=</span> <span class="s">&quot;ERROR,stdout&quot;</span>
+<span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.logger.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;INFO&quot;</span><span class="p">)</span>
+<span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.additivity.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;false&quot;</span><span class="p">)</span></code></pre></figure>
+
+<p>Here we refer to a logger called <code>stdout</code> by typing it’s name as a string. There are several keys used to encode
+the logger. Let’s normalize values and improve readability by spliting appender binging and level.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">interface</span> <span class="n">Log4JLogger</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+  <span class="k">var</span> <span class="py">additivity</span> <span class="p">:</span> <span class="n">Boolean</span><span class="p">?</span>
+  <span class="k">var</span> <span class="py">level</span> <span class="p">:</span> <span class="n">Log4JLevel</span><span class="p">?</span>
+  <span class="k">var</span> <span class="py">appenders</span> <span class="p">:</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="nf">Log4J</span><span class="p">.</span><span class="n">logger</span><span class="p">(</span><span class="n">category</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+
+<span class="k">fun</span> <span class="nf">Log4J</span><span class="p">.</span><span class="n">rootLogger</span><span class="p">(</span><span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span></code></pre></figure>
+
+<p>Now the generated code would look like that</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">rootLogger</span> <span class="p">{</span>
+  <span class="n">level</span> <span class="p">=</span> <span class="n">ERROR</span>
+  <span class="n">appenders</span> <span class="p">+=</span> <span class="s">&quot;stdout&quot;</span>
+<span class="p">}</span>
+
+<span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">additivity</span> <span class="p">=</span> <span class="k">false</span>
+  <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now one can specify parameters explicitly. And it reads way better.</p>
+
+<h1 id="step-1--2--3-outcome">Step 1 &amp; 2 &amp; 3. Outcome</h1>
+
+<p>At that point we managed to remove all common strings, encoded keys and values. Readability is now 
+better as we replaced all bare <code>Log4J#param</code> calls with a dedicated API calls from a dedicated builders.</p>
+
+<p>There is a domain model created. We now have Logger, Appender, Layout entities. Each with a dedicated 
+interfaces. Semantic checks are now implemented on compilation, meaning incorrect code would not compile at all. 
+The rest of checks are implemented in the \(emitter\) implementation from the other.</p>
+
+<p>Thanks to Kotlin static typed DSLs, IntelliJ IDEA understands code and provides code completion and navigation
+for every expression.</p>
+
+<p>The DSL code is more typo-resistant. All strings are now used once. There are no more tricky-encoded keys too. It’ 
+much harder now to author a misprint.</p>
+
+<p>The generated DSL code is more expressive. One can read it and understand the meaning. There is no requirement 
+to know Kotlin for that</p>
+
+<h1 id="step-4-find-usages-and-rename-for-appenders">Step 4. Find Usages and Rename for Appenders</h1>
+
+<p>Now we are ready to implement an IDE feature. We’d like to be able to rename appenders as well as be able to see
+where a given appender is used.</p>
+
+<p>For every possible IDE feature we need for \(Original Language\). We need to find an equivalent construction 
+in the \(Target Language\) and a similarly looking IDE feature for \(Target Language\). Next we shall
+find the way to use such construction in the DSL.</p>
+
+<p>For appender usages and rename feature the Kotlin variable declaration suites the best.</p>
+
+<p>We introduce <code>Log4JAppenderRef</code> interface. Make <code>Log4J#appender</code> function to return it. Next, in logger
+configuration we replace the type of appender from <code>String</code> into <code>Log4JAppenderRef</code>.</p>
+
+<p>Now appender usages are found via the respective variable usages. The appender name is specified only 
+in <code>Log4JLogger#appender</code> function call. All other places uses the variable. Not it’s safe to 
+rename appender by changing this field.</p>
+
+<h1 id="outcome">Outcome</h1>
+
+<p>This is a DSL for Log4j configurations usage example</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+  <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
+      <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="n">rootLogger</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">ERROR</span>
+    <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
+  <span class="p">}</span>
+
+  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega.itl.web.metrics&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
+  <span class="p">}</span>
+
+  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
+    <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Creating a DSL is a iterative process. It is strongly dependent on subjective things like ‘readability’ 
+or ‘good looking’. Different DSLs are possible. And the way they are created depends on one’s taste.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>By those steps we turned a <code>.properties</code> file of Log4j configuration into a well-looking DSL code in Kotlin. 
+The DSL Way is implemented with that DSL and provides IDE support for authoring and reading Log4j configuration
+files.</p>
+
+<p>The \(generator\) and \(execution\) parts implementation details are left uncovered. You may ask me
+for details in the comments.</p>
+
+<p>The DSL we created illustrates how once can turn a IDE language support problem 
+into <a href="/blog/2016/09/02/dsl-building/">The DSL Way</a> approach.</p>
+
+<p>You may have a look (or contribute) to the project sources on <a href="https://github.com/jonnyzzz/Log4j2DSL">my GitHub</a></p>
+
+<p>You may follow to <a href="/blog/2016/03/08/gradle-for-dsl/">this post</a> for details on how to create 
+a zero-configuration package for such DSLs and for The DSL Way approach.</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2016/09/02/dsl-building/" class="btn" title="Building DSL Instead of an IDE Plugin">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2016 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
