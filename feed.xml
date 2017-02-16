@@ -1,4 +1,174 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-02-09T23:44:05+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>The power of templating in a DSL</title><link href="/blog/2016/09/16/power-of-dsl/" rel="alternate" type="text/html" title="The power of templating in a DSL" /><published>2016-09-16T00:00:00+00:00</published><updated>2016-09-16T00:00:00+00:00</updated><id>/blog/2016/09/16/power-of-dsl</id><content type="html" xml:base="/blog/2016/09/16/power-of-dsl/">&lt;p&gt;Welcome a powerful templating engine that 
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-02-16T20:07:30+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Catching exceptions with less code in Kotlin</title><link href="/blog/2017/02/15/catchall/" rel="alternate" type="text/html" title="Catching exceptions with less code in Kotlin" /><published>2017-02-15T00:00:00+00:00</published><updated>2017-02-15T00:00:00+00:00</updated><id>/blog/2017/02/15/catchall</id><content type="html" xml:base="/blog/2017/02/15/catchall/">&lt;p&gt;A tiny inline function for consise code&lt;/p&gt;
+
+&lt;p&gt;In JVM every call can throw an exception. In Java language, we have dedicated declaration that a method is 
+expected to throw some exception types. But still, some other (&lt;code&gt;Throwable&lt;/code&gt;, &lt;code&gt;Error&lt;/code&gt;, &lt;code&gt;RuntimeException&lt;/code&gt;) exceptions 
+may still be thrown.&lt;/p&gt;
+
+&lt;p&gt;In Kotlin there are no checked exceptions (like, say in C#). Sill, one have to expect
+any possible exception being thrown from any possible place.&lt;/p&gt;
+
+&lt;p&gt;Most cases it’s ok and one should not do anything specific about exceptions. Still, there are other places, 
+where an exception may break code logic. In asynchronous applications (for example with RxJava, Netty, grpc-java) where 
+most of the code is a callback, it may turn out necessary to make sure an exception is not breaking some 
+outer login.&lt;/p&gt;
+
+&lt;p&gt;A trivial solution is to use &lt;code&gt;try/catch&lt;/code&gt;. But it makes a code quite ugly when you have several statements to call. It 
+may look like that&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callAction1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;handleAction1Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callAction2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;handleAction2Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;/// ....&lt;/span&gt;
+ &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callActionN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;handleActionNError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;A good think here is that &lt;code&gt;try/catch&lt;/code&gt; is expression in Kotlin, but still it is quite long to use.&lt;/p&gt;
+
+&lt;p&gt;In my application, I found that about 80% of such catches were done to 
+log actual problem and to continue forking further. Meaning &lt;code&gt;handleActionNError()&lt;/code&gt; functions in my case were 
+calls to a &lt;code&gt;Logger&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There is now equivalent way in Java to replace this long construction. Of course, it is possible to pass a 
+lambda expression into a function like &lt;code&gt;catchAll&lt;/code&gt;. But this would change a program and it would add extra 
+object creation in most of the cases.&lt;/p&gt;
+
+&lt;p&gt;One can implement similar &lt;code&gt;catchAll&lt;/code&gt; function in Kotlin too. Thanks to 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/inline-functions.html&quot;&gt;inline functions&lt;/a&gt;
+it has no overhead at all.&lt;/p&gt;
+
+&lt;p&gt;This is the function I use:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Throwable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;warn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Failed to $message. ${t.message}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;So now I may rewrite the above example in a way consise fashion&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;action1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callAction1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;action2&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callAction2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;c1&quot;&gt;///  ....&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;actionN&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;callActionN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+ &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Every usage of the function &lt;code&gt;catchAll&lt;/code&gt; is inlined by Kotlin compiler in to a caller method bodies. Kotlin compiler also
+inlines the action anonymous function &lt;code&gt;action&lt;/code&gt; too. There is no overhead! Let’s consider the following
+example:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;println&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Test console output&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The following bytecode is generated out of it. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated
+bytecode may change with a future version of tools.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;public final static main([Ljava/lang/String;)V
+    @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
+    TRYCATCHBLOCK L0 L1 L2 java/lang/Throwable
+   L3
+    ALOAD 0
+    LDC &amp;quot;args&amp;quot;
+    INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
+   L4
+    LINENUMBER 17 L4
+    GETSTATIC LOG.INSTANCE : LLOG;
+    CHECKCAST Logger
+    ASTORE 1
+    LDC &amp;quot;println&amp;quot;
+    ASTORE 2
+    NOP
+   L5
+    LINENUMBER 24 L5
+   L6
+   L0
+    NOP
+   L7
+    LINENUMBER 25 L7
+    NOP
+   L8
+    LINENUMBER 18 L8
+    LDC &amp;quot;Test console output&amp;quot;
+    ASTORE 3
+    NOP
+   L9
+    GETSTATIC java/lang/System.out : Ljava/io/PrintStream;
+    ALOAD 3
+    INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/Object;)V
+   L10
+   L11
+    LINENUMBER 18 L11
+   L12
+    LINENUMBER 19 L12
+   L13
+    NOP
+   L1
+    GOTO L14
+   L2
+    LINENUMBER 26 L2
+    ASTORE 3
+   L15
+    LINENUMBER 27 L15
+    ALOAD 1
+    NEW java/lang/StringBuilder
+    DUP
+    INVOKESPECIAL java/lang/StringBuilder.&amp;lt;init&amp;gt; ()V
+    LDC &amp;quot;Failed to &amp;quot;
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ALOAD 2
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    LDC &amp;quot;. &amp;quot;
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    ALOAD 3
+    INVOKEVIRTUAL java/lang/Throwable.getMessage ()Ljava/lang/String;
+    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
+    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
+    ALOAD 3
+    INVOKEVIRTUAL Logger.warn (Ljava/lang/String;Ljava/lang/Object;)V
+   L16
+    LINENUMBER 28 L16
+   L14
+    LINENUMBER 29 L14
+   L17
+   L18
+    LINENUMBER 20 L18
+    RETURN
+   L19
+    LOCALVARIABLE $i$a$1$catchAll I L8 L13 4
+    LOCALVARIABLE t$iv Ljava/lang/Throwable; L2 L16 3
+    LOCALVARIABLE LOG$iv LLogger; L5 L17 1
+    LOCALVARIABLE message$iv Ljava/lang/String; L5 L17 2
+    LOCALVARIABLE $i$f$catchAll I L5 L17 5
+    LOCALVARIABLE args [Ljava/lang/String; L3 L19 0
+    MAXSTACK = 3
+    MAXLOCALS = 6&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;As we see the &lt;code&gt;catchAll&lt;/code&gt; function call is inlined. We have &lt;code&gt;println&lt;/code&gt; call as-is, without any anonymous function 
+wrappers. Any combination of &lt;code&gt;catchAll&lt;/code&gt; calls generates similar bytecode with &lt;code&gt;try/catch&lt;/code&gt; blocks. Once can easily combine 
+such calls to make a program easier to read on some higher level.&lt;/p&gt;
+
+&lt;p&gt;Disclaimer. Checked or unchecked exceptions are meaningful. I’m not trying to promote the idea to catch all possible exceptions
+in every possible statement. The goal is to show it is possible to create a tiny function that would help to recure a number
+of similar code snippets and improve readability. It is up to you to decide if an error is OK to ignore or to log without propagation.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="jvm" /><category term="tip" /><summary>A tiny inline function for consise code</summary></entry><entry><title>The power of templating in a DSL</title><link href="/blog/2016/09/16/power-of-dsl/" rel="alternate" type="text/html" title="The power of templating in a DSL" /><published>2016-09-16T00:00:00+00:00</published><updated>2016-09-16T00:00:00+00:00</updated><id>/blog/2016/09/16/power-of-dsl</id><content type="html" xml:base="/blog/2016/09/16/power-of-dsl/">&lt;p&gt;Welcome a powerful templating engine that 
 is available for every DSL in a general 
 purpose language.&lt;/p&gt;
 
@@ -1275,42 +1445,4 @@ I’ll create similar redirect from &lt;code&gt;blog.jonnyzzz.name&lt;/code&gt; 
 
 &lt;p&gt;Now I can author posts in Markdown. I like it! Welcome to the new site and blog.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="docker" /><category term="jekyll" /><category term="domain" /><category term="virtual-environment" /><category term="weekend" /><summary>Some days ago I realized it’s possible to have mostly any web site 
 that is running behind GitHub pages.
-Finally I decided to update my current blog and to have a site on domain root.</summary></entry><entry><title>TeamCity.AntMessages</title><link href="/blog/2015/05/07/teamcityantmessages/" rel="alternate" type="text/html" title="TeamCity.AntMessages" /><published>2015-05-07T00:50:00+00:00</published><updated>2015-05-07T00:50:00+00:00</updated><id>/blog/2015/05/07/teamcityantmessages</id><content type="html" xml:base="/blog/2015/05/07/teamcityantmessages/">&lt;p&gt;You may know about &lt;a
-  href=&quot;https://confluence.jetbrains.com/display/TCD9/Build+Script+Interaction+with+TeamCity&quot;&gt;Service Messages&lt;/a&gt;
-  that helps to integrate build with &lt;a href=&quot;http://jetbrains.com/TeamCity?jonnyzzz&quot;&gt;TeamCity&lt;/a&gt;. Some
-  time ago I blogged about &lt;a href=&quot;/blog/2012/12/17/teeamcityservicemessages-v30/&quot;&gt;Service
-    Messages Tasks for C#&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;The &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;TeamCity.AntMessages&lt;/a&gt; Ant task library
-  contains necessary tasks for Ant! The usage is the follows: &lt;/p&gt;
-&lt;script type=&quot;syntaxhighlighter&quot;
-        class=&quot;brush:xml&quot;&gt;&lt;![CDATA[
-&lt;project basedir=&quot;.&quot; default=&quot;test&quot;&gt;
-    &lt;!-- here goes include --&gt;
-    &lt;taskdef
-            resource=&quot;teamcity-messages.xml&quot;&gt;
-        &lt;classpath&gt;
-            &lt;fileset dir=&quot;./build/libs-release&quot;
-                     includes=&quot;TeamCity.AntMessages-*.jar&quot;/&gt;
-        &lt;/classpath&gt;
-    &lt;/taskdef&gt;
-
-    &lt;!-- usage examples --&gt;
-    &lt;target
-            name=&quot;test&quot;&gt;
-        &lt;teamcity-build-number number=&quot;222&quot;/&gt;
-        &lt;teamcity-artifacts artifacts=&quot;222&quot;/&gt;
-        &lt;teamcity-service-message
-                name=&quot;name&quot; value=&quot;value&quot;/&gt;
-        &lt;teamcity-service-message name=&quot;name&quot;&gt;
-            &lt;param name=&quot;aaa&quot; value=&quot;vvv&quot;/&gt;
-            &lt;param name=&quot;aa2a&quot; value=&quot;v2vv&quot;/&gt;
-        &lt;/teamcity-service-message&gt;
-    &lt;/target&gt;
-&lt;/project&gt;]]&gt;
-&lt;/script&gt;
-&lt;h2&gt;Download and use&lt;/h2&gt;The sources and issue tracker is on &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages&quot;&gt;Here&lt;/a&gt;Binaries can be downloaded from &lt;a
-  href=&quot;https://github.com/jonnyzzz/TeamCity.AntMessages/releases/tag/release-0.1&quot;&gt;here&lt;/a&gt;License is MIT.
-Some dependencies peaces are Apache 2.0</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="free-time" /><category term="opensource" /><category term="teamcity plugin" /><category term="teamcity" /><category term="teamcity api" /><category term="ant" /><category term="servicemessage" /><category term="java" /><category term="TeamCity.AntMessages" /></entry></feed>
+Finally I decided to update my current blog and to have a site on domain root.</summary></entry></feed>
