@@ -1,0 +1,452 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Guard access by lock in Kotlin &#8211; Eugene Petrenko</title>
+<meta name="description" content="GuardedByLock a simple helper to make sure variable is only accessed with lock
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, kotlin-bytecode, jvm, tip" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Guard access by lock in Kotlin -- Eugene Petrenko" />
+<meta name="twitter:description" content="GuardedByLock a simple helper to make sure variable is only accessed with lock
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Guard access by lock in Kotlin -- Eugene Petrenko" />
+<meta property="og:description" content="GuardedByLock a simple helper to make sure variable is only accessed with lock
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="kotlin-bytecode" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="tip" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#kotlin-bytecode" title="Pages tagged kotlin-bytecode">kotlin-bytecode</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#tip" title="Pages tagged tip">tip</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Guard access by lock in Kotlin</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-03-01T00:00:00+00:00"><i class="fa fa-calendar-o"></i> March 01, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,kotlin-bytecode,jvm,tip&amp;text=Guard%20access%20by%20lock%20in%20Kotlin&amp;url=http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>GuardedByLock a simple helper to make sure variable is only accessed with lock</p>
+
+<p>A topic of ownership is better covered in <a href="https://www.rust-lang.org">Rust Language</a>. Still, such problems
+are not solved well enough in the JVM world. Let’s consider a trivial shared state access example</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
+  <span class="k">private</span> <span class="k">var</span> <span class="py">value</span> <span class="p">=</span> <span class="m">42</span>
+  
+  <span class="k">fun</span> <span class="nf">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">lock</span><span class="p">.</span><span class="n">lock</span><span class="p">()</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="n">updateStateWithNewValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+      <span class="n">lock</span><span class="p">.</span><span class="n">unlock</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">}</span></code></pre></figure>
+
+<p>We all know the best state is no state. And we tend to decouple tricky things. But of course, there are 
+some places in programs where one finally needs to deal with a state. In reality, it can easily be a 
+complicated state with several different locks in one object.</p>
+
+<p>The common problem here is to make sure fields are accessed with correct locks taken. It is tricky 
+to ensure in Java. It is double tricky to ensure future changes will not break the contract.</p>
+
+<p><a href="https://jcp.org/en/jsr/detail?id=305">JSR-305</a> and <a href="http://jcip.net/annotations/doc/net/jcip/annotations/GuardedBy.html">GuardedBy</a>
+annotations are created to make a binding between state and guards. But those are only to 
+help an IDE to be smarter, those annotations will not turn a mistake into a compilation error.</p>
+
+<p>I’m looking the way to make a compiler to ensure the access is correct.</p>
+
+<h1 id="java-style-solution">Java Style solution</h1>
+
+<p>In Java, this can be done in the following way. Create a function <code>runWithLock</code> and make this function accept
+an interface with a method like <code>run(State s)</code>. If necessary a generics can be added to simplify usages.</p>
+
+<p>To implement that one need to extract a state object (which I call <code>State</code>). Happy Java 1.8 users may benefit
+from Lambda syntax. But the approach itself requires a creation of tiny objects (for lambdas, in most cases) on every call.
+Such overhead is small, but one may not like it.</p>
+
+<p>An example call code would look like</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="kd">class</span> <span class="nc">State</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
+  <span class="kt">void</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="n">Consumer</span><span class="o">&lt;</span><span class="n">State</span><span class="o">&gt;</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
+
+
+  <span class="kt">void</span> <span class="nf">main</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">runWithLock</span><span class="o">((</span><span class="n">s</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span> <span class="n">s</span><span class="o">.</span><span class="na">value</span> <span class="o">=</span> <span class="mi">5</span><span class="o">;</span>  <span class="o">});</span>
+  <span class="o">}</span></code></pre></figure>
+
+<p>Let’s try avoid lambdas overhead and to yield a bit better syntax.</p>
+
+<h1 id="kotlin-style-solution">Kotlin Style solution</h1>
+
+<p>Consider the following implementation in Kotlin</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">class</span> <span class="nc">GuardedByLock</span><span class="o">&lt;</span><span class="n">out</span> <span class="nl">L:</span> <span class="n">Lock</span><span class="o">,</span> <span class="n">out</span> <span class="n">T</span><span class="o">&gt;(</span>
+        <span class="n">val</span> <span class="nl">lock:</span> <span class="n">L</span><span class="o">,</span>
+        <span class="n">val</span> <span class="nl">state:</span> <span class="n">T</span>
+<span class="o">)</span> <span class="o">{</span>
+  <span class="n">inline</span> <span class="n">fun</span> <span class="o">&lt;</span><span class="n">Y</span><span class="o">&gt;</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="nl">action:</span> <span class="n">T</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Y</span><span class="o">)</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="na">withLock</span> <span class="o">{</span> <span class="n">state</span><span class="o">.</span><span class="na">action</span><span class="o">()</span> <span class="o">}</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>The usage is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java">   <span class="kd">class</span> <span class="nf">State</span><span class="o">(</span><span class="n">var</span> <span class="nl">value:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">42</span><span class="o">)</span>
+   <span class="n">val</span> <span class="n">lock</span> <span class="o">=</span> <span class="n">GuardedByLock</span><span class="o">(</span><span class="n">ReentrantLock</span><span class="o">(),</span> <span class="n">State</span><span class="o">())</span>
+   
+   <span class="n">fun</span> <span class="nf">main</span><span class="o">()</span> <span class="o">{</span>
+     <span class="n">lock</span><span class="o">.</span><span class="na">runWithLock</span> <span class="o">{</span> <span class="n">value</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">}</span>
+   <span class="o">}</span>  </code></pre></figure>
+
+<p>Let’s take a look closer to the <code>runWithLock</code> call. Here <code>{</code> and <code>}</code> are used to 
+declare an <a href="https://kotlinlang.org/docs/reference/lambdas.html">anonymous extension function</a> 
+of type <code>State.() -&gt; Y</code> (<code>Y</code> is a generic type parameter).
+Extension function means that in the body of the function we have <code>this</code> keyword pointing to <code>State</code> object
+instance. And the part <code>value = 5</code> means we assign the value to <code>State</code> object property/field.</p>
+
+<p>The <code>inline</code> keyword here makes Kotlin compiler to 
+<a href="https://kotlinlang.org/docs/reference/inline-functions.html">inline</a>
+the function body to avoid creating an anonymous function in the compiled code. You may refer to 
+<a href="/blog/2017/02/15/catchall/">the previous post</a> for bytecode listing of inline function calls.</p>
+
+<p>With this approach, we avoid creation anonymous classes for Lambdas from one hand. From the other hand,
+the Kotlin compiler is in charge of checking a <code>State</code> object instance in only accessible after necessary
+locks are held.</p>
+
+<p>Finally, the bytecode for the <code>main</code> function is the following. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 
+1.0.6 plugin. The generated bytecode may change with a future version of tools.</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
+  public final static main()V
+    TRYCATCHBLOCK L0 L1 L2 null
+    TRYCATCHBLOCK L2 L3 L2 null
+   L4
+    LINENUMBER 27 L4
+    GETSTATIC GlKt.lock : LGuardedByLock;
+    ASTORE 0
+    NOP
+   L5
+    LINENUMBER 30 L5
+    ALOAD 0
+    INVOKEVIRTUAL GuardedByLock.getLock ()Ljava/util/concurrent/locks/Lock;
+    ASTORE 1
+    NOP
+   L6
+    ALOAD 1
+    INVOKEINTERFACE java/util/concurrent/locks/Lock.lock ()V
+   L7
+   L0
+    NOP
+   L8
+    NOP
+   L9
+    LINENUMBER 30 L9
+    ALOAD 0
+    INVOKEVIRTUAL GuardedByLock.getState ()Ljava/lang/Object;
+    CHECKCAST State
+    ASTORE 2
+    NOP
+   L10
+    LINENUMBER 27 L10
+    ALOAD 2
+    ICONST_5
+    INVOKEVIRTUAL State.setValue (I)V
+   L11
+   L12
+    GETSTATIC kotlin/Unit.INSTANCE : Lkotlin/Unit;
+   L13
+   L14
+    LINENUMBER 30 L14
+    ASTORE 2
+   L1
+    ALOAD 1
+    INVOKEINTERFACE java/util/concurrent/locks/Lock.unlock ()V
+    ALOAD 2
+    GOTO L15
+   L2
+    ASTORE 2
+   L3
+    ALOAD 1
+    INVOKEINTERFACE java/util/concurrent/locks/Lock.unlock ()V
+    ALOAD 2
+    ATHROW
+   L15
+    LINENUMBER 30 L15
+   L16
+    POP
+   L17
+    LINENUMBER 28 L17
+    RETURN
+   L18
+    LOCALVARIABLE $receiver LState; L10 L12 2
+    LOCALVARIABLE $i$a$1$runWithLock I L10 L12 3
+    LOCALVARIABLE $i$a$1$withLock I L9 L14 4
+    LOCALVARIABLE this_$iv LGuardedByLock; L5 L16 0
+    LOCALVARIABLE $i$f$runWithLock I L5 L16 5
+    MAXSTACK = 2
+    MAXLOCALS = 6</code></pre></figure>
+
+<p>As we see from the code, there is NO anonymous class creation.A call to <code>GuardedByLock#runWithLock</code> was inlined into 
+the <code>main</code> function body, meaning less overhead (who’d measure it :).</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In the post, I presented <code>GuardedByLock</code> class in Kotlin. Using it in your project may help to 
+correctly isolate state and make Kotlin complier checking all possible violations for you. 
+The only cost is 2 additional object instances: one for <code>GuardedByLock</code>, and the other one for the <code>State</code>.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/02/15/catchall/" class="btn" title="Catching exceptions with less code in Kotlin">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>&copy; 2005—2017 Eugene Petrenko. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
