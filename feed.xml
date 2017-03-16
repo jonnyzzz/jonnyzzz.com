@@ -1,4 +1,168 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-03-01T00:01:19+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Guard access by lock in Kotlin</title><link href="/blog/2017/03/01/guarded-by-lock/" rel="alternate" type="text/html" title="Guard access by lock in Kotlin" /><published>2017-03-01T00:00:00+00:00</published><updated>2017-03-01T00:00:00+00:00</updated><id>/blog/2017/03/01/guarded-by-lock</id><content type="html" xml:base="/blog/2017/03/01/guarded-by-lock/">&lt;p&gt;GuardedByLock a simple helper to make sure variable is only accessed with lock&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-03-16T10:22:53+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Switch to when</title><link href="/blog/2017/03/15/switch-to-when/" rel="alternate" type="text/html" title="Switch to when" /><published>2017-03-15T00:00:00+00:00</published><updated>2017-03-15T00:00:00+00:00</updated><id>/blog/2017/03/15/switch-to-when</id><content type="html" xml:base="/blog/2017/03/15/switch-to-when/">&lt;p&gt;‘when’ expression in Kotlin VS ‘switch’ statement in Java&lt;/p&gt;
+
+&lt;h1 id=&quot;switch-in-java&quot;&gt;Switch in Java&lt;/h1&gt;
+
+&lt;p&gt;Consider the following code in Java&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; 
+      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;    
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
+
+  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Widespread pattern, isn’t it? There are several things wrong with it! First, &lt;code&gt;Foo f&lt;/code&gt; variable is not final, 
+so it can be ocassionally changed in the future after some code changes.&lt;/p&gt;
+
+&lt;p&gt;Next, we switll have &lt;code&gt;default&lt;/code&gt; branch which is not necessary as we cover all enum values. But if 
+someone dares to add extra enum value, this code will still compile correctly!&lt;/p&gt;
+
+&lt;p&gt;Enough problems? Nope! I forgot &lt;code&gt;break;&lt;/code&gt; in each &lt;code&gt;case&lt;/code&gt; branch. Surprise.&lt;/p&gt;
+
+&lt;p&gt;An improvement is still possible to solve some of the problems above. Use &lt;code&gt;return&lt;/code&gt; statement! So we have&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; 
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;    
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Is it better now? More or less yes. But would you create an additional function for every &lt;code&gt;switch&lt;/code&gt;? I’m not sure.&lt;/p&gt;
+
+&lt;h1 id=&quot;when-in-kotlin&quot;&gt;When in Kotlin&lt;/h1&gt;
+
+&lt;p&gt;The equivalent constuction to &lt;code&gt;switch&lt;/code&gt; in Java is &lt;code&gt;when&lt;/code&gt; in Kotlin. You may take a look to the 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/control-flow.html#when-expression&quot;&gt;when expression&lt;/a&gt; documentation
+for more details. Note, &lt;code&gt;when&lt;/code&gt; expression is more functional than &lt;code&gt;switch&lt;/code&gt; in Java.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;bar:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This was just one-to-one conversion to Kotlin and I see the warning to convert &lt;code&gt;var f&lt;/code&gt; to &lt;code&gt;val f&lt;/code&gt; at first.&lt;/p&gt;
+
+&lt;p&gt;It is good to notice, &lt;code&gt;when&lt;/code&gt; can be used as expression! We may avoid assigning &lt;code&gt;f&lt;/code&gt; variable inside each case.&lt;/p&gt;
+
+&lt;p&gt;The right of &lt;code&gt;-&amp;gt;&lt;/code&gt; is also an expression. If you need more things to do, use &lt;code&gt;{&lt;/code&gt; and &lt;code&gt;}&lt;/code&gt;. There is no &lt;code&gt;break&lt;/code&gt; 
+exists or required.&lt;/p&gt;
+
+&lt;p&gt;If &lt;code&gt;when&lt;/code&gt; is used as expression, &lt;code&gt;else&lt;/code&gt; branch is not necessary, the compiler can prove all branches are included.
+At least this works if you checking enum or 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/classes.html#sealed-classes&quot;&gt;sealed classes&lt;/a&gt;. 
+Compilation fails if a missing branch is detected.&lt;/p&gt;
+
+&lt;p&gt;Overall I turn the example into this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELSE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; 
+
+  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Looks concise, isn’t it?&lt;/p&gt;
+
+&lt;h1 id=&quot;generated-bytecode&quot;&gt;Generated bytecode&lt;/h1&gt;
+
+&lt;p&gt;Let’s look into bytecode for the &lt;code&gt;when&lt;/code&gt; statement call. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin
+1.0.6 plugin. The generated bytecode may change with a future version of tools.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  // access flags 0x19
+  public final static action(LBar;)V
+    @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
+   L0
+    ALOAD 0
+    LDC &amp;quot;e&amp;quot;
+    INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
+   L1
+    LINENUMBER 13 L1
+    ALOAD 0
+    GETSTATIC WhKt$WhenMappings.$EnumSwitchMapping$0 : [I
+    SWAP
+    INVOKEVIRTUAL Bar.ordinal ()I
+    IALOAD
+    LOOKUPSWITCH
+      1: L2
+      2: L3
+      default: L4
+   L2
+    LINENUMBER 14 L2
+    INVOKESTATIC WhKt.value42 ()LFoo;
+    GOTO L5
+   L3
+    LINENUMBER 15 L3
+    INVOKESTATIC WhKt.value444 ()LFoo;
+    GOTO L5
+   L4
+    NEW kotlin/NoWhenBranchMatchedException
+    DUP
+    INVOKESPECIAL kotlin/NoWhenBranchMatchedException.&amp;lt;init&amp;gt; ()V
+    ATHROW
+   L6
+    LINENUMBER 13 L6
+   L5
+    ASTORE 1
+   L7
+    LINENUMBER 18 L7
+    ALOAD 1
+    INVOKESTATIC WhKt.doSomeMightyWork (LFoo;)V
+   L8
+    LINENUMBER 19 L8
+    RETURN
+   L9
+    LOCALVARIABLE f LFoo; L7 L9 1
+    LOCALVARIABLE e LBar; L0 L9 0
+    MAXSTACK = 2
+    MAXLOCALS = 2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;From the bytecode we see it throws &lt;code&gt;kotlin/NoWhenBranchMatchedException&lt;/code&gt; in case it turned out
+there is an additional case. For example, this may happen if we are running a compiled code 
+againt updated &lt;code&gt;Bar&lt;/code&gt; enum with additional case added.&lt;/p&gt;
+
+&lt;p&gt;Still, a re-compilation will show there is an errors.&lt;/p&gt;
+
+&lt;p&gt;The only problem is that &lt;code&gt;NoWhenBranchMatchedException&lt;/code&gt; contains no information on what 
+kind of instance was there, maybe a &lt;code&gt;toString()&lt;/code&gt; or &lt;code&gt;getClass().getName()&lt;/code&gt; were nice to 
+have helpers. Still, in general, such calls may also throw exceptions.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;In this post we see how &lt;code&gt;when&lt;/code&gt; expression can help one avoid trivial errors
+in switches. We discussed the benefit of using &lt;code&gt;when&lt;/code&gt; as expression&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="kotlin-bytecode" /><category term="jvm" /><category term="tip" /><summary>‘when’ expression in Kotlin VS ‘switch’ statement in Java
+
+Switch in Java
+
+Consider the following code in Java</summary></entry><entry><title>Guard access by lock in Kotlin</title><link href="/blog/2017/03/01/guarded-by-lock/" rel="alternate" type="text/html" title="Guard access by lock in Kotlin" /><published>2017-03-01T00:00:00+00:00</published><updated>2017-03-01T00:00:00+00:00</updated><id>/blog/2017/03/01/guarded-by-lock</id><content type="html" xml:base="/blog/2017/03/01/guarded-by-lock/">&lt;p&gt;GuardedByLock a simple helper to make sure variable is only accessed with lock&lt;/p&gt;
 
 &lt;p&gt;A topic of ownership is better covered in &lt;a href=&quot;https://www.rust-lang.org&quot;&gt;Rust Language&lt;/a&gt;. Still, such problems
 are not solved well enough in the JVM world. Let’s consider a trivial shared state access example&lt;/p&gt;
@@ -1350,209 +1514,4 @@ Support other XML implementations, not only JDOM&lt;br /&gt;
 Improve, finalize and document binding DSL&lt;br /&gt;
 Invite contributors!&lt;br /&gt;
 Have more fun!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="kotlin" /><category term="xml" /><category term="kotlin.xml.bind" /><category term="jdom" /><category term="dsl" /><category term="gradle" /><category term="teamcity2dsl" /><category term="the dsl way" /><summary>I like creating DSLs in Kotlin. It was fun to try creating a DSL for
-XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.</summary></entry><entry><title>Git in Docker</title><link href="/blog/2015/11/24/DockerGit/" rel="alternate" type="text/html" title="Git in Docker" /><published>2015-11-24T00:00:00+00:00</published><updated>2015-11-24T00:00:00+00:00</updated><id>/blog/2015/11/24/DockerGit</id><content type="html" xml:base="/blog/2015/11/24/DockerGit/">&lt;p&gt;Some uses &lt;a href=&quot;https://docker.com&quot;&gt;Docker&lt;/a&gt; to run builds inside.&lt;/p&gt;
-
-&lt;p&gt;Some uses it to run tests inside. 
-Today I gonna cover my case, where I implement a command that runs inside a Docker container 
-and call it thousands of times during &lt;a href=&quot;https://en.wikipedia.org/wiki/Continuous_integration&quot;&gt;CI&lt;/a&gt; 
-integration tests build.&lt;/p&gt;
-
-&lt;h2 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h2&gt;
-&lt;p&gt;A project I work on uses &lt;a href=&quot;http://git-scm.com&quot;&gt;Git client&lt;/a&gt;. 
-There are a number of Git client 
-version available. My need was to create integration tests 
-to make sure project works with a given Git client versions.&lt;/p&gt;
-
-&lt;p&gt;Tests has to be implemented for Windows and Linux. Popular Git client 
-versions should be covered.
-For Windows I simply download binaries.
-For Linux this did not worked well. Too tricky to use public packages. 
-Let’s compile Git from sources.&lt;/p&gt;
-
-&lt;h2 id=&quot;building-git-client&quot;&gt;Building Git Client&lt;/h2&gt;
-&lt;p&gt;Git client is easy to checkout and compile. I use the following
-snippet for that&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;  
-&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
-&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/src/git-${git_version}&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/gitz/bin/git-${git_version}&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;/git-${git_version}.sh&amp;quot;&lt;/span&gt;
-
-mkdir -p &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-mkdir -p &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-wget -O &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git.tar.gz https://www.kernel.org/pub/software/scm/git/git-&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.tar.gz
-tar xzf &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git.tar.gz -C &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;pushd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sources&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;/git-&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_version&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-make &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; all &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; make &lt;span class=&quot;nv&quot;&gt;prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_bin&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; install
-&lt;span class=&quot;nb&quot;&gt;popd&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;#!/bin/bash&amp;#39;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;GIT_EXEC_PATH=${git_bin}/libexec/git-core PATH=${git_bin}/bin:\$PATH GITPERLLIB=${git_bin}/perl/blib/lib ${git_bin}/bin/git \&amp;quot;\$@\&amp;quot;&amp;quot;&lt;/span&gt; &amp;gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-chmod a+rx &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;git_sh&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The code above generates a starter script for Git client (e.g. &lt;code&gt;/git-1.7.2.sh&lt;/code&gt;)&lt;/p&gt;
-
-&lt;p&gt;Git build also requires a set of packages to be installed on the OS (for my case on CentOS)&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;yum update -y
-yum groupinstall -y &lt;span class=&quot;s2&quot;&gt;&amp;quot;Development tools&amp;quot;&lt;/span&gt;
-yum install -y tar wget m4
-yum install -y autoconf
-yum install -y gcc
-yum install -y perl-ExtUtils-MakeMaker
-yum install -y curl-devel expat-devel gettext-devel openssl-devel zlib-devel
-yum clean all&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Well, building Git client&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;takes time&lt;/li&gt;
-  &lt;li&gt;resources waste to re-build&lt;/li&gt;
-  &lt;li&gt;requires
-    &lt;ul&gt;
-      &lt;li&gt;OS package install permissions  &lt;br /&gt;
-=&amp;gt; (aka &lt;code&gt;root&lt;/code&gt; access to build machine),  &lt;br /&gt;
-or&lt;/li&gt;
-      &lt;li&gt;pre-configured CI build machines &lt;br /&gt;
-=&amp;gt; (aka eternal pain to update machine packages)&lt;/li&gt;
-    &lt;/ul&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;How can we re-use Git binaries and have Git client available with no
-extra packages, build machined pre-configuration and other maintenance 
-activities?&lt;/p&gt;
-
-&lt;h2 id=&quot;build-git-client-in-docker-container&quot;&gt;Build Git Client in Docker Container&lt;/h2&gt;
-&lt;p&gt;What if I use Docker to build Git from binaries for all version I need?&lt;/p&gt;
-
-&lt;p&gt;Well, benefits of Docker image and process are&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;isolation&lt;/li&gt;
-  &lt;li&gt;recoverable configuration&lt;/li&gt;
-  &lt;li&gt;no side-effects&lt;/li&gt;
-  &lt;li&gt;no infrastructure maintenance costs&lt;/li&gt;
-  &lt;li&gt;repeatable configuration&lt;/li&gt;
-  &lt;li&gt;the only one requirement to have Docker installed on the CI machine&lt;/li&gt;
-  &lt;li&gt;nearly no root access required (effectively Docker command means root access)&lt;/li&gt;
-  &lt;li&gt;no dependency on CI machine packages / environment&lt;/li&gt;
-  &lt;li&gt;binaries re-use via Docker image&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;I created a &lt;code&gt;Dockerfile&lt;/code&gt; where I compile selected versions of Git client 
-from sources and prepare bootstrap scripts (as shown above). All building 
-tasks were put in one &lt;code&gt;RUN&lt;/code&gt; command to avoid too many 
-&lt;a href=&quot;https://github.com/docker/docker/issues/1171&quot;&gt;layers&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The Docker image I build is only updated to include new version of Git client.
-This is done quite rarely. The only requirement for CI machine is Docker.&lt;/p&gt;
-
-&lt;p&gt;Now in my CI builds I can start a Docker container form a pre-built image 
-with required Git client version. This is the way to run repeatable
-integration tests.&lt;/p&gt;
-
-&lt;p&gt;But, now I need to make my tests run inside the same container. This 
-is complicated…&lt;br /&gt;
-and there are some packages were (not yet) installed in the container…&lt;/p&gt;
-
-&lt;h2 id=&quot;calling-docker-container-from-a-script&quot;&gt;Calling Docker Container from a Script&lt;/h2&gt;
-&lt;p&gt;The only requirement from integration tests is to have &lt;code&gt;git&lt;/code&gt; command of given version in &lt;code&gt;PATH&lt;/code&gt;.
-Let’s wrap Docker container call into a bash script than!&lt;/p&gt;
-
-&lt;p&gt;First of I created a script like that (see &lt;a href=&quot;https://docs.docker.com/engine/reference/run/&quot;&gt;docker run docs&lt;/a&gt;)&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker run GIT_CLIENT_IMAGES &lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Well, it did not work, so I added volume with current directory: &lt;code&gt;-v $(pwd):/$(pwd)&lt;/code&gt; and switched working 
-directory in Docker to it via &lt;code&gt;-w /$(pwd)&lt;/code&gt;.&lt;br /&gt;
-NOTE. This will not work if our &lt;code&gt;git&lt;/code&gt; command is executed from non repository checkout root.&lt;/p&gt;
-
-&lt;p&gt;Included &lt;code&gt;--rm&lt;/code&gt; to avoid garbage from finished containers.&lt;/p&gt;
-
-&lt;p&gt;Added &lt;code&gt;-i&lt;/code&gt; to have the command run interactively.&lt;/p&gt;
-
-&lt;p&gt;The only issue now was that all files changed or created in container were owned by root
-(because in Docker container I was running it under root and owners and permissions are transparent here)&lt;/p&gt;
-
-&lt;p&gt;There are two solutions for that&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;run &lt;code&gt;chown&lt;/code&gt; after each call&lt;/li&gt;
-  &lt;li&gt;use same user in container&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Running &lt;code&gt;chown&lt;/code&gt; is at least starting another process, dealing with exit codes and errors. I preferred 
-the second option. The &lt;em&gt;same user&lt;/em&gt; means a user that has same &lt;a href=&quot;https://en.wikipedia.org/wiki/User_identifier&quot;&gt;UID&lt;/a&gt; 
-and &lt;a href=&quot;https://en.wikipedia.org/wiki/Group_identifier&quot;&gt;GID&lt;/a&gt;. 
-I added &lt;code&gt;-u $(id -u):$(id -g)&lt;/code&gt; arguments.&lt;/p&gt;
-
-&lt;p&gt;Finally, I implemented version selector as environment variable. There are also a number 
-of &lt;a href=&quot;https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables&quot;&gt;Git specific environment variables&lt;/a&gt;
-that are to be sent to the container. This is done via &lt;code&gt;--env&lt;/code&gt; arguments of Docker run command.&lt;/p&gt;
-
-&lt;p&gt;Now I have&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;a pre-built Docker image with all Git clients&lt;/li&gt;
-  &lt;li&gt;a script that pretends to be &lt;code&gt;git&lt;/code&gt; command and delegates calls into a Docker container&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Having one dependency is better that having two. Let’s put it all together…&lt;/p&gt;
-
-&lt;h2 id=&quot;putting-all-together&quot;&gt;Putting all together&lt;/h2&gt;
-&lt;p&gt;It’s clear the start script depends on container. I put the script inside container. 
-Default container command prints the &lt;code&gt;git&lt;/code&gt; script to STDOUT.&lt;/p&gt;
-
-&lt;p&gt;The Git client setup bash script turned to be as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;docker pull GIT_CLIENT_IMAGE
-docker run --rm GIT_CLIENT_IMAGE 2&amp;gt;/dev/null &amp;gt;git
-chmod +x git
-&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;/git:&lt;span class=&quot;nv&quot;&gt;$PATH&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;PATH
-
-&lt;span class=&quot;nv&quot;&gt;GIT_VERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&amp;lt;a version of Git client to use&amp;gt;
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GIT_VERSION
-
-&lt;span class=&quot;c&quot;&gt;#call integration tests&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h2 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Host-OS independent way to run integration tests with different Git client versions.&lt;/li&gt;
-  &lt;li&gt;It builds each Git client version only once.&lt;/li&gt;
-  &lt;li&gt;Integration tests environment is not polluted with Git client build dependencies.&lt;/li&gt;
-  &lt;li&gt;Can easily switch Linux distributive&lt;/li&gt;
-  &lt;li&gt;Minimum overhead&lt;/li&gt;
-  &lt;li&gt;Constant time Git client switch&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;How it finally works. Custom &lt;code&gt;git&lt;/code&gt; script is added to &lt;code&gt;PATH&lt;/code&gt;. 
-For every call the script starts a fresh Docker container to perform
-the call. Git client of specified version is executed in it.
-STD streams and signals are bound transparently.
-Container is terminated and disposed at the end. 
-Integration tests calls &lt;code&gt;git&lt;/code&gt; command hundreds times.&lt;/p&gt;
-
-&lt;h2 id=&quot;real-life&quot;&gt;Real Life&lt;/h2&gt;
-&lt;p&gt;I implemented the following infrastructure for my project. I use in-house 
-Docker registry to host latest Git clients image. It uses default Linux build machine
-image and it does not require specific permissions or packages, but Docker.&lt;/p&gt;
-
-&lt;p&gt;Initial implementation was done in beginning of 2015, in the blog post I omitted 
-some implementation details that are now seems to be done easier.&lt;/p&gt;
-
-&lt;p&gt;Currently I run tests for up to 10 versions of Git client. My observations 
-shows the slowdown about 2x in comparison with fully native Git client on Linux.
-Frankly, I have not yet tried to optimize performance of my scripts.&lt;/p&gt;
-
-&lt;p&gt;Containerize with Pleasure!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="docker" /><category term="git" /><category term="integration tests" /><category term="ci" /><summary>Some uses Docker to run builds inside.
-
-Some uses it to run tests inside. 
-Today I gonna cover my case, where I implement a command that runs inside a Docker container 
-and call it thousands of times during CI 
-integration tests build.</summary></entry></feed>
+XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.</summary></entry></feed>
