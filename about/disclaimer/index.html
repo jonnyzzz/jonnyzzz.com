@@ -5,20 +5,14 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Transfer Environment Between Build Steps &#8211; Eugene Petrenko</title>
-<meta name="description" content="In this post I describe how one could transfer environment from one build step to
-  another
+<title>Disclaimer &#8211; Eugene Petrenko</title>
 
-"/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, c++, hint, teamcity, build, feature" />
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Transfer Environment Between Build Steps -- Eugene Petrenko" />
-<meta name="twitter:description" content="In this post I describe how one could transfer environment from one build step to
-  another
+<meta name="twitter:title" content="Disclaimer -- Eugene Petrenko" />
 
-" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -28,12 +22,9 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Transfer Environment Between Build Steps -- Eugene Petrenko" />
-<meta property="og:description" content="In this post I describe how one could transfer environment from one build step to
-  another
+<meta property="og:title" content="Disclaimer -- Eugene Petrenko" />
 
-" />
-<meta property="og:url" content="http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/" />
+<meta property="og:url" content="http://jonnyzzz.com/about/disclaimer/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -43,16 +34,6 @@
 <meta property="article:tag" content="Eugene Petrenko" />
 
 
-<meta property="article:tag" content="c++" />
-
-<meta property="article:tag" content="hint" />
-
-<meta property="article:tag" content="teamcity" />
-
-<meta property="article:tag" content="build" />
-
-<meta property="article:tag" content="feature" />
-
 
 
 <!-- Webmaster Tools verfication -->
@@ -61,7 +42,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/" />
+<link rel="canonical" href="http://jonnyzzz.com/about/disclaimer/" />
 <link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -127,7 +108,7 @@
 
 </head>
 
-<body id="post">
+<body id="page">
 
 <div class="navigation-wrapper">
 	<nav role="navigation" id="site-nav" class="animated drop">
@@ -166,111 +147,37 @@
 
 
 <div id="main" role="main">
-  <article class="hentry">
+  <article class="entry">
     
     <div class="entry-wrapper">
       <header class="entry-header">
-        <ul class="entry-tags">
-          <li><a href="/tags/#c++" title="Pages tagged c++">c++</a></li><li><a href="/tags/#hint" title="Pages tagged hint">hint</a></li><li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li><li><a href="/tags/#feature" title="Pages tagged feature">feature</a></li>
-        </ul>
-        
-          <h1 class="entry-title">Transfer Environment Between Build Steps</h1>
-        
+        <h1 class="entry-title">Disclaimer</h1>
       </header>
-      <footer class="entry-meta">
-        
-        
-          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
-        
-        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2013-01-10T19:08:00+00:00"><i class="fa fa-calendar-o"></i> January 10, 2013</time></span>
-        <span class="entry-date date modified"><time datetime="2013-01-10T20:08:05.190+01:00"><i class="fa fa-pencil"></i> January 10, 2013</time></span>
-        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=c++,hint,teamcity,build,feature&amp;text=Transfer%20Environment%20Between%20Build%20Steps&amp;url=http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
-</span>
-<span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2013/01/10/transfer-environment-between-build-steps/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
-</span>
-
-<!-- /.social-share -->
-
-        
-      </footer>
       <div class="entry-content">
-        <p>In this post I describe how one could transfer environment from one build step to
-  another</p>
+        <h1 id="disclaimer">Disclaimer</h1>
 
-<p>Suppose you have a build script (.sh or .bat) that patches, adds, or updates
-  environment variables to prepare things for the build. It looks handy to use TeamCity runners, but it could be a
-  real pain to specify all such variables explicitly.</p> <p>Our goal is to make TeamCity build have the
-  same updated environment variables for all build steps.</p> <p>Implementation is really simple. In the
-  example I use <em>vcvarsall.bat</em> from Visual Studio 2010 to update environment variables. To call
-  the script I use <a href="http://confluence.jetbrains.net/display/TCD65/Command+Line">Command Line</a>
-  build runner's Custom Script:</p>
-<script type="syntaxhighlighter" class="brush: text"><![CDATA[
-      rem - execute script to update environment call "C:\Program Files (x86)\Microsoft Visual Studio
-      11.0\Common7\Tools\VsDevCmd.bat" rem - make TeamCity update build environment %env.TEAMCITY_CAPTURE_ENV% ]]>
-</script>
-<p style="font-size:80%"><strong>*</strong>Here I use <em>%env.TEAMCITY_CAPTURE_ENV%</em>
-  instead of <em>%TEAMCITY_CAPTURE_ENV%</em> only because TeamCity pre-processes <a
-    href="http://confluence.jetbrains.net/display/TCD8/Defining+and+Using+Build+Parameters+in+Build+Configuration">%references%</a>.
-  So if you use do not use TeamCity's Command-Line runner Custom Script, you need to simply put <em>%TEAMCITY_CAPTURE_ENV%</em>
-</p>
-<p>The trick is that TeamCity provides environment variable called <strong>TEAMCITY_CAPTURE_ENV</strong>.
-  This variable contains a path to an executable program that reports current environment variables back to TeamCity
-  as <a
-    href="http://confluence.jetbrains.net/display/TCD8/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-AddingorChangingaBuildParameter">service
-    messages</a></p> <p>Changes in build variables are also show on <em>Build Parameters</em>
-  tab of finished build:</p><a
-  href="http://4.bp.blogspot.com/-U4R9VYVHeII/UO8RHNz-e7I/AAAAAAAACPU/mhm9P8tjGh8/s1600/Image_0032.png"
-  imageanchor="1" style=""><img border="0" height="19" width="320"
-                                src="http://4.bp.blogspot.com/-U4R9VYVHeII/UO8RHNz-e7I/AAAAAAAACPU/mhm9P8tjGh8/s320/Image_0032.png"/></a>
-<br
-/><a href="http://4.bp.blogspot.com/-TvpfvuM4D_k/UO8NR1N3wLI/AAAAAAAACPA/y15JhjazV9o/s1600/Image_0030.png"
-     imageanchor="1" style=""><img border="0" height="130" width="320"
-                                   src="http://4.bp.blogspot.com/-TvpfvuM4D_k/UO8NR1N3wLI/AAAAAAAACPA/y15JhjazV9o/s320/Image_0030.png"/></a>
-<p>In general, you may use those <a
-  href="http://confluence.jetbrains.net/display/TCD8/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-AddingorChangingaBuildParameter">service
-  messages</a> to change any parameters of build, including configuration parameters, system properties or
-  environment variables. </p> <p>You may use this trick starting from TeamCity 7.0</p>
+<p>The information on this website represents my personal opinions. It may or may not 
+express the views or opinions of my employer.</p>
 
-        
-          <div id="disqus_thread"></div><!-- /#disqus_thread -->
-          
-<script type="text/javascript">
-    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
-    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+<h1 id="external-links">External links</h1>
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
-        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    })();
+<p>Some pages contain links to other websites that were only checked at the moment of writing. I 
+have no control over the contents of these sites. Due to the very nature of the Internet, they 
+may change at any time, and I am under no circumstances responsible for their contents.</p>
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function () {
-        var s = document.createElement('script'); s.async = true;
-        s.type = 'text/javascript';
-        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
-        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
-    }());
-</script>
-<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+<h1 id="links-to-this-site">Links to this site</h1>
 
-        
+<p>Unless otherwise noted, the content of the website is licensed under a 
+<a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> license. 
+If you are sharing or building upon anything from this website, you must give me 
+credit by mentioning me and placing a link to this site.</p>
+
+<h1 id="cookies">Cookies</h1>
+
+<p>This website uses cookies to ensure you get the best experience.</p>
+
       </div><!-- /.entry-content -->
     </div><!-- /.entry-wrapper -->
-    <nav class="pagination" role="navigation">
-      
-        <a href="/blog/2012/12/19/configuring-nuget-publish-on-teamcity/" class="btn" title="Configuring NuGet publish on TeamCity">Previous</a>
-      
-      
-        <a href="/blog/2013/01/11/new-nuget-support-features-in-teamcity/" class="btn" title="New NuGet Support Features in TeamCity">Next</a>
-      
-    </nav><!-- /.pagination -->
   </article>
 </div><!-- /#main -->
 
