@@ -1,0 +1,460 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Hints in Stack Traces on the JVM &#8211; Eugene Petrenko</title>
+<meta name="description" content="Encode context in a thread dump or an exception stack trace for the JVM.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, jvm, debug, trace, library, opensource, stacktrace, frame, stack, java, named-stack-frames" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Hints in Stack Traces on the JVM -- Eugene Petrenko" />
+<meta name="twitter:description" content="Encode context in a thread dump or an exception stack trace for the JVM.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Hints in Stack Traces on the JVM -- Eugene Petrenko" />
+<meta property="og:description" content="Encode context in a thread dump or an exception stack trace for the JVM.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="debug" />
+
+<meta property="article:tag" content="trace" />
+
+<meta property="article:tag" content="library" />
+
+<meta property="article:tag" content="opensource" />
+
+<meta property="article:tag" content="stacktrace" />
+
+<meta property="article:tag" content="frame" />
+
+<meta property="article:tag" content="stack" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="named-stack-frames" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/" />
+<link href="http://jonnyzzz.com/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#debug" title="Pages tagged debug">debug</a></li><li><a href="/tags/#trace" title="Pages tagged trace">trace</a></li><li><a href="/tags/#library" title="Pages tagged library">library</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#stacktrace" title="Pages tagged stacktrace">stacktrace</a></li><li><a href="/tags/#frame" title="Pages tagged frame">frame</a></li><li><a href="/tags/#stack" title="Pages tagged stack">stack</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#named-stack-frames" title="Pages tagged named-stack-frames">named-stack-frames</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Hints in Stack Traces on the JVM</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-04-12T00:00:00+00:00"><i class="fa fa-calendar-o"></i> April 12, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=jvm,debug,trace,library,opensource,stacktrace,frame,stack,java,named-stack-frames&amp;text=Hints%20in%20Stack%20Traces%20on%20the%20JVM&amp;url=http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Encode context in a thread dump or an exception stack trace for the JVM.</p>
+
+<p>Remember a production application stack trace or thread dump? Were you able to understand 
+what a thread was downing? Why was a thread idling/hanging/waiting? What was the context of it? 
+What a command was it? Or, say you were digging the roots of a NullPointerException stack trace?</p>
+
+<p>Most time it’s hard.</p>
+
+<p>There is a simple remedy. One may call <code>Threads.setName</code> to set/unset thread
+name to indicate current activity and/or to add more information.</p>
+
+<p>Hey, be aware of the <code>Threads.setName</code>. Some other code may also use it in their way.
+Please, do not spoil it, if you can</p>
+
+<p>Unfortunately, exception stack trace does not container thread name. So the fragile context is
+lost if an exception is thrown. The only hope it is logged correctly, and logger includes
+a thread name. Surprise! The full thread name.</p>
+
+<p>What else? Why cannot we include the information locally and so that it is not 
+lost in an exception or in a logger message? Can we make it more context-aware and readable?</p>
+
+<h1 id="an-example">An example</h1>
+
+<p>Consider an application, which runs a request for a given, say, <code>userId</code>. And it crashes with code like</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:5)
+	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
+	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
+	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
+	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:10)
+	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)</code></pre></figure>
+
+<p>What was the context of the failure above? Does it somehow related to parameters that were around?</p>
+
+<h1 id="named-frames">Named Frames</h1>
+
+<p>I created the <a href="https://github.com/jonnyzzz/named-java-frames">Named Frames</a>
+library, which aims to help by including an additional information as <em>method calls</em>.</p>
+
+<p>Let’s now update the code and include <code>userId</code> and RemoteCrashMicroService backend URL into the thread
+dump. That is done be wrapping method calls with code like that:</p>
+
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">NamedStackFrame</span><span class="o">.</span><span class="na">global</span><span class="o">().</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;YOUR TEXT HERE&quot;</span><span class="o">).</span><span class="na">run</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="c1">// it is called from a method, which contains &#39;YOUR TEXT HERE&#39; in the full name</span>
+<span class="o">});</span></code></pre></figure>
+
+<p>The updated thread dump from the exception is now the following</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:8)
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:5)
+
+	at __. service = backend-452 .__.call(JavaGeneratorTemplate.java:39)
+
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:7)
+	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
+	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
+	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
+	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:12)
+	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:7)
+
+	at __. user = jonnyzzz .__.call(JavaGeneratorTemplate.java:39)
+
+	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:11)
+	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)</code></pre></figure>
+
+<p>This one now includes the sensible information (as service name and userId)
+which can be used to debug the original problem.</p>
+
+<h1 id="api">API</h1>
+
+<p>Named stack frames API is easy and flexible. 
+The main entry point is <code>org.jonnyzzz.stack.NamedStackFrame</code>. There you may use either <code>#global()</code> method to access 
+statically cached factory of named framed. 
+The better is to use <code>#newInstance()</code> method to have an instance of the factory to explicitly control the lifetime.</p>
+
+<p>Both methods return an instance of <code>org.jonnyzzz.stack.NamedExecutor</code> interface, which contains all possible methods to wrap
+a call with a named frame.</p>
+
+<h1 id="implementation">Implementation</h1>
+
+<p>The implementation is covered in <a href="/blog/2014/04/26/named-stack-frames-for-jvm/">the older post</a>. Note, the
+API is slightly changed in 0.2.x.</p>
+
+<p>The idea is to on-the-fly generate classes for every given name. All generated classes are loaded with a dedicated
+classloader and cached.</p>
+
+<p>We implement our own class file weaver to avoid external dependencies from other libraries and thus to
+simplify adoption of this library in your project.</p>
+
+<p>The library attempts to escape some <em>bad</em> symbols from names you pass. All such symbols are replaced with ‘_’.</p>
+
+<h1 id="namedstackframe-costs">NamedStackFrame Costs</h1>
+
+<p>Custom information in stack traces is not free. We create and load classes to implement it. This means, 
+it’s your responsibility to make sure you will not consume all JVM memory on that.</p>
+
+<p>Practically, you should understand the number of possible names is limited and fits in the memory. That’s it.</p>
+
+<h1 id="profiler-grouping-of-calls">Profiler Grouping of Calls</h1>
+
+<p>Do you use a profiler to monitor your application? A profiler presents such named 
+methods (just like ordinary methods) as different method calls. That means you’ll see a distribution of calls.</p>
+
+<p>You’ll see a distribution of time spent by each name: a distribution by <code>userId</code>, <code>action type</code> or <code>serviceId</code>
+for the example above.</p>
+
+<h1 id="android-support">Android Support</h1>
+
+<p>All the time I was wondering if it’s helpful for Android applications as well. Do you like the idea?
+Please contribute!</p>
+
+<h1 id="license">License</h1>
+
+<p>The library is <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a></p>
+
+<h1 id="download">Download</h1>
+
+<p>Sources are on <a href="https://github.com/jonnyzzz/named-java-frames">GitHub</a></p>
+
+<p>Binaries are on JCenter / Bintray</p>
+
+<p><a href="https://bintray.com/jonnyzzz/maven/named-frames/_latestVersion"> <img src="https://api.bintray.com/packages/jonnyzzz/maven/named-frames/images/download.svg" alt="Download" /> </a> <a href="https://travis-ci.org/jonnyzzz/named-java-frames"> <img src="https://travis-ci.org/jonnyzzz/named-java-frames.svg?branch=master" alt="Build Status" /></a></p>
+
+<p>In Gradle, just add</p>
+<pre><code>repositories {
+  jcenter()
+}
+
+dependencies {
+  compile 'org.jonnyzzz.named-frames:named-frames:&lt;LATEST VERSION&gt;'
+}
+</code></pre>
+
+<h1 id="issues">Issues</h1>
+
+<p>On <a href="https://github.com/jonnyzzz/named-java-frames">GitHub</a></p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/03/29/when-for-sealed-classes/" class="btn" title="Sealed classes and 'when' expression">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="http://jonnyzzz.com/feed.xml" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

@@ -1,4 +1,157 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-03-30T01:40:28+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Sealed classes and ‘when’ expression</title><link href="/blog/2017/03/29/when-for-sealed-classes/" rel="alternate" type="text/html" title="Sealed classes and 'when' expression" /><published>2017-03-29T00:00:00+00:00</published><updated>2017-03-29T00:00:00+00:00</updated><id>/blog/2017/03/29/when-for-sealed-classes</id><content type="html" xml:base="/blog/2017/03/29/when-for-sealed-classes/">&lt;p&gt;‘when’ expression as pattern-matching in Kotlin&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-04-12T09:02:43+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Hints in Stack Traces on the JVM</title><link href="/blog/2017/04/12/named-frames-v2/" rel="alternate" type="text/html" title="Hints in Stack Traces on the JVM" /><published>2017-04-12T00:00:00+00:00</published><updated>2017-04-12T00:00:00+00:00</updated><id>/blog/2017/04/12/named-frames-v2</id><content type="html" xml:base="/blog/2017/04/12/named-frames-v2/">&lt;p&gt;Encode context in a thread dump or an exception stack trace for the JVM.&lt;/p&gt;
+
+&lt;p&gt;Remember a production application stack trace or thread dump? Were you able to understand 
+what a thread was downing? Why was a thread idling/hanging/waiting? What was the context of it? 
+What a command was it? Or, say you were digging the roots of a NullPointerException stack trace?&lt;/p&gt;
+
+&lt;p&gt;Most time it’s hard.&lt;/p&gt;
+
+&lt;p&gt;There is a simple remedy. One may call &lt;code&gt;Threads.setName&lt;/code&gt; to set/unset thread
+name to indicate current activity and/or to add more information.&lt;/p&gt;
+
+&lt;p&gt;Hey, be aware of the &lt;code&gt;Threads.setName&lt;/code&gt;. Some other code may also use it in their way.
+Please, do not spoil it, if you can&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, exception stack trace does not container thread name. So the fragile context is
+lost if an exception is thrown. The only hope it is logged correctly, and logger includes
+a thread name. Surprise! The full thread name.&lt;/p&gt;
+
+&lt;p&gt;What else? Why cannot we include the information locally and so that it is not 
+lost in an exception or in a logger message? Can we make it more context-aware and readable?&lt;/p&gt;
+
+&lt;h1 id=&quot;an-example&quot;&gt;An example&lt;/h1&gt;
+
+&lt;p&gt;Consider an application, which runs a request for a given, say, &lt;code&gt;userId&lt;/code&gt;. And it crashes with code like&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Exception in thread &amp;quot;main&amp;quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:5)
+	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
+	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
+	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
+	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:10)
+	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;What was the context of the failure above? Does it somehow related to parameters that were around?&lt;/p&gt;
+
+&lt;h1 id=&quot;named-frames&quot;&gt;Named Frames&lt;/h1&gt;
+
+&lt;p&gt;I created the &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;Named Frames&lt;/a&gt;
+library, which aims to help by including an additional information as &lt;em&gt;method calls&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Let’s now update the code and include &lt;code&gt;userId&lt;/code&gt; and RemoteCrashMicroService backend URL into the thread
+dump. That is done be wrapping method calls with code like that:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;NamedStackFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;global&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;YOUR TEXT HERE&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// it is called from a method, which contains &amp;#39;YOUR TEXT HERE&amp;#39; in the full name&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The updated thread dump from the exception is now the following&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Exception in thread &amp;quot;main&amp;quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:8)
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:5)
+
+	at __. service = backend-452 .__.call(JavaGeneratorTemplate.java:39)
+
+	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:7)
+	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
+	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
+	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
+	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
+	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
+	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:12)
+	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:7)
+
+	at __. user = jonnyzzz .__.call(JavaGeneratorTemplate.java:39)
+
+	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:11)
+	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This one now includes the sensible information (as service name and userId)
+which can be used to debug the original problem.&lt;/p&gt;
+
+&lt;h1 id=&quot;api&quot;&gt;API&lt;/h1&gt;
+
+&lt;p&gt;Named stack frames API is easy and flexible. 
+The main entry point is &lt;code&gt;org.jonnyzzz.stack.NamedStackFrame&lt;/code&gt;. There you may use either &lt;code&gt;#global()&lt;/code&gt; method to access 
+statically cached factory of named framed. 
+The better is to use &lt;code&gt;#newInstance()&lt;/code&gt; method to have an instance of the factory to explicitly control the lifetime.&lt;/p&gt;
+
+&lt;p&gt;Both methods return an instance of &lt;code&gt;org.jonnyzzz.stack.NamedExecutor&lt;/code&gt; interface, which contains all possible methods to wrap
+a call with a named frame.&lt;/p&gt;
+
+&lt;h1 id=&quot;implementation&quot;&gt;Implementation&lt;/h1&gt;
+
+&lt;p&gt;The implementation is covered in &lt;a href=&quot;/blog/2014/04/26/named-stack-frames-for-jvm/&quot;&gt;the older post&lt;/a&gt;. Note, the
+API is slightly changed in 0.2.x.&lt;/p&gt;
+
+&lt;p&gt;The idea is to on-the-fly generate classes for every given name. All generated classes are loaded with a dedicated
+classloader and cached.&lt;/p&gt;
+
+&lt;p&gt;We implement our own class file weaver to avoid external dependencies from other libraries and thus to
+simplify adoption of this library in your project.&lt;/p&gt;
+
+&lt;p&gt;The library attempts to escape some &lt;em&gt;bad&lt;/em&gt; symbols from names you pass. All such symbols are replaced with ‘_’.&lt;/p&gt;
+
+&lt;h1 id=&quot;namedstackframe-costs&quot;&gt;NamedStackFrame Costs&lt;/h1&gt;
+
+&lt;p&gt;Custom information in stack traces is not free. We create and load classes to implement it. This means, 
+it’s your responsibility to make sure you will not consume all JVM memory on that.&lt;/p&gt;
+
+&lt;p&gt;Practically, you should understand the number of possible names is limited and fits in the memory. That’s it.&lt;/p&gt;
+
+&lt;h1 id=&quot;profiler-grouping-of-calls&quot;&gt;Profiler Grouping of Calls&lt;/h1&gt;
+
+&lt;p&gt;Do you use a profiler to monitor your application? A profiler presents such named 
+methods (just like ordinary methods) as different method calls. That means you’ll see a distribution of calls.&lt;/p&gt;
+
+&lt;p&gt;You’ll see a distribution of time spent by each name: a distribution by &lt;code&gt;userId&lt;/code&gt;, &lt;code&gt;action type&lt;/code&gt; or &lt;code&gt;serviceId&lt;/code&gt;
+for the example above.&lt;/p&gt;
+
+&lt;h1 id=&quot;android-support&quot;&gt;Android Support&lt;/h1&gt;
+
+&lt;p&gt;All the time I was wondering if it’s helpful for Android applications as well. Do you like the idea?
+Please contribute!&lt;/p&gt;
+
+&lt;h1 id=&quot;license&quot;&gt;License&lt;/h1&gt;
+
+&lt;p&gt;The library is &lt;a href=&quot;https://www.apache.org/licenses/LICENSE-2.0&quot;&gt;Apache 2.0&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;download&quot;&gt;Download&lt;/h1&gt;
+
+&lt;p&gt;Sources are on &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Binaries are on JCenter / Bintray&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://bintray.com/jonnyzzz/maven/named-frames/_latestVersion&quot;&gt; &lt;img src=&quot;https://api.bintray.com/packages/jonnyzzz/maven/named-frames/images/download.svg&quot; alt=&quot;Download&quot; /&gt; &lt;/a&gt; &lt;a href=&quot;https://travis-ci.org/jonnyzzz/named-java-frames&quot;&gt; &lt;img src=&quot;https://travis-ci.org/jonnyzzz/named-java-frames.svg?branch=master&quot; alt=&quot;Build Status&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;In Gradle, just add&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;repositories {
+  jcenter()
+}
+
+dependencies {
+  compile 'org.jonnyzzz.named-frames:named-frames:&amp;lt;LATEST VERSION&amp;gt;'
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&quot;issues&quot;&gt;Issues&lt;/h1&gt;
+
+&lt;p&gt;On &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="jvm" /><category term="debug" /><category term="trace" /><category term="library" /><category term="opensource" /><category term="stacktrace" /><category term="frame" /><category term="stack" /><category term="java" /><category term="named-stack-frames" /><summary>Encode context in a thread dump or an exception stack trace for the JVM.</summary></entry><entry><title>Sealed classes and ‘when’ expression</title><link href="/blog/2017/03/29/when-for-sealed-classes/" rel="alternate" type="text/html" title="Sealed classes and 'when' expression" /><published>2017-03-29T00:00:00+00:00</published><updated>2017-03-29T00:00:00+00:00</updated><id>/blog/2017/03/29/when-for-sealed-classes</id><content type="html" xml:base="/blog/2017/03/29/when-for-sealed-classes/">&lt;p&gt;‘when’ expression as pattern-matching in Kotlin&lt;/p&gt;
 
 &lt;p&gt;Let’s consider the following case. You need to return 3 different return values from a function. Each 
 value is associated with information. Say we do &lt;a href=&quot;https://en.wikipedia.org/wiki/Authentication&quot;&gt;authentication&lt;/a&gt; 
@@ -1537,45 +1690,4 @@ leading to easy-to-use and easy-to-adopt solution.&lt;/p&gt;
 
 &lt;p&gt;Feel free to try &lt;a href=&quot;https://github.com/jonnyzzz/TeamCity2DSL&quot;&gt;TeamCity2DSL&lt;/a&gt; for TeamCity project settings domain.&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="kotlin" /><category term="dsl" /><category term="teamcity2dsl" /><category term="the dsl way" /><summary>Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
-a continuous integration build easily.</summary></entry><entry><title>Using Gradle to download and run anything</title><link href="/blog/2016/03/06/gradle-all-maven-runner/" rel="alternate" type="text/html" title="Using Gradle to download and run anything" /><published>2016-03-06T00:00:00+00:00</published><updated>2016-03-06T00:00:00+00:00</updated><id>/blog/2016/03/06/gradle-all-maven-runner</id><content type="html" xml:base="/blog/2016/03/06/gradle-all-maven-runner/">&lt;p&gt;There are so many small tasks that as solved via a tiny programs. Most of such programs 
-are to call several libraries to have an end-result. In the JVM world, most of those 
-libraries are downloadable from a maven repository.&lt;/p&gt;
-
-&lt;p&gt;It could be tricky in general to deliver dependencies for the script to run. There 
-are several possible ways to solve it.&lt;/p&gt;
-
-&lt;p&gt;I found an easy way to make Gradle download dependencies and run a script. 
-This makes the scripting done with groovy too.&lt;/p&gt;
-
-&lt;p&gt;Here goes an example to run an Amazon API and wrap it as Gradle task:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;buildscript&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// List all dependencies for scripting here&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;classpath&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;com.amazonaws:aws-java-sdk:1.10.48&amp;#39;&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;c1&quot;&gt;// Import what is necessay&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.amazonaws.auth.profile.ProfileCredentialsProvider&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.amazonaws.services.s3.AmazonS3Client&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;task&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;runScriptForAmazon&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// The script source goes here!&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s3client&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AmazonS3Client&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProfileCredentialsProvider&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Working with endpoint: $s3client.endpoint&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The only trick here is that Gradle includes all script dependencies into classpath 
-where tasks are loaded and executed.&lt;/p&gt;
-
-&lt;p&gt;Even more, adding &lt;a href=&quot;https://docs.gradle.org/current/userguide/gradle_wrapper.html&quot;&gt;Gradle Wrapper&lt;/a&gt; 
-makes it runnable on eveny machine with JVM only. 
-(A &lt;code&gt;Wrapper&lt;/code&gt; task can be used to have Gradle generate wrapper scripts)&lt;/p&gt;
-
-&lt;p&gt;Happy scripting!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="gradle" /><category term="maven" /><category term="hint" /><summary>There are so many small tasks that as solved via a tiny programs. Most of such programs 
-are to call several libraries to have an end-result. In the JVM world, most of those 
-libraries are downloadable from a maven repository.</summary></entry></feed>
+a continuous integration build easily.</summary></entry></feed>
