@@ -1,4 +1,94 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed-internal.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-05-03T16:15:52+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Bytecode behind coroutines in Kotlin</title><link href="/blog/2017/04/26/corotines-or-state-machine/" rel="alternate" type="text/html" title="Bytecode behind coroutines in Kotlin" /><published>2017-04-26T00:00:00+00:00</published><updated>2017-04-26T00:00:00+00:00</updated><id>/blog/2017/04/26/corotines-or-state-machine</id><content type="html" xml:base="/blog/2017/04/26/corotines-or-state-machine/">&lt;p&gt;A simple suspend function, and its bytecode.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?><feed xmlns="http://www.w3.org/2005/Atom"><generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator><link href="/feed-internal.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2017-05-10T13:34:23+00:00</updated><id>/</id><title>Eugene Petrenko</title><subtitle>@jonnyzzz personal page and blog</subtitle><entry><title>Words Cloud from Metrics Data</title><link href="/blog/2017/05/10/tags-cloud-from-analytics/" rel="alternate" type="text/html" title="Words Cloud from Metrics Data" /><published>2017-05-10T00:00:00+00:00</published><updated>2017-05-10T00:00:00+00:00</updated><id>/blog/2017/05/10/tags-cloud-from-analytics</id><content type="html" xml:base="/blog/2017/05/10/tags-cloud-from-analytics/">&lt;p&gt;representing metrics as words cloud&lt;/p&gt;
+
+&lt;p&gt;I was working on a presentation of an internal service I’m working. In the service we have many 
+entities (sorry, no details here for now), each generates inbound and outbound traffic.&lt;/p&gt;
+
+&lt;h1 id=&quot;preparing-data&quot;&gt;Preparing Data&lt;/h1&gt;
+
+&lt;p&gt;The service has an endpoint with whole metrics we collect. That is an enormously huge JSON file, that one can fetch
+from an HTTP endpoint.&lt;/p&gt;
+
+&lt;p&gt;There is too much data event to feed some &lt;a href=&quot;https://grafana.com/&quot;&gt;Grafana&lt;/a&gt; solution. So we need to filter/normalize the data first.&lt;/p&gt;
+
+&lt;p&gt;I use amazing &lt;a href=&quot;https://stedolan.github.io/jq/&quot;&gt;jq&lt;/a&gt;. Great tool to update/fetch/patch/present data. On macOS
+you may simply say &lt;code&gt;brew install jq&lt;/code&gt; to have it.&lt;/p&gt;
+
+&lt;p&gt;Fetching data in the console can be done simply too. I use &lt;a href=&quot;https://curl.haxx.se/&quot;&gt;curl&lt;/a&gt; for that.&lt;/p&gt;
+
+&lt;p&gt;The finally, to prepare the data, I use to following snipped&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; 
+curl -s http://gh-prod-blue-backend-01/~api/manage/metrics | \
+  jq --raw-output \
+  &amp;#39;[ .block[] |  { key: .id, value : .counters.&amp;quot;outbound-traffic&amp;quot;  } ] | del (.[] | select(.value == null ) ) | from_entries &amp;#39;  
+   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The output from the tool was like the following&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-1&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;39090&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-2&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5533&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-3&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;13750&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;//....&lt;/span&gt;
+  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-N&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7235017&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;That is the data to feed into a words/tags cloud generator.&lt;/p&gt;
+
+&lt;h1 id=&quot;generating-a-tags-cloud&quot;&gt;Generating a Tags Cloud&lt;/h1&gt;
+
+&lt;p&gt;I failed to find any good online service to implement the task in several clicks. Finally, I found a fantastic Python library
+called &lt;a href=&quot;https://github.com/amueller/word_cloud&quot;&gt;word_cloud&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Frankly, I’m not a python expert. I found an example and managed to turn it 
+to my need in &lt;a href=&quot;https://www.jetbrains.com/pycharm/&quot;&gt;PyCharm&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;That is the snipped I finally did&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;math&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;wordcloud&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WordCloud&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;plt&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loads&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; { &amp;#39;json&amp;#39; : &amp;#39;data is here&amp;#39; } &amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;theDataMax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;##&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;## normalize the data first&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;##&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theDataMax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
+          &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Generate a word cloud image&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;wordcloud&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WordCloud&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;background_color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;white&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;margin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;ranks_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prefer_horizontal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scale&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;color_func&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_words&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;min_font_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;stopwords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random_state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;max_font_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;font_step&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;RGB&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;relative_scaling&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;regexp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collocations&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                 &lt;span class=&quot;n&quot;&gt;colormap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;normalize_plurals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;\
+    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;generate_from_frequencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Display the generated image:&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;figure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imshow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wordcloud&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;interpolation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;bilinear&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;off&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;I’m happy I came across several amazing tools, and it turned to be easy and fun to generate some analytics ‘reports’ like that:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/posts/2017-05-10-tags-cloud-from-analytics.png&quot; alt=&quot;Marvell characters cloud&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I use Marvell character names instead of real names :)&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="metrics" /><category term="cloud" /><category term="ha" /><category term="logs" /><summary>representing metrics as words cloud</summary></entry><entry><title>Bytecode behind coroutines in Kotlin</title><link href="/blog/2017/04/26/corotines-or-state-machine/" rel="alternate" type="text/html" title="Bytecode behind coroutines in Kotlin" /><published>2017-04-26T00:00:00+00:00</published><updated>2017-04-26T00:00:00+00:00</updated><id>/blog/2017/04/26/corotines-or-state-machine</id><content type="html" xml:base="/blog/2017/04/26/corotines-or-state-machine/">&lt;p&gt;A simple suspend function, and its bytecode.&lt;/p&gt;
 
 &lt;p&gt;The new thing in Kotlin 1.1 is &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;coroutines&lt;/a&gt;. As we know
 from the documentation, it is the &lt;code&gt;suspend&lt;/code&gt; keyword that was added to the language. The rest is implemented 
@@ -1548,173 +1638,4 @@ automatic test, continuous integration and so on.&lt;/p&gt;
 &lt;p&gt;You may follow to &lt;a href=&quot;/blog/2016/03/08/gradle-for-dsl/&quot;&gt;this post&lt;/a&gt; for details on how to create decent package
 for The DSL Way toolset.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="dsl" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><category term="the dsl way" /><summary>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary></entry><entry><title>Proxy calls between classloaders</title><link href="/blog/2016/08/29/classloader-proxy/" rel="alternate" type="text/html" title="Proxy calls between classloaders" /><published>2016-08-29T00:00:00+00:00</published><updated>2016-08-29T00:00:00+00:00</updated><id>/blog/2016/08/29/classloader-proxy</id><content type="html" xml:base="/blog/2016/08/29/classloader-proxy/">&lt;p&gt;There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
-one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.&lt;/p&gt;
-
-&lt;p&gt;I solved a simple puzzle with isolating classes I want to share.&lt;/p&gt;
-
-&lt;h1 id=&quot;backgrounds&quot;&gt;Backgrounds&lt;/h1&gt;
-
-&lt;p&gt;There are integration tests in a project. Those integration tests starts several web applications, 
-bind them together and to some black-box tests. 
-The vital part of such tests is to provide a classpath isolation between test classes and classes 
-of applications that are running.&lt;/p&gt;
-
-&lt;p&gt;To start each of those web servers I use Jetty Embedded. Well, I load Jetty classes for each 
-web application I start within a separate classloaders hierarchy. I like Jetty, but I want to 
-isolate any side effects, thus loading it several times, thanks it’s tiny, is the way to go.&lt;/p&gt;
-
-&lt;p&gt;All helper classes to start/stop/configure web applications forms an API that helps for a tests run.&lt;/p&gt;
-
-&lt;p&gt;It turns out to be tricky to isolate those runner classes from a test classpath. From one hand we’d 
-like to have an APIs available for test class to use, from the other hand, it is still required 
-to make sure the classpath of web application, hence Jetty Embedded it not polluted with test module 
-dependencies.&lt;/p&gt;
-
-&lt;h1 id=&quot;the-problem&quot;&gt;The Problem&lt;/h1&gt;
-
-&lt;p&gt;Say we have and &lt;code&gt;API.jar&lt;/code&gt; and &lt;code&gt;IMPL.jar&lt;/code&gt;. We are looking on how to load the &lt;code&gt;IMPL.jar&lt;/code&gt; with a clean
-classpath and still have a change to bind it to the &lt;code&gt;API.jar&lt;/code&gt; that is a part of some other huge classpath.&lt;/p&gt;
-
-&lt;p&gt;The goal is to the following:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Test framework uses &lt;code&gt;API.jar&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;IMPL.jar also uses &lt;code&gt;API.jar&lt;/code&gt;, but it does not see any test-related classes&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The problem is that it is test framework / test runner that loading test classes. We are unlikely to change that.
-Otherwise we have to take care of test runners, IDEs, CI, debugging.&lt;/p&gt;
-
-&lt;h1 id=&quot;obvious-solutions&quot;&gt;Obvious solutions&lt;/h1&gt;
-&lt;p&gt;Load all classes within one JVM. This violates the task, but may be the easiest way. The future issue here 
-can be a jar hell, if one has different libraries used in the application / tests or the loader.&lt;/p&gt;
-
-&lt;p&gt;Another solution could be in using OSGi. It’s a complicated framework that uses security manager to isolate
-classes visibility.&lt;/p&gt;
-
-&lt;p&gt;Future solution with Java 9 modules is also a way to go. But for now, it’s too early.&lt;/p&gt;
-
-&lt;h1 id=&quot;just-classloading&quot;&gt;Just Classloading&lt;/h1&gt;
-
-&lt;p&gt;The most simple solution is to load classes with &lt;em&gt;child-first&lt;/em&gt; classloader. This is &lt;strong&gt;NOT&lt;/strong&gt; the way
-to isolate dependencies, but at least this is the way to have IMPL.jar dependencies win on classloading.&lt;/p&gt;
-
-&lt;p&gt;There are at least two things to take case of&lt;/p&gt;
-
-&lt;h2 id=&quot;case-1--jvm-classes&quot;&gt;Case 1 : JVM classes&lt;/h2&gt;
-&lt;p&gt;Child first classloaders should still load JVM classes first.&lt;/p&gt;
-
-&lt;p&gt;It may turn out the classpath contains some classes that are now included into JVM. Those classes are 
-still included into a package to provide a compatibility with older JVM versions. Those classes are 
-simply ignored by the JVM when default classloading is used.&lt;/p&gt;
-
-&lt;p&gt;It may generate tricky issues when child first classloader attempts to load wrong classes since 
-those classes will likely register themselves in the OS.&lt;/p&gt;
-
-&lt;p&gt;The solution here is the following. We crete a classloader:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;  &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jvmClassLoaderDelegate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
-to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.&lt;/p&gt;
-
-&lt;h2 id=&quot;case-2-resources&quot;&gt;Case 2: Resources&lt;/h2&gt;
-
-&lt;p&gt;It’s so easy to implement child first classloader. It is also so easy to forget about resources. The child first
-strategy must be implemented for resources too. Otherwise, it may break some libraries which uses resources.&lt;/p&gt;
-
-&lt;p&gt;Finally classloading with child first delegation does not solve the initial problem. It does not allow to 
-fully isolate test classes (e.g. test framework) from &lt;code&gt;IMPL.jar&lt;/code&gt; classes&lt;/p&gt;
-
-&lt;h1 id=&quot;the-proxy-trick&quot;&gt;The Proxy Trick&lt;/h1&gt;
-
-&lt;p&gt;The idea is to load &lt;code&gt;API.jar&lt;/code&gt; twice and than use to &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to bind interfaces part from 
-tests classspath to implementations.&lt;/p&gt;
-
-&lt;p&gt;A trick is to have yet another classloader with &lt;code&gt;null&lt;/code&gt; as parent. The loader classpath includes 
-only &lt;code&gt;API.jar&lt;/code&gt;, &lt;code&gt;IMPL.jar&lt;/code&gt; and dependencies of &lt;code&gt;IMPL.jar&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Next we create a &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt; to create an instance of an API interface that delegates
-to the implementation class that is loaded by the other classloader. We are not able to cast here,
-since we have &lt;code&gt;API.jar&lt;/code&gt; loaded twice.&lt;/p&gt;
-
-&lt;p&gt;Unfortunately, this will only work when API interface methods uses JVM classes as parameters 
-and return types. There are no common 
-classloaders between &lt;code&gt;IMPL.jar&lt;/code&gt; and tests, thus ClassCastException will be thrown for other types.&lt;/p&gt;
-
-&lt;h1 id=&quot;recursive-proxy-trick&quot;&gt;Recursive Proxy Trick&lt;/h1&gt;
-
-&lt;p&gt;The last limitation can be solved by a bit more complicated trick of 3 steps&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Create a proxy for API interface&lt;/li&gt;
-  &lt;li&gt;In the implementation, check all parameter types and proxy every parameter with non system classloader&lt;/li&gt;
-  &lt;li&gt;In the implementation, proxy return values in opposite way&lt;/li&gt;
-  &lt;li&gt;Apply the following proxies recursively if &lt;code&gt;API.jar&lt;/code&gt; interfaces are complex&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This approach allows to use JVM classes and &lt;code&gt;API.jar&lt;/code&gt; interfaces between the bound. It will not work 
-with classes, since it is the limitation of &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;The overall trick is implemented as follows&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; * creates a proxy for an object obj loaded in sourceLoader hierarchy &lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; * that is visible in destLoader as destClass interface&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; * assuming all methods of destClass are implemented in obj&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; * exactly with same signature&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;*/&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-             &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newProxyInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;destClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;},&lt;/span&gt;
-          &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-                  &lt;span class=&quot;n&quot;&gt;threadClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
-                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
-                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getParameterTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-                    
-                    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-                      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-                        &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
-                        &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;
-                      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-                        &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sourceTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
-                        &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]);&lt;/span&gt;
-                      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;realMethod&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgTypes&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-                    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;realMethod&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mappedArgs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-                    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getReturnType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-                      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-                    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sourceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;destLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getReturnType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
-                  &lt;span class=&quot;o&quot;&gt;}));&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h1 id=&quot;limitations&quot;&gt;Limitations&lt;/h1&gt;
-
-&lt;p&gt;Current implementation works only with API interfaces. It does not allow sharing classes or enums. 
-Enums from &lt;code&gt;API.jar&lt;/code&gt; can be easily supported be adding an explicit checking. 
-Classes cannot be mapped this way. At least because it is not allowed in &lt;code&gt;java.lang.reflect.Proxy&lt;/code&gt;. 
-From the other hand, it’s not clear how class state can be transferred at all.&lt;/p&gt;
-
-&lt;h1 id=&quot;side-note&quot;&gt;Side Note&lt;/h1&gt;
-
-&lt;p&gt;It may be necessary to change &lt;code&gt;Thread#contextClassloader&lt;/code&gt; to the right one before calling a 
-method from different classloader. This trick makes dynamic classloading in libraries work 
-correctly for some cases. Otherwise, there is a possibility that a class from another classpath
-is created from &lt;code&gt;IMPL.jar&lt;/code&gt; code (say, via &lt;code&gt;Class#forName&lt;/code&gt; call)&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;I used the approach to implement integration tests that are running several web application 
-instances within one JVM. All instances are now isolated from each other and from tests classpath.&lt;/p&gt;
-
-&lt;p&gt;Running everything within one JVM helps to avoid issues with leaked processes or applications as well as
-allows one to debug every application or even all applications easily!&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="java" /><category term="jvm" /><category term="classloaders" /><summary>There are so many tricky stories around on classloaders in Java. Classloading is a powerful technique from the 
-one hand. From the other it’s the place where it so easy to make mistakes. Some are simply afraid using them.</summary></entry></feed>
+&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content><author><name>Eugene Petrenko</name><email>eugene.petrenko@gmail.com</email></author><category term="dsl" /><category term="kotlin" /><category term="jvm" /><category term="ide" /><category term="the dsl way" /><summary>An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary></entry></feed>
