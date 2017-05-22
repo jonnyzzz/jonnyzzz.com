@@ -5,14 +5,14 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Talks &#8211; Eugene Petrenko</title>
-<meta name="description" content="Conferences and Talks"/>
+<title>Contributions &#8211; Eugene Petrenko</title>
+<meta name="description" content="Open source projects I contributed"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Talks -- Eugene Petrenko" />
-<meta name="twitter:description" content="Conferences and Talks" />
+<meta name="twitter:title" content="Contributions -- Eugene Petrenko" />
+<meta name="twitter:description" content="Open source projects I contributed" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -22,9 +22,9 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Talks -- Eugene Petrenko" />
-<meta property="og:description" content="Conferences and Talks" />
-<meta property="og:url" content="http://jonnyzzz.com/talks/" />
+<meta property="og:title" content="Contributions -- Eugene Petrenko" />
+<meta property="og:description" content="Open source projects I contributed" />
+<meta property="og:url" content="http://jonnyzzz.com/contrib/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -42,7 +42,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/talks/" />
+<link rel="canonical" href="http://jonnyzzz.com/contrib/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -151,70 +151,49 @@
     
     <div class="entry-wrapper">
       <header class="entry-header">
-        <h1 class="entry-title">Talks</h1>
+        <h1 class="entry-title">Contributions</h1>
       </header>
       <div class="entry-content">
-        <p>There is a list of conferences I talked on (excluding ones I did to Ph.D). You may also check my
-<a href="../contrib">contributions to open source</a> or <a href="../projects">projects</a></p>
+        <p>Here goes the list (likely incomplete) of my contributions to open source projects. I will try to keep it up-to-date.
+You may also check <a href="../projects">projects</a> or <a href="../talks">talks</a></p>
 
-<h2 id="spring-io-2017">Spring I/O 2017</h2>
+<h2 id="apache-mina-sshd">Apache Mina SSHD</h2>
+<p><a href="https://github.com/apache/mina-sshd">https://github.com/apache/mina-sshd</a></p>
 
-<p><em>Title:</em> Splitting component containers to simplify dependencies</p>
+<p>Contributed a number of problems I had in production. Also a fix for an invalid key authorization bug. 
+Overall reported <a href="https://issues.apache.org/jira/browse/SSHD-656?jql=project%20%3D%20SSHD%20AND%20reporter%20in%20(jonnyzzz)">those</a> issues</p>
 
-<p><em>Abstract:</em>
-The bigger a monolithic application, the larger the dependency set. Adding or changing dependencies 
-becomes a tricky task. Similarly, the complexity is in a number of beans and their 
-dependencies in components container.</p>
+<h2 id="intellij-idea-community-edition">IntelliJ IDEA Community Edition</h2>
+<p><a href="https://github.com/JetBrains/intellij-community">https://github.com/JetBrains/intellij-community</a></p>
 
-<p>In this talk, we’ll discuss a way to simplify things by splitting component containers 
-into smaller ones. We’ll see how to split a monolithic ApplicationContext into a number 
-of sub-contexts, how to isolate sub-context internal beans, clear their APIs and avoid 
-non-trivial dependencies.</p>
+<p>Gradle Tests Performance Improvement. The <a href="https://github.com/JetBrains/intellij-community/pull/508">pull request</a> to use faster
+test output processing from Gradle.</p>
 
-<p>Each sub-context can have its own classpath, which tackles the dependency hell problem.
-After being divided, a monolithic system becomes easier to split into a set of micro-services or processes.
-From the talk, attendees will learn several practical tips and tricks on how to split component 
-containers into smaller ones</p>
+<p>Pathces and fixes to help <a href="https://jetbrains.com/toolbox/app">Toolbox App</a> to work.</p>
 
-<p><a href="http://2017.springio.net/" target="_blank">Conference</a><br />
-<a href="https://docs.google.com/presentation/d/1CRjAKdQEvVNi9JzuudEKlnncJffKi5k8Lw0J335IYMk/edit?usp=sharing" target="_blank">Slides</a> <br />
-Posts by <a href="/tags/#Spring">Spring</a> tag<br />
-Video <em>Expected soon</em></p>
+<h2 id="os-detector-gradle-plugin">OS Detector Gradle Plugin</h2>
+<p><a href="https://github.com/google/osdetector-gradle-plugin">https://github.com/google/osdetector-gradle-plugin</a></p>
 
-<h2 id="javaone-2016">JavaOne 2016</h2>
-<p><em>Title:</em> Generating Kotlin Code for Better Refactorings, Tests, and IDE Support [CON3575]</p>
+<p>It was unclear how to use the plugin. I have <a href="https://github.com/google/osdetector-gradle-plugin/pull/9">improved</a> the documentation.</p>
 
-<p><em>Abstract:</em>
-An IDE is so much more than an editor. It helps developers a lot 
-only if it knows something about the code. There are many ways to 
-extend an IDE. This session shows how to extend an IDE without 
-writing any IDE-specific code. It discusses how to create an API 
-library (DSL) in Kotlin (an open source JVM language) and a code 
-generator to empower IDE integration. It also covers applications such 
-as semantics, tests, project models, and refactorings.</p>
+<h2 id="jackson-mr-bean">Jackson Mr. Bean</h2>
+<p><a href="https://github.com/FasterXML/jackson-module-mrbean">https://github.com/FasterXML/jackson-module-mrbean</a></p>
 
-<p><a href="https://oracle.rainfocus.com/scripts/catalog/oow16.jsp?event=javaone&amp;search=petrenko&amp;search.event=javaone" target="_blank">Conference</a> <br />
-<a href="https://docs.google.com/presentation/d/1pgzNnA4R3LU4hPnx0KTvQ0NFj23rPyq-ROr8kOiaxlM/edit?usp=sharing" target="_blank">Slides</a>   <br />
-Posts by <a href="/tags/#the dsl way">the dsl way</a> tag</p>
+<p>Java deserialization issue with generics and type erasure in Jackson Mr.Bean <a href="https://github.com/FasterXML/jackson-module-mrbean">module</a>.</p>
 
-<h2 id="gradlesummit-2016">GradleSummit 2016</h2>
-<p><em>Title:</em> Building Self-Contained Toolset with Gradle</p>
+<p><a href="https://github.com/FasterXML/jackson-module-mrbean/issues/1">Issue #1</a>,
+<a href="https://github.com/FasterXML/jackson-module-mrbean/pull/6">Pull Request</a></p>
 
-<p><em>Abstract:</em>
-Consider a toolset which helps to edit configuration files. For a given list of configuration files it 
-generates source code in Kotlin. From the compiled source code it generates configuration files back. 
-Editing the generated source code in IDE helps to view, change, refactor and test configuration easier. 
-The setup of such a toolset from scratch is usually complicated. It contains a tricky IDE configuration, 
-dependency resolution, source code compilation, classpath construction and test running.</p>
+<h2 id="spek">Spek</h2>
+<p><a href="https://github.com/JetBrains/spek">https://github.com/JetBrains/spek</a></p>
 
-<p>The complexity makes such a toolset hard to use in practice and in continuous integration. Our goal is to simplify 
-the setup. For this purpose we created an opensource Gradle plugin which will be discussed in this talk. The 
-talk contains examples and tips that illustrate how one can hide and reuse tricky details and turn a domain 
-specific toolset into a easy-to-use self-contained piece of software.</p>
+<p>Created first version of the test runner implementation based on JUnit to have IDE/CI tooling integration for free.</p>
 
-<p><a href="https://gradlesummit.wpengine.com/schedule/building-self-contained-toolset-with-gradle" target="_blank">Conference</a> <br />
-<a href="https://docs.google.com/presentation/d/1GjPO0dY9VKC5xl7PzAQZCsHFCwh8NLxcCWh80V9Q0fk/edit?usp=sharing" target="_blank">Slides</a> <br />
-<a href="https://www.youtube.com/watch?v=ehTL4DiHguo" target="_blank">Video</a></p>
+<h2 id="tinymissionkara">TinyMission/kara</h2>
+<p><a href="https://github.com/TinyMission/kara">https://github.com/TinyMission/kara</a></p>
+
+<p><a href="https://github.com/pulls?q=is%3Apr+author%3Ajonnyzzz+user%3ATinyMission">Contributed</a> infrastructure 
+fixes and other improvements to DSL-based web framework in <a href="https://kotlinlang.org">Kotlin</a></p>
 
 
       </div><!-- /.entry-content -->
