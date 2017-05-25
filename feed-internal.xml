@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-05-19T16:17:36+00:00</updated>
+  <updated>2017-05-25T06:44:00+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,157 @@
   
 
   
+  
+  <entry>
+    <title type="html">Load Balancing SSH</title>
+    <link href="http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/" rel="alternate" type="text/html" title="Load Balancing SSH" />
+    <published>2017-05-24T00:00:00+00:00</published>
+    <updated>2017-05-24T00:00:00+00:00</updated>
+    <id>/blog/2017/05/24/ssh-haproxy</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/">&lt;p&gt;More SSH servers behind the same hostname&lt;/p&gt;
+
+&lt;p&gt;Say you have an SSH server on your premises. And say you have a huge load on that service.&lt;/p&gt;
+
+&lt;p&gt;Example? Sure. Git repository. Any git ‘server’ is such a use-case.&lt;/p&gt;
+
+&lt;h1 id=&quot;ssh-backgrounds&quot;&gt;SSH backgrounds&lt;/h1&gt;
+
+&lt;p&gt;SSH acronym means &lt;code&gt;The Secure Shell&lt;/code&gt;. More precisely, we’ll be talking about SSH2 protocol, which is
+a de-facto standard. This protocol is covered by the &lt;a href=&quot;https://tools.ietf.org/html/rfc4253&quot;&gt;RFC 4253&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Barely (as simply as possible), the connection is done as follows. A client opens new TCP connection 
+to the server. It checks server public key(s) (using the &lt;code&gt;known_hosts&lt;/code&gt; file). Then server 
+and client do key exchange, authentication and open channels to run commands or 
+interactive sessions.&lt;/p&gt;
+
+&lt;p&gt;More precisely, SSH protocol runs on top of TCP connection. This protocol is secure. We need 
+to load balance TCP connections, aka &lt;a href=&quot;https://en.wikipedia.org/wiki/OSI_model&quot;&gt;L4&lt;/a&gt; level 
+load balancing.&lt;/p&gt;
+
+&lt;h1 id=&quot;dns-load-balancing&quot;&gt;DNS Load Balancing&lt;/h1&gt;
+
+&lt;p&gt;We need to have several SSH server running. All IP addresses are registered in the DNS for the 
+same hostname. The &lt;a href=&quot;https://en.wikipedia.org/wiki/Round-robin_DNS&quot;&gt;DNS round-robin&lt;/a&gt; will make
+it play as load balancing.&lt;/p&gt;
+
+&lt;p&gt;The problem here is in the DNS update latency. DNS is cached all over the place. And we 
+are not able to have more (or less) servers fast. In practice, it may take days to propagate
+the update.&lt;/p&gt;
+
+&lt;p&gt;Also, this approach requires as much IP addresses as we have SSH servers.&lt;/p&gt;
+
+&lt;h1 id=&quot;haproxy-approach&quot;&gt;HAProxy Approach&lt;/h1&gt;
+
+&lt;p&gt;There are many balances, we consider &lt;a href=&quot;http://www.haproxy.org/&quot;&gt;HAProxy&lt;/a&gt; 
+for &lt;a href=&quot;https://www.quora.com/What-is-the-difference-between-layer-3-and-layer-4-load-balancing-Why-is-layer-7-LB-used-inspite-of-its-drawbacks-of-being-a-bottleneck&quot;&gt;L4&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The configuration is quite simple.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+    mode tcp
+
+    server &amp;lt;SERVER_NAME_1&amp;gt; &amp;lt;SERVER_HOST_1&amp;gt;:&amp;lt;SERVER_PORT_1&amp;gt; weight &amp;lt;WEIGHT_1&amp;gt;
+    server &amp;lt;SERVER_NAME_2&amp;gt; &amp;lt;SERVER_HOST_2&amp;gt;:&amp;lt;SERVER_PORT_2&amp;gt; weight &amp;lt;WEIGHT_2&amp;gt;
+    ...
+    server &amp;lt;SERVER_NAME_N&amp;gt; &amp;lt;SERVER_HOST_N&amp;gt;:&amp;lt;SERVER_PORT_N&amp;gt; weight &amp;lt;WEIGHT_N&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This configuration is enough to make HAProxy run in the L4 mode to route traffic from the main service IP(s)
+to all backends.&lt;/p&gt;
+
+&lt;p&gt;Running several HAProxy instances behind different IP addresses is possible for redundancy and throughput.&lt;/p&gt;
+
+&lt;h1 id=&quot;ssh-server-server-keys&quot;&gt;SSH Server Server Keys&lt;/h1&gt;
+
+&lt;p&gt;It is necessary to have same server keys on all &lt;code&gt;SERVERN_1&lt;/code&gt; … &lt;code&gt;SERVER_N&lt;/code&gt; family, otherwise an SSH client 
+will warn a possible MIIM attach, as client likely to access any SSH server from the same IP. And the &lt;code&gt;known_hosts&lt;/code&gt;
+file stores server public key info for each known IP.&lt;/p&gt;
+
+&lt;h1 id=&quot;tcp-balancing-issues-request-ip&quot;&gt;TCP Balancing Issues: Request IP&lt;/h1&gt;
+
+&lt;p&gt;There are several differences between an HTTP-level (L7) balancing and TCP-level balancing. You are not able
+to send request IP address that easy as via HTTP. The protocol is only about streams. There is no notion of headers,
+where one is able to pass extra data, e.g. as in HTTP with &lt;code&gt;X-Forwarded-For&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There is no solution in general, but one can use &lt;a href=&quot;http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt&quot;&gt;HAProxy PROXY protocol&lt;/a&gt;.
+That is an extension to any TCP protocol that blindly sends a specific string with request/response information to the 
+server. One has to have a server, supporting PROXY protocol on the other end.&lt;/p&gt;
+
+&lt;p&gt;The PROXY protocol is used in a number of places and services, e.g. AWS ELB, HAProxy, Nginx, and much mode.&lt;/p&gt;
+
+&lt;p&gt;Bad news. Open SSH server implementation does not support it out of the box, but one may apply patches to support that.
+I created and shared patches for &lt;a href=&quot;https://issues.apache.org/jira/browse/SSHD-656&quot;&gt;Apache Mina SSHD&lt;/a&gt; library.&lt;/p&gt;
+
+&lt;p&gt;To enable the support, add &lt;code&gt;send-proxy&lt;/code&gt; each server line. You may replace the line&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;     server &amp;lt;SERVER_NAME_N&amp;gt; &amp;lt;SERVER_HOST_N&amp;gt;:&amp;lt;SERVER_PORT_N&amp;gt; check weight &amp;lt;WEIGHT_N&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;with&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;     server &amp;lt;SERVER_NAME_N&amp;gt; &amp;lt;SERVER_HOST_N&amp;gt;:&amp;lt;SERVER_PORT_N&amp;gt; send-proxy weight &amp;lt;WEIGHT_N&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;health-checks&quot;&gt;Health Checks&lt;/h1&gt;
+
+&lt;p&gt;HAProxy supports automated health checks on TCP level. Ones a backend server is not able to reply on checks, 
+the traffic is no longer send to an unhealthy host.&lt;/p&gt;
+
+&lt;p&gt;I use the following configuration for that &lt;code&gt;tcp-check expect string SSH-2.0-&lt;/code&gt;. The option instructs HAProxy
+to run checks and to check if the remote end replies with a string that starts with &lt;code&gt;SSH-2.0-&lt;/code&gt;. Such answer is 
+the standard message required by the SSH2 protocol.&lt;/p&gt;
+
+&lt;p&gt;Overall we have the following configuration:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+    mode tcp
+    
+    tcp-check expect string SSH-2.0-
+
+    ...
+    server &amp;lt;SERVER_NAME_i&amp;gt; &amp;lt;SERVER_HOST_i&amp;gt;:&amp;lt;SERVER_PORT_i&amp;gt; check weight &amp;lt;WEIGHT_1&amp;gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h1 id=&quot;usages&quot;&gt;Usages&lt;/h1&gt;
+
+&lt;p&gt;We use this approach mainly to implement
+&lt;a href=&quot;https://martinfowler.com/bliki/BlueGreenDeployment.html&quot;&gt;Green-Blue deployments&lt;/a&gt;. We route traffic 
+to the active host. We can change the configuration dynamically or even have custom weights to implement A/B tests.&lt;/p&gt;
+
+&lt;p&gt;An alternative is to use DNS. But with DNS you never know how much time will it take for client’s and chain
+of DNS servers to propagate the change. In the real world, it looks the best to combine DNS as more slow
+and static entry level balancing. Next to use HAProxy (or similar) balancing to implement fast configuration
+changes on the fly.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;I showed how to easily load-balance SSH servers for fun and profit. Hope this helps you to 
+build a highly available system.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ssh" />
+  
+    <category term="haproxy" />
+  
+    <category term="tcp" />
+  
+    <category term="service" />
+  
+    <category term="cloud" />
+  
+    <category term="glb" />
+  
+    <category term="load-balance" />
+  
+    <summary type="html">More SSH servers behind the same hostname</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Words Cloud from Metrics Data</title>
@@ -1783,205 +1934,6 @@ a zero-configuration package for such DSLs and for The DSL Way approach.&lt;/p&g
     <category term="ide" />
   
     <summary type="html">In this post I show how to implement The DSL Way to manage Log4j configuration and extend an IDE without writing a plugin for it</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Building DSL Instead of an IDE Plugin</title>
-    <link href="http://jonnyzzz.com/blog/2016/09/02/dsl-building/" rel="alternate" type="text/html" title="Building DSL Instead of an IDE Plugin" />
-    <published>2016-09-02T00:00:00+00:00</published>
-    <updated>2016-09-02T00:00:00+00:00</updated>
-    <id>/blog/2016/09/02/dsl-building</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2016/09/02/dsl-building/">&lt;p&gt;An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.&lt;/p&gt;
-
-&lt;h1 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h1&gt;
-
-&lt;p&gt;Most of us use quite smart IDEs daily with languages we use for development. IDE helps us not only
-to highlight keywords. It is able to check types, show errors, do refactoring, complete and analyze code.&lt;/p&gt;
-
-&lt;p&gt;Of course we spent some time working with languages that are not (or weakly) supported by an IDE. Those languages
-could be used for configurations files, logger settings, business rules, scripts, text files and so on.
-This is a specific domain where a language is used. It can be hard to read code on that language, it can
-be also hard to write it too. One may easily waste time writing incorrect code.&lt;/p&gt;
-
-&lt;p&gt;It’s the lack of decent IDE support for such languages. Let’s see how we can solve it&lt;/p&gt;
-
-&lt;p&gt;I will use \(Original Language\) term to refer to an unsupported language.&lt;/p&gt;
-
-&lt;h1 id=&quot;a-trivial-solution&quot;&gt;A Trivial Solution&lt;/h1&gt;
-
-&lt;p&gt;Say we have an \(Original Language\) we use, and there is no decent support for it in IDE.&lt;/p&gt;
-
-&lt;p&gt;The very first solution is to replace the \(Original Language\) with some other language.&lt;/p&gt;
-
-&lt;p&gt;Suppose the \(Original Language\) cannot be thrown away. And it’s likely there is a code on that language. 
-There has to be a system that accepts it too.&lt;/p&gt;
-
-&lt;p&gt;Okay. We may implement a plugin for our an IDE to support it.&lt;/p&gt;
-
-&lt;p&gt;Writing a plugin is a complicated task. One needs to know IDE API. Moreover, you’ll implement a parsing 
-so that it’d be fast enough to play well in IDE. The parser should also support invalid text input too, e.g. 
-incorrect code that is being entered. That can be tricky.&lt;/p&gt;
-
-&lt;p&gt;Well, a parser may not be necessary, if, say IDE support some base language, e.g. &lt;code&gt;.properties&lt;/code&gt; or &lt;code&gt;.xml&lt;/code&gt; format.
-But in that case a deep IDE APIs has to be used.&lt;/p&gt;
-
-&lt;p&gt;Finally, a plugin will depend on IDE. Meaning it has to be updated to work with newer IDE versions. It’s not in
-our control to lock an IDE version.&lt;/p&gt;
-
-&lt;p&gt;This can be done, but, there’s an &lt;strong&gt;alternative way&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h1 id=&quot;the-dsl-way&quot;&gt;The DSL Way&lt;/h1&gt;
-
-&lt;p&gt;Everyone uses their IDE. And of course there is a language we use daily. For example, it could be
-&lt;a href=&quot;http://www.oracle.com/technetwork/java/index.html&quot;&gt;Java&lt;/a&gt;,
-&lt;a href=&quot;http://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt;,
-&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt;,
-&lt;a href=&quot;https://golang.org/&quot;&gt;Go&lt;/a&gt;, 
-&lt;a href=&quot;http://www.groovy-lang.org/&quot;&gt;Groovy&lt;/a&gt;.
-We know for sure, an IDE is smart on those languages.&lt;/p&gt;
-
-&lt;p&gt;My idea is to an \(Original Language\), which is unsupported by an IDE, into a code in a supported language. 
-I will use a \(Target Language \) term for it. Next, run the 
-code to have a code in a \(Original Language\) back. As shown on the diagram below:&lt;/p&gt;
-
-&lt;script type=&quot;math/tex; mode=display&quot;&gt;% &lt;![CDATA[
-\begin{equation}
-\begin{array}[c]{ccccc}
-
-&amp;&amp;API Library \\
-&amp;&amp; \Big\uparrow \mbox{uses}\\
-Original Language &amp; \xrightarrow{\mbox{generate}} &amp; Generated Code &amp; \xrightarrow{\mbox{execute}} &amp; Original Language \\
-&amp;&amp; Target Language \\
-\end{array}
-\end{equation} %]]&gt;&lt;/script&gt;
-
-&lt;p&gt;To implement it we need&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;\(generator\), a program that reads a valid code in the \(Original Language\) and generates a code in the \(Target Language \)&lt;/li&gt;
-  &lt;li&gt;\(API Library\), a peace of code that includes all definition required for a generated code to be more readable&lt;/li&gt;
-  &lt;li&gt;\(execute\), a peace of code that makes compiled generated code in the \(Target Language \) to emit a code in the \(Original Language\)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The goal of those transformations is to have a readable \(Generated Code \). Refactorings for \(Generated Code \) 
-in \(Target Language \) are projected to the \(Original Language\).&lt;/p&gt;
-
-&lt;h1 id=&quot;selecting-a-target-language&quot;&gt;Selecting a Target Language&lt;/h1&gt;
-
-&lt;p&gt;Most we need from a \( Target Language \) is a decent IDE support.&lt;/p&gt;
-
-&lt;p&gt;We shall select a \( Target Language \) with a good readability for everyone. 
-Languages with better DSL or fluent APIs capabilities are likely to play better.&lt;/p&gt;
-
-&lt;p&gt;Static typing is a nice to have. It makes it harder to make a error. Moreover, 
-it’s likely to require no setup for an IDE to work. For some dynamic languages
-an additional &lt;a href=&quot;https://confluence.jetbrains.com/display/GRVY/Scripting+IDE+for+DSL+awareness&quot;&gt;helper&lt;/a&gt; may be required.&lt;/p&gt;
-
-&lt;h1 id=&quot;the-dsl-way-benefits&quot;&gt;The DSL Way Benefits&lt;/h1&gt;
-
-&lt;p&gt;The DSL Way approach projects all features from an \( Target Language \) into a \(Original Language\). 
-We can say an \(Original Language\) is extended with all possible high-level features of a \( Target Language \).
-For example, we can use functions, loops, conditions, libraries and so on. There is no need to 
-have a support for such constructs in the \(Original Language\).
-One may also tune a \(generator\) to say fold duplicates in the input into a loops or functions.&lt;/p&gt;
-
-&lt;p&gt;Thanks to \(API Library\) we have good readability. It’s a creativity part here. But if implemented correctly, 
-it improves readability drastically.&lt;/p&gt;
-
-&lt;p&gt;The parsing is easier to implement for The DSL Way approach. We only need to have it supporting valid inputs. By induction,
-we start with a valid code and generate a valid code. It’s way more complex for The IDE Plugin case.&lt;/p&gt;
-
-&lt;p&gt;Refactorings and code analysis features for a \(Target Language \) are projected to a \(Original Language\). All 
-what is needed is to design \(API Library\) and \(generator\) in the right way. Say you need a &lt;em&gt;find usages&lt;/em&gt; 
-for some domain object. To have it, you may make a \(generator\) declare and use a variable for such entities. 
-Once variables are used, rename feature is implemented for free.&lt;/p&gt;
-
-&lt;h1 id=&quot;example&quot;&gt;Example&lt;/h1&gt;
-
-&lt;p&gt;Let’s consider &lt;a href=&quot;http://logging.apache.org/log4j/1.2/&quot;&gt;Log4j&lt;/a&gt; configuration in &lt;code&gt;.properties&lt;/code&gt; file as \(Original Language\).&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-properties&quot; data-lang=&quot;properties&quot;&gt;&lt;span class=&quot;na&quot;&gt;log4j.rootLogger&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;ERROR,stdout&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO,stdout&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# meaningful comment goes here&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;log4j.logger.corp.mega.itl.web.metrics&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;INFO&lt;/span&gt;
-
-&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.ConsoleAppender&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;org.apache.log4j.PatternLayout&lt;/span&gt;
-&lt;span class=&quot;na&quot;&gt;log4j.appender.stdout.layout.ConversionPattern&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I decided to use &lt;a href=&quot;https://www.jetbrains.com/idea/&quot;&gt;IntelliJ IDEA&lt;/a&gt; as IDE 
-and &lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as \(Target Language \).&lt;/p&gt;
-
-&lt;p&gt;The configuration below can be turned into the following Kotlin code.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;stdout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;stdout&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&amp;quot;&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ERROR&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega.itl.web.metrics&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;corp.mega&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;INFO&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stdout&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The evaluation of this Kotlin program yields the similar &lt;code&gt;.properties&lt;/code&gt; file back.&lt;/p&gt;
-
-&lt;p&gt;The DSL code is way easier to read and to write.&lt;/p&gt;
-
-&lt;p&gt;Thanks to Kotlin static typed DSLs, IntelliJ IDEA understands the code well, warns all incorrect usages,
-code complete all possibilities.&lt;/p&gt;
-
-&lt;p&gt;Moreover, using such DSL is the way to implement automatic tests for your log4j configurations.
-One may easily setup automatic tests task as a part of their continuous integration, since the code has no dependency on 
-an IDE part.&lt;/p&gt;
-
-&lt;p&gt;It opens the way to reuse common configuration files as well as to run.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;In the post we discussed The DSL Way of doing an IDE support &lt;strong&gt;without&lt;/strong&gt; writing any IDE related code. 
-The created DSL can be used not only with IDE. It can easily be re-used in any possible applications like code sharing,
-automatic test, continuous integration and so on.&lt;/p&gt;
-
-&lt;p&gt;You may follow to &lt;a href=&quot;/blog/2016/03/08/gradle-for-dsl/&quot;&gt;this post&lt;/a&gt; for details on how to create decent package
-for The DSL Way toolset.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;PS&lt;/em&gt;. Do you have more examples for \(Original Language\)? Please share in comments below&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="dsl" />
-  
-    <category term="kotlin" />
-  
-    <category term="jvm" />
-  
-    <category term="ide" />
-  
-    <category term="the dsl way" />
-  
-    <summary type="html">An alternative way of doing IDE support without any IDE plugin code for not yet supported and specific languages.</summary>
   
   </entry>
   

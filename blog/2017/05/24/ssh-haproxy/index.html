@@ -1,0 +1,414 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Load Balancing SSH &#8211; Eugene Petrenko</title>
+<meta name="description" content="More SSH servers behind the same hostname
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ssh, haproxy, tcp, service, cloud, glb, load-balance" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Load Balancing SSH -- Eugene Petrenko" />
+<meta name="twitter:description" content="More SSH servers behind the same hostname
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Load Balancing SSH -- Eugene Petrenko" />
+<meta property="og:description" content="More SSH servers behind the same hostname
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ssh" />
+
+<meta property="article:tag" content="haproxy" />
+
+<meta property="article:tag" content="tcp" />
+
+<meta property="article:tag" content="service" />
+
+<meta property="article:tag" content="cloud" />
+
+<meta property="article:tag" content="glb" />
+
+<meta property="article:tag" content="load-balance" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ssh" title="Pages tagged ssh">ssh</a></li><li><a href="/tags/#haproxy" title="Pages tagged haproxy">haproxy</a></li><li><a href="/tags/#tcp" title="Pages tagged tcp">tcp</a></li><li><a href="/tags/#service" title="Pages tagged service">service</a></li><li><a href="/tags/#cloud" title="Pages tagged cloud">cloud</a></li><li><a href="/tags/#glb" title="Pages tagged glb">glb</a></li><li><a href="/tags/#load-balance" title="Pages tagged load-balance">load-balance</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Load Balancing SSH</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-05-24T00:00:00+00:00"><i class="fa fa-calendar-o"></i> May 24, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=ssh,haproxy,tcp,service,cloud,glb,load-balance&amp;text=Load%20Balancing%20SSH&amp;url=http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/05/24/ssh-haproxy/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>More SSH servers behind the same hostname</p>
+
+<p>Say you have an SSH server on your premises. And say you have a huge load on that service.</p>
+
+<p>Example? Sure. Git repository. Any git ‘server’ is such a use-case.</p>
+
+<h1 id="ssh-backgrounds">SSH backgrounds</h1>
+
+<p>SSH acronym means <code>The Secure Shell</code>. More precisely, we’ll be talking about SSH2 protocol, which is
+a de-facto standard. This protocol is covered by the <a href="https://tools.ietf.org/html/rfc4253">RFC 4253</a>.</p>
+
+<p>Barely (as simply as possible), the connection is done as follows. A client opens new TCP connection 
+to the server. It checks server public key(s) (using the <code>known_hosts</code> file). Then server 
+and client do key exchange, authentication and open channels to run commands or 
+interactive sessions.</p>
+
+<p>More precisely, SSH protocol runs on top of TCP connection. This protocol is secure. We need 
+to load balance TCP connections, aka <a href="https://en.wikipedia.org/wiki/OSI_model">L4</a> level 
+load balancing.</p>
+
+<h1 id="dns-load-balancing">DNS Load Balancing</h1>
+
+<p>We need to have several SSH server running. All IP addresses are registered in the DNS for the 
+same hostname. The <a href="https://en.wikipedia.org/wiki/Round-robin_DNS">DNS round-robin</a> will make
+it play as load balancing.</p>
+
+<p>The problem here is in the DNS update latency. DNS is cached all over the place. And we 
+are not able to have more (or less) servers fast. In practice, it may take days to propagate
+the update.</p>
+
+<p>Also, this approach requires as much IP addresses as we have SSH servers.</p>
+
+<h1 id="haproxy-approach">HAProxy Approach</h1>
+
+<p>There are many balances, we consider <a href="http://www.haproxy.org/">HAProxy</a> 
+for <a href="https://www.quora.com/What-is-the-difference-between-layer-3-and-layer-4-load-balancing-Why-is-layer-7-LB-used-inspite-of-its-drawbacks-of-being-a-bottleneck">L4</a></p>
+
+<p>The configuration is quite simple.</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+    mode tcp
+
+    server &lt;SERVER_NAME_1&gt; &lt;SERVER_HOST_1&gt;:&lt;SERVER_PORT_1&gt; weight &lt;WEIGHT_1&gt;
+    server &lt;SERVER_NAME_2&gt; &lt;SERVER_HOST_2&gt;:&lt;SERVER_PORT_2&gt; weight &lt;WEIGHT_2&gt;
+    ...
+    server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; weight &lt;WEIGHT_N&gt;</code></pre></figure>
+
+<p>This configuration is enough to make HAProxy run in the L4 mode to route traffic from the main service IP(s)
+to all backends.</p>
+
+<p>Running several HAProxy instances behind different IP addresses is possible for redundancy and throughput.</p>
+
+<h1 id="ssh-server-server-keys">SSH Server Server Keys</h1>
+
+<p>It is necessary to have same server keys on all <code>SERVERN_1</code> … <code>SERVER_N</code> family, otherwise an SSH client 
+will warn a possible MIIM attach, as client likely to access any SSH server from the same IP. And the <code>known_hosts</code>
+file stores server public key info for each known IP.</p>
+
+<h1 id="tcp-balancing-issues-request-ip">TCP Balancing Issues: Request IP</h1>
+
+<p>There are several differences between an HTTP-level (L7) balancing and TCP-level balancing. You are not able
+to send request IP address that easy as via HTTP. The protocol is only about streams. There is no notion of headers,
+where one is able to pass extra data, e.g. as in HTTP with <code>X-Forwarded-For</code>.</p>
+
+<p>There is no solution in general, but one can use <a href="http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt">HAProxy PROXY protocol</a>.
+That is an extension to any TCP protocol that blindly sends a specific string with request/response information to the 
+server. One has to have a server, supporting PROXY protocol on the other end.</p>
+
+<p>The PROXY protocol is used in a number of places and services, e.g. AWS ELB, HAProxy, Nginx, and much mode.</p>
+
+<p>Bad news. Open SSH server implementation does not support it out of the box, but one may apply patches to support that.
+I created and shared patches for <a href="https://issues.apache.org/jira/browse/SSHD-656">Apache Mina SSHD</a> library.</p>
+
+<p>To enable the support, add <code>send-proxy</code> each server line. You may replace the line</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; check weight &lt;WEIGHT_N&gt;</code></pre></figure>
+
+<p>with</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; send-proxy weight &lt;WEIGHT_N&gt;</code></pre></figure>
+
+<h1 id="health-checks">Health Checks</h1>
+
+<p>HAProxy supports automated health checks on TCP level. Ones a backend server is not able to reply on checks, 
+the traffic is no longer send to an unhealthy host.</p>
+
+<p>I use the following configuration for that <code>tcp-check expect string SSH-2.0-</code>. The option instructs HAProxy
+to run checks and to check if the remote end replies with a string that starts with <code>SSH-2.0-</code>. Such answer is 
+the standard message required by the SSH2 protocol.</p>
+
+<p>Overall we have the following configuration:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+    mode tcp
+    
+    tcp-check expect string SSH-2.0-
+
+    ...
+    server &lt;SERVER_NAME_i&gt; &lt;SERVER_HOST_i&gt;:&lt;SERVER_PORT_i&gt; check weight &lt;WEIGHT_1&gt;</code></pre></figure>
+
+<h1 id="usages">Usages</h1>
+
+<p>We use this approach mainly to implement
+<a href="https://martinfowler.com/bliki/BlueGreenDeployment.html">Green-Blue deployments</a>. We route traffic 
+to the active host. We can change the configuration dynamically or even have custom weights to implement A/B tests.</p>
+
+<p>An alternative is to use DNS. But with DNS you never know how much time will it take for client’s and chain
+of DNS servers to propagate the change. In the real world, it looks the best to combine DNS as more slow
+and static entry level balancing. Next to use HAProxy (or similar) balancing to implement fast configuration
+changes on the fly.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>I showed how to easily load-balance SSH servers for fun and profit. Hope this helps you to 
+build a highly available system.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/05/10/tags-cloud-from-analytics/" class="btn" title="Words Cloud from Metrics Data">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
