@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-06-22T17:20:56+00:00</updated>
+  <updated>2017-07-05T10:23:49+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,118 @@
   
 
   
+  
+  <entry>
+    <title type="html">Building Go Project</title>
+    <link href="http://jonnyzzz.com/blog/2017/07/05/go-build/" rel="alternate" type="text/html" title="Building Go Project" />
+    <published>2017-07-05T00:00:00+00:00</published>
+    <updated>2017-07-05T00:00:00+00:00</updated>
+    <id>/blog/2017/07/05/go-build</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/07/05/go-build/">&lt;p&gt;No Silver-Go-Bullet. Yet another ad-hoc build.&lt;/p&gt;
+
+&lt;p&gt;I was doing a small Go command line tool project. All the time I was starting Go codebase, I looking for 
+the proper way to setup project and to build it.&lt;/p&gt;
+
+&lt;p&gt;The right build to me is the build which is reproducible. Such build is likely to be isolated 
+from a machine where you run it. Be it Linux, Mac or Windows. 
+Also, the right build should have all dependencies fixed. Otherwise, we have merely no chances
+to recreated it in the future.&lt;/p&gt;
+
+&lt;p&gt;As the very first example, I decided to use the approach from &lt;a href=&quot;https://github.com/hashicorp/consul-template&quot;&gt;Consul Template&lt;/a&gt;.
+That time (May 2017) it was a &lt;code&gt;make&lt;/code&gt; based build which was using the official Docker container to run.
+It was great! I was able to kick-start the project and to focus on development. But, it was crazy slow. 
+It took seconds to compile a tiny project. It was also unable to run on Windows.&lt;/p&gt;
+
+&lt;p&gt;I did research. Found several approaches to building Go with Gradle. I decided to try 
+&lt;a href=&quot;https://github.com/gogradle/gogradle&quot;&gt;Gogradle&lt;/a&gt;. Also, there is &lt;a href=&quot;https://github.com/echocat/gradle-golang-plugin&quot;&gt;gradle-golang-plugin&lt;/a&gt;.
+Overall, the story did not play well because some issues I came across. And again, the solution was heavy!&lt;/p&gt;
+
+&lt;p&gt;Isolation. Docker. Cool stuff. But, the best stuff, it to think Docker, and event avoid it. The Go itself 
+is amazing in that sense. The go binaries have zero dependencies. And this means we are able to zero-copy
+dependencies.&lt;/p&gt;
+
+&lt;p&gt;Finally, I created the following script. A still waiting for something better, and easier to use.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; dirname &lt;span class=&quot;s2&quot;&gt;&amp;quot;${BASH_SOURCE[0]}&amp;quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; pwd )&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; -e -x -u
+
+&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1.8.1
+
+&lt;span class=&quot;nv&quot;&gt;LOCAL_DIST&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$(pwd)/dist&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;LOCAL_GO_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_DIST/go-$(uname)-$GOVERSION&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; ! -f &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;/bin/go &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;GO_PKG&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_DIST&lt;/span&gt;/go-pkg-&lt;span class=&quot;nv&quot;&gt;$GOVERSION&lt;/span&gt;/go-binary.tar.gz
+  &lt;span class=&quot;nv&quot;&gt;GO_UNPACK&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_DIST&lt;/span&gt;/go-pkg-&lt;span class=&quot;nv&quot;&gt;$GOVERSION&lt;/span&gt;/unpack
+
+  rm -rf   &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mkdir -p &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( uname )&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~ .*&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;Dd&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;arwin.* &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+    curl -o &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; https://storage.googleapis.com/golang/go&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.darwin-amd64.tar.gz
+  &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
+    curl -o &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; https://storage.googleapis.com/golang/go&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.linux-amd64.tar.gz
+  &lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
+
+  tar -xf &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; -C &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt;
+
+  rm -rf &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mkdir -p &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mv &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt;/go/** &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;/
+
+  rm -f &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_GO_HOME/bin:$PATH&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GOROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GOPATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;PATH
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GOROOT
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GOPATH
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CGO_ENABLED&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$(which go)&amp;quot;&lt;/span&gt; !&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_GO_HOME/bin/go&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Incorrect go binary is still used: $(which go)&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
+&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; ! &lt;span class=&quot;s2&quot;&gt;&amp;quot;$(go version)&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~ &lt;span class=&quot;s2&quot;&gt;&amp;quot;go${GOVERSION} &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Failed to install required Go version. &amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
+&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The script downloads Go binaries for Mac or Linux to a build folder. It does not update the folder if
+there is Go already.&lt;/p&gt;
+
+&lt;p&gt;You may find the actual version on GitHub. &lt;a href=&quot;https://github.com/jonnyzzz/go-build-script&quot;&gt;https://github.com/jonnyzzz/go-build-script&lt;/a&gt;
+And let me know if you know the better way to Go.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="shell" />
+  
+    <category term="bash" />
+  
+    <category term="ci" />
+  
+    <category term="go" />
+  
+    <category term="build" />
+  
+    <summary type="html">No Silver-Go-Bullet. Yet another ad-hoc build.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">A Kotlin Coroutine for an OutputStream Filtering</title>
@@ -1600,207 +1712,6 @@ The only cost is 2 additional object instances: one for &lt;code&gt;GuardedByLoc
     <category term="tip" />
   
     <summary type="html">GuardedByLock a simple helper to make sure variable is only accessed with lock</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Catching exceptions with less code in Kotlin</title>
-    <link href="http://jonnyzzz.com/blog/2017/02/15/catchall/" rel="alternate" type="text/html" title="Catching exceptions with less code in Kotlin" />
-    <published>2017-02-15T00:00:00+00:00</published>
-    <updated>2017-02-15T00:00:00+00:00</updated>
-    <id>/blog/2017/02/15/catchall</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/02/15/catchall/">&lt;p&gt;A tiny inline function for consise try/catch&lt;/p&gt;
-
-&lt;p&gt;In JVM every call can throw an exception. In Java language, we have dedicated declaration that a method is 
-expected to throw some exception types. But still, some other (&lt;code&gt;Throwable&lt;/code&gt;, &lt;code&gt;Error&lt;/code&gt;, &lt;code&gt;RuntimeException&lt;/code&gt;) exceptions 
-may still be thrown.&lt;/p&gt;
-
-&lt;p&gt;In Kotlin there are no checked exceptions (like, say in C#). Sill, one have to expect
-any possible exception being thrown from any possible place.&lt;/p&gt;
-
-&lt;p&gt;Most cases it’s ok and one should not do anything specific about exceptions. Still, there are other places, 
-where an exception may break code logic. In asynchronous applications (for example with RxJava, Netty, grpc-java) where 
-most of the code is a callback, it may turn out necessary to make sure an exception is not breaking some 
-outer login.&lt;/p&gt;
-
-&lt;p&gt;A trivial solution is to use &lt;code&gt;try/catch&lt;/code&gt;. But it makes a code quite ugly when you have several statements to call. It 
-may look like that&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callAction1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;handleAction1Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
- &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callAction2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;handleAction2Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
- &lt;span class=&quot;c1&quot;&gt;/// ....&lt;/span&gt;
- &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callActionN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ExceptionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;handleActionNError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;A good think here is that &lt;code&gt;try/catch&lt;/code&gt; is expression in Kotlin, but still it is quite long to use.&lt;/p&gt;
-
-&lt;p&gt;In my application, I found that about 80% of such catches were done to 
-log actual problem and to continue forking further. Meaning &lt;code&gt;handleActionNError()&lt;/code&gt; functions in my case were 
-calls to a &lt;code&gt;Logger&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;There is now equivalent way in Java to replace this long construction. Of course, it is possible to pass a 
-lambda expression into a function like &lt;code&gt;catchAll&lt;/code&gt;. But this would change a program and it would add extra 
-object creation in most of the cases.&lt;/p&gt;
-
-&lt;p&gt;One can implement similar &lt;code&gt;catchAll&lt;/code&gt; function in Kotlin too. Thanks to 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/inline-functions.html&quot;&gt;inline functions&lt;/a&gt;
-it has no overhead at all.&lt;/p&gt;
-
-&lt;p&gt;This is the function I use:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Logger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Throwable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;warn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Failed to $message. ${t.message}&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;So now I may rewrite the above example in a way consise fashion&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt; &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;action1&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callAction1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;action2&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callAction2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
- &lt;span class=&quot;c1&quot;&gt;///  ....&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;actionN&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;callActionN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
- &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Every usage of the function &lt;code&gt;catchAll&lt;/code&gt; is inlined by Kotlin compiler in to a caller method bodies. Kotlin compiler also
-inlines the action anonymous function &lt;code&gt;action&lt;/code&gt; too. There is no overhead! Let’s consider the following
-example:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;catchAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;println&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Test console output&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The following bytecode is generated out of it. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated
-bytecode may change with a future version of tools.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;public final static main([Ljava/lang/String;)V
-    @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
-    TRYCATCHBLOCK L0 L1 L2 java/lang/Throwable
-   L3
-    ALOAD 0
-    LDC &amp;quot;args&amp;quot;
-    INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
-   L4
-    LINENUMBER 17 L4
-    GETSTATIC LOG.INSTANCE : LLOG;
-    CHECKCAST Logger
-    ASTORE 1
-    LDC &amp;quot;println&amp;quot;
-    ASTORE 2
-    NOP
-   L5
-    LINENUMBER 24 L5
-   L6
-   L0
-    NOP
-   L7
-    LINENUMBER 25 L7
-    NOP
-   L8
-    LINENUMBER 18 L8
-    LDC &amp;quot;Test console output&amp;quot;
-    ASTORE 3
-    NOP
-   L9
-    GETSTATIC java/lang/System.out : Ljava/io/PrintStream;
-    ALOAD 3
-    INVOKEVIRTUAL java/io/PrintStream.println (Ljava/lang/Object;)V
-   L10
-   L11
-    LINENUMBER 18 L11
-   L12
-    LINENUMBER 19 L12
-   L13
-    NOP
-   L1
-    GOTO L14
-   L2
-    LINENUMBER 26 L2
-    ASTORE 3
-   L15
-    LINENUMBER 27 L15
-    ALOAD 1
-    NEW java/lang/StringBuilder
-    DUP
-    INVOKESPECIAL java/lang/StringBuilder.&amp;lt;init&amp;gt; ()V
-    LDC &amp;quot;Failed to &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 2
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    LDC &amp;quot;. &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 3
-    INVOKEVIRTUAL java/lang/Throwable.getMessage ()Ljava/lang/String;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
-    ALOAD 3
-    INVOKEVIRTUAL Logger.warn (Ljava/lang/String;Ljava/lang/Object;)V
-   L16
-    LINENUMBER 28 L16
-   L14
-    LINENUMBER 29 L14
-   L17
-   L18
-    LINENUMBER 20 L18
-    RETURN
-   L19
-    LOCALVARIABLE $i$a$1$catchAll I L8 L13 4
-    LOCALVARIABLE t$iv Ljava/lang/Throwable; L2 L16 3
-    LOCALVARIABLE LOG$iv LLogger; L5 L17 1
-    LOCALVARIABLE message$iv Ljava/lang/String; L5 L17 2
-    LOCALVARIABLE $i$f$catchAll I L5 L17 5
-    LOCALVARIABLE args [Ljava/lang/String; L3 L19 0
-    MAXSTACK = 3
-    MAXLOCALS = 6&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As we see the &lt;code&gt;catchAll&lt;/code&gt; function call is inlined. We have &lt;code&gt;println&lt;/code&gt; call as-is, without any anonymous function 
-wrappers. Any combination of &lt;code&gt;catchAll&lt;/code&gt; calls generates similar bytecode with &lt;code&gt;try/catch&lt;/code&gt; blocks. Once can easily combine 
-such calls to make a program easier to read on some higher level.&lt;/p&gt;
-
-&lt;p&gt;Disclaimer. Checked or unchecked exceptions are meaningful. I’m not trying to promote the idea to catch all possible exceptions
-in every possible statement. The goal is to show it is possible to create a tiny function that would help to recure a number
-of similar code snippets and improve readability. It is up to you to decide if an error is OK to ignore or to log without propagation.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin-bytecode" />
-  
-    <category term="jvm" />
-  
-    <category term="tip" />
-  
-    <summary type="html">A tiny inline function for consise try/catch</summary>
   
   </entry>
   

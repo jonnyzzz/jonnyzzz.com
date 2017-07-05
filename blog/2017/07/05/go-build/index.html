@@ -1,0 +1,375 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Building Go Project &#8211; Eugene Petrenko</title>
+<meta name="description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, shell, bash, ci, go, build" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Building Go Project -- Eugene Petrenko" />
+<meta name="twitter:description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Building Go Project -- Eugene Petrenko" />
+<meta property="og:description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/07/05/go-build/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="shell" />
+
+<meta property="article:tag" content="bash" />
+
+<meta property="article:tag" content="ci" />
+
+<meta property="article:tag" content="go" />
+
+<meta property="article:tag" content="build" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/07/05/go-build/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#shell" title="Pages tagged shell">shell</a></li><li><a href="/tags/#bash" title="Pages tagged bash">bash</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#go" title="Pages tagged go">go</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Building Go Project</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-07-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 05, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=shell,bash,ci,go,build&amp;text=Building%20Go%20Project&amp;url=http://jonnyzzz.com/blog/2017/07/05/go-build/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/07/05/go-build/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>No Silver-Go-Bullet. Yet another ad-hoc build.</p>
+
+<p>I was doing a small Go command line tool project. All the time I was starting Go codebase, I looking for 
+the proper way to setup project and to build it.</p>
+
+<p>The right build to me is the build which is reproducible. Such build is likely to be isolated 
+from a machine where you run it. Be it Linux, Mac or Windows. 
+Also, the right build should have all dependencies fixed. Otherwise, we have merely no chances
+to recreated it in the future.</p>
+
+<p>As the very first example, I decided to use the approach from <a href="https://github.com/hashicorp/consul-template">Consul Template</a>.
+That time (May 2017) it was a <code>make</code> based build which was using the official Docker container to run.
+It was great! I was able to kick-start the project and to focus on development. But, it was crazy slow. 
+It took seconds to compile a tiny project. It was also unable to run on Windows.</p>
+
+<p>I did research. Found several approaches to building Go with Gradle. I decided to try 
+<a href="https://github.com/gogradle/gogradle">Gogradle</a>. Also, there is <a href="https://github.com/echocat/gradle-golang-plugin">gradle-golang-plugin</a>.
+Overall, the story did not play well because some issues I came across. And again, the solution was heavy!</p>
+
+<p>Isolation. Docker. Cool stuff. But, the best stuff, it to think Docker, and event avoid it. The Go itself 
+is amazing in that sense. The go binaries have zero dependencies. And this means we are able to zero-copy
+dependencies.</p>
+
+<p>Finally, I created the following script. A still waiting for something better, and easier to use.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+
+<span class="nb">cd</span> <span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
+<span class="nb">set</span> -e -x -u
+
+<span class="nv">GOVERSION</span><span class="o">=</span>1.8.1
+
+<span class="nv">LOCAL_DIST</span><span class="o">=</span><span class="s2">&quot;$(pwd)/dist&quot;</span>
+<span class="nv">LOCAL_GO_HOME</span><span class="o">=</span><span class="s2">&quot;$LOCAL_DIST/go-$(uname)-$GOVERSION&quot;</span>
+<span class="k">if</span> <span class="o">[</span> ! -f <span class="nv">$LOCAL_GO_HOME</span>/bin/go <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nv">GO_PKG</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/go-binary.tar.gz
+  <span class="nv">GO_UNPACK</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/unpack
+
+  rm -rf   <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
+<span class="nb">  </span>mkdir -p <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
+
+<span class="nb">  </span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$( uname )&quot;</span> <span class="o">=</span>~ .*<span class="o">[</span>Dd<span class="o">]</span>arwin.* <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.darwin-amd64.tar.gz
+  <span class="k">else</span>
+    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.linux-amd64.tar.gz
+  <span class="k">fi</span>
+
+  tar -xf <span class="nv">$GO_PKG</span> -C <span class="nv">$GO_UNPACK</span>
+
+  rm -rf <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
+<span class="nb">  </span>mkdir -p <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
+<span class="nb">  </span>mv <span class="nv">$GO_UNPACK</span>/go/** <span class="nv">$LOCAL_GO_HOME</span>/
+
+  rm -f <span class="nv">$GO_PKG</span>
+<span class="k">fi</span>
+
+<span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;$LOCAL_GO_HOME/bin:$PATH&quot;</span>
+<span class="nv">GOROOT</span><span class="o">=</span><span class="nv">$LOCAL_GO_HOME</span>
+<span class="nv">GOPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
+
+<span class="nb">export </span>PATH
+<span class="nb">export </span>GOROOT
+<span class="nb">export </span>GOPATH
+<span class="nb">export </span><span class="nv">CGO_ENABLED</span><span class="o">=</span>0
+
+<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$(which go)&quot;</span> !<span class="o">=</span> <span class="s2">&quot;$LOCAL_GO_HOME/bin/go&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&quot;Incorrect go binary is still used: $(which go)&quot;</span>
+  <span class="nb">exit </span>1
+<span class="k">fi</span>
+
+<span class="k">if</span> <span class="o">[[</span> ! <span class="s2">&quot;$(go version)&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;go${GOVERSION} &quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&quot;Failed to install required Go version. &quot;</span>
+  <span class="nb">exit </span>1
+<span class="k">fi</span></code></pre></figure>
+
+<p>The script downloads Go binaries for Mac or Linux to a build folder. It does not update the folder if
+there is Go already.</p>
+
+<p>You may find the actual version on GitHub. <a href="https://github.com/jonnyzzz/go-build-script">https://github.com/jonnyzzz/go-build-script</a>
+And let me know if you know the better way to Go.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/06/21/coroutine-to-process-data/" class="btn" title="A Kotlin Coroutine for an OutputStream Filtering">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
