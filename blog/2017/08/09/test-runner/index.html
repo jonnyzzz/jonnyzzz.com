@@ -5,16 +5,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Building Go Project &#8211; Eugene Petrenko</title>
-<meta name="description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+<title>A Bash Test Runner for TeamCity &#8211; Eugene Petrenko</title>
+<meta name="description" content="An ad-hoc bash test runner with TeamCity support
 
 "/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, shell, bash, ci, go, build" />
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, teamcity, test, testrunner, shell, bash, ci, go, build" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Building Go Project -- Eugene Petrenko" />
-<meta name="twitter:description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+<meta name="twitter:title" content="A Bash Test Runner for TeamCity -- Eugene Petrenko" />
+<meta name="twitter:description" content="An ad-hoc bash test runner with TeamCity support
 
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
@@ -26,11 +26,11 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Building Go Project -- Eugene Petrenko" />
-<meta property="og:description" content="No Silver-Go-Bullet. Yet another ad-hoc build.
+<meta property="og:title" content="A Bash Test Runner for TeamCity -- Eugene Petrenko" />
+<meta property="og:description" content="An ad-hoc bash test runner with TeamCity support
 
 " />
-<meta property="og:url" content="http://jonnyzzz.com/blog/2017/07/05/go-build/" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/08/09/test-runner/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -39,6 +39,12 @@
 
 <meta property="article:tag" content="Eugene Petrenko" />
 
+
+<meta property="article:tag" content="teamcity" />
+
+<meta property="article:tag" content="test" />
+
+<meta property="article:tag" content="testrunner" />
 
 <meta property="article:tag" content="shell" />
 
@@ -58,7 +64,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2017/07/05/go-build/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/08/09/test-runner/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -168,10 +174,10 @@
     <div class="entry-wrapper">
       <header class="entry-header">
         <ul class="entry-tags">
-          <li><a href="/tags/#shell" title="Pages tagged shell">shell</a></li><li><a href="/tags/#bash" title="Pages tagged bash">bash</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#go" title="Pages tagged go">go</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
+          <li><a href="/tags/#teamcity" title="Pages tagged teamcity">teamcity</a></li><li><a href="/tags/#test" title="Pages tagged test">test</a></li><li><a href="/tags/#testrunner" title="Pages tagged testrunner">testrunner</a></li><li><a href="/tags/#shell" title="Pages tagged shell">shell</a></li><li><a href="/tags/#bash" title="Pages tagged bash">bash</a></li><li><a href="/tags/#ci" title="Pages tagged ci">ci</a></li><li><a href="/tags/#go" title="Pages tagged go">go</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
         </ul>
         
-          <h1 class="entry-title">Building Go Project</h1>
+          <h1 class="entry-title">A Bash Test Runner for TeamCity</h1>
         
       </header>
       <footer class="entry-meta">
@@ -180,14 +186,14 @@
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2017-07-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 05, 2017</time></span>
+        <span class="entry-date date published"><time datetime="2017-08-09T00:00:00+00:00"><i class="fa fa-calendar-o"></i> August 09, 2017</time></span>
         
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=shell,bash,ci,go,build&amp;text=Building%20Go%20Project&amp;url=http://jonnyzzz.com/blog/2017/07/05/go-build/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+  <a href="https://twitter.com/intent/tweet?hashtags=teamcity,test,testrunner,shell,bash,ci,go,build&amp;text=A%20Bash%20Test%20Runner%20for%20TeamCity&amp;url=http://jonnyzzz.com/blog/2017/08/09/test-runner/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/07/05/go-build/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/08/09/test-runner/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
 </span>
 
 <!-- /.social-share -->
@@ -195,86 +201,65 @@
         
       </footer>
       <div class="entry-content">
-        <p>No Silver-Go-Bullet. Yet another ad-hoc build.</p>
+        <p>An ad-hoc bash test runner with TeamCity support</p>
 
-<p>I was doing a small Go command line tool project. All the time I was starting Go codebase, I looking for 
-the proper way to setup project and to build it.</p>
+<p>That time I was playing with a tiny <a href="https://golang.org">Go</a> project. I was doing a console tool 
+to update <a href="https://www.consul.io/">Consul KV</a> in the required way, with transaction and domain specifics.</p>
 
-<p>The right build to me is the build which is reproducible. Such build is likely to be isolated 
-from a machine where you run it. Be it Linux, Mac or Windows. 
-Also, the right build should have all dependencies fixed. Otherwise, we have merely no chances
-to recreated it in the future.</p>
+<p>Why the tool? Well, I was needed to update several keys from our <a href="https://www.ansible.com/">Ansible</a> deployment
+scripts. And <a href="https://www.consul.io/api/txn.html">transactions</a> were the nice way
+to run an atomic update. Secondly, it is better to offload tricky domain specific code to a dedicated 
+place, which has better tests and build process. The alternative in my case was to 
+use <code>curl</code> or similar to run Consul KV transactions with no easy way to test it easily.</p>
 
-<p>As the very first example, I decided to use the approach from <a href="https://github.com/hashicorp/consul-template">Consul Template</a>.
-That time (May 2017) it was a <code>make</code> based build which was using the official Docker container to run.
-It was great! I was able to kick-start the project and to focus on development. But, it was crazy slow. 
-It took seconds to compile a tiny project. It was also unable to run on Windows.</p>
+<p>By the time I realized it is better to call the tool from a command line to test it
+does correct changed to the KV. So I was looking for a test runner.</p>
 
-<p>I did research. Found several approaches to building Go with Gradle. I decided to try 
-<a href="https://github.com/gogradle/gogradle">Gogradle</a>. Also, there is <a href="https://github.com/echocat/gradle-golang-plugin">gradle-golang-plugin</a>.
-Overall, the story did not play well because some issues I came across. And again, the solution was heavy!</p>
+<p>After some research, I decided to use 
+<a href="https://confluence.jetbrains.com/display/TCD10/Build+Script+Interaction+with+TeamCity">TeamCity Service Messages</a>
+to report test progress back to the CI.</p>
 
-<p>Isolation. Docker. Cool stuff. But, the best stuff, it to think Docker, and event avoid it. The Go itself 
-is amazing in that sense. The go binaries have zero dependencies. And this means we are able to zero-copy
-dependencies.</p>
+<p>The idea of tests is as follows. Each test is created as an <code>.sh</code> file under <code>tests</code> folder. Exit code is used to tell 
+a failure from success. That is necessary to be able to run every test and only one test locally while developing.</p>
 
-<p>Finally, I created the following script. A still waiting for something better, and easier to use.</p>
+<p>Finally, I created the following test runner:</p>
 
 <figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
-
-<span class="nb">cd</span> <span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
 <span class="nb">set</span> -e -x -u
+<span class="nb">cd</span> <span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
 
-<span class="nv">GOVERSION</span><span class="o">=</span>1.8.1
+<span class="nb">echo</span> <span class="s2">&quot;Running integration tests...&quot;</span>
+<span class="nv">FAILED</span><span class="o">=</span>0
+<span class="nv">TC</span><span class="o">=</span><span class="c">##teamcity</span>
+<span class="nb">echo</span> <span class="s2">&quot; ${TC}[testSuiteStarted name=&#39;integration-tests&#39;] &quot;</span>
 
-<span class="nv">LOCAL_DIST</span><span class="o">=</span><span class="s2">&quot;$(pwd)/dist&quot;</span>
-<span class="nv">LOCAL_GO_HOME</span><span class="o">=</span><span class="s2">&quot;$LOCAL_DIST/go-$(uname)-$GOVERSION&quot;</span>
-<span class="k">if</span> <span class="o">[</span> ! -f <span class="nv">$LOCAL_GO_HOME</span>/bin/go <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nv">GO_PKG</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/go-binary.tar.gz
-  <span class="nv">GO_UNPACK</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/unpack
+<span class="k">for</span> TEST in tests/* <span class="p">;</span> <span class="k">do</span>
+  <span class="nv">TEST_NAME</span><span class="o">=</span><span class="k">$(</span>basename <span class="nv">$TEST</span><span class="k">)</span>
+  <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testStarted name=&#39;$TEST_NAME&#39; captureStandardOutput=&#39;true&#39;] &quot;</span>
+  ./<span class="nv">$TEST</span> <span class="o">||</span> <span class="o">{</span>
+    <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testFailed name=&#39;$TEST_NAME&#39;] &quot;</span>
+  <span class="o">}</span>
+  <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testFinished name=&#39;$TEST_NAME&#39;] &quot;</span>
+<span class="k">done</span>
 
-  rm -rf   <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mkdir -p <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
+<span class="nb">echo</span> <span class="s2">&quot; ${TC}[testSuiteFinished name=&#39;integration-tests&#39;] &quot;</span></code></pre></figure>
 
-<span class="nb">  </span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$( uname )&quot;</span> <span class="o">=</span>~ .*<span class="o">[</span>Dd<span class="o">]</span>arwin.* <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.darwin-amd64.tar.gz
-  <span class="k">else</span>
-    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.linux-amd64.tar.gz
-  <span class="k">fi</span>
+<p>By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to <code>go test</code> in the future. 
+The best feature of the test above is it supported by <a href="https://jetbrains.com/teamcity">TeamCity</a>.</p>
 
-  tar -xf <span class="nv">$GO_PKG</span> -C <span class="nv">$GO_UNPACK</span>
+<p>Yoy may find the actual version of it on GitHub. 
+<a href="https://github.com/jonnyzzz/teamcity-test-script">https://github.com/jonnyzzz/teamcity-test-script</a>.</p>
 
-  rm -rf <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mkdir -p <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mv <span class="nv">$GO_UNPACK</span>/go/** <span class="nv">$LOCAL_GO_HOME</span>/
+<p>UPD. I have re-evaluated approaches and decided to implement integration tests with 
+<a href="https://golang.org/pkg/testing/">go test</a> instead. The main problem was that I need to pass many 
+parameters to my tool to start it in a test. Hard-coding those parameters for every test was not worth it. 
+In Go it was easier to create an assertions API to check Consul KV state too. The API helps to setup 
+necessary KV state too. The whole approach makes it simpler to write tests.</p>
 
-  rm -f <span class="nv">$GO_PKG</span>
-<span class="k">fi</span>
-
-<span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;$LOCAL_GO_HOME/bin:$PATH&quot;</span>
-<span class="nv">GOROOT</span><span class="o">=</span><span class="nv">$LOCAL_GO_HOME</span>
-<span class="nv">GOPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
-
-<span class="nb">export </span>PATH
-<span class="nb">export </span>GOROOT
-<span class="nb">export </span>GOPATH
-<span class="nb">export </span><span class="nv">CGO_ENABLED</span><span class="o">=</span>0
-
-<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$(which go)&quot;</span> !<span class="o">=</span> <span class="s2">&quot;$LOCAL_GO_HOME/bin/go&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nb">echo</span> <span class="s2">&quot;Incorrect go binary is still used: $(which go)&quot;</span>
-  <span class="nb">exit </span>1
-<span class="k">fi</span>
-
-<span class="k">if</span> <span class="o">[[</span> ! <span class="s2">&quot;$(go version)&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;go${GOVERSION} &quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nb">echo</span> <span class="s2">&quot;Failed to install required Go version. &quot;</span>
-  <span class="nb">exit </span>1
-<span class="k">fi</span></code></pre></figure>
-
-<p>The script downloads Go binaries for Mac or Linux to a build folder. It does not update the folder if
-there is Go already.</p>
-
-<p>You may find the actual version on GitHub. <a href="https://github.com/jonnyzzz/go-build-script">https://github.com/jonnyzzz/go-build-script</a>
-And let me know if you know the better way to Go.</p>
+<p>I’m able to run all of my tests from <a href="https://www.jetbrains.com/go/">Gogland</a>. 
+The test assumes Consul is running by checking a particular file under the <code>GOPATH</code>. 
+There is a setup bash script that downloads and starts Consul dev server both for development and continuous integration. 
+I extended the <a href="/blog/2017/07/05/go-build/">bash script</a> for that.</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
@@ -306,10 +291,8 @@ And let me know if you know the better way to Go.</p>
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/blog/2017/06/21/coroutine-to-process-data/" class="btn" title="A Kotlin Coroutine for an OutputStream Filtering">Previous</a>
+        <a href="/blog/2017/07/05/go-build/" class="btn" title="Building Go Project">Previous</a>
       
-      
-        <a href="/blog/2017/08/09/test-runner/" class="btn" title="A Bash Test Runner for TeamCity">Next</a>
       
     </nav><!-- /.pagination -->
   </article>

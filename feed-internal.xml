@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-07-13T11:24:44+00:00</updated>
+  <updated>2017-08-09T05:55:42+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,103 @@
   
 
   
+  
+  <entry>
+    <title type="html">A Bash Test Runner for TeamCity</title>
+    <link href="http://jonnyzzz.com/blog/2017/08/09/test-runner/" rel="alternate" type="text/html" title="A Bash Test Runner for TeamCity" />
+    <published>2017-08-09T00:00:00+00:00</published>
+    <updated>2017-08-09T00:00:00+00:00</updated>
+    <id>/blog/2017/08/09/test-runner</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/08/09/test-runner/">&lt;p&gt;An ad-hoc bash test runner with TeamCity support&lt;/p&gt;
+
+&lt;p&gt;That time I was playing with a tiny &lt;a href=&quot;https://golang.org&quot;&gt;Go&lt;/a&gt; project. I was doing a console tool 
+to update &lt;a href=&quot;https://www.consul.io/&quot;&gt;Consul KV&lt;/a&gt; in the required way, with transaction and domain specifics.&lt;/p&gt;
+
+&lt;p&gt;Why the tool? Well, I was needed to update several keys from our &lt;a href=&quot;https://www.ansible.com/&quot;&gt;Ansible&lt;/a&gt; deployment
+scripts. And &lt;a href=&quot;https://www.consul.io/api/txn.html&quot;&gt;transactions&lt;/a&gt; were the nice way
+to run an atomic update. Secondly, it is better to offload tricky domain specific code to a dedicated 
+place, which has better tests and build process. The alternative in my case was to 
+use &lt;code&gt;curl&lt;/code&gt; or similar to run Consul KV transactions with no easy way to test it easily.&lt;/p&gt;
+
+&lt;p&gt;By the time I realized it is better to call the tool from a command line to test it
+does correct changed to the KV. So I was looking for a test runner.&lt;/p&gt;
+
+&lt;p&gt;After some research, I decided to use 
+&lt;a href=&quot;https://confluence.jetbrains.com/display/TCD10/Build+Script+Interaction+with+TeamCity&quot;&gt;TeamCity Service Messages&lt;/a&gt;
+to report test progress back to the CI.&lt;/p&gt;
+
+&lt;p&gt;The idea of tests is as follows. Each test is created as an &lt;code&gt;.sh&lt;/code&gt; file under &lt;code&gt;tests&lt;/code&gt; folder. Exit code is used to tell 
+a failure from success. That is necessary to be able to run every test and only one test locally while developing.&lt;/p&gt;
+
+&lt;p&gt;Finally, I created the following test runner:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; -e -x -u
+&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; dirname &lt;span class=&quot;s2&quot;&gt;&amp;quot;${BASH_SOURCE[0]}&amp;quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; pwd )&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Running integration tests...&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;FAILED&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nv&quot;&gt;TC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;##teamcity&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testSuiteStarted name=&amp;#39;integration-tests&amp;#39;] &amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; TEST in tests/* &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;nv&quot;&gt;TEST_NAME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;basename &lt;span class=&quot;nv&quot;&gt;$TEST&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testStarted name=&amp;#39;$TEST_NAME&amp;#39; captureStandardOutput=&amp;#39;true&amp;#39;] &amp;quot;&lt;/span&gt;
+  ./&lt;span class=&quot;nv&quot;&gt;$TEST&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testFailed name=&amp;#39;$TEST_NAME&amp;#39;] &amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testFinished name=&amp;#39;$TEST_NAME&amp;#39;] &amp;quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testSuiteFinished name=&amp;#39;integration-tests&amp;#39;] &amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to &lt;code&gt;go test&lt;/code&gt; in the future. 
+The best feature of the test above is it supported by &lt;a href=&quot;https://jetbrains.com/teamcity&quot;&gt;TeamCity&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Yoy may find the actual version of it on GitHub. 
+&lt;a href=&quot;https://github.com/jonnyzzz/teamcity-test-script&quot;&gt;https://github.com/jonnyzzz/teamcity-test-script&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;UPD. I have re-evaluated approaches and decided to implement integration tests with 
+&lt;a href=&quot;https://golang.org/pkg/testing/&quot;&gt;go test&lt;/a&gt; instead. The main problem was that I need to pass many 
+parameters to my tool to start it in a test. Hard-coding those parameters for every test was not worth it. 
+In Go it was easier to create an assertions API to check Consul KV state too. The API helps to setup 
+necessary KV state too. The whole approach makes it simpler to write tests.&lt;/p&gt;
+
+&lt;p&gt;I’m able to run all of my tests from &lt;a href=&quot;https://www.jetbrains.com/go/&quot;&gt;Gogland&lt;/a&gt;. 
+The test assumes Consul is running by checking a particular file under the &lt;code&gt;GOPATH&lt;/code&gt;. 
+There is a setup bash script that downloads and starts Consul dev server both for development and continuous integration. 
+I extended the &lt;a href=&quot;/blog/2017/07/05/go-build/&quot;&gt;bash script&lt;/a&gt; for that.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="teamcity" />
+  
+    <category term="test" />
+  
+    <category term="testrunner" />
+  
+    <category term="shell" />
+  
+    <category term="bash" />
+  
+    <category term="ci" />
+  
+    <category term="go" />
+  
+    <category term="build" />
+  
+    <summary type="html">An ad-hoc bash test runner with TeamCity support</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Building Go Project</title>
@@ -1515,203 +1612,6 @@ in switches. We discussed the benefit of using &lt;code&gt;when&lt;/code&gt; as 
     <category term="tip" />
   
     <summary type="html">‘when’ expression in Kotlin VS ‘switch’ statement in Java Switch in Java Consider the following code in Java</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Guard access by lock in Kotlin</title>
-    <link href="http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/" rel="alternate" type="text/html" title="Guard access by lock in Kotlin" />
-    <published>2017-03-01T00:00:00+00:00</published>
-    <updated>2017-03-01T00:00:00+00:00</updated>
-    <id>/blog/2017/03/01/guarded-by-lock</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/03/01/guarded-by-lock/">&lt;p&gt;GuardedByLock a simple helper to make sure variable is only accessed with lock&lt;/p&gt;
-
-&lt;p&gt;A topic of ownership is better covered in &lt;a href=&quot;https://www.rust-lang.org&quot;&gt;Rust Language&lt;/a&gt;. Still, such problems
-are not solved well enough in the JVM world. Let’s consider a trivial shared state access example&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ReentrantLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;42&lt;/span&gt;
-  
-  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;updateStateWithNewValue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;finally&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;We all know the best state is no state. And we tend to decouple tricky things. But of course, there are 
-some places in programs where one finally needs to deal with a state. In reality, it can easily be a 
-complicated state with several different locks in one object.&lt;/p&gt;
-
-&lt;p&gt;The common problem here is to make sure fields are accessed with correct locks taken. It is tricky 
-to ensure in Java. It is double tricky to ensure future changes will not break the contract.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://jcp.org/en/jsr/detail?id=305&quot;&gt;JSR-305&lt;/a&gt; and &lt;a href=&quot;http://jcip.net/annotations/doc/net/jcip/annotations/GuardedBy.html&quot;&gt;GuardedBy&lt;/a&gt;
-annotations are created to make a binding between state and guards. But those are only to 
-help an IDE to be smarter, those annotations will not turn a mistake into a compilation error.&lt;/p&gt;
-
-&lt;p&gt;I’m looking the way to make a compiler to ensure the access is correct.&lt;/p&gt;
-
-&lt;h1 id=&quot;java-style-solution&quot;&gt;Java Style solution&lt;/h1&gt;
-
-&lt;p&gt;In Java, this can be done in the following way. Create a function &lt;code&gt;runWithLock&lt;/code&gt; and make this function accept
-an interface with a method like &lt;code&gt;run(State s)&lt;/code&gt;. If necessary a generics can be added to simplify usages.&lt;/p&gt;
-
-&lt;p&gt;To implement that one need to extract a state object (which I call &lt;code&gt;State&lt;/code&gt;). Happy Java 1.8 users may benefit
-from Lambda syntax. But the approach itself requires a creation of tiny objects (for lambdas, in most cases) on every call.
-Such overhead is small, but one may not like it.&lt;/p&gt;
-
-&lt;p&gt;An example call code would look like&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;  &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/*...*/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;runWithLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Consumer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;State&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/*...*/&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-
-  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;runWithLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Let’s try avoid lambdas overhead and to yield a bit better syntax.&lt;/p&gt;
-
-&lt;h1 id=&quot;kotlin-style-solution&quot;&gt;Kotlin Style solution&lt;/h1&gt;
-
-&lt;p&gt;Consider the following implementation in Kotlin&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GuardedByLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;L:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Lock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;out&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;(&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;lock:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;L&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;state:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;runWithLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;action:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;withLock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The usage is as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;   &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;State&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;value:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-   &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GuardedByLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ReentrantLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;State&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-   
-   &lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-     &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;runWithLock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-   &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Let’s take a look closer to the &lt;code&gt;runWithLock&lt;/code&gt; call. Here &lt;code&gt;{&lt;/code&gt; and &lt;code&gt;}&lt;/code&gt; are used to 
-declare an &lt;a href=&quot;https://kotlinlang.org/docs/reference/lambdas.html&quot;&gt;anonymous extension function&lt;/a&gt; 
-of type &lt;code&gt;State.() -&amp;gt; Y&lt;/code&gt; (&lt;code&gt;Y&lt;/code&gt; is a generic type parameter).
-Extension function means that in the body of the function we have &lt;code&gt;this&lt;/code&gt; keyword pointing to &lt;code&gt;State&lt;/code&gt; object
-instance. And the part &lt;code&gt;value = 5&lt;/code&gt; means we assign the value to &lt;code&gt;State&lt;/code&gt; object property/field.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code&gt;inline&lt;/code&gt; keyword here makes Kotlin compiler to 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/inline-functions.html&quot;&gt;inline&lt;/a&gt;
-the function body to avoid creating an anonymous function in the compiled code. You may refer to 
-&lt;a href=&quot;/blog/2017/02/15/catchall/&quot;&gt;the previous post&lt;/a&gt; for bytecode listing of inline function calls.&lt;/p&gt;
-
-&lt;p&gt;With this approach, we avoid creation anonymous classes for Lambdas from one hand. From the other hand,
-the Kotlin compiler is in charge of checking a &lt;code&gt;State&lt;/code&gt; object instance in only accessible after necessary
-locks are held.&lt;/p&gt;
-
-&lt;p&gt;Finally, the bytecode for the &lt;code&gt;main&lt;/code&gt; function is the following. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 
-1.0.6 plugin. The generated bytecode may change with a future version of tools.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  // access flags 0x19
-  public final static main()V
-    TRYCATCHBLOCK L0 L1 L2 null
-    TRYCATCHBLOCK L2 L3 L2 null
-   L4
-    LINENUMBER 27 L4
-    GETSTATIC GlKt.lock : LGuardedByLock;
-    ASTORE 0
-    NOP
-   L5
-    LINENUMBER 30 L5
-    ALOAD 0
-    INVOKEVIRTUAL GuardedByLock.getLock ()Ljava/util/concurrent/locks/Lock;
-    ASTORE 1
-    NOP
-   L6
-    ALOAD 1
-    INVOKEINTERFACE java/util/concurrent/locks/Lock.lock ()V
-   L7
-   L0
-    NOP
-   L8
-    NOP
-   L9
-    LINENUMBER 30 L9
-    ALOAD 0
-    INVOKEVIRTUAL GuardedByLock.getState ()Ljava/lang/Object;
-    CHECKCAST State
-    ASTORE 2
-    NOP
-   L10
-    LINENUMBER 27 L10
-    ALOAD 2
-    ICONST_5
-    INVOKEVIRTUAL State.setValue (I)V
-   L11
-   L12
-    GETSTATIC kotlin/Unit.INSTANCE : Lkotlin/Unit;
-   L13
-   L14
-    LINENUMBER 30 L14
-    ASTORE 2
-   L1
-    ALOAD 1
-    INVOKEINTERFACE java/util/concurrent/locks/Lock.unlock ()V
-    ALOAD 2
-    GOTO L15
-   L2
-    ASTORE 2
-   L3
-    ALOAD 1
-    INVOKEINTERFACE java/util/concurrent/locks/Lock.unlock ()V
-    ALOAD 2
-    ATHROW
-   L15
-    LINENUMBER 30 L15
-   L16
-    POP
-   L17
-    LINENUMBER 28 L17
-    RETURN
-   L18
-    LOCALVARIABLE $receiver LState; L10 L12 2
-    LOCALVARIABLE $i$a$1$runWithLock I L10 L12 3
-    LOCALVARIABLE $i$a$1$withLock I L9 L14 4
-    LOCALVARIABLE this_$iv LGuardedByLock; L5 L16 0
-    LOCALVARIABLE $i$f$runWithLock I L5 L16 5
-    MAXSTACK = 2
-    MAXLOCALS = 6&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As we see from the code, there is NO anonymous class creation.A call to &lt;code&gt;GuardedByLock#runWithLock&lt;/code&gt; was inlined into 
-the &lt;code&gt;main&lt;/code&gt; function body, meaning less overhead (who’d measure it :).&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;In the post, I presented &lt;code&gt;GuardedByLock&lt;/code&gt; class in Kotlin. Using it in your project may help to 
-correctly isolate state and make Kotlin complier checking all possible violations for you. 
-The only cost is 2 additional object instances: one for &lt;code&gt;GuardedByLock&lt;/code&gt;, and the other one for the &lt;code&gt;State&lt;/code&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin-bytecode" />
-  
-    <category term="jvm" />
-  
-    <category term="tip" />
-  
-    <summary type="html">GuardedByLock a simple helper to make sure variable is only accessed with lock</summary>
   
   </entry>
   
