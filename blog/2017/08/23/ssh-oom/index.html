@@ -1,0 +1,576 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>A Sudden SSH out-of-memory &#8211; Eugene Petrenko</title>
+<meta name="description" content="An accident and investigation of the server failure
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, git, ssh, java, oom, putty, opensource, debug, service" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="A Sudden SSH out-of-memory -- Eugene Petrenko" />
+<meta name="twitter:description" content="An accident and investigation of the server failure
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="A Sudden SSH out-of-memory -- Eugene Petrenko" />
+<meta property="og:description" content="An accident and investigation of the server failure
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/08/23/ssh-oom/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="git" />
+
+<meta property="article:tag" content="ssh" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="oom" />
+
+<meta property="article:tag" content="putty" />
+
+<meta property="article:tag" content="opensource" />
+
+<meta property="article:tag" content="debug" />
+
+<meta property="article:tag" content="service" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/08/23/ssh-oom/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#ssh" title="Pages tagged ssh">ssh</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#oom" title="Pages tagged oom">oom</a></li><li><a href="/tags/#putty" title="Pages tagged putty">putty</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#debug" title="Pages tagged debug">debug</a></li><li><a href="/tags/#service" title="Pages tagged service">service</a></li>
+        </ul>
+        
+          <h1 class="entry-title">A Sudden SSH out-of-memory</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-08-23T00:00:00+00:00"><i class="fa fa-calendar-o"></i> August 23, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=git,ssh,java,oom,putty,opensource,debug,service&amp;text=A%20Sudden%20SSH%20out-of-memory&amp;url=http://jonnyzzz.com/blog/2017/08/23/ssh-oom/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/08/23/ssh-oom/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>An accident and investigation of the server failure</p>
+
+<p>In this post, I am going to share an accident I had recently with
+in-house production.</p>
+
+<p>Let’s assume we have an SSH server. Clients who call
+commands through it. Quite simple, right?</p>
+
+<p>Of course, we cannot have only one SSH server. Instead, we run 
+several SSH servers and use HAProxy to load-balance traffic 
+to them. It is way more safe to have several servers, 
+instead of one. For example, it simplifies maintenance, allows 
+to easily implement 
+<a href="https://en.wikipedia.org/wiki/Rolling_release">Rolling Updates</a>
+or say 
+<a href="https://en.wikipedia.org/wiki/A/B_testing">A/B Testing</a>.
+I <a href="/blog/2017/05/24/ssh-haproxy/">wrote in a previous post</a>
+more details on our HAProxy setup some time ago</p>
+
+<h1 id="the-outage-as-seen-by-users">The outage as seen by users</h1>
+
+<p>At some day, our users (as I can recreate from reports) started to see
+strange connection timeouts from SSH server calls. The call they did was 
+to download several gigabytes of data.</p>
+
+<p>From a user perspective, it’s totally OK to retry a command once it failed 
+for the very first time. So they did it.</p>
+
+<p>After several retries, they tend to give up. At that time our system
+was no longer capable of serving any SSH requests at all</p>
+
+<h1 id="the-outage-as-seen-from-the-server-side">The outage as seen from the server-side</h1>
+
+<p>We are running several SSH servers behind HAProxy. Servers were running 
+in JVM. I use amazing <a href="https://mina.apache.org/sshd-project/">Apache Mina SSHD</a>
+to implement our <a href="http://jonnyzzz.com/contrib/#apache-mina-sshd">SSH server</a>.</p>
+
+<p>Alerts appeared for our SSH servers. HAProxy started to drain traffic from dead SSH 
+servers, based on health checks. It was good since other requests were still 
+able to execute on still live servers.</p>
+
+<p>There were only two servers in our setup. So the system was too fast to be killed.</p>
+
+<p>All dead server had an out-of-memory (OOM) before death. Sadly, but it is 
+hard to write an application that is can survive OOMs and continue to function. In our case, OOM
+tended to kill either SSH server socket processing for either SSH or HTTP.</p>
+
+<p>The good side was that those SSH servers had not sensible state. Thus it was easy to restart
+them to be back in business. So we had the workaround</p>
+
+<h1 id="java-heap-dump-analysis">Java heap dump analysis</h1>
+
+<p>By that time I had several memory dumps (.hprof) files from failed servers. It was
+time to analyze what is there. 
+All those failures were only because a send buffer was full of data, consuming the 
+rest of heap memory. More detailed, I found a massive SSH session object.</p>
+
+<p>With more analysis, I found the whole memory was consumed by the write queue.</p>
+
+<p>A closer look in memory dumps and I was able to figure out the outage was caused by
+a fresh <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">Putty</a> client on Windows, e.g. 
+<code>SSH-2.0-PuTTY_Release_0.69</code>. At the time of the accident, it was the most recent version.</p>
+
+<p>The state was that I had an OOM issue downloading several gigabytes of data over the 
+SSH with Putty client. It was time to write integration tests to reproduce the problem. 
+I did it. I was able to test every putty client version. I tried <code>0.67</code>, <code>0.68</code> and <code>0.69</code>.
+The OOM problem was likely to be introduced in <code>0.68</code>.</p>
+
+<h1 id="client-problem-and-users">Client problem and users</h1>
+
+<p>Memory snapshot analysis was helpful to realize the problem was with a specific 
+version of an SSH client. I also knew, only users with fresh computers we reporting 
+the issue too.</p>
+
+<p>It was evident I cannot do anything with the client. Users decided to use it for 
+their reasons. Also, my SSH server implementation did not support the client 
+filtering. Anyway, I’d be too hard to explain everyone the problem is probably with 
+recent update of their software.</p>
+
+<h1 id="debugging-the-problem">Debugging the problem</h1>
+
+<p>Thanks to integration tests I did, I was also able to debug the problem and realize
+the cause of the issue.</p>
+
+<p>I found the method, which handles all writes on the server: 
+<code>org.apache.sshd.common.session.AbstractSession#writePacket(org.apache.sshd.common.util.buffer.Buffer)</code></p>
+
+<p>Apache Mina SSHD server is async. Instead of writing data directly to the socket it 
+enqueues the data and sends once the OS is ready for it.</p>
+
+<p>Also, the implementation writes messages to a dedicated queue while 
+re-key process is running. This method is called for every SSH command 
+channel writes too. SSH window size is checked before calling the method, so
+the command writer is blocked to wait while queued messages are sent.</p>
+
+<p>In memory dumps of the session object, I saw the window was barely unlimited.
+<img src="/images/posts/2017-08-23-snapshot.jpg" alt="Memory Snapshot" /></p>
+
+<p>Having unlimited window and a slow network is enough for a server to consume all memory
+with messages queue. In my case SSH, command was streaming several gigabytes of data from memory.</p>
+
+<p>There are two questions:</p>
+<ul>
+  <li>Why is it happening only now?</li>
+  <li>How can we avoid the problem?</li>
+</ul>
+
+<h1 id="ssh-window-abuse">SSH window abuse</h1>
+
+<p>As we know, SSH protocol uses windows to limit the number of data being queued. Why didn’t it work?</p>
+
+<p>It was easy to debug. I found out Putty was sending 2GB (e.g., signed integer max value) as the size 
+of the receive window. Well, I saw no reason why. But having such a huge send window makes 
+SSH server enqueue up to 2GB of data per session.</p>
+
+<p>An optimistic approach, as we are a victim of it, is to trust SSH client and use the window as-is.</p>
+
+<p>A defensive approach is to have an additional send window in SSH server to avoid blindly trusting a client.</p>
+
+<h1 id="sshd-patch">SSHD patch</h1>
+
+<p>Now it was more or less clear. The problem was in unlimited write queue and infinite send window. 
+I created an issue for the Apache Mina SSHD project to let anyone know there is such a problem.</p>
+
+<p><a href="https://issues.apache.org/jira/browse/SSHD-754">https://issues.apache.org/jira/browse/SSHD-754</a></p>
+
+<p>I did a trivial patch on for the server. I decided to limit write queue for channel messages
+to block the sender even in the case send window is unlimited. I simply use a semaphore for it:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDERR_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
+
+  <span class="k">override</span> <span class="k">fun</span> <span class="nf">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">):</span> <span class="n">IoWriteFuture</span> <span class="p">{</span>
+    <span class="c1">// The workaround for</span>
+    <span class="c1">// https://issues.apache.org/jira/browse/SSHD-754</span>
+    <span class="c1">// the trick is to block writer thread once there are more</span>
+    <span class="c1">// than 100 messages in either rekey wait queue or nio write queue</span>
+    <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="k">when</span> <span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">array</span><span class="p">()[</span><span class="n">buffer</span><span class="p">.</span><span class="n">rpos</span><span class="p">()])</span> <span class="p">{</span>
+      <span class="n">SshConstants</span><span class="p">.</span><span class="n">SSH_MSG_CHANNEL_DATA</span> <span class="p">-&gt;</span> <span class="n">CHANNEL_STDOUT_LOCK</span>
+      <span class="n">SshConstants</span><span class="p">.</span><span class="n">SSH_MSG_CHANNEL_EXTENDED_DATA</span> <span class="p">-&gt;</span> <span class="n">CHANNEL_STDERR_LOCK</span>
+      <span class="k">else</span> <span class="p">-&gt;</span> <span class="k">null</span>
+    <span class="p">}</span><span class="o">?.</span><span class="n">acquire</span><span class="p">()</span>
+
+    <span class="k">val</span> <span class="py">future</span> <span class="p">=</span> <span class="k">super</span><span class="p">.</span><span class="n">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">lock</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">future</span><span class="p">.</span><span class="n">addListener</span><span class="p">(</span><span class="n">lock</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">future</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The code above is included in my inheritor of the <code>org.apache.sshd.common.session.AbstractSession</code>.
+I like Apache Mina SSHD library is designed in an extensible way making such workaround possible.</p>
+
+<p>And the <code>PressureLock</code> was implemented this way:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">PressureLock</span> <span class="p">{</span>
+  <span class="k">private</span> <span class="k">val</span> <span class="py">semaphore</span> <span class="p">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
+
+  <span class="k">private</span> <span class="k">val</span> <span class="py">listener</span> <span class="p">=</span> <span class="k">object</span> <span class="err">: </span><span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">operationComplete</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">IoWriteFuture</span><span class="p">?)</span> <span class="p">{</span>
+      <span class="n">semaphore</span><span class="p">.</span><span class="n">release</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="k">fun</span> <span class="nf">acquire</span><span class="p">()</span> <span class="p">:</span> <span class="n">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
+    <span class="n">semaphore</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">listener</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>I checked the fix with my tests. The problem was solved.</p>
+
+<h1 id="putty-changes">Putty changes</h1>
+
+<p>With integration tests, I was able to detect that it started 
+to fail only with Putty 0.68. Putty 0.67 was working great. 
+Also, all our problems were only from putty SSH clients on Windows.</p>
+
+<p>I decided to dig dipper and see, that change was it. 
+Sadly, there were so many changes between 0.67 and 0.68. 
+Also, it took several years for them too.</p>
+
+<p>I knew I was looking the change to windows size. I confirmed in debugger,
+Putty 0.67 was using 16K for it.</p>
+
+<p>And I found the change <a href="https://git.tartarus.org/?p=simon/putty.git;a=commit;h=b22c0b6f3e6f5254270a89f86df3edfc4da829d2">b22c0b6f3e6f5254270a89f86df3edfc4da829d2</a>
+and the <a href="https://git.tartarus.org/?p=simon/putty.git;a=blobdiff;f=windows/winplink.c;h=99e269fdc106687e7edff5c51fb778ee22d545b7;hp=a0458b39a878b0ad8af99d9a7294e2129b3bf787;hb=b22c0b6f3e6f5254270a89f86df3edfc4da829d2;hpb=34add87ad249205d4ed36381bfb506a431dc0e7a">winplink.c file</a></p>
+
+<figure class="highlight"><pre><code class="language-diff" data-lang="diff"><span class="gd">--- a/windows/winplink.c</span>
+<span class="gi">+++ b/windows/winplink.c</span>
+<span class="gu">@@ -618,6 +618,17 @@ int main(int argc, char **argv)</span>
+        return 1;
+     }
+ 
+<span class="gi">+    /*</span>
+<span class="gi">+     * Plink doesn&#39;t provide any way to add forwardings after the</span>
+<span class="gi">+     * connection is set up, so if there are none now, we can safely set</span>
+<span class="gi">+     * the &quot;simple&quot; flag.</span>
+<span class="gi">+     */</span>
+<span class="gi">+    if (conf_get_int(conf, CONF_protocol) == PROT_SSH &amp;&amp;</span>
+<span class="gi">+       !conf_get_int(conf, CONF_x11_forward) &amp;&amp;</span>
+<span class="gi">+       !conf_get_int(conf, CONF_agentfwd) &amp;&amp;</span>
+<span class="gi">+       !conf_get_str_nthstrkey(conf, CONF_portfwd, 0))</span>
+<span class="gi">+       conf_set_int(conf, CONF_ssh_simple, TRUE);</span>
+<span class="gi">+</span></code></pre></figure>
+
+<p>The change was to flip <code>CONF_ssh_simple</code> mode on Windows. The change 
+did enable 2GB receive window, as you may see from the usages.</p>
+
+<p>In <code>ssh.c</code> in <a href="https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz">Putty 0.70</a> we have defines:</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#define OUR_V2_BIGWIN 0x7fffffff</span>
+<span class="cp">#define OUR_V2_WINSIZE 16384</span></code></pre></figure>
+
+<p>And the code-block:</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">static</span> <span class="kt">int</span> <span class="nf">ssh_is_simple</span><span class="p">(</span><span class="n">Ssh</span> <span class="n">ssh</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/*</span>
+<span class="cm">     * We use the &#39;simple&#39; variant of the SSH protocol if we&#39;re asked</span>
+<span class="cm">     * to, except not if we&#39;re also doing connection-sharing (either</span>
+<span class="cm">     * tunnelling our packets over an upstream or expecting to be</span>
+<span class="cm">     * tunnelled over ourselves), since then the assumption that we</span>
+<span class="cm">     * have only one channel to worry about is not true after all.</span>
+<span class="cm">     */</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">conf_get_int</span><span class="p">(</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">conf</span><span class="p">,</span> <span class="n">CONF_ssh_simple</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
+            <span class="o">!</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">bare_connection</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">connshare</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="cm">/*</span>
+<span class="cm"> * Set up most of a new ssh_channel.</span>
+<span class="cm"> */</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">ssh_channel_init</span><span class="p">(</span><span class="k">struct</span> <span class="n">ssh_channel</span> <span class="o">*</span><span class="n">c</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">Ssh</span> <span class="n">ssh</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="p">;</span>
+    <span class="n">c</span><span class="o">-&gt;</span><span class="n">localid</span> <span class="o">=</span> <span class="n">alloc_channel_id</span><span class="p">(</span><span class="n">ssh</span><span class="p">);</span>
+    <span class="n">c</span><span class="o">-&gt;</span><span class="n">closes</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">c</span><span class="o">-&gt;</span><span class="n">pending_eof</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">;</span>
+    <span class="n">c</span><span class="o">-&gt;</span><span class="n">throttling_conn</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">version</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
+	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
+	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="nl">OUR_V2_BIGWIN</span> <span class="p">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span>
+	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">chanreq_head</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
+	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">throttle_state</span> <span class="o">=</span> <span class="n">UNTHROTTLED</span><span class="p">;</span>
+	<span class="n">bufchain_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">outbuffer</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">add234</span><span class="p">(</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">channels</span><span class="p">,</span> <span class="n">c</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The windows size is computed by the following expression:</p>
+
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp">	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
+	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="nl">OUR_V2_BIGWIN</span> <span class="p">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span></code></pre></figure>
+
+<p>The windows sizes are exactly the same as I saw in debugger both for
+<code>0.67</code> and <code>0.69</code> versions.</p>
+
+<p>That was it. And it was in April 2016. It took more than a year 
+for the change to cause the issues I was debugging.</p>
+
+<p>Thanks to the opensource, I was able to dig that deep to see the source
+of the problem. I liked it.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>I was running these SSH servers for more than a year. I like people 
+say, ‘Hey, I did no changes to anything, why is it failing now?’</p>
+
+<p>It was indeed the change. And the system started to fail. It was
+the outer world that changed.</p>
+
+<p>I found the source of the issue and did a patch to make the server
+work again with new SSH clients. That was fun!</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/08/09/test-runner/" class="btn" title="A Bash Test Runner for TeamCity">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

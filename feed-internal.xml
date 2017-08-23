@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-08-09T05:55:42+00:00</updated>
+  <updated>2017-08-23T07:21:05+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,319 @@
   
 
   
+  
+  <entry>
+    <title type="html">A Sudden SSH out-of-memory</title>
+    <link href="http://jonnyzzz.com/blog/2017/08/23/ssh-oom/" rel="alternate" type="text/html" title="A Sudden SSH out-of-memory" />
+    <published>2017-08-23T00:00:00+00:00</published>
+    <updated>2017-08-23T00:00:00+00:00</updated>
+    <id>/blog/2017/08/23/ssh-oom</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/08/23/ssh-oom/">&lt;p&gt;An accident and investigation of the server failure&lt;/p&gt;
+
+&lt;p&gt;In this post, I am going to share an accident I had recently with
+in-house production.&lt;/p&gt;
+
+&lt;p&gt;Let’s assume we have an SSH server. Clients who call
+commands through it. Quite simple, right?&lt;/p&gt;
+
+&lt;p&gt;Of course, we cannot have only one SSH server. Instead, we run 
+several SSH servers and use HAProxy to load-balance traffic 
+to them. It is way more safe to have several servers, 
+instead of one. For example, it simplifies maintenance, allows 
+to easily implement 
+&lt;a href=&quot;https://en.wikipedia.org/wiki/Rolling_release&quot;&gt;Rolling Updates&lt;/a&gt;
+or say 
+&lt;a href=&quot;https://en.wikipedia.org/wiki/A/B_testing&quot;&gt;A/B Testing&lt;/a&gt;.
+I &lt;a href=&quot;/blog/2017/05/24/ssh-haproxy/&quot;&gt;wrote in a previous post&lt;/a&gt;
+more details on our HAProxy setup some time ago&lt;/p&gt;
+
+&lt;h1 id=&quot;the-outage-as-seen-by-users&quot;&gt;The outage as seen by users&lt;/h1&gt;
+
+&lt;p&gt;At some day, our users (as I can recreate from reports) started to see
+strange connection timeouts from SSH server calls. The call they did was 
+to download several gigabytes of data.&lt;/p&gt;
+
+&lt;p&gt;From a user perspective, it’s totally OK to retry a command once it failed 
+for the very first time. So they did it.&lt;/p&gt;
+
+&lt;p&gt;After several retries, they tend to give up. At that time our system
+was no longer capable of serving any SSH requests at all&lt;/p&gt;
+
+&lt;h1 id=&quot;the-outage-as-seen-from-the-server-side&quot;&gt;The outage as seen from the server-side&lt;/h1&gt;
+
+&lt;p&gt;We are running several SSH servers behind HAProxy. Servers were running 
+in JVM. I use amazing &lt;a href=&quot;https://mina.apache.org/sshd-project/&quot;&gt;Apache Mina SSHD&lt;/a&gt;
+to implement our &lt;a href=&quot;http://jonnyzzz.com/contrib/#apache-mina-sshd&quot;&gt;SSH server&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Alerts appeared for our SSH servers. HAProxy started to drain traffic from dead SSH 
+servers, based on health checks. It was good since other requests were still 
+able to execute on still live servers.&lt;/p&gt;
+
+&lt;p&gt;There were only two servers in our setup. So the system was too fast to be killed.&lt;/p&gt;
+
+&lt;p&gt;All dead server had an out-of-memory (OOM) before death. Sadly, but it is 
+hard to write an application that is can survive OOMs and continue to function. In our case, OOM
+tended to kill either SSH server socket processing for either SSH or HTTP.&lt;/p&gt;
+
+&lt;p&gt;The good side was that those SSH servers had not sensible state. Thus it was easy to restart
+them to be back in business. So we had the workaround&lt;/p&gt;
+
+&lt;h1 id=&quot;java-heap-dump-analysis&quot;&gt;Java heap dump analysis&lt;/h1&gt;
+
+&lt;p&gt;By that time I had several memory dumps (.hprof) files from failed servers. It was
+time to analyze what is there. 
+All those failures were only because a send buffer was full of data, consuming the 
+rest of heap memory. More detailed, I found a massive SSH session object.&lt;/p&gt;
+
+&lt;p&gt;With more analysis, I found the whole memory was consumed by the write queue.&lt;/p&gt;
+
+&lt;p&gt;A closer look in memory dumps and I was able to figure out the outage was caused by
+a fresh &lt;a href=&quot;https://www.chiark.greenend.org.uk/~sgtatham/putty/&quot;&gt;Putty&lt;/a&gt; client on Windows, e.g. 
+&lt;code&gt;SSH-2.0-PuTTY_Release_0.69&lt;/code&gt;. At the time of the accident, it was the most recent version.&lt;/p&gt;
+
+&lt;p&gt;The state was that I had an OOM issue downloading several gigabytes of data over the 
+SSH with Putty client. It was time to write integration tests to reproduce the problem. 
+I did it. I was able to test every putty client version. I tried &lt;code&gt;0.67&lt;/code&gt;, &lt;code&gt;0.68&lt;/code&gt; and &lt;code&gt;0.69&lt;/code&gt;.
+The OOM problem was likely to be introduced in &lt;code&gt;0.68&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;client-problem-and-users&quot;&gt;Client problem and users&lt;/h1&gt;
+
+&lt;p&gt;Memory snapshot analysis was helpful to realize the problem was with a specific 
+version of an SSH client. I also knew, only users with fresh computers we reporting 
+the issue too.&lt;/p&gt;
+
+&lt;p&gt;It was evident I cannot do anything with the client. Users decided to use it for 
+their reasons. Also, my SSH server implementation did not support the client 
+filtering. Anyway, I’d be too hard to explain everyone the problem is probably with 
+recent update of their software.&lt;/p&gt;
+
+&lt;h1 id=&quot;debugging-the-problem&quot;&gt;Debugging the problem&lt;/h1&gt;
+
+&lt;p&gt;Thanks to integration tests I did, I was also able to debug the problem and realize
+the cause of the issue.&lt;/p&gt;
+
+&lt;p&gt;I found the method, which handles all writes on the server: 
+&lt;code&gt;org.apache.sshd.common.session.AbstractSession#writePacket(org.apache.sshd.common.util.buffer.Buffer)&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Apache Mina SSHD server is async. Instead of writing data directly to the socket it 
+enqueues the data and sends once the OS is ready for it.&lt;/p&gt;
+
+&lt;p&gt;Also, the implementation writes messages to a dedicated queue while 
+re-key process is running. This method is called for every SSH command 
+channel writes too. SSH window size is checked before calling the method, so
+the command writer is blocked to wait while queued messages are sent.&lt;/p&gt;
+
+&lt;p&gt;In memory dumps of the session object, I saw the window was barely unlimited.
+&lt;img src=&quot;/images/posts/2017-08-23-snapshot.jpg&quot; alt=&quot;Memory Snapshot&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Having unlimited window and a slow network is enough for a server to consume all memory
+with messages queue. In my case SSH, command was streaming several gigabytes of data from memory.&lt;/p&gt;
+
+&lt;p&gt;There are two questions:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Why is it happening only now?&lt;/li&gt;
+  &lt;li&gt;How can we avoid the problem?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;ssh-window-abuse&quot;&gt;SSH window abuse&lt;/h1&gt;
+
+&lt;p&gt;As we know, SSH protocol uses windows to limit the number of data being queued. Why didn’t it work?&lt;/p&gt;
+
+&lt;p&gt;It was easy to debug. I found out Putty was sending 2GB (e.g., signed integer max value) as the size 
+of the receive window. Well, I saw no reason why. But having such a huge send window makes 
+SSH server enqueue up to 2GB of data per session.&lt;/p&gt;
+
+&lt;p&gt;An optimistic approach, as we are a victim of it, is to trust SSH client and use the window as-is.&lt;/p&gt;
+
+&lt;p&gt;A defensive approach is to have an additional send window in SSH server to avoid blindly trusting a client.&lt;/p&gt;
+
+&lt;h1 id=&quot;sshd-patch&quot;&gt;SSHD patch&lt;/h1&gt;
+
+&lt;p&gt;Now it was more or less clear. The problem was in unlimited write queue and infinite send window. 
+I created an issue for the Apache Mina SSHD project to let anyone know there is such a problem.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SSHD-754&quot;&gt;https://issues.apache.org/jira/browse/SSHD-754&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I did a trivial patch on for the server. I decided to limit write queue for channel messages
+to block the sender even in the case send window is unlimited. I simply use a semaphore for it:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;CHANNEL_STDOUT_LOCK&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PressureLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;CHANNEL_STDERR_LOCK&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PressureLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;writePacket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// The workaround for&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// https://issues.apache.org/jira/browse/SSHD-754&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// the trick is to block writer thread once there are more&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// than 100 messages in either rekey wait queue or nio write queue&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rpos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;SshConstants&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SSH_MSG_CHANNEL_DATA&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHANNEL_STDOUT_LOCK&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;SshConstants&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SSH_MSG_CHANNEL_EXTENDED_DATA&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHANNEL_STDERR_LOCK&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;future&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writePacket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The code above is included in my inheritor of the &lt;code&gt;org.apache.sshd.common.session.AbstractSession&lt;/code&gt;.
+I like Apache Mina SSHD library is designed in an extensible way making such workaround possible.&lt;/p&gt;
+
+&lt;p&gt;And the &lt;code&gt;PressureLock&lt;/code&gt; was implemented this way:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PressureLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;semaphore&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;listener&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SshFutureListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;operationComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SshFutureListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listener&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I checked the fix with my tests. The problem was solved.&lt;/p&gt;
+
+&lt;h1 id=&quot;putty-changes&quot;&gt;Putty changes&lt;/h1&gt;
+
+&lt;p&gt;With integration tests, I was able to detect that it started 
+to fail only with Putty 0.68. Putty 0.67 was working great. 
+Also, all our problems were only from putty SSH clients on Windows.&lt;/p&gt;
+
+&lt;p&gt;I decided to dig dipper and see, that change was it. 
+Sadly, there were so many changes between 0.67 and 0.68. 
+Also, it took several years for them too.&lt;/p&gt;
+
+&lt;p&gt;I knew I was looking the change to windows size. I confirmed in debugger,
+Putty 0.67 was using 16K for it.&lt;/p&gt;
+
+&lt;p&gt;And I found the change &lt;a href=&quot;https://git.tartarus.org/?p=simon/putty.git;a=commit;h=b22c0b6f3e6f5254270a89f86df3edfc4da829d2&quot;&gt;b22c0b6f3e6f5254270a89f86df3edfc4da829d2&lt;/a&gt;
+and the &lt;a href=&quot;https://git.tartarus.org/?p=simon/putty.git;a=blobdiff;f=windows/winplink.c;h=99e269fdc106687e7edff5c51fb778ee22d545b7;hp=a0458b39a878b0ad8af99d9a7294e2129b3bf787;hb=b22c0b6f3e6f5254270a89f86df3edfc4da829d2;hpb=34add87ad249205d4ed36381bfb506a431dc0e7a&quot;&gt;winplink.c file&lt;/a&gt;&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-diff&quot; data-lang=&quot;diff&quot;&gt;&lt;span class=&quot;gd&quot;&gt;--- a/windows/winplink.c&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+++ b/windows/winplink.c&lt;/span&gt;
+&lt;span class=&quot;gu&quot;&gt;@@ -618,6 +618,17 @@ int main(int argc, char **argv)&lt;/span&gt;
+        return 1;
+     }
+ 
+&lt;span class=&quot;gi&quot;&gt;+    /*&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+     * Plink doesn&amp;#39;t provide any way to add forwardings after the&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+     * connection is set up, so if there are none now, we can safely set&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+     * the &amp;quot;simple&amp;quot; flag.&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+     */&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+    if (conf_get_int(conf, CONF_protocol) == PROT_SSH &amp;amp;&amp;amp;&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+       !conf_get_int(conf, CONF_x11_forward) &amp;amp;&amp;amp;&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+       !conf_get_int(conf, CONF_agentfwd) &amp;amp;&amp;amp;&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+       !conf_get_str_nthstrkey(conf, CONF_portfwd, 0))&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+       conf_set_int(conf, CONF_ssh_simple, TRUE);&lt;/span&gt;
+&lt;span class=&quot;gi&quot;&gt;+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The change was to flip &lt;code&gt;CONF_ssh_simple&lt;/code&gt; mode on Windows. The change 
+did enable 2GB receive window, as you may see from the usages.&lt;/p&gt;
+
+&lt;p&gt;In &lt;code&gt;ssh.c&lt;/code&gt; in &lt;a href=&quot;https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz&quot;&gt;Putty 0.70&lt;/a&gt; we have defines:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#define OUR_V2_BIGWIN 0x7fffffff&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#define OUR_V2_WINSIZE 16384&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And the code-block:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Ssh&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * We use the &amp;#39;simple&amp;#39; variant of the SSH protocol if we&amp;#39;re asked&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * to, except not if we&amp;#39;re also doing connection-sharing (either&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * tunnelling our packets over an upstream or expecting to be&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * tunnelled over ourselves), since then the assumption that we&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     * have only one channel to worry about is not true after all.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt;     */&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf_get_int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CONF_ssh_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bare_connection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connshare&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; * Set up most of a new ssh_channel.&lt;/span&gt;
+&lt;span class=&quot;cm&quot;&gt; */&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ssh_channel_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh_channel&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Ssh&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc_channel_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;closes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pending_eof&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;throttling_conn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locwindow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locmaxwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remlocwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+	    &lt;span class=&quot;n&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;OUR_V2_BIGWIN&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OUR_V2_WINSIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chanreq_head&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;throttle_state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UNTHROTTLED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;bufchain_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outbuffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;add234&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;channels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The windows size is computed by the following expression:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locwindow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locmaxwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remlocwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+	    &lt;span class=&quot;n&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;OUR_V2_BIGWIN&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OUR_V2_WINSIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The windows sizes are exactly the same as I saw in debugger both for
+&lt;code&gt;0.67&lt;/code&gt; and &lt;code&gt;0.69&lt;/code&gt; versions.&lt;/p&gt;
+
+&lt;p&gt;That was it. And it was in April 2016. It took more than a year 
+for the change to cause the issues I was debugging.&lt;/p&gt;
+
+&lt;p&gt;Thanks to the opensource, I was able to dig that deep to see the source
+of the problem. I liked it.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;I was running these SSH servers for more than a year. I like people 
+say, ‘Hey, I did no changes to anything, why is it failing now?’&lt;/p&gt;
+
+&lt;p&gt;It was indeed the change. And the system started to fail. It was
+the outer world that changed.&lt;/p&gt;
+
+&lt;p&gt;I found the source of the issue and did a patch to make the server
+work again with new SSH clients. That was fun!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="git" />
+  
+    <category term="ssh" />
+  
+    <category term="java" />
+  
+    <category term="oom" />
+  
+    <category term="putty" />
+  
+    <category term="opensource" />
+  
+    <category term="debug" />
+  
+    <category term="service" />
+  
+    <summary type="html">An accident and investigation of the server failure</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">A Bash Test Runner for TeamCity</title>
@@ -1421,197 +1734,6 @@ to use for cases, where one needs to return several different unrelated values.&
     <category term="tip" />
   
     <summary type="html">‘when’ expression as pattern-matching in Kotlin</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Switch to when</title>
-    <link href="http://jonnyzzz.com/blog/2017/03/15/switch-to-when/" rel="alternate" type="text/html" title="Switch to when" />
-    <published>2017-03-15T00:00:00+00:00</published>
-    <updated>2017-03-15T00:00:00+00:00</updated>
-    <id>/blog/2017/03/15/switch-to-when</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/03/15/switch-to-when/">&lt;p&gt;‘when’ expression in Kotlin VS ‘switch’ statement in Java&lt;/p&gt;
-
-&lt;h1 id=&quot;switch-in-java&quot;&gt;Switch in Java&lt;/h1&gt;
-
-&lt;p&gt;Consider the following code in Java&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; 
-      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;    
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
-
-  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Widespread pattern, isn’t it? There are several things wrong with it! First, &lt;code&gt;Foo f&lt;/code&gt; variable is not final, 
-so it can be ocassionally changed in the future after some code changes.&lt;/p&gt;
-
-&lt;p&gt;Next, we switll have &lt;code&gt;default&lt;/code&gt; branch which is not necessary as we cover all enum values. But if 
-someone dares to add extra enum value, this code will still compile correctly!&lt;/p&gt;
-
-&lt;p&gt;Enough problems? Nope! I forgot &lt;code&gt;break;&lt;/code&gt; in each &lt;code&gt;case&lt;/code&gt; branch. Surprise.&lt;/p&gt;
-
-&lt;p&gt;An improvement is still possible to solve some of the problems above. Use &lt;code&gt;return&lt;/code&gt; statement! So we have&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; 
-      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;    
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;select&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Is it better now? More or less yes. But would you create an additional function for every &lt;code&gt;switch&lt;/code&gt;? I’m not sure.&lt;/p&gt;
-
-&lt;h1 id=&quot;when-in-kotlin&quot;&gt;When in Kotlin&lt;/h1&gt;
-
-&lt;p&gt;The equivalent constuction to &lt;code&gt;switch&lt;/code&gt; in Java is &lt;code&gt;when&lt;/code&gt; in Kotlin. You may take a look to the 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/control-flow.html#when-expression&quot;&gt;when expression&lt;/a&gt; documentation
-for more details. Note, &lt;code&gt;when&lt;/code&gt; expression is more functional than &lt;code&gt;switch&lt;/code&gt; in Java.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;bar:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;
-  &lt;span class=&quot;nf&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;ELSE&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ThisCanNeverHappenException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This was just one-to-one conversion to Kotlin and I see the warning to convert &lt;code&gt;var f&lt;/code&gt; to &lt;code&gt;val f&lt;/code&gt; at first.&lt;/p&gt;
-
-&lt;p&gt;It is good to notice, &lt;code&gt;when&lt;/code&gt; can be used as expression! We may avoid assigning &lt;code&gt;f&lt;/code&gt; variable inside each case.&lt;/p&gt;
-
-&lt;p&gt;The right of &lt;code&gt;-&amp;gt;&lt;/code&gt; is also an expression. If you need more things to do, use &lt;code&gt;{&lt;/code&gt; and &lt;code&gt;}&lt;/code&gt;. There is no &lt;code&gt;break&lt;/code&gt; 
-exists or required.&lt;/p&gt;
-
-&lt;p&gt;If &lt;code&gt;when&lt;/code&gt; is used as expression, &lt;code&gt;else&lt;/code&gt; branch is not necessary, the compiler can prove all branches are included.
-At least this works if you checking enum or 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/classes.html#sealed-classes&quot;&gt;sealed classes&lt;/a&gt;. 
-Compilation fails if a missing branch is detected.&lt;/p&gt;
-
-&lt;p&gt;Overall I turn the example into this:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VALUE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;Bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ELSE&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;value444&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; 
-
-  &lt;span class=&quot;n&quot;&gt;doSomeMightyWork&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Looks concise, isn’t it?&lt;/p&gt;
-
-&lt;h1 id=&quot;generated-bytecode&quot;&gt;Generated bytecode&lt;/h1&gt;
-
-&lt;p&gt;Let’s look into bytecode for the &lt;code&gt;when&lt;/code&gt; statement call. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin
-1.0.6 plugin. The generated bytecode may change with a future version of tools.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  // access flags 0x19
-  public final static action(LBar;)V
-    @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
-   L0
-    ALOAD 0
-    LDC &amp;quot;e&amp;quot;
-    INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
-   L1
-    LINENUMBER 13 L1
-    ALOAD 0
-    GETSTATIC WhKt$WhenMappings.$EnumSwitchMapping$0 : [I
-    SWAP
-    INVOKEVIRTUAL Bar.ordinal ()I
-    IALOAD
-    LOOKUPSWITCH
-      1: L2
-      2: L3
-      default: L4
-   L2
-    LINENUMBER 14 L2
-    INVOKESTATIC WhKt.value42 ()LFoo;
-    GOTO L5
-   L3
-    LINENUMBER 15 L3
-    INVOKESTATIC WhKt.value444 ()LFoo;
-    GOTO L5
-   L4
-    NEW kotlin/NoWhenBranchMatchedException
-    DUP
-    INVOKESPECIAL kotlin/NoWhenBranchMatchedException.&amp;lt;init&amp;gt; ()V
-    ATHROW
-   L6
-    LINENUMBER 13 L6
-   L5
-    ASTORE 1
-   L7
-    LINENUMBER 18 L7
-    ALOAD 1
-    INVOKESTATIC WhKt.doSomeMightyWork (LFoo;)V
-   L8
-    LINENUMBER 19 L8
-    RETURN
-   L9
-    LOCALVARIABLE f LFoo; L7 L9 1
-    LOCALVARIABLE e LBar; L0 L9 0
-    MAXSTACK = 2
-    MAXLOCALS = 2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;From the bytecode we see it throws &lt;code&gt;kotlin/NoWhenBranchMatchedException&lt;/code&gt; in case it turned out
-there is an additional case. For example, this may happen if we are running a compiled code 
-againt updated &lt;code&gt;Bar&lt;/code&gt; enum with additional case added.&lt;/p&gt;
-
-&lt;p&gt;Still, a re-compilation will show there is an errors.&lt;/p&gt;
-
-&lt;p&gt;The only problem is that &lt;code&gt;NoWhenBranchMatchedException&lt;/code&gt; contains no information on what 
-kind of instance was there, maybe a &lt;code&gt;toString()&lt;/code&gt; or &lt;code&gt;getClass().getName()&lt;/code&gt; were nice to 
-have helpers. Still, in general, such calls may also throw exceptions.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;In this post we see how &lt;code&gt;when&lt;/code&gt; expression can help one avoid trivial errors
-in switches. We discussed the benefit of using &lt;code&gt;when&lt;/code&gt; as expression&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin-bytecode" />
-  
-    <category term="jvm" />
-  
-    <category term="tip" />
-  
-    <summary type="html">‘when’ expression in Kotlin VS ‘switch’ statement in Java Switch in Java Consider the following code in Java</summary>
   
   </entry>
   
