@@ -1,0 +1,355 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Package names clash detector for Gradle and Java 9 Modules &#8211; Eugene Petrenko</title>
+<meta name="description" content="Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, java, jigsaw, java9, modules, opensource, plugin" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Package names clash detector for Gradle and Java 9 Modules -- Eugene Petrenko" />
+<meta name="twitter:description" content="Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Package names clash detector for Gradle and Java 9 Modules -- Eugene Petrenko" />
+<meta property="og:description" content="Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/08/23/java9c/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="jigsaw" />
+
+<meta property="article:tag" content="java9" />
+
+<meta property="article:tag" content="modules" />
+
+<meta property="article:tag" content="opensource" />
+
+<meta property="article:tag" content="plugin" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/08/23/java9c/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#jigsaw" title="Pages tagged jigsaw">jigsaw</a></li><li><a href="/tags/#java9" title="Pages tagged java9">java9</a></li><li><a href="/tags/#modules" title="Pages tagged modules">modules</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#plugin" title="Pages tagged plugin">plugin</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Package names clash detector for Gradle and Java 9 Modules</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-08-23T00:00:00+00:00"><i class="fa fa-calendar-o"></i> August 23, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=gradle,java,jigsaw,java9,modules,opensource,plugin&amp;text=Package%20names%20clash%20detector%20for%20Gradle%20and%20Java%209%20Modules&amp;url=http://jonnyzzz.com/blog/2017/08/23/java9c/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/08/23/java9c/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)</p>
+
+<p>It was an amazing journey to the <a href="https://www.oracle.com/javaone/index.html">JavaOne</a> this year. 
+There I had a great chance to present some features of <a href="https://www.jetbrains.com/idea/">IntelliJ IDEA</a> on the huge 
+stage. I liked it. I was also amazed by the backstage processes. So many people are involved in there.</p>
+
+<p>During those crazy times, I realized there is a problem for anyone willing to switch to Java 
+modules. The problem is in packages. Every package is now allowed to be used only in 
+one entry in the module path. It is still ok if you’re on classpath. For more information, 
+you may consider <a href="http://openjdk.java.net/projects/jigsaw/">project jigsaw</a>, 
+<a href="http://openjdk.java.net/jeps/261">JEP 261</a>,
+<a href="http://openjdk.java.net/projects/jigsaw/spec/issues/#AvoidConcealedPackageConflicts">AvoidConcealedPackageConflicts</a>, 
+<a href="https://blog.codefx.org/java/java-9-migration-guide/#Split-Packages">Split Packages</a></p>
+
+<p>The first step in the migration to modules is to make sure there are no package name clashes 
+between files. The best way to know that for sure is to have a tool that analyze 
+classpath for conflicts. So I created the plugin for Gradle.</p>
+
+<p>Usage is pretty simple.</p>
+
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">plugins</span> <span class="o">{</span>
+ <span class="n">id</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span> <span class="n">version</span> <span class="s1">&#39;0.2.1&#39;</span>  <span class="c1">/// Mind the updates!</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>Once the plugin is applied, it adds the <code>java9c</code> task. The task itself depends on several generated tasks for 
+every source set, e.g., <code>main</code> or <code>test</code>. <code>java9c</code> task, prints out the detected package conflicts for each source set.</p>
+
+<p>For the demonstration, I created a tiny project that has classes in the junit’s main package. The report looks like that:</p>
+
+<p><img src="http://jonnyzzz.com/images/posts/2017-10-18-task-output.png" alt="java9c task out example image" /></p>
+
+<p>For multiple project Gradle projects, you may include the plugin in the following way, or, alternatively, 
+you may select only specific projects to check.</p>
+
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">plugins</span> <span class="o">{</span>
+ <span class="n">id</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span> <span class="n">version</span> <span class="s1">&#39;0.2.1&#39;</span>  <span class="c1">/// Mind the updates!</span>
+<span class="o">}</span>
+
+<span class="n">subprojects</span> <span class="o">{</span>
+  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span>
+<span class="o">}</span></code></pre></figure>
+
+<p>The plugin is open source. You may find sources on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a>.</p>
+
+<p>It is so easy to create so many different features. This time I decided to create a feature-poor plugin. 
+Meanwhile, I reserved the <code>java9c</code> extension in Gradle for future features for the plugin.
+Let me know if there is something I missed. Also, you may create a pull 
+request <a href="https://github.com/jonnyzzz/gradle-java9c">here</a>.</p>
+
+<h1 id="sources--binaries">Sources &amp; Binaries</h1>
+
+<p>Sources are on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a></p>
+
+<p>Plugin page on <a href="https://plugins.gradle.org/plugin/org.jonnyzzz.java9c">Gradle Plugins</a></p>
+
+<p>Have fun! And let me know if it helps.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/08/23/ssh-oom/" class="btn" title="A Sudden SSH out-of-memory">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

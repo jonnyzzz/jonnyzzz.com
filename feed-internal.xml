@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-08-23T07:21:05+00:00</updated>
+  <updated>2017-10-17T23:29:45+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,98 @@
   
 
   
+  
+  <entry>
+    <title type="html">Package names clash detector for Gradle and Java 9 Modules</title>
+    <link href="http://jonnyzzz.com/blog/2017/08/23/java9c/" rel="alternate" type="text/html" title="Package names clash detector for Gradle and Java 9 Modules" />
+    <published>2017-08-23T00:00:00+00:00</published>
+    <updated>2017-08-23T00:00:00+00:00</updated>
+    <id>/blog/2017/08/23/java9c</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/08/23/java9c/">&lt;p&gt;Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)&lt;/p&gt;
+
+&lt;p&gt;It was an amazing journey to the &lt;a href=&quot;https://www.oracle.com/javaone/index.html&quot;&gt;JavaOne&lt;/a&gt; this year. 
+There I had a great chance to present some features of &lt;a href=&quot;https://www.jetbrains.com/idea/&quot;&gt;IntelliJ IDEA&lt;/a&gt; on the huge 
+stage. I liked it. I was also amazed by the backstage processes. So many people are involved in there.&lt;/p&gt;
+
+&lt;p&gt;During those crazy times, I realized there is a problem for anyone willing to switch to Java 
+modules. The problem is in packages. Every package is now allowed to be used only in 
+one entry in the module path. It is still ok if you’re on classpath. For more information, 
+you may consider &lt;a href=&quot;http://openjdk.java.net/projects/jigsaw/&quot;&gt;project jigsaw&lt;/a&gt;, 
+&lt;a href=&quot;http://openjdk.java.net/jeps/261&quot;&gt;JEP 261&lt;/a&gt;,
+&lt;a href=&quot;http://openjdk.java.net/projects/jigsaw/spec/issues/#AvoidConcealedPackageConflicts&quot;&gt;AvoidConcealedPackageConflicts&lt;/a&gt;, 
+&lt;a href=&quot;https://blog.codefx.org/java/java-9-migration-guide/#Split-Packages&quot;&gt;Split Packages&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The first step in the migration to modules is to make sure there are no package name clashes 
+between files. The best way to know that for sure is to have a tool that analyze 
+classpath for conflicts. So I created the plugin for Gradle.&lt;/p&gt;
+
+&lt;p&gt;Usage is pretty simple.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;org.jonnyzzz.java9c&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;0.2.1&amp;#39;&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;/// Mind the updates!&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Once the plugin is applied, it adds the &lt;code&gt;java9c&lt;/code&gt; task. The task itself depends on several generated tasks for 
+every source set, e.g., &lt;code&gt;main&lt;/code&gt; or &lt;code&gt;test&lt;/code&gt;. &lt;code&gt;java9c&lt;/code&gt; task, prints out the detected package conflicts for each source set.&lt;/p&gt;
+
+&lt;p&gt;For the demonstration, I created a tiny project that has classes in the junit’s main package. The report looks like that:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://jonnyzzz.com/images/posts/2017-10-18-task-output.png&quot; alt=&quot;java9c task out example image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For multiple project Gradle projects, you may include the plugin in the following way, or, alternatively, 
+you may select only specific projects to check.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+ &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;org.jonnyzzz.java9c&amp;#39;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;0.2.1&amp;#39;&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;/// Mind the updates!&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&amp;#39;org.jonnyzzz.java9c&amp;#39;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The plugin is open source. You may find sources on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;It is so easy to create so many different features. This time I decided to create a feature-poor plugin. 
+Meanwhile, I reserved the &lt;code&gt;java9c&lt;/code&gt; extension in Gradle for future features for the plugin.
+Let me know if there is something I missed. Also, you may create a pull 
+request &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h1 id=&quot;sources--binaries&quot;&gt;Sources &amp;amp; Binaries&lt;/h1&gt;
+
+&lt;p&gt;Sources are on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Plugin page on &lt;a href=&quot;https://plugins.gradle.org/plugin/org.jonnyzzz.java9c&quot;&gt;Gradle Plugins&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Have fun! And let me know if it helps.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="java" />
+  
+    <category term="jigsaw" />
+  
+    <category term="java9" />
+  
+    <category term="modules" />
+  
+    <category term="opensource" />
+  
+    <category term="plugin" />
+  
+    <summary type="html">Gradle plugin to help to migrate to Java 9 modules (aka project jigsaw)</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">A Sudden SSH out-of-memory</title>
@@ -1542,198 +1634,6 @@ dependencies {
     <category term="named-stack-frames" />
   
     <summary type="html">Encode context in a thread dump or an exception stack trace for the JVM.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Sealed classes and ‘when’ expression</title>
-    <link href="http://jonnyzzz.com/blog/2017/03/29/when-for-sealed-classes/" rel="alternate" type="text/html" title="Sealed classes and 'when' expression" />
-    <published>2017-03-29T00:00:00+00:00</published>
-    <updated>2017-03-29T00:00:00+00:00</updated>
-    <id>/blog/2017/03/29/when-for-sealed-classes</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/03/29/when-for-sealed-classes/">&lt;p&gt;‘when’ expression as pattern-matching in Kotlin&lt;/p&gt;
-
-&lt;p&gt;Let’s consider the following case. You need to return 3 different return values from a function. Each 
-value is associated with information. Say we do &lt;a href=&quot;https://en.wikipedia.org/wiki/Authentication&quot;&gt;authentication&lt;/a&gt; 
-and &lt;a href=&quot;https://en.wikipedia.org/wiki/Authorization&quot;&gt;authorization&lt;/a&gt; in one shot. The results 
-are:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;not authenticated + error message&lt;/li&gt;
-  &lt;li&gt;not authorized + userId + error message&lt;/li&gt;
-  &lt;li&gt;authenticated and authorized + userId&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Algebraic_data_type&quot;&gt;Algebraic data types&lt;/a&gt; looks the best fit here, 
-but we have no such in Java.&lt;/p&gt;
-
-&lt;p&gt;A possible approach is to use enum for that. But enum does not allow us to pass additional information
-with each call. To fix that we may return a value object with all fields, but it will add a level 
-of mess to the callee code.&lt;/p&gt;
-
-&lt;p&gt;Yet another apporach is to make the method return a base class or interface and to have an 
-implementation per return case. This would make code cleaner, but with a cost of &lt;code&gt;instenceof&lt;/code&gt;
-or &lt;a href=&quot;https://en.wikipedia.org/wiki/Visitor_pattern&quot;&gt;visitor pattern&lt;/a&gt; impementation.&lt;/p&gt;
-
-&lt;p&gt;A nice thing in Kotlin is we are able to use 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/control-flow.html#when-expression&quot;&gt;when expression&lt;/a&gt; 
-to make this checking code read better. In &lt;a href=&quot;/blog/2017/03/15/switch-to-when/&quot;&gt;a recent post&lt;/a&gt;
-I covered &lt;code&gt;when&lt;/code&gt; expression benefits.&lt;/p&gt;
-
-&lt;p&gt;We may also make sure we check all possible branchs in &lt;code&gt;when&lt;/code&gt; expression. For this we only need to 
-use &lt;a href=&quot;https://kotlinlang.org/docs/reference/classes.html#sealed-classes&quot;&gt;sealed classes&lt;/a&gt; for 
-return objects hierarchy.&lt;/p&gt;
-
-&lt;p&gt;This is example implementation code with sealed class and &lt;code&gt;when&lt;/code&gt; expression:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;UserId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* ... */&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MagicToken&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* ... */&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;sealed&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AuthResult&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NotAuthenticated&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AuthResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NotAuthorized&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AuthResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Success&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UserId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MagicToken&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AuthResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;proceed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AuthResult&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;when&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotAuthenticated&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;NotAuthenticated ${r.message}&amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NotAuthorized&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;NotAuthorized ${r.id}, ${r.message}&amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Success&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;Success ${r.token}&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In this example we also need not specify &lt;code&gt;else&lt;/code&gt; case for 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/control-flow.html#when-expression&quot;&gt;when expression&lt;/a&gt;.
-Kotlin compiler is able to prove we listed all types if this sealed class.&lt;/p&gt;
-
-&lt;p&gt;Thanks to &lt;a href=&quot;https://kotlinlang.org/docs/reference/typecasts.html#smart-casts&quot;&gt;smart casts&lt;/a&gt; 
-in each &lt;code&gt;when&lt;/code&gt; branch we use exactly matched type, so for example, &lt;code&gt;r.message&lt;/code&gt; in the first branch 
-is &lt;code&gt;NotAuthenticated#message&lt;/code&gt; and so on.&lt;/p&gt;
-
-&lt;h1 id=&quot;generated-bytecode&quot;&gt;Generated bytecode&lt;/h1&gt;
-
-&lt;p&gt;Let’s traditionally take a look into bytecode, that was generated from this code snippet. 
-Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated bytecode 
-may change with a future version of tools.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  // access flags 0x19
-  public final static proceed(LAuthResult;)Ljava/lang/String;
-    @Lorg/jetbrains/annotations/NotNull;() // invisible
-    @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
-   L0
-    ALOAD 0
-    LDC &amp;quot;r&amp;quot;
-    INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
-   L1
-    LINENUMBER 25 L1
-    ALOAD 0
-    ASTORE 1
-   L2
-    LINENUMBER 26 L2
-    ALOAD 1
-    INSTANCEOF AuthResult$NotAuthenticated
-    IFEQ L3
-   L4
-    NEW java/lang/StringBuilder
-    DUP
-    INVOKESPECIAL java/lang/StringBuilder.&amp;lt;init&amp;gt; ()V
-    LDC &amp;quot;NotAuthenticated &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 0
-    CHECKCAST AuthResult$NotAuthenticated
-    INVOKEVIRTUAL AuthResult$NotAuthenticated.getMessage ()Ljava/lang/String;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
-    GOTO L5
-   L3
-    LINENUMBER 27 L3
-    ALOAD 1
-    INSTANCEOF AuthResult$NotAuthorized
-    IFEQ L6
-   L7
-    NEW java/lang/StringBuilder
-    DUP
-    INVOKESPECIAL java/lang/StringBuilder.&amp;lt;init&amp;gt; ()V
-    LDC &amp;quot;NotAuthorized &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 0
-    CHECKCAST AuthResult$NotAuthorized
-    INVOKEVIRTUAL AuthResult$NotAuthorized.getId ()LUserId;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/Object;)Ljava/lang/StringBuilder;
-    LDC &amp;quot;, &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 0
-    CHECKCAST AuthResult$NotAuthorized
-    INVOKEVIRTUAL AuthResult$NotAuthorized.getMessage ()Ljava/lang/String;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
-    GOTO L5
-   L6
-    LINENUMBER 28 L6
-    ALOAD 1
-    INSTANCEOF AuthResult$Success
-    IFEQ L8
-   L9
-    NEW java/lang/StringBuilder
-    DUP
-    INVOKESPECIAL java/lang/StringBuilder.&amp;lt;init&amp;gt; ()V
-    LDC &amp;quot;Success &amp;quot;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    ALOAD 0
-    CHECKCAST AuthResult$Success
-    INVOKEVIRTUAL AuthResult$Success.getToken ()LMagicToken;
-    INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/Object;)Ljava/lang/StringBuilder;
-    INVOKEVIRTUAL java/lang/StringBuilder.toString ()Ljava/lang/String;
-    GOTO L5
-   L8
-    NEW kotlin/NoWhenBranchMatchedException
-    DUP
-    INVOKESPECIAL kotlin/NoWhenBranchMatchedException.&amp;lt;init&amp;gt; ()V
-    ATHROW
-   L10
-    LINENUMBER 25 L10
-   L5
-    LINENUMBER 29 L5
-    ARETURN
-   L11
-    LOCALVARIABLE r LAuthResult; L0 L11 0
-    MAXSTACK = 2
-    MAXLOCALS = 2&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Kotlin compiler generated an &lt;code&gt;if-else&lt;/code&gt; chain with &lt;code&gt;instanceof&lt;/code&gt; checks. First it checks 
-if the value is &lt;code&gt;AuthResult$NotAuthenticated&lt;/code&gt;, next &lt;code&gt;AuthResult$NotAuthorized&lt;/code&gt; and finally
-&lt;code&gt;AuthResult$Success&lt;/code&gt;. In a case something went terribly wrong, a &lt;code&gt;kotlin.NoWhenBranchMatchedException&lt;/code&gt;
-exception is thrown. And this can be achieved if older version of our snippet is executed with a
-newer version of &lt;code&gt;AuthResult&lt;/code&gt; class. A full re-compile will fail with error so we were able to 
-fix the problem easily.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;In this post, we looked how &lt;code&gt;when&lt;/code&gt; expression is working with &lt;code&gt;sealed classes&lt;/code&gt;, which are really nice
-to use for cases, where one needs to return several different unrelated values.&lt;/p&gt;
-
-&lt;h1 id=&quot;related-work&quot;&gt;Related work&lt;/h1&gt;
-
-&lt;p&gt;You may also like to read a related blog post &lt;a href=&quot;http://engineering.pivotal.io/post/algebraic-data-types-in-kotlin/&quot;&gt;Algebraic Data Types In Kotlin&lt;/a&gt;&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin-bytecode" />
-  
-    <category term="jvm" />
-  
-    <category term="tip" />
-  
-    <summary type="html">‘when’ expression as pattern-matching in Kotlin</summary>
   
   </entry>
   
