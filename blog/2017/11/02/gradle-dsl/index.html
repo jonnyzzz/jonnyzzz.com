@@ -1,0 +1,537 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Kotlin DSL for Test Data &#8211; Eugene Petrenko</title>
+<meta name="description" content="Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, java9, opensource, plugin, java9c, kotlin, dsl" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Kotlin DSL for Test Data -- Eugene Petrenko" />
+<meta name="twitter:description" content="Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Kotlin DSL for Test Data -- Eugene Petrenko" />
+<meta property="og:description" content="Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="java9" />
+
+<meta property="article:tag" content="opensource" />
+
+<meta property="article:tag" content="plugin" />
+
+<meta property="article:tag" content="java9c" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="dsl" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#java9" title="Pages tagged java9">java9</a></li><li><a href="/tags/#opensource" title="Pages tagged opensource">opensource</a></li><li><a href="/tags/#plugin" title="Pages tagged plugin">plugin</a></li><li><a href="/tags/#java9c" title="Pages tagged java9c">java9c</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#dsl" title="Pages tagged dsl">dsl</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Kotlin DSL for Test Data</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2017-11-02T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 02, 2017</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=gradle,java9,opensource,plugin,java9c,kotlin,dsl&amp;text=Kotlin%20DSL%20for%20Test%20Data&amp;url=http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.</p>
+
+<p>That time I was working on <a href="/blog/2017/10/18/java9c/">java9c</a> plugin for Gradle, I created
+integration tests. In my case all those tests were of the following pattern: create sample Gradle
+project, execute it, check results. I decided to run a fun experiment and replace boring string
+constants with a Gradle-looking DSL.</p>
+
+<p>Namely, instead of (and many Gradle plugin integration tests have similar)</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span><span class="p">(</span>
+        <span class="s">&quot;apply plugin: &#39;java-library&#39;\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;repositories {\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;  mavenCentral()\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;}\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;dependencies {\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;  implementation &#39;junit:junit:4.12&#39;\n&quot;</span> <span class="p">+</span>
+        <span class="s">&quot;}\n&quot;</span>
+<span class="p">)</span></code></pre></figure>
+
+<p>I created a tiny DSL that looks (and parses) like a Gradle script. 
+The DSL generates test-data files for me. Kotlin compiler and IDE 
+helps to prevent errors before a test is executed. Code completion 
+makes a new test authoring easier. Here is the DSL usage example:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="err">`</span><span class="n">apply</span> <span class="n">plugin</span><span class="err">`</span><span class="p">(</span><span class="s">&quot;java-library&quot;</span><span class="p">)</span>
+
+  <span class="n">repositories</span> <span class="p">{</span>
+    <span class="n">mavenCentral</span><span class="p">()</span>
+  <span class="p">}</span>
+
+  <span class="n">dependencies</span> <span class="p">{</span>
+    <span class="n">implementation</span><span class="p">(</span><span class="n">Text</span><span class="p">(</span><span class="s">&quot;junit:junit:4.12&quot;</span><span class="p">))</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>More examples are on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a> in <code>java9c</code> plugin test sources.</p>
+
+<p>The example looks like a Gradle script. There was no goal to make it 100% same looking. Also, 
+there is an amazing <a href="https://github.com/gradle/kotlin-dsl">project</a> run by Gradle to support
+Kotlin DSLs in Gradle, natively. That DSL is not 100% same looking to a Gradle-Groovy scripts too.</p>
+
+<p>The implementation of that my magic DSL fits in 
+<a href="https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt">one file</a>,
+and it’s about 150 lines.</p>
+
+<p>Next, I’ll explain how one can create similar DSLs for their own needs. With Kotlin you may target 
+JVM, Android, JS, and Native, reusing same pure-Kotlin code.</p>
+
+<h1 id="dsl-basics">DSL Basics</h1>
+
+<p>We need to create a text generator DSL. The primary decision if either to generate a bare text or to use an API of a library. 
+You may consider <a href="https://www.w3.org/DOM/">XML DOM</a> or <a href="https://github.com/FasterXML/jackson">Jackson</a>. 
+There are <a href="https://github.com/square/kotlinpoet">kotlinpoet</a> or <a href="https://github.com/square/javapoet">javapoet</a>
+to generate Kotlin or Java code via an API. I bet there are many other libraries. 
+<a href="https://github.com/nebula-plugins/gradle-lint-plugin">Nebula Gradle Lint Plugin</a> can read/write 
+Gradle scripts too.</p>
+
+<p>There is a trade-off. Dealing with a library may be complicated and time-consuming, but way more stable.</p>
+
+<p>For the sake of <a href="/blog/2017/10/18/java9c/">java9c</a> tests, I decided to implement the generator 
+based on bare text output. And it’d be me who covers all risks and bugs from the implementation. 
+It is only about 150 lines (now) of 
+<a href="https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt">code</a>.</p>
+
+<h2 id="writer-interface">Writer Interface</h2>
+
+<p>I started with a line writer interface:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">interface</span> <span class="n">LineWriter</span> <span class="p">{</span>
+  <span class="n">operator</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Inside the interface, I use unary minus, e.g., <code>-"foo"</code> as the function to write a line. It reads better in DSLs, e.g.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">lineWriter</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Well, you may decide to have a <code>fun line(text: String)</code> instead. That does not change the rest, so, please
+feel free to use a function instead of an operator. Alternatively, you may use <code>String.unaryPlus</code>, so that
+you’d have <code>+"foo"</code>.</p>
+
+<p>See <a href="https://kotlinlang.org/docs/reference/operator-overloading.html">Operator Overloading</a> documentation
+or ask me, if you need to clarify the trick.</p>
+
+<h2 id="a-trivial-writer-implementation">A Trivial Writer Implementation</h2>
+
+<p>The implementation of the interface could be something trivial, e.g.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">String</span> <span class="p">{</span>
+  <span class="k">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">StringBuilder</span><span class="p">()</span>
+  <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
+       <span class="n">result</span><span class="p">.</span><span class="n">appendln</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}.</span><span class="n">builder</span><span class="p">()</span> 
+  <span class="k">return</span> <span class="n">result</span><span class="p">.</span><span class="n">toString</span><span class="p">()</span> 
+<span class="p">}</span></code></pre></figure>
+
+<p>The usage could be:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">val</span> <span class="py">text</span> <span class="p">:</span> <span class="n">String</span> <span class="p">=</span> <span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The <code>generateDSL</code> receives a <a href="https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver">lambda with receiver</a>
+and returns resulting string. It is the implementation detail to pass the instance of 
+<code>LineWriter</code> to the lambda. Inside the lambda, the receiver is <code>LineWriter</code>, it means, that <code>this</code> keyword 
+resolves to an instance of <code>LineWriter</code>. Of course, <code>this.</code> can be omitted and all methods are resolved
+against <code>LineWriter</code> instance. It follows that <code>- "foo"</code> calls resolves to <code>String.unaryMinus()</code> function
+of <code>LineWriter</code> inside the lambda scope.</p>
+
+<p>For short, we may compact the <code>generateDSL</code> function to the following:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">=</span> <span class="n">buildString</span> <span class="p">{</span>
+  <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
+       <span class="n">appendln</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+    <span class="p">}</span>
+  <span class="p">}.</span><span class="n">builder</span><span class="p">()</span>  
+<span class="p">}</span></code></pre></figure>
+
+<p>Here I use a <code>fun buildString(builderAction: StringBuilder.() -&gt; Unit): String</code> function from the Kotlin standard library. 
+It receives yet another <a href="https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver">lambda with receiver</a> 
+on <code>StringBuilder</code> type so that <code>appendln</code> is a function from it.</p>
+
+<p>Theoretically, you may have several different entry point functions (e.g., <code>generateDSL</code>)
+to, say, generate a string, a file or something else. The rest does not depend on a particular 
+<code>generate*</code> function.</p>
+
+<h1 id="indenting-and-blocks">Indenting and Blocks</h1>
+
+<p>Text generation for languages like Gradle requires indenting. We have blocks, and it’s nice
+to simplify blocks generation. At first, I created an <code>offset</code> function for it:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">offset</span><span class="p">():</span> <span class="n">LineWriter</span> <span class="p">{</span>
+  <span class="k">val</span> <span class="py">outer</span> <span class="p">=</span> <span class="k">this</span>
+  <span class="k">return</span> <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span> <span class="p">{</span>
+      <span class="k">val</span> <span class="py">s</span> <span class="p">=</span> <span class="k">this</span>
+      <span class="n">outer</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span> 
+        <span class="p">-(</span><span class="s">&quot;  &quot;</span> <span class="p">+</span> <span class="n">s</span><span class="p">)</span> 
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The function is an <a href="https://kotlinlang.org/docs/reference/extensions.html">extension function</a>. It makes
+no need to change the original <code>LineWriter</code> interface, but it still reads as a method call.</p>
+
+<p>The <code>block</code> function is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">block</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">&quot;$name {&quot;</span>
+  <span class="n">offset</span><span class="p">().</span><span class="n">builder</span><span class="p">()</span>
+  <span class="p">-</span><span class="s">&quot;}&quot;</span>
+  <span class="p">-</span><span class="s">&quot;&quot;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Here I use <a href="https://kotlinlang.org/docs/reference/idioms.html#string-interpolation">string interpolation</a>
+to simplify code of the first line.</p>
+
+<p>At that point I can write the DSL snippets like that:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="n">block</span><span class="p">(</span><span class="s">&quot;jonnyzzz&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">-</span><span class="s">&quot;test&quot;</span>
+  <span class="p">}</span>
+<span class="p">}</span>  </code></pre></figure>
+
+<p>And it yields</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">jonnyzzz {
+  test
+}  </code></pre></figure>
+
+<p>Nice, isn’t it?</p>
+
+<h1 id="gradle-specific-constructs">Gradle Specific Constructs</h1>
+
+<p>With <code>block</code> function one can create all necessary functions to generate blocks like <code>repositories</code>, <code>dependencies</code> and so on. 
+Now it is time to implement specific parts of the DSL and allow some constructs only inside other constructs.</p>
+
+<h2 id="repositories">Repositories</h2>
+
+<p>Let’s consider <code>repositories</code> block. Inside we have pre-defined functions for <code>mavenCentral()</code> and <code>jcenter()</code>.</p>
+
+<p>First, we need a builder interface and implementation. It can be done as follows:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">interface RepositoriesWriter : LineWriter {
+  fun mavenCentral() { -&quot;mavenCentral()&quot; }
+  fun mavenLocal() { -&quot;mavenLocal()&quot; }
+  fun jcenter() { -&quot;jcenter()&quot; }
+}
+
+fun RepositoriesHolder.repositories(builder: RepositoriesWriter.() -&gt; Unit) =
+        block(&quot;repositories&quot;) {
+          object : RepositoriesWriter, LineWriter by it {
+          }.builder()
+        }</code></pre></figure>
+
+<p>We define an interface <code>RepositoriesWriter</code> to play as the scope of the generation. In the interface,
+we have <code>mavenLocal</code> and other functions with trivial implementations. Those functions can be alternatively 
+implemented as extension functions of inside the <code>repositories</code> function. That is up to the author.</p>
+
+<p>In the <code>repositories</code> function, I use <a href="https://kotlinlang.org/docs/reference/delegation.html">class delegation</a> aka <code>by</code>
+keyword to implement <code>LineWriter</code> from <code>RepositoriesWriter</code> to delegate to another instance of <code>LineWriter</code>. 
+So short to write and powerful!</p>
+
+<p>As the result, we can have</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">generateDSL {
+  repositories {
+     mavenCentral()
+     -&quot;// another line&quot;
+  }
+}   </code></pre></figure>
+
+<p>The same way I created the whole bunch of functions to support the subset of Gradle scripts I 
+was using in my tests. You may take a look 
+<a href="https://github.com/jonnyzzz/gradle-java9c/blob/master/test/src/test/java/org/jonnyzzz/gradle/java9c/test-4.2.1.kt">here for more details</a>.</p>
+
+<h2 id="specific-dsl-alternatives">Specific DSL Alternatives</h2>
+
+<p>It was another design decision to allow <code>LineWriter</code> functions and extension functions (e.g., <code>block</code>) 
+of the scope of <code>RepositoriesWriter</code> lambda. We might have decided opposite. In the case, we would need
+<a href="https://kotlinlang.org/docs/reference/type-safe-builders.html#scope-control-dslmarker-since-11">DslMarker</a>
+annotation to make sure <code>LineWriter</code> functions and extension functions are not resolved to the 
+outer scope. We probably have a <code>generateDSL</code> function call on the top.</p>
+
+<h1 id="wrapping-up">Wrapping Up</h1>
+
+<p>DSLs are nice. In the post, I presented the DSL building pattern. 
+Use it to create your DSLs. Ask me if you have questions. 
+You may also check <a href="https://kotlinlang.org/docs/reference/type-safe-builders.html">this</a> article from Kotlin 
+documentation or <a href="https://www.youtube.com/watch?v=BnTtjywqAX8">a video of a talk by Hadi</a>.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/10/18/java9c/" class="btn" title="A Gradle Plugin to Detect Package Conflicts for Migration to Java 9 Modules">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2017 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>

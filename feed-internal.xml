@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-10-18T19:30:33+00:00</updated>
+  <updated>2017-11-02T08:24:02+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,280 @@
   
 
   
+  
+  <entry>
+    <title type="html">Kotlin DSL for Test Data</title>
+    <link href="http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/" rel="alternate" type="text/html" title="Kotlin DSL for Test Data" />
+    <published>2017-11-02T00:00:00+00:00</published>
+    <updated>2017-11-02T00:00:00+00:00</updated>
+    <id>/blog/2017/11/02/gradle-dsl</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/11/02/gradle-dsl/">&lt;p&gt;Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.&lt;/p&gt;
+
+&lt;p&gt;That time I was working on &lt;a href=&quot;/blog/2017/10/18/java9c/&quot;&gt;java9c&lt;/a&gt; plugin for Gradle, I created
+integration tests. In my case all those tests were of the following pattern: create sample Gradle
+project, execute it, check results. I decided to run a fun experiment and replace boring string
+constants with a Gradle-looking DSL.&lt;/p&gt;
+
+&lt;p&gt;Namely, instead of (and many Gradle plugin integration tests have similar)&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;apply plugin: &amp;#39;java-library&amp;#39;\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;repositories {\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;  mavenCentral()\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;}\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;dependencies {\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;  implementation &amp;#39;junit:junit:4.12&amp;#39;\n&amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&amp;quot;}\n&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I created a tiny DSL that looks (and parses) like a Gradle script. 
+The DSL generates test-data files for me. Kotlin compiler and IDE 
+helps to prevent errors before a test is executed. Code completion 
+makes a new test authoring easier. Here is the DSL usage example:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;java-library&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;junit:junit:4.12&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;More examples are on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt; in &lt;code&gt;java9c&lt;/code&gt; plugin test sources.&lt;/p&gt;
+
+&lt;p&gt;The example looks like a Gradle script. There was no goal to make it 100% same looking. Also, 
+there is an amazing &lt;a href=&quot;https://github.com/gradle/kotlin-dsl&quot;&gt;project&lt;/a&gt; run by Gradle to support
+Kotlin DSLs in Gradle, natively. That DSL is not 100% same looking to a Gradle-Groovy scripts too.&lt;/p&gt;
+
+&lt;p&gt;The implementation of that my magic DSL fits in 
+&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt&quot;&gt;one file&lt;/a&gt;,
+and it’s about 150 lines.&lt;/p&gt;
+
+&lt;p&gt;Next, I’ll explain how one can create similar DSLs for their own needs. With Kotlin you may target 
+JVM, Android, JS, and Native, reusing same pure-Kotlin code.&lt;/p&gt;
+
+&lt;h1 id=&quot;dsl-basics&quot;&gt;DSL Basics&lt;/h1&gt;
+
+&lt;p&gt;We need to create a text generator DSL. The primary decision if either to generate a bare text or to use an API of a library. 
+You may consider &lt;a href=&quot;https://www.w3.org/DOM/&quot;&gt;XML DOM&lt;/a&gt; or &lt;a href=&quot;https://github.com/FasterXML/jackson&quot;&gt;Jackson&lt;/a&gt;. 
+There are &lt;a href=&quot;https://github.com/square/kotlinpoet&quot;&gt;kotlinpoet&lt;/a&gt; or &lt;a href=&quot;https://github.com/square/javapoet&quot;&gt;javapoet&lt;/a&gt;
+to generate Kotlin or Java code via an API. I bet there are many other libraries. 
+&lt;a href=&quot;https://github.com/nebula-plugins/gradle-lint-plugin&quot;&gt;Nebula Gradle Lint Plugin&lt;/a&gt; can read/write 
+Gradle scripts too.&lt;/p&gt;
+
+&lt;p&gt;There is a trade-off. Dealing with a library may be complicated and time-consuming, but way more stable.&lt;/p&gt;
+
+&lt;p&gt;For the sake of &lt;a href=&quot;/blog/2017/10/18/java9c/&quot;&gt;java9c&lt;/a&gt; tests, I decided to implement the generator 
+based on bare text output. And it’d be me who covers all risks and bugs from the implementation. 
+It is only about 150 lines (now) of 
+&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt&quot;&gt;code&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;writer-interface&quot;&gt;Writer Interface&lt;/h2&gt;
+
+&lt;p&gt;I started with a line writer interface:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;operator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinus&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Inside the interface, I use unary minus, e.g., &lt;code&gt;-&quot;foo&quot;&lt;/code&gt; as the function to write a line. It reads better in DSLs, e.g.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;lineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;line of text&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Well, you may decide to have a &lt;code&gt;fun line(text: String)&lt;/code&gt; instead. That does not change the rest, so, please
+feel free to use a function instead of an operator. Alternatively, you may use &lt;code&gt;String.unaryPlus&lt;/code&gt;, so that
+you’d have &lt;code&gt;+&quot;foo&quot;&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html&quot;&gt;Operator Overloading&lt;/a&gt; documentation
+or ask me, if you need to clarify the trick.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-trivial-writer-implementation&quot;&gt;A Trivial Writer Implementation&lt;/h2&gt;
+
+&lt;p&gt;The implementation of the interface could be something trivial, e.g.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appendln&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The usage could be:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;line of text&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The &lt;code&gt;generateDSL&lt;/code&gt; receives a &lt;a href=&quot;https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver&quot;&gt;lambda with receiver&lt;/a&gt;
+and returns resulting string. It is the implementation detail to pass the instance of 
+&lt;code&gt;LineWriter&lt;/code&gt; to the lambda. Inside the lambda, the receiver is &lt;code&gt;LineWriter&lt;/code&gt;, it means, that &lt;code&gt;this&lt;/code&gt; keyword 
+resolves to an instance of &lt;code&gt;LineWriter&lt;/code&gt;. Of course, &lt;code&gt;this.&lt;/code&gt; can be omitted and all methods are resolved
+against &lt;code&gt;LineWriter&lt;/code&gt; instance. It follows that &lt;code&gt;- &quot;foo&quot;&lt;/code&gt; calls resolves to &lt;code&gt;String.unaryMinus()&lt;/code&gt; function
+of &lt;code&gt;LineWriter&lt;/code&gt; inside the lambda scope.&lt;/p&gt;
+
+&lt;p&gt;For short, we may compact the &lt;code&gt;generateDSL&lt;/code&gt; function to the following:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buildString&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;appendln&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here I use a &lt;code&gt;fun buildString(builderAction: StringBuilder.() -&amp;gt; Unit): String&lt;/code&gt; function from the Kotlin standard library. 
+It receives yet another &lt;a href=&quot;https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver&quot;&gt;lambda with receiver&lt;/a&gt; 
+on &lt;code&gt;StringBuilder&lt;/code&gt; type so that &lt;code&gt;appendln&lt;/code&gt; is a function from it.&lt;/p&gt;
+
+&lt;p&gt;Theoretically, you may have several different entry point functions (e.g., &lt;code&gt;generateDSL&lt;/code&gt;)
+to, say, generate a string, a file or something else. The rest does not depend on a particular 
+&lt;code&gt;generate*&lt;/code&gt; function.&lt;/p&gt;
+
+&lt;h1 id=&quot;indenting-and-blocks&quot;&gt;Indenting and Blocks&lt;/h1&gt;
+
+&lt;p&gt;Text generation for languages like Gradle requires indenting. We have blocks, and it’s nice
+to simplify blocks generation. At first, I created an &lt;code&gt;offset&lt;/code&gt; function for it:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;outer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinus&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;outer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+        &lt;span class=&quot;p&quot;&gt;-(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;  &amp;quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
+      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The function is an &lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension function&lt;/a&gt;. It makes
+no need to change the original &lt;code&gt;LineWriter&lt;/code&gt; interface, but it still reads as a method call.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;block&lt;/code&gt; function is as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;$name {&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here I use &lt;a href=&quot;https://kotlinlang.org/docs/reference/idioms.html#string-interpolation&quot;&gt;string interpolation&lt;/a&gt;
+to simplify code of the first line.&lt;/p&gt;
+
+&lt;p&gt;At that point I can write the DSL snippets like that:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;jonnyzzz&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And it yields&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;jonnyzzz {
+  test
+}  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Nice, isn’t it?&lt;/p&gt;
+
+&lt;h1 id=&quot;gradle-specific-constructs&quot;&gt;Gradle Specific Constructs&lt;/h1&gt;
+
+&lt;p&gt;With &lt;code&gt;block&lt;/code&gt; function one can create all necessary functions to generate blocks like &lt;code&gt;repositories&lt;/code&gt;, &lt;code&gt;dependencies&lt;/code&gt; and so on. 
+Now it is time to implement specific parts of the DSL and allow some constructs only inside other constructs.&lt;/p&gt;
+
+&lt;h2 id=&quot;repositories&quot;&gt;Repositories&lt;/h2&gt;
+
+&lt;p&gt;Let’s consider &lt;code&gt;repositories&lt;/code&gt; block. Inside we have pre-defined functions for &lt;code&gt;mavenCentral()&lt;/code&gt; and &lt;code&gt;jcenter()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;First, we need a builder interface and implementation. It can be done as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;interface RepositoriesWriter : LineWriter {
+  fun mavenCentral() { -&amp;quot;mavenCentral()&amp;quot; }
+  fun mavenLocal() { -&amp;quot;mavenLocal()&amp;quot; }
+  fun jcenter() { -&amp;quot;jcenter()&amp;quot; }
+}
+
+fun RepositoriesHolder.repositories(builder: RepositoriesWriter.() -&amp;gt; Unit) =
+        block(&amp;quot;repositories&amp;quot;) {
+          object : RepositoriesWriter, LineWriter by it {
+          }.builder()
+        }&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We define an interface &lt;code&gt;RepositoriesWriter&lt;/code&gt; to play as the scope of the generation. In the interface,
+we have &lt;code&gt;mavenLocal&lt;/code&gt; and other functions with trivial implementations. Those functions can be alternatively 
+implemented as extension functions of inside the &lt;code&gt;repositories&lt;/code&gt; function. That is up to the author.&lt;/p&gt;
+
+&lt;p&gt;In the &lt;code&gt;repositories&lt;/code&gt; function, I use &lt;a href=&quot;https://kotlinlang.org/docs/reference/delegation.html&quot;&gt;class delegation&lt;/a&gt; aka &lt;code&gt;by&lt;/code&gt;
+keyword to implement &lt;code&gt;LineWriter&lt;/code&gt; from &lt;code&gt;RepositoriesWriter&lt;/code&gt; to delegate to another instance of &lt;code&gt;LineWriter&lt;/code&gt;. 
+So short to write and powerful!&lt;/p&gt;
+
+&lt;p&gt;As the result, we can have&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;generateDSL {
+  repositories {
+     mavenCentral()
+     -&amp;quot;// another line&amp;quot;
+  }
+}   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The same way I created the whole bunch of functions to support the subset of Gradle scripts I 
+was using in my tests. You may take a look 
+&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test/src/test/java/org/jonnyzzz/gradle/java9c/test-4.2.1.kt&quot;&gt;here for more details&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;specific-dsl-alternatives&quot;&gt;Specific DSL Alternatives&lt;/h2&gt;
+
+&lt;p&gt;It was another design decision to allow &lt;code&gt;LineWriter&lt;/code&gt; functions and extension functions (e.g., &lt;code&gt;block&lt;/code&gt;) 
+of the scope of &lt;code&gt;RepositoriesWriter&lt;/code&gt; lambda. We might have decided opposite. In the case, we would need
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html#scope-control-dslmarker-since-11&quot;&gt;DslMarker&lt;/a&gt;
+annotation to make sure &lt;code&gt;LineWriter&lt;/code&gt; functions and extension functions are not resolved to the 
+outer scope. We probably have a &lt;code&gt;generateDSL&lt;/code&gt; function call on the top.&lt;/p&gt;
+
+&lt;h1 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h1&gt;
+
+&lt;p&gt;DSLs are nice. In the post, I presented the DSL building pattern. 
+Use it to create your DSLs. Ask me if you have questions. 
+You may also check &lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html&quot;&gt;this&lt;/a&gt; article from Kotlin 
+documentation or &lt;a href=&quot;https://www.youtube.com/watch?v=BnTtjywqAX8&quot;&gt;a video of a talk by Hadi&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="java9" />
+  
+    <category term="opensource" />
+  
+    <category term="plugin" />
+  
+    <category term="java9c" />
+  
+    <category term="kotlin" />
+  
+    <category term="dsl" />
+  
+    <summary type="html">Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">A Gradle Plugin to Detect Package Conflicts for Migration to Java 9 Modules</title>
@@ -1445,202 +1719,6 @@ code in my apps.&lt;/p&gt;
     <category term="tip" />
   
     <summary type="html">A simple suspend function, and its bytecode.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Hints in Stack Traces on the JVM</title>
-    <link href="http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/" rel="alternate" type="text/html" title="Hints in Stack Traces on the JVM" />
-    <published>2017-04-12T00:00:00+00:00</published>
-    <updated>2017-04-12T00:00:00+00:00</updated>
-    <id>/blog/2017/04/12/named-frames-v2</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/04/12/named-frames-v2/">&lt;p&gt;Encode context in a thread dump or an exception stack trace for the JVM.&lt;/p&gt;
-
-&lt;p&gt;Remember a production application stack trace or thread dump? Were you able to understand 
-what a thread was downing? Why was a thread idling/hanging/waiting? What was the context of it? 
-What a command was it? Or, say you were digging the roots of a NullPointerException stack trace?&lt;/p&gt;
-
-&lt;p&gt;Most time it’s hard.&lt;/p&gt;
-
-&lt;p&gt;There is a simple remedy. One may call &lt;code&gt;Threads.setName&lt;/code&gt; to set/unset thread
-name to indicate current activity and/or to add more information.&lt;/p&gt;
-
-&lt;p&gt;Hey, be aware of the &lt;code&gt;Threads.setName&lt;/code&gt;. Some other code may also use it in their way.
-Please, do not spoil it, if you can&lt;/p&gt;
-
-&lt;p&gt;Unfortunately, exception stack trace does not container thread name. So the fragile context is
-lost if an exception is thrown. The only hope it is logged correctly, and logger includes
-a thread name. Surprise! The full thread name.&lt;/p&gt;
-
-&lt;p&gt;What else? Why cannot we include the information locally and so that it is not 
-lost in an exception or in a logger message? Can we make it more context-aware and readable?&lt;/p&gt;
-
-&lt;h1 id=&quot;an-example&quot;&gt;An example&lt;/h1&gt;
-
-&lt;p&gt;Consider an application, which runs a request for a given, say, &lt;code&gt;userId&lt;/code&gt;. And it crashes with code like&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Exception in thread &amp;quot;main&amp;quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
-	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:5)
-	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
-	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
-	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
-	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
-	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
-	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:10)
-	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;What was the context of the failure above? Does it somehow related to parameters that were around?&lt;/p&gt;
-
-&lt;h1 id=&quot;named-frames&quot;&gt;Named Frames&lt;/h1&gt;
-
-&lt;p&gt;I created the &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;Named Frames&lt;/a&gt;
-library, which aims to help by including an additional information as &lt;em&gt;method calls&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;Let’s now update the code and include &lt;code&gt;userId&lt;/code&gt; and RemoteCrashMicroService backend URL into the thread
-dump. That is done be wrapping method calls with code like that:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;NamedStackFrame&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;global&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;forName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;YOUR TEXT HERE&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// it is called from a method, which contains &amp;#39;YOUR TEXT HERE&amp;#39; in the full name&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The updated thread dump from the exception is now the following&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Exception in thread &amp;quot;main&amp;quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
-	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:8)
-	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:5)
-
-	at __. service = backend-452 .__.call(JavaGeneratorTemplate.java:39)
-
-	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:7)
-	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:7)
-	at com.jonnyzzz.blog.example.db.vendor.fun.AmazingDBSupport.runThisCodeFinally(AmazingDBSupport.kt:7)
-	at com.jonnyzzz.blog.example.tansaction.meta.JokingTransaction.crzTr(JokingTransaction.kt:7)
-	at com.jonnyzzz.blog.example.tansaction.Transaction.transaction(Transaction.kt:7)
-	at com.jonnyzzz.blog.example.system.SystemInvariant.promoteB(SystemInvariant.kt:7)
-	at com.jonnyzzz.blog.example.Ent.processA(Ent.kt:7)
-	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:12)
-	at com.jonnyzzz.blog.example.web.Controller$executeRequest$1.call(Controller.kt:7)
-
-	at __. user = jonnyzzz .__.call(JavaGeneratorTemplate.java:39)
-
-	at com.jonnyzzz.blog.example.web.Controller.executeRequest(Controller.kt:11)
-	at com.jonnyzzz.blog.example.EnterpriseAppKt.main(EnterpriseApp.kt:13)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;This one now includes the sensible information (as service name and userId)
-which can be used to debug the original problem.&lt;/p&gt;
-
-&lt;h1 id=&quot;api&quot;&gt;API&lt;/h1&gt;
-
-&lt;p&gt;Named stack frames API is easy and flexible. 
-The main entry point is &lt;code&gt;org.jonnyzzz.stack.NamedStackFrame&lt;/code&gt;. There you may use either &lt;code&gt;#global()&lt;/code&gt; method to access 
-statically cached factory of named framed. 
-The better is to use &lt;code&gt;#newInstance()&lt;/code&gt; method to have an instance of the factory to explicitly control the lifetime.&lt;/p&gt;
-
-&lt;p&gt;Both methods return an instance of &lt;code&gt;org.jonnyzzz.stack.NamedExecutor&lt;/code&gt; interface, which contains all possible methods to wrap
-a call with a named frame.&lt;/p&gt;
-
-&lt;h1 id=&quot;implementation&quot;&gt;Implementation&lt;/h1&gt;
-
-&lt;p&gt;The implementation is covered in &lt;a href=&quot;/blog/2014/04/26/named-stack-frames-for-jvm/&quot;&gt;the older post&lt;/a&gt;. Note, the
-API is slightly changed in 0.2.x.&lt;/p&gt;
-
-&lt;p&gt;The idea is to on-the-fly generate classes for every given name. All generated classes are loaded with a dedicated
-classloader and cached.&lt;/p&gt;
-
-&lt;p&gt;We implement our own class file weaver to avoid external dependencies from other libraries and thus to
-simplify adoption of this library in your project.&lt;/p&gt;
-
-&lt;p&gt;The library attempts to escape some &lt;em&gt;bad&lt;/em&gt; symbols from names you pass. All such symbols are replaced with ‘_’.&lt;/p&gt;
-
-&lt;h1 id=&quot;namedstackframe-costs&quot;&gt;NamedStackFrame Costs&lt;/h1&gt;
-
-&lt;p&gt;Custom information in stack traces is not free. We create and load classes to implement it. This means, 
-it’s your responsibility to make sure you will not consume all JVM memory on that.&lt;/p&gt;
-
-&lt;p&gt;Practically, you should understand the number of possible names is limited and fits in the memory. That’s it.&lt;/p&gt;
-
-&lt;h1 id=&quot;profiler-grouping-of-calls&quot;&gt;Profiler Grouping of Calls&lt;/h1&gt;
-
-&lt;p&gt;Do you use a profiler to monitor your application? A profiler presents such named 
-methods (just like ordinary methods) as different method calls. That means you’ll see a distribution of calls.&lt;/p&gt;
-
-&lt;p&gt;You’ll see a distribution of time spent by each name: a distribution by &lt;code&gt;userId&lt;/code&gt;, &lt;code&gt;action type&lt;/code&gt; or &lt;code&gt;serviceId&lt;/code&gt;
-for the example above.&lt;/p&gt;
-
-&lt;h1 id=&quot;android-support&quot;&gt;Android Support&lt;/h1&gt;
-
-&lt;p&gt;All the time I was wondering if it’s helpful for Android applications as well. Do you like the idea?
-Please contribute!&lt;/p&gt;
-
-&lt;h1 id=&quot;license&quot;&gt;License&lt;/h1&gt;
-
-&lt;p&gt;The library is &lt;a href=&quot;https://www.apache.org/licenses/LICENSE-2.0&quot;&gt;Apache 2.0&lt;/a&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;download&quot;&gt;Download&lt;/h1&gt;
-
-&lt;p&gt;Sources are on &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Binaries are on JCenter / Bintray&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://bintray.com/jonnyzzz/maven/named-frames/_latestVersion&quot;&gt; &lt;img src=&quot;https://api.bintray.com/packages/jonnyzzz/maven/named-frames/images/download.svg&quot; alt=&quot;Download&quot; /&gt; &lt;/a&gt; &lt;a href=&quot;https://travis-ci.org/jonnyzzz/named-java-frames&quot;&gt; &lt;img src=&quot;https://travis-ci.org/jonnyzzz/named-java-frames.svg?branch=master&quot; alt=&quot;Build Status&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;In Gradle, just add&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;repositories {
-  jcenter()
-}
-
-dependencies {
-  compile 'org.jonnyzzz.named-frames:named-frames:&amp;lt;LATEST VERSION&amp;gt;'
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1 id=&quot;issues&quot;&gt;Issues&lt;/h1&gt;
-
-&lt;p&gt;On &lt;a href=&quot;https://github.com/jonnyzzz/named-java-frames&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="jvm" />
-  
-    <category term="debug" />
-  
-    <category term="trace" />
-  
-    <category term="library" />
-  
-    <category term="opensource" />
-  
-    <category term="stacktrace" />
-  
-    <category term="frame" />
-  
-    <category term="stack" />
-  
-    <category term="java" />
-  
-    <category term="named-stack-frames" />
-  
-    <summary type="html">Encode context in a thread dump or an exception stack trace for the JVM.</summary>
   
   </entry>
   
