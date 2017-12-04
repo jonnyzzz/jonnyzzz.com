@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2017-11-25T20:22:54+00:00</updated>
+  <updated>2017-12-04T21:04:47+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,71 @@
   
 
   
+  
+  <entry>
+    <title type="html">MacBook Fix Tilde Key</title>
+    <link href="http://jonnyzzz.com/blog/2017/12/04/macos-keys/" rel="alternate" type="text/html" title="MacBook Fix Tilde Key" />
+    <published>2017-12-04T00:00:00+00:00</published>
+    <updated>2017-12-04T00:00:00+00:00</updated>
+    <id>/blog/2017/12/04/macos-keys</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/12/04/macos-keys/">&lt;p&gt;A tiny trick to remap keys on macOS X&lt;/p&gt;
+
+&lt;p&gt;Recently I switched from an EN-US MacBook Pro Keyboard to a DE keyboard. Suddenly, I found
+an unexpected problem with keys layout.&lt;/p&gt;
+
+&lt;p&gt;There are several differences in the layout. 
+You may have a look to all possible keyboard layouts 
+&lt;a href=&quot;https://keyshorts.com/blogs/blog/37615873-how-to-identify-macbook-keyboard-localization&quot; target=&quot;_blank&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The main difference is that in EU version of the keyboard we have additional
+buttons, Enter key is vertical, Left Shift key is shorted to give a room for 
+an extra key.&lt;/p&gt;
+
+&lt;p&gt;The problem is as follows: &lt;code&gt;tilde&lt;/code&gt; key is near &lt;code&gt;1&lt;/code&gt; in the EN-US keyboard (and other PC keyboards),
+while it is between Shift and Z in the EU keyboards.&lt;/p&gt;
+
+&lt;p&gt;Also, on Mac OS we use &lt;code&gt;CMD+tilde&lt;/code&gt; to switch between windows on the same App. I have even
+installed &lt;a href=&quot;https://neosmart.net/EasySwitch/&quot; target=&quot;_blank&quot;&gt;Easy Window Switcher&lt;/a&gt; to have the same 
+experience on Windows!&lt;/p&gt;
+
+&lt;p&gt;It is hard for me to learn the trick. And it will not work correctly, if you remap a key. Namely,
+in Russian keyboard layout the remapped shortcut will not work. Yeah! MacOS System shortcuts DO 
+depend on keyboard layout. Sad story.&lt;/p&gt;
+
+&lt;p&gt;I can across a tiny and nice article to remap keys on MacOS. 
+&lt;a href=&quot;https://developer.apple.com/library/content/technotes/tn2450/_index.html&quot; target=&quot;_blank&quot;&gt;TN2450&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;And the way to re-map keys is the following:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;
+hidutil property --set '{&quot;UserKeyMapping&quot;:[{&quot;HIDKeyboardModifierMappingSrc&quot;:0x700000064,&quot;HIDKeyboardModifierMappingDst&quot;:0x700000035},{&quot;HIDKeyboardModifierMappingSrc&quot;:0x700000035,&quot;HIDKeyboardModifierMappingDst&quot;:0x700000064}]}'
+&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;That is all you need. Next you’d need to have a patched Russian keyboard to fix Ё character. For the fix I use 
+&lt;a href=&quot;http://scripts.sil.org/ukelele&quot; target=&quot;_blank&quot;&gt;ukelele&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Anyway, you do not need to install ANY third-party apps to solve the key-remapping problems&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mac" />
+  
+    <category term="macOS" />
+  
+    <category term="keys" />
+  
+    <summary type="html">A tiny trick to remap keys on macOS X</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Kotlin DSL for Test Data</title>
@@ -1537,188 +1602,6 @@ to my need in &lt;a href=&quot;https://www.jetbrains.com/pycharm/&quot;&gt;PyCha
     <category term="logs" />
   
     <summary type="html">representing metrics as words cloud</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Bytecode behind coroutines in Kotlin</title>
-    <link href="http://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/" rel="alternate" type="text/html" title="Bytecode behind coroutines in Kotlin" />
-    <published>2017-04-26T00:00:00+00:00</published>
-    <updated>2017-04-26T00:00:00+00:00</updated>
-    <id>/blog/2017/04/26/corotines-or-state-machine</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/">&lt;p&gt;A simple suspend function, and its bytecode.&lt;/p&gt;
-
-&lt;p&gt;The new thing in Kotlin 1.1 is &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;coroutines&lt;/a&gt;. As we know
-from the documentation, it is the &lt;code&gt;suspend&lt;/code&gt; keyword that was added to the language. The rest is implemented 
-as libraries.&lt;/p&gt;
-
-&lt;p&gt;Let’s take a look at the bytecode side of this feature.&lt;/p&gt;
-
-&lt;h1 id=&quot;an-empty-suspend-function&quot;&gt;An Empty Suspend function&lt;/h1&gt;
-
-&lt;p&gt;I have the following code snippet:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Let’s take a look to the bytecode from this method. For the experiment, I use Kotlin 1.1.1 with IntelliJ IDEA 2017.1.
-Results may depend on version. I use &lt;code&gt;javap -c&lt;/code&gt; to generate those dumps&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&amp;lt;? super kotlin.Unit&amp;gt;);
-    Code:
-       0: aload_0
-       1: ldc           #13                 // String $continuation
-       3: invokestatic  #19                 // Method kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull:(Ljava/lang/Object;Ljava/lang/String;)V
-       6: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
-       9: areturn&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The interface &lt;code&gt;Continuation&lt;/code&gt; is declared in the Kotlin standard library, see &lt;a href=&quot;https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/&quot;&gt;documentation&lt;/a&gt;.
-It contains &lt;code&gt;context&lt;/code&gt; and methods to complete continuation: &lt;code&gt;resume&lt;/code&gt; and &lt;code&gt;resumeWithException&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1 id=&quot;a-trivial-suspend-function&quot;&gt;A Trivial Suspend function&lt;/h1&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;b2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Here &lt;code&gt;a()&lt;/code&gt; and &lt;code&gt;c()&lt;/code&gt; are calls to ordinary Java methods, which were declared in Kotlin without the &lt;code&gt;suspend&lt;/code&gt; keyword.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&amp;lt;? super kotlin.Unit&amp;gt;);
-    Code:
-       0: aload_0
-       1: ldc           #13                 // String $continuation
-       3: invokestatic  #19                 // Method kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull:(Ljava/lang/Object;Ljava/lang/String;)V
-       6: invokestatic  #29                 // Method a:()V
-       9: invokestatic  #31                 // Method c:()V
-      12: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
-      15: areturn&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;As we see from this code, there is nothing special done to the method. The only return value and additional parameter were added.&lt;/p&gt;
-
-&lt;h1 id=&quot;a-suspend-function-with-a-suspend-call&quot;&gt;A suspend function with a suspend call&lt;/h1&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;b3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;b3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;In this example, we call &lt;code&gt;b3()&lt;/code&gt; suspend function from itself. Here &lt;code&gt;a()&lt;/code&gt; and &lt;code&gt;c()&lt;/code&gt; are calls to ordinary Java 
-methods, which were declared in Kotlin without &lt;code&gt;suspend&lt;/code&gt; keyword. The generated code now looks way different.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&amp;lt;? super kotlin.Unit&amp;gt;);
-    descriptor: (Lkotlin/coroutines/experimental/Continuation;)Ljava/lang/Object;
-    Code:
-       0: aload_0
-       1: ldc           #13                 // String $continuation
-       3: invokestatic  #19                 // Method kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull:(Ljava/lang/Object;Ljava/lang/String;)V
-       6: new           #34                 // class streams4/ZKt$b3$1
-       9: dup
-      10: aload_0
-      11: invokespecial #38                 // Method streams4/ZKt$b3$1.&amp;quot;&amp;lt;init&amp;gt;&amp;quot;:(Lkotlin/coroutines/experimental/Continuation;)V
-      14: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
-      17: aconst_null
-      18: invokevirtual #42                 // Method streams4/ZKt$b3$1.doResume:(Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
-      21: areturn&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Instead of having the method in-place, it now generates an inner class for the state-machine to implement the &lt;code&gt;suspend&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;The class &lt;code&gt;streams4/ZKt$b3$1&lt;/code&gt; is generated as follows&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
-  public final java.lang.Object doResume(java.lang.Object, java.lang.Throwable);
-    descriptor: (Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
-    Code:
-       0: invokestatic  #13                 // Method kotlin/coroutines/experimental/intrinsics/IntrinsicsKt.getCOROUTINE_SUSPENDED:()Ljava/lang/Object;
-       3: astore_3
-       4: aload_0
-       5: getfield      #17                 // Field kotlin/coroutines/experimental/jvm/internal/CoroutineImpl.label:I
-       8: tableswitch   { // 0 to 1
-                     0: 32
-                     1: 58
-               default: 74
-          }
-      32: aload_2
-      33: dup
-      34: ifnull        38
-      37: athrow
-      38: pop
-      39: invokestatic  #23                 // Method streams4/ZKt.a:()V
-      42: aload_0
-      43: aload_0
-      44: iconst_1
-      45: putfield      #17                 // Field kotlin/coroutines/experimental/jvm/internal/CoroutineImpl.label:I
-      48: invokestatic  #27                 // Method streams4/ZKt.b3:(Lkotlin/coroutines/experimental/Continuation;)Ljava/lang/Object;
-      51: dup
-      52: aload_3
-      53: if_acmpne     66
-      56: aload_3
-      57: areturn
-      58: aload_2
-      59: dup
-      60: ifnull        64
-      63: athrow
-      64: pop
-      65: aload_1
-      66: pop
-      67: invokestatic  #30                 // Method streams4/ZKt.c:()V
-      70: getstatic     #36                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
-      73: areturn
-      74: new           #38                 // class java/lang/IllegalStateException
-      77: dup
-      78: ldc           #40                 // String call to &amp;#39;resume&amp;#39; before &amp;#39;invoke&amp;#39; with coroutine
-      80: invokespecial #44                 // Method java/lang/IllegalStateException.&amp;quot;&amp;lt;init&amp;gt;&amp;quot;:(Ljava/lang/String;)V
-      83: athrow
-
-  streams4.ZKt$b3$1(kotlin.coroutines.experimental.Continuation);
-    descriptor: (Lkotlin/coroutines/experimental/Continuation;)V
-    Code:
-       0: aload_0
-       1: iconst_0
-       2: aload_1
-       3: invokespecial #58                 // Method kotlin/coroutines/experimental/jvm/internal/CoroutineImpl.&amp;quot;&amp;lt;init&amp;gt;&amp;quot;:(ILkotlin/coroutines/experimental/Continuation;)V
-       6: return
-}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The implementation of &lt;code&gt;b3()&lt;/code&gt; function is moved to a state machine anonymous object. The main method of 
-the inner object does a switch over states of the state machine.
-The &lt;code&gt;b3()&lt;/code&gt; function is split by every &lt;code&gt;suspend&lt;/code&gt; function call. On the example below,
-we have only 2 states. This is up to helper functions to assert the machine is always in a correct state.&lt;/p&gt;
-
-&lt;p&gt;On every &lt;code&gt;suspend&lt;/code&gt; function call, Kotlin creates an object to encapsulate the state of the state machine, that 
-is created to implement the continuations on top of JVM.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;Coroutines in Kotlin are awesome, easy and powerful constructs that give 
-us the power to fight the complexity (by the cost of an extra abstraction 
-level). I’m looking forward to using coroutines to simplify asynchronous 
-code in my apps.&lt;/p&gt;
-
-&lt;p&gt;For more information and details see &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;Kotlin coroutines&lt;/a&gt; documentation.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="coroutine" />
-  
-    <category term="kotlin-bytecode" />
-  
-    <category term="jvm" />
-  
-    <category term="tip" />
-  
-    <summary type="html">A simple suspend function, and its bytecode.</summary>
   
   </entry>
   
