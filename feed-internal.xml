@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-05-12T15:35:43+00:00</updated>
+  <updated>2018-05-16T12:26:35+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,64 @@
   
 
   
+  
+  <entry>
+    <title type="html">Undefined Symbol on macOS</title>
+    <link href="http://jonnyzzz.com/blog/2018/05/16/link-error/" rel="alternate" type="text/html" title="Undefined Symbol on macOS" />
+    <published>2018-05-16T00:00:00+00:00</published>
+    <updated>2018-05-16T00:00:00+00:00</updated>
+    <id>/blog/2018/05/16/link-error</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2018/05/16/link-error/">&lt;p&gt;___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.&lt;/p&gt;
+
+&lt;p&gt;I use &lt;a href=&quot;https://kotlinlang.org/docs/reference/native-overview.html&quot;&gt;Kotlin/Native&lt;/a&gt; to create a 
+tiny command line utility for Windows, Linux, and macOS. I believe the best app is the app without
+dependencies, and thus without requirements and dependencies hassle. That is easier than 
+baking os-specific packages or installers.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://curl.haxx.se/&quot;&gt;Curl&lt;/a&gt; is one of my dependencies for this project. So I compiled it to 
+&lt;code&gt;libcurl.a&lt;/code&gt; and lined to &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md&quot;&gt;Kotlin/Native&lt;/a&gt;
+easily with a few lines of Gradle script.&lt;/p&gt;
+
+&lt;p&gt;It failed with something cryptic on my macOS 10.13:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;Undefined symbols for architecture x86_64:
+  &quot;___isOSVersionAtLeast&quot;, referenced from:
+      _singleipconnect in libcurl.a(libcurl_la-connect.o)
+      _darwinssl_connect_common in libcurl.a(libcurl_la-darwinssl.o)
+      _darwinssl_version_from_curl in libcurl.a(libcurl_la-darwinssl.o)
+ld: symbol(s) not found for architecture x86_64
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Digging internet did not help. And that is mostly why I am blogging that one. Changing or patching the 
+way I build curl was useless too. Nikolay suggested me to check target version of my binaries. That was it.
+Kudos Nikolay!&lt;/p&gt;
+
+&lt;p&gt;I should have compiled the curl with &lt;code&gt;10.13&lt;/code&gt; as min version for Mac. I did that by setting
+&lt;code&gt;CFLAGS&lt;/code&gt; environment variable to &lt;code&gt;-mmacosx-version-min=10.13&lt;/code&gt; for &lt;code&gt;./configure&lt;/code&gt; and &lt;code&gt;make&lt;/code&gt; commands.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mac" />
+  
+    <category term="macOS" />
+  
+    <category term="linker" />
+  
+    <category term="kotlin" />
+  
+    <category term="kotlin/native" />
+  
+    <summary type="html">___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">MacBook Fix Tilde Key</title>
@@ -1481,127 +1539,6 @@ build a highly available system.&lt;/p&gt;</content>
     <category term="load-balance" />
   
     <summary type="html">More SSH servers behind the same hostname</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Words Cloud from Metrics Data</title>
-    <link href="http://jonnyzzz.com/blog/2017/05/10/tags-cloud-from-analytics/" rel="alternate" type="text/html" title="Words Cloud from Metrics Data" />
-    <published>2017-05-10T00:00:00+00:00</published>
-    <updated>2017-05-10T00:00:00+00:00</updated>
-    <id>/blog/2017/05/10/tags-cloud-from-analytics</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/05/10/tags-cloud-from-analytics/">&lt;p&gt;representing metrics as words cloud&lt;/p&gt;
-
-&lt;p&gt;I was working on a presentation of an internal service I’m working. In the service we have many 
-entities (sorry, no details here for now), each generates inbound and outbound traffic.&lt;/p&gt;
-
-&lt;h1 id=&quot;preparing-data&quot;&gt;Preparing Data&lt;/h1&gt;
-
-&lt;p&gt;The service has an endpoint with whole metrics we collect. That is an enormously huge JSON file, that one can fetch
-from an HTTP endpoint.&lt;/p&gt;
-
-&lt;p&gt;There is too much data event to feed some &lt;a href=&quot;https://grafana.com/&quot;&gt;Grafana&lt;/a&gt; solution. So we need to filter/normalize the data first.&lt;/p&gt;
-
-&lt;p&gt;I use amazing &lt;a href=&quot;https://stedolan.github.io/jq/&quot;&gt;jq&lt;/a&gt;. Great tool to update/fetch/patch/present data. On macOS
-you may simply say &lt;code&gt;brew install jq&lt;/code&gt; to have it.&lt;/p&gt;
-
-&lt;p&gt;Fetching data in the console can be done simply too. I use &lt;a href=&quot;https://curl.haxx.se/&quot;&gt;curl&lt;/a&gt; for that.&lt;/p&gt;
-
-&lt;p&gt;The finally, to prepare the data, I use to following snipped&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt; 
-curl -s http://gh-prod-blue-backend-01/~api/manage/metrics | \
-  jq --raw-output \
-  &amp;#39;[ .block[] |  { key: .id, value : .counters.&amp;quot;outbound-traffic&amp;quot;  } ] | del (.[] | select(.value == null ) ) | from_entries &amp;#39;  
-   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The output from the tool was like the following&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-1&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;39090&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-2&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5533&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-3&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;13750&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;//....&lt;/span&gt;
-  &lt;span class=&quot;s2&quot;&gt;&amp;quot;entity-name-N&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;7235017&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;That is the data to feed into a words/tags cloud generator.&lt;/p&gt;
-
-&lt;h1 id=&quot;generating-a-tags-cloud&quot;&gt;Generating a Tags Cloud&lt;/h1&gt;
-
-&lt;p&gt;I failed to find any good online service to implement the task in several clicks. Finally, I found a fantastic Python library
-called &lt;a href=&quot;https://github.com/amueller/word_cloud&quot;&gt;word_cloud&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Frankly, I’m not a python expert. I found an example and managed to turn it 
-to my need in &lt;a href=&quot;https://www.jetbrains.com/pycharm/&quot;&gt;PyCharm&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;That is the snipped I finally did&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;math&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;wordcloud&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WordCloud&lt;/span&gt;
-&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;plt&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loads&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot; { &amp;#39;json&amp;#39; : &amp;#39;data is here&amp;#39; } &amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;theDataMax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;##&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;## normalize the data first&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;##&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;e&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;float&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theDataMax&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theDataMin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-            &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;k&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;items&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
-          &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;# Generate a word cloud image&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;wordcloud&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;WordCloud&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;background_color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;white&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;margin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;ranks_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prefer_horizontal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mask&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;scale&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;color_func&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;max_words&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;min_font_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;stopwords&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;random_state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;max_font_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;font_step&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;RGB&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;relative_scaling&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;regexp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;collocations&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                 &lt;span class=&quot;n&quot;&gt;colormap&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;normalize_plurals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;\
-    &lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;generate_from_frequencies&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;theData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;# Display the generated image:&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;figure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imshow&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wordcloud&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;interpolation&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;bilinear&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;axis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;off&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;I’m happy I came across several amazing tools, and it turned to be easy and fun to generate some analytics ‘reports’ like that:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://jonnyzzz.com/images/posts/2017-05-10-tags-cloud-from-analytics.png&quot; alt=&quot;Marvell characters cloud&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I use Marvell character names instead of real names :)&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="metrics" />
-  
-    <category term="cloud" />
-  
-    <category term="ha" />
-  
-    <category term="logs" />
-  
-    <summary type="html">representing metrics as words cloud</summary>
   
   </entry>
   

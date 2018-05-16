@@ -5,14 +5,18 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Homepage &#8211; Eugene Petrenko</title>
-<meta name="description" content="Eugene Petrenko Site & Blog"/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
+<title>Undefined Symbol on macOS &#8211; Eugene Petrenko</title>
+<meta name="description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mac, macOS, linker, kotlin, kotlin/native" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Homepage -- Eugene Petrenko" />
-<meta name="twitter:description" content="Eugene Petrenko Site & Blog" />
+<meta name="twitter:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
+<meta name="twitter:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -22,9 +26,11 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Homepage -- Eugene Petrenko" />
-<meta property="og:description" content="Eugene Petrenko Site & Blog" />
-<meta property="og:url" content="http://jonnyzzz.com/" />
+<meta property="og:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
+<meta property="og:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -34,6 +40,16 @@
 <meta property="article:tag" content="Eugene Petrenko" />
 
 
+<meta property="article:tag" content="mac" />
+
+<meta property="article:tag" content="macOS" />
+
+<meta property="article:tag" content="linker" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="kotlin/native" />
+
 
 
 <!-- Webmaster Tools verfication -->
@@ -42,7 +58,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -108,7 +124,7 @@
 
 </head>
 
-<body id="page">
+<body id="post">
 
 <div class="navigation-wrapper">
 	<nav role="navigation" id="site-nav" class="animated drop">
@@ -147,34 +163,100 @@
 
 
 <div id="main" role="main">
-  <article class="entry">
+  <article class="hentry">
     
     <div class="entry-wrapper">
       <header class="entry-header">
-        <h1 class="entry-title">Homepage</h1>
+        <ul class="entry-tags">
+          <li><a href="/tags/#mac" title="Pages tagged mac">mac</a></li><li><a href="/tags/#macOS" title="Pages tagged macOS">macOS</a></li><li><a href="/tags/#linker" title="Pages tagged linker">linker</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#kotlin/native" title="Pages tagged kotlin/native">kotlin/native</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Undefined Symbol on macOS</h1>
+        
       </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-05-16T00:00:00+00:00"><i class="fa fa-calendar-o"></i> May 16, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=mac,macOS,linker,kotlin,kotlin/native&amp;text=Undefined%20Symbol%20on%20macOS&amp;url=http://jonnyzzz.com/blog/2018/05/16/link-error/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/05/16/link-error/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
       <div class="entry-content">
-        <ul class="post-list">
-  <li><article><a href="/about/">About me</a></article></li>
-  <li><article><a href="/projects/">My projects</a></article></li>
-  <li><article><a href="/talks/">My Talks</a></article></li>
+        <p>___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.</p>
+
+<p>I use <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> to create a 
+tiny command line utility for Windows, Linux, and macOS. I believe the best app is the app without
+dependencies, and thus without requirements and dependencies hassle. That is easier than 
+baking os-specific packages or installers.</p>
+
+<p><a href="https://curl.haxx.se/">Curl</a> is one of my dependencies for this project. So I compiled it to 
+<code>libcurl.a</code> and lined to <a href="https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md">Kotlin/Native</a>
+easily with a few lines of Gradle script.</p>
+
+<p>It failed with something cryptic on my macOS 10.13:</p>
+<pre><code>Undefined symbols for architecture x86_64:
+  "___isOSVersionAtLeast", referenced from:
+      _singleipconnect in libcurl.a(libcurl_la-connect.o)
+      _darwinssl_connect_common in libcurl.a(libcurl_la-darwinssl.o)
+      _darwinssl_version_from_curl in libcurl.a(libcurl_la-darwinssl.o)
+ld: symbol(s) not found for architecture x86_64
+</code></pre>
+
+<p>Digging internet did not help. And that is mostly why I am blogging that one. Changing or patching the 
+way I build curl was useless too. Nikolay suggested me to check target version of my binaries. That was it.
+Kudos Nikolay!</p>
+
+<p>I should have compiled the curl with <code>10.13</code> as min version for Mac. I did that by setting
+<code>CFLAGS</code> environment variable to <code>-mmacosx-version-min=10.13</code> for <code>./configure</code> and <code>make</code> commands.</p>
 
 
-  <li><article><a href="/blog/2018/05/16/link-error/">Undefined Symbol on macOS <span class="entry-date"><time datetime="2018-05-16T00:00:00+00:00">May 16, 2018</time></span></a></article></li>
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
 
-  <li><article><a href="/blog/2017/12/04/macos-keys/">MacBook Fix Tilde Key <span class="entry-date"><time datetime="2017-12-04T00:00:00+00:00">December 04, 2017</time></span></a></article></li>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
 
-  <li><article><a href="/blog/2017/11/02/gradle-dsl/">Kotlin DSL for Test Data <span class="entry-date"><time datetime="2017-11-02T00:00:00+00:00">November 02, 2017</time></span></a></article></li>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 
-  <li><article><a href="/blog/2017/10/18/java9c/">A Gradle Plugin to Detect Package Conflicts for Migration to Java 9 Modules <span class="entry-date"><time datetime="2017-10-18T00:00:00+00:00">October 18, 2017</time></span></a></article></li>
-
-  <li><article><a href="/blog/2017/08/23/ssh-oom/">A Sudden SSH out-of-memory <span class="entry-date"><time datetime="2017-08-23T00:00:00+00:00">August 23, 2017</time></span></a></article></li>
-
-  <li><article><a href="/blog/">and more...</a></article></li>
-</ul>
-
+        
       </div><!-- /.entry-content -->
     </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2017/12/04/macos-keys/" class="btn" title="MacBook Fix Tilde Key">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
   </article>
 </div><!-- /#main -->
 
