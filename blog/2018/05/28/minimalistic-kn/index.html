@@ -5,16 +5,18 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Undefined Symbol on macOS &#8211; Eugene Petrenko</title>
-<meta name="description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<title>Minimalistic C library and Kotlin/Native &#8211; Eugene Petrenko</title>
+<meta name="description" content="The most trivial Kotlin/Native 
+example of using C library
 
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mac, macOS, linker, kotlin, kotlin/native" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
-<meta name="twitter:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<meta name="twitter:title" content="Minimalistic C library and Kotlin/Native -- Eugene Petrenko" />
+<meta name="twitter:description" content="The most trivial Kotlin/Native 
+example of using C library
 
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
@@ -26,11 +28,12 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
-<meta property="og:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<meta property="og:title" content="Minimalistic C library and Kotlin/Native -- Eugene Petrenko" />
+<meta property="og:description" content="The most trivial Kotlin/Native 
+example of using C library
 
 " />
-<meta property="og:url" content="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2018/05/28/minimalistic-kn/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -58,7 +61,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2018/05/28/minimalistic-kn/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -171,7 +174,7 @@
           <li><a href="/tags/#mac" title="Pages tagged mac">mac</a></li><li><a href="/tags/#macOS" title="Pages tagged macOS">macOS</a></li><li><a href="/tags/#linker" title="Pages tagged linker">linker</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#kotlin/native" title="Pages tagged kotlin/native">kotlin/native</a></li>
         </ul>
         
-          <h1 class="entry-title">Undefined Symbol on macOS</h1>
+          <h1 class="entry-title">Minimalistic C library and Kotlin/Native</h1>
         
       </header>
       <footer class="entry-meta">
@@ -180,14 +183,14 @@
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2018-05-16T00:00:00+00:00"><i class="fa fa-calendar-o"></i> May 16, 2018</time></span>
+        <span class="entry-date date published"><time datetime="2018-05-28T00:00:00+00:00"><i class="fa fa-calendar-o"></i> May 28, 2018</time></span>
         
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=mac,macOS,linker,kotlin,kotlin/native&amp;text=Undefined%20Symbol%20on%20macOS&amp;url=http://jonnyzzz.com/blog/2018/05/16/link-error/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+  <a href="https://twitter.com/intent/tweet?hashtags=mac,macOS,linker,kotlin,kotlin/native&amp;text=Minimalistic%20C%20library%20and%20Kotlin/Native&amp;url=http://jonnyzzz.com/blog/2018/05/28/minimalistic-kn/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/05/16/link-error/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/05/28/minimalistic-kn/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
 </span>
 
 <!-- /.social-share -->
@@ -195,32 +198,144 @@
         
       </footer>
       <div class="entry-content">
-        <p>___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.</p>
+        <p>The most trivial <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> 
+example of using <code>C</code> library</p>
 
-<p>I use <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> to create a 
-tiny command line utility for Windows, Linux, and macOS. I believe the best app is the app without
-dependencies, and thus without requirements and dependencies hassle. That is easier than 
-baking os-specific packages or installers.</p>
+<p>Some time ago I stuck linking a C binary into an executable with 
+<a href="/blog/2018/05/16/link-error/">___isOSVersionAtLeast is undefined</a>. 
+And thus I decided to simplify things to localize the problem. I will write 
+a dedicated post with the solution for <code>___isOSVersionAtLeast is undefined</code>.</p>
 
-<p><a href="https://curl.haxx.se/">Curl</a> is one of my dependencies for this project. So I compiled it to 
-<code>libcurl.a</code> and lined to <a href="https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md">Kotlin/Native</a>
-easily with a few lines of Gradle script.</p>
+<p>Let’s focus on the most trivial library example. To start with, I assume 
+you have <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a>
+compiler in the OS Path. Have a look at 
+<a href="https://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler">the main tutorial</a>
+or merely download the compiler from <a href="https://github.com/JetBrains/kotlin-native/releases" target="_blank">GitHub Releases page</a>.
+Beware, the compiler will download the toolchain on the very first run.
+The <code>konanc</code> and <code>cinterop</code> tools should be in the <code>PATH</code> of your terminal or console.</p>
 
-<p>It failed with something cryptic on my macOS 10.13:</p>
-<pre><code>Undefined symbols for architecture x86_64:
-  "___isOSVersionAtLeast", referenced from:
-      _singleipconnect in libcurl.a(libcurl_la-connect.o)
-      _darwinssl_connect_common in libcurl.a(libcurl_la-darwinssl.o)
-      _darwinssl_version_from_curl in libcurl.a(libcurl_la-darwinssl.o)
-ld: symbol(s) not found for architecture x86_64
+<p>The rest of the post is created and tested on macOS. It should just work on Linux, but I did not check it. 
+You shall have C/C++ toolchain installed too. On macOS, it is enough to install and run Xcode.</p>
+
+<h2 id="c-library">C Library</h2>
+
+<p>The <code>lib.h</code> file looks as follows</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED</span>
+<span class="cp">#define LIB2_H_INCLUDED</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+   <span class="k">extern</span> <span class="err">“</span><span class="n">C</span><span class="err">”</span> <span class="p">{</span>
+<span class="cp">#endif</span>
+
+<span class="kt">int</span> <span class="n">foo</span><span class="p">();</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+   <span class="p">}</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif </span><span class="c1">//LIB2_H_INCLUDED</span></code></pre></figure>
+
+<p>The <code>extern "C"</code> block is not needed (unless you use C++) and left here 
+for <a href="https://stackoverflow.com/questions/1041866/what-is-the-effect-of-extern-c-in-c">C++ compatibility</a>.
+Thus you may shrink the file to <code>lib.h</code>:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED</span>
+<span class="cp">#define LIB2_H_INCLUDED</span>
+
+<span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
+
+<span class="cp">#endif </span><span class="c1">//LIB2_H_INCLUDED</span></code></pre></figure>
+
+<p><a href="https://stackoverflow.com/questions/1653958/why-are-ifndef-and-define-used-in-c-header-files">#include guards</a>
+in your <code>.h</code> files are a standard ritual. They are necessary for multiple <code>.h</code> files projects.</p>
+
+<p>The code above declares one function for export <code>int foo()</code>. We use the <code>.h</code> file later 
+with Kotlin/Native <code>cinterop</code> tool import the function into Kotlin/Native.</p>
+
+<p>Let’s create a <code>lib.c</code> for implementation for the <code>foo</code> function in C:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &quot;lib.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="mi">42</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now we compile the C sources into a C library. For that we call <code>gcc</code> to compile (and link)
+the <code>.c</code> sources into a C static library:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc -c <span class="s2">&quot;-I$(pwd)&quot;</span> lib.c -o lib.o
+ar rcs lib.a lib.o</code></pre></figure>
+
+<p>It will be a bit more complicated if you have several <code>.c</code> source files.</p>
+
+<p>At that moment we have</p>
+<ul>
+  <li><code>lib.h</code> – the header</li>
+  <li><code>lib.c</code> – the implementation</li>
+  <li><code>lib.o</code> – the intermediate object file</li>
+  <li><code>lib.a</code> – the compiled static library</li>
+</ul>
+
+<h2 id="importing-to-kotlinnative">Importing to Kotlin/Native</h2>
+
+<p>We need to import the C library to be used with Kotlin/Native. It is as tricky as 
+calling a <code>cinterop</code> tool.</p>
+
+<p>The <code>cinterop</code> tool uses the definition file for my library <code>lib.def</code>:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">header = lib.h</code></pre></figure>
+
+<p>The file helps to specify all necessary options for bigger libraries.</p>
+
+<p>Not it is the time to call the <code>cinterop</code> with the following options:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">cinterop -def lib.def -compilerOpts <span class="s2">&quot;-I$(pwd)&quot;</span> -o lib.klib</code></pre></figure>
+
+<p>The result is a <code>lib.klib</code> file. A Kotlin/Native library file. It contains Kotlin APIs for 
+our <code>lib.h</code>. It bridges C types and Kotlin/Native types (trivial <code>Int</code> in our case) and helps
+to deal with memory management (not needed for our example).</p>
+
+<p>At that moment we have</p>
+<ul>
+  <li><code>lib.h</code> – the header</li>
+  <li><code>lib.c</code> – the implementation</li>
+  <li><code>lib.o</code> – the intermediate object file</li>
+  <li><code>lib.a</code> – the compiled static library</li>
+  <li><code>lib.def</code> – the definitions for <code>cinterop</code>, reference to <code>lib.h</code></li>
+  <li><code>lib.klib</code> – the compiled Kotlin/Native library to access API from <code>lib.h</code></li>
+</ul>
+
+<h2 id="compiling-with-kotlinnative">Compiling with Kotlin/Native</h2>
+
+<p>We need an entry point and Kotlin sources. I created the <code>main.kt</code> file for that</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+  <span class="k">val</span> <span class="py">z</span> <span class="p">=</span> <span class="n">lib</span><span class="p">.</span><span class="n">foo</span><span class="p">()</span>
+  <span class="n">println</span><span class="p">(</span><span class="s">&quot;The foo() from lib.h returned $z&quot;</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And I compile it with the following command</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">konanc -l lib.klib main.kt -linkerOpts lib.a -o main.kexe</code></pre></figure>
+
+<p>and run the <code>./main.kexe</code> to see the resulting text is being printed:</p>
+
+<pre><code>./main.kexe
+The foo() from lib.h returned 42
+
 </code></pre>
 
-<p>Digging internet did not help. And that is mostly why I am blogging that one. Changing or patching the 
-way I build curl was useless too. Nikolay suggested me to check target version of my binaries. That was it.
-Kudos Nikolay!</p>
+<h2 id="conclusion">Conclusion</h2>
 
-<p>I should have compiled the curl with <code>10.13</code> as min version for Mac. I did that by setting
-<code>CFLAGS</code> environment variable to <code>-mmacosx-version-min=10.13</code> for <code>./configure</code> and <code>make</code> commands.</p>
+<p>That is a trivial C library linking case. For something real, you’ll probably want to 
+use <a href="https://github.com/JetBrains/kotlin-native/blob/master/GRADLE_PLUGIN.md">Gradle build</a>.</p>
+
+<p>Take a look at the <a href="https://kotlinlang.org/docs/tutorials/native/interop-with-c.html">Interop with C libraries</a> tutorial
+or the list of <a href="https://github.com/JetBrains/kotlin-native/blob/master/PLATFORM_LIBS.md">Platform libraries</a>.</p>
+
+<p>You may find it useful to check the 
+<a href="https://github.com/JetBrains/kotlin-native/blob/master/LIBRARIES.md">C Interop docs</a> 
+or <a href="https://github.com/JetBrains/kotlin-native/blob/master/OBJC_INTEROP.md">Interop with Swift and Objective-C</a> page.</p>
 
 
         
@@ -253,10 +368,8 @@ Kudos Nikolay!</p>
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/blog/2017/12/04/macos-keys/" class="btn" title="MacBook Fix Tilde Key">Previous</a>
+        <a href="/blog/2018/05/16/link-error/" class="btn" title="Undefined Symbol on macOS">Previous</a>
       
-      
-        <a href="/blog/2018/05/28/minimalistic-kn/" class="btn" title="Minimalistic C library and Kotlin/Native">Next</a>
       
     </nav><!-- /.pagination -->
   </article>
