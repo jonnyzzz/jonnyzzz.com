@@ -5,16 +5,16 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Undefined Symbol on macOS &#8211; Eugene Petrenko</title>
-<meta name="description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<title>Undefined isOSVersionAtLeast on macOS &#8211; Eugene Petrenko</title>
+<meta name="description" content="Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.
 
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mac, macOS, linker, kotlin, kotlin/native" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
-<meta name="twitter:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<meta name="twitter:title" content="Undefined isOSVersionAtLeast on macOS -- Eugene Petrenko" />
+<meta name="twitter:description" content="Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.
 
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
@@ -26,11 +26,11 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Undefined Symbol on macOS -- Eugene Petrenko" />
-<meta property="og:description" content="___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.
+<meta property="og:title" content="Undefined isOSVersionAtLeast on macOS -- Eugene Petrenko" />
+<meta property="og:description" content="Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.
 
 " />
-<meta property="og:url" content="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2018/06/05/link-error-2/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -58,7 +58,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/blog/2018/05/16/link-error/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2018/06/05/link-error-2/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -171,7 +171,7 @@
           <li><a href="/tags/#mac" title="Pages tagged mac">mac</a></li><li><a href="/tags/#macOS" title="Pages tagged macOS">macOS</a></li><li><a href="/tags/#linker" title="Pages tagged linker">linker</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#kotlin/native" title="Pages tagged kotlin/native">kotlin/native</a></li>
         </ul>
         
-          <h1 class="entry-title">Undefined Symbol on macOS</h1>
+          <h1 class="entry-title">Undefined isOSVersionAtLeast on macOS</h1>
         
       </header>
       <footer class="entry-meta">
@@ -180,14 +180,14 @@
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2018-05-16T00:00:00+00:00"><i class="fa fa-calendar-o"></i> May 16, 2018</time></span>
+        <span class="entry-date date published"><time datetime="2018-06-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> June 05, 2018</time></span>
         
         <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
         <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=mac,macOS,linker,kotlin,kotlin/native&amp;text=Undefined%20Symbol%20on%20macOS&amp;url=http://jonnyzzz.com/blog/2018/05/16/link-error/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+  <a href="https://twitter.com/intent/tweet?hashtags=mac,macOS,linker,kotlin,kotlin/native&amp;text=Undefined%20isOSVersionAtLeast%20on%20macOS&amp;url=http://jonnyzzz.com/blog/2018/06/05/link-error-2/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/05/16/link-error/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/06/05/link-error-2/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
 </span>
 
 <!-- /.social-share -->
@@ -195,35 +195,101 @@
         
       </footer>
       <div class="entry-content">
-        <p>___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.</p>
+        <p>Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.</p>
 
-<p>I use <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> to create a 
-tiny command line utility for Windows, Linux, and macOS. I believe the best app is the app without
-dependencies, and thus without requirements and dependencies hassle. That is easier than 
-baking os-specific packages or installers.</p>
+<p>A few weeks ago I wrote about <a href="/blog/2018/05/16/link-error/">___isOSVersionAtLeast is undefined</a> problem.
+At some point I realized I did NOT find a solution.</p>
 
-<p><a href="https://curl.haxx.se/">Curl</a> is one of my dependencies for this project. So I compiled it to 
-<code>libcurl.a</code> and lined to <a href="https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md">Kotlin/Native</a>
-easily with a few lines of Gradle script.</p>
+<p>That time I focused on reproducing the problem with a tiny library of only a 
+few code lines. I did that. A tiny static library.
+It wrote details in the recent post
+<a href="/blog/2018/05/28/minimalistic-kn/">Minimalistic C library and Kotlin/Native</a>.
+Now I can check the linking either with 
+<a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> 
+or with a plain C.</p>
 
-<p>It failed with something cryptic on my macOS 10.13.4 with Xcode 9.3.1.</p>
+<p>The <code>main.c</code>:</p>
 
-<pre><code>Undefined symbols for architecture x86_64:
-  "___isOSVersionAtLeast", referenced from:
-      _singleipconnect in libcurl.a(libcurl_la-connect.o)
-      _darwinssl_connect_common in libcurl.a(libcurl_la-darwinssl.o)
-      _darwinssl_version_from_curl in libcurl.a(libcurl_la-darwinssl.o)
-ld: symbol(s) not found for architecture x86_64
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &quot;lib.h&quot;</span>
+<span class="cp">#include &lt;stdio.h&gt;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">arg</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">z</span>  <span class="o">=</span> <span class="n">foo</span><span class="p">();</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The result is %d&quot;</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>I call the following to compile and link <code>main.c</code> with my <code>lib.a</code> 
+<a href="/blog/2018/05/28/minimalistic-kn/">library</a>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc -c  main.c -o main.o
+ld -macosx_version_min 10.10  -lc  main.o lib.a</code></pre></figure>
+
+<p>I do the on macOS 10.13.3 with Xcode 9.3.1 and macOS 10.13.5, Xcode 9.4.</p>
+
+<h2 id="the-linkage-error">The Linkage Error</h2>
+
+<p>It was an assumption of mine to check for 
+<a href="https://clang.llvm.org/docs/LanguageExtensions.html">Clang Language Extensions</a>,
+and finally, I was able to reproduce the linkage error with 
+only the following code in <code>lib.c</code> targeting macOS <code>10.10</code>, but not macOS <code>10.13</code>:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c1">/// that is a CLang extension</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">__builtin_available</span><span class="p">(</span><span class="n">macOS</span> <span class="mf">10.12</span><span class="p">,</span> <span class="n">iOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">2.0</span><span class="p">,</span> <span class="o">*</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="mi">256</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="mi">42</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>And the linker error:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Undefined symbols for architecture x86_64:
+  &quot;___isOSVersionAtLeast&quot;, referenced from:
+      _foo in lib.a(lib.o)</code></pre></figure>
+
+<p>I ran the <code>ld</code> command with <code>-macosx_version_min 10.10</code> to target macOS <code>10.10</code>. The 
+argument specifies the minimal version of macOS the created binary supports.</p>
+
+<p>More experiments with arguments help me to find that CLang is smart to optimize that 
+code if the check makes no sense.
+For example, CLang optimizes the call <code>__builtin_available(macOS 10.12,*)</code> when I target
+<code>10.12</code> or <code>10.13</code>. It also means no linkage error. 
+The call <code>__builtin_available(macOS 10.14,*)</code> is never optimized, as long as I cannot target
+<code>10.14</code> yet.</p>
+
+<p>My <a href="/blog/2018/05/16/link-error/">linkage problem</a> was not in the target version 
+specification at all. Otherwise, the problem was with a missing library. I was missing the 
+compiler-runtime library in my <code>ld</code> call.
+I found the hacky path (on <a href="https://www.google.de/search?q=works+on+my+machine" target="_blank">my machine</a>) 
+to solve the linker error:</p>
+
+<pre><code>/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
 </code></pre>
 
-<p>Digging internet did not help. And that is mostly why I am blogging that one. Changing or patching the 
-way I build curl was useless too. Nikolay suggested me to check target version of my binaries. That was it.
-Kudos Nikolay!</p>
+<p>That one defines the symbol I was missing. The only problem is the path hard-codes 
+too many internals. It is too internal to be used directly from a build. It seems to 
+be a part of Xcode 9.1.0, which is too old.</p>
 
-<p>I should have compiled the curl with <code>10.13</code> as min version for Mac. I did that by setting
-<code>CFLAGS</code> environment variable to <code>-mmacosx-version-min=10.13</code> for <code>./configure</code> and <code>make</code> commands.</p>
+<h2 id="compiler-rt">compiler-rt</h2>
 
-<p>Continue reading the <a href="/blog/2018/06/05/link-error-2/">next part of the investigation</a></p>
+<p><a href="https://compiler-rt.llvm.org/">LLVM “compiler-rt”</a> that is the place with the documentation
+of the LLVM and CLang features, that requires a runtime. It includes nice and helpful 
+features inside. There is still no answer with the correct linker options.
+I have no plans to build my own toolchain.</p>
+
+<h2 id="the-right-fix">The right fix</h2>
+
+<p>The best fix for <code>___isOSVersionAtLeast</code> undefined symbol so far is to include the missing 
+runtime library to an <code>ld</code> command. It only needs a path to the static library with no other
+arguments. Shall a build tool help here? I do not know yet.</p>
+
+<p>The worst here is one needs to generate the path manually. One need to know the Xcode (aka toolchain)
+version to do that. And the trickiest is to make sure the path is updated once Xcode or something
+else is updated.</p>
+
+<p>I am looking to find the best way to include the <code>compiler-rt</code>. If you know something, 
+please comment below.</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
@@ -255,10 +321,8 @@ Kudos Nikolay!</p>
     </div><!-- /.entry-wrapper -->
     <nav class="pagination" role="navigation">
       
-        <a href="/blog/2017/12/04/macos-keys/" class="btn" title="MacBook Fix Tilde Key">Previous</a>
+        <a href="/blog/2018/05/28/minimalistic-kn/" class="btn" title="Minimalistic C library and Kotlin/Native">Previous</a>
       
-      
-        <a href="/blog/2018/05/28/minimalistic-kn/" class="btn" title="Minimalistic C library and Kotlin/Native">Next</a>
       
     </nav><!-- /.pagination -->
   </article>

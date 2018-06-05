@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-05-28T15:37:58+00:00</updated>
+  <updated>2018-06-05T10:36:03+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,133 @@
   
 
   
+  
+  <entry>
+    <title type="html">Undefined isOSVersionAtLeast on macOS</title>
+    <link href="http://jonnyzzz.com/blog/2018/06/05/link-error-2/" rel="alternate" type="text/html" title="Undefined isOSVersionAtLeast on macOS" />
+    <published>2018-06-05T00:00:00+00:00</published>
+    <updated>2018-06-05T00:00:00+00:00</updated>
+    <id>/blog/2018/06/05/link-error-2</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2018/06/05/link-error-2/">&lt;p&gt;Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.&lt;/p&gt;
+
+&lt;p&gt;A few weeks ago I wrote about &lt;a href=&quot;/blog/2018/05/16/link-error/&quot;&gt;___isOSVersionAtLeast is undefined&lt;/a&gt; problem.
+At some point I realized I did NOT find a solution.&lt;/p&gt;
+
+&lt;p&gt;That time I focused on reproducing the problem with a tiny library of only a 
+few code lines. I did that. A tiny static library.
+It wrote details in the recent post
+&lt;a href=&quot;/blog/2018/05/28/minimalistic-kn/&quot;&gt;Minimalistic C library and Kotlin/Native&lt;/a&gt;.
+Now I can check the linking either with 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/native-overview.html&quot;&gt;Kotlin/Native&lt;/a&gt; 
+or with a plain C.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code&gt;main.c&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;quot;lib.h&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;stdio.h&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;char&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;**&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;argv&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;The result is %d&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I call the following to compile and link &lt;code&gt;main.c&lt;/code&gt; with my &lt;code&gt;lib.a&lt;/code&gt; 
+&lt;a href=&quot;/blog/2018/05/28/minimalistic-kn/&quot;&gt;library&lt;/a&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;gcc -c  main.c -o main.o
+ld -macosx_version_min 10.10  -lc  main.o lib.a&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I do the on macOS 10.13.3 with Xcode 9.3.1 and macOS 10.13.5, Xcode 9.4.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-linkage-error&quot;&gt;The Linkage Error&lt;/h2&gt;
+
+&lt;p&gt;It was an assumption of mine to check for 
+&lt;a href=&quot;https://clang.llvm.org/docs/LanguageExtensions.html&quot;&gt;Clang Language Extensions&lt;/a&gt;,
+and finally, I was able to reproduce the linkage error with 
+only the following code in &lt;code&gt;lib.c&lt;/code&gt; targeting macOS &lt;code&gt;10.10&lt;/code&gt;, but not macOS &lt;code&gt;10.13&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;/// that is a CLang extension&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__builtin_available&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;macOS&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;10.12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;iOS&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;9.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tvOS&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;9.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;watchOS&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;2.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;256&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;42&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And the linker error:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;Undefined symbols for architecture x86_64:
+  &amp;quot;___isOSVersionAtLeast&amp;quot;, referenced from:
+      _foo in lib.a(lib.o)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I ran the &lt;code&gt;ld&lt;/code&gt; command with &lt;code&gt;-macosx_version_min 10.10&lt;/code&gt; to target macOS &lt;code&gt;10.10&lt;/code&gt;. The 
+argument specifies the minimal version of macOS the created binary supports.&lt;/p&gt;
+
+&lt;p&gt;More experiments with arguments help me to find that CLang is smart to optimize that 
+code if the check makes no sense.
+For example, CLang optimizes the call &lt;code&gt;__builtin_available(macOS 10.12,*)&lt;/code&gt; when I target
+&lt;code&gt;10.12&lt;/code&gt; or &lt;code&gt;10.13&lt;/code&gt;. It also means no linkage error. 
+The call &lt;code&gt;__builtin_available(macOS 10.14,*)&lt;/code&gt; is never optimized, as long as I cannot target
+&lt;code&gt;10.14&lt;/code&gt; yet.&lt;/p&gt;
+
+&lt;p&gt;My &lt;a href=&quot;/blog/2018/05/16/link-error/&quot;&gt;linkage problem&lt;/a&gt; was not in the target version 
+specification at all. Otherwise, the problem was with a missing library. I was missing the 
+compiler-runtime library in my &lt;code&gt;ld&lt;/code&gt; call.
+I found the hacky path (on &lt;a href=&quot;https://www.google.de/search?q=works+on+my+machine&quot; target=&quot;_blank&quot;&gt;my machine&lt;/a&gt;) 
+to solve the linker error:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;That one defines the symbol I was missing. The only problem is the path hard-codes 
+too many internals. It is too internal to be used directly from a build. It seems to 
+be a part of Xcode 9.1.0, which is too old.&lt;/p&gt;
+
+&lt;h2 id=&quot;compiler-rt&quot;&gt;compiler-rt&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://compiler-rt.llvm.org/&quot;&gt;LLVM “compiler-rt”&lt;/a&gt; that is the place with the documentation
+of the LLVM and CLang features, that requires a runtime. It includes nice and helpful 
+features inside. There is still no answer with the correct linker options.
+I have no plans to build my own toolchain.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-right-fix&quot;&gt;The right fix&lt;/h2&gt;
+
+&lt;p&gt;The best fix for &lt;code&gt;___isOSVersionAtLeast&lt;/code&gt; undefined symbol so far is to include the missing 
+runtime library to an &lt;code&gt;ld&lt;/code&gt; command. It only needs a path to the static library with no other
+arguments. Shall a build tool help here? I do not know yet.&lt;/p&gt;
+
+&lt;p&gt;The worst here is one needs to generate the path manually. One need to know the Xcode (aka toolchain)
+version to do that. And the trickiest is to make sure the path is updated once Xcode or something
+else is updated.&lt;/p&gt;
+
+&lt;p&gt;I am looking to find the best way to include the &lt;code&gt;compiler-rt&lt;/code&gt;. If you know something, 
+please comment below.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mac" />
+  
+    <category term="macOS" />
+  
+    <category term="linker" />
+  
+    <category term="kotlin" />
+  
+    <category term="kotlin/native" />
+  
+    <summary type="html">Solving ___isOSVersionAtLeast is undefined or CLang intrinsics.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Minimalistic C library and Kotlin/Native</title>
@@ -205,7 +332,8 @@ baking os-specific packages or installers.&lt;/p&gt;
 &lt;code&gt;libcurl.a&lt;/code&gt; and lined to &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md&quot;&gt;Kotlin/Native&lt;/a&gt;
 easily with a few lines of Gradle script.&lt;/p&gt;
 
-&lt;p&gt;It failed with something cryptic on my macOS 10.13:&lt;/p&gt;
+&lt;p&gt;It failed with something cryptic on my macOS 10.13.4 with Xcode 9.3.1.&lt;/p&gt;
+
 &lt;pre&gt;&lt;code&gt;Undefined symbols for architecture x86_64:
   &quot;___isOSVersionAtLeast&quot;, referenced from:
       _singleipconnect in libcurl.a(libcurl_la-connect.o)
@@ -219,7 +347,9 @@ way I build curl was useless too. Nikolay suggested me to check target version o
 Kudos Nikolay!&lt;/p&gt;
 
 &lt;p&gt;I should have compiled the curl with &lt;code&gt;10.13&lt;/code&gt; as min version for Mac. I did that by setting
-&lt;code&gt;CFLAGS&lt;/code&gt; environment variable to &lt;code&gt;-mmacosx-version-min=10.13&lt;/code&gt; for &lt;code&gt;./configure&lt;/code&gt; and &lt;code&gt;make&lt;/code&gt; commands.&lt;/p&gt;</content>
+&lt;code&gt;CFLAGS&lt;/code&gt; environment variable to &lt;code&gt;-mmacosx-version-min=10.13&lt;/code&gt; for &lt;code&gt;./configure&lt;/code&gt; and &lt;code&gt;make&lt;/code&gt; commands.&lt;/p&gt;
+
+&lt;p&gt;Continue reading the &lt;a href=&quot;/blog/2018/06/05/link-error-2/&quot;&gt;next part of the investigation&lt;/a&gt;&lt;/p&gt;</content>
 
   
   
@@ -1468,96 +1598,6 @@ or to &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot
     <category term="coroutine" />
   
     <summary type="html">Kotlin coroutines for OutputStream.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">A post per 2 weeks</title>
-    <link href="http://jonnyzzz.com/blog/2017/06/07/a-post-every-two-weeks/" rel="alternate" type="text/html" title="A post per 2 weeks" />
-    <published>2017-06-07T00:00:00+00:00</published>
-    <updated>2017-06-07T00:00:00+00:00</updated>
-    <id>/blog/2017/06/07/a-post-every-two-weeks</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/06/07/a-post-every-two-weeks/">&lt;p&gt;a process to blog regularly&lt;/p&gt;
-
-&lt;p&gt;From February 2017 I decided to update this blog regularly. It randomly 
-turned out I update it once in 2 weeks.&lt;/p&gt;
-
-&lt;p&gt;By the time of this post, I have eight updates published on a regular basis.&lt;/p&gt;
-
-&lt;h1 id=&quot;pipeline&quot;&gt;Pipeline&lt;/h1&gt;
-
-&lt;p&gt;To make sure I meet the pace, I decided to queue all posts. It may turn out I have
-a post that is left in a queue for weeks or months. Nevertheless, this reasonable, to make
-sure I will not have gaps in the schedule.&lt;/p&gt;
-
-&lt;p&gt;The actual post lifetime is the following&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;authoring the main content (several attempts)&lt;/li&gt;
-  &lt;li&gt;proofreading (several attempts)&lt;/li&gt;
-  &lt;li&gt;spellchecking &amp;amp; publishing&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;In average it takes 3-4 evenings for a post to be ready to go. I like to leave a post
-in a draft for some time. Fresh re-read always helps to improve.&lt;/p&gt;
-
-&lt;p&gt;I use Git repository and Markdown to store all my posts. There is the older post with
-more &lt;a href=&quot;/blog/2015/11/22/MoveMoveMove/&quot;&gt;info&lt;/a&gt; on the technical part of the process.&lt;/p&gt;
-
-&lt;h1 id=&quot;channels&quot;&gt;Channels&lt;/h1&gt;
-
-&lt;p&gt;This blog generates RSS feed with all contents. I have no idea, how many 
-readers I have out of RSS.&lt;/p&gt;
-
-&lt;p&gt;All posts are also announced on Twitter / Facebook / VK. It looks like the
-best time for announcing is an evening in CET timezone, and morning in PDT.
-Posting in the CET morning does not play well on Twitter.&lt;/p&gt;
-
-&lt;p&gt;I update Facebook and VK. It mostly looks like there is no sense doing that, 
-maybe I should measure that somehow.&lt;/p&gt;
-
-&lt;h1 id=&quot;feedburner&quot;&gt;Feedburner&lt;/h1&gt;
-
-&lt;p&gt;I’m not using FeedBurner. Well, I decided to set it up. Hope it’ll shed light
-to the posts I write here.&lt;/p&gt;
-
-&lt;p&gt;I installed the FeedBurner feed on April, 15-th 2017. All RSS Feed readers of the older feed
-were kindly asked to switch to another RSS Feed URL. It was not possible to implement
-good tracking without altering the URL for this static blog.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://jonnyzzz.com/images/posts/2017-06-07-feedburner.png&quot; alt=&quot;Feedburner&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;analytics&quot;&gt;Analytics&lt;/h1&gt;
-
-&lt;p&gt;The site has Google Analytics. Let me show what I have out of the analytics.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;http://jonnyzzz.com/images/posts/2017-06-07-analytics3.png&quot; alt=&quot;Google Analytics&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;That is +37% in sessions, and +58% in users.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;My goal is to share ideas, discoveries, and problems I solve. Now it is
-time for the feedback from you, my readers. If you read my stories, please, don’t
-hesitate to share what you think in comments.&lt;/p&gt;
-
-&lt;p&gt;You may also follow me on &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;I will be happy to have feedback from you, my readers&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="blog" />
-  
-    <summary type="html">a process to blog regularly</summary>
   
   </entry>
   
