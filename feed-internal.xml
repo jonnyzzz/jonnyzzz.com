@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-06-08T09:39:25+00:00</updated>
+  <updated>2018-06-13T05:27:02+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,180 @@
   
 
   
+  
+  <entry>
+    <title type="html">Understanding isOSVersionAtLeast on macOS</title>
+    <link href="http://jonnyzzz.com/blog/2018/06/13/link-error-3/" rel="alternate" type="text/html" title="Understanding isOSVersionAtLeast on macOS" />
+    <published>2018-06-13T00:00:00+00:00</published>
+    <updated>2018-06-13T00:00:00+00:00</updated>
+    <id>/blog/2018/06/13/link-error-3</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2018/06/13/link-error-3/">&lt;p&gt;Understanding ___isOSVersionAtLeast on macOS is not defined&lt;/p&gt;
+
+&lt;h2 id=&quot;include&quot;&gt;Include&lt;/h2&gt;
+
+&lt;p&gt;I came across with the linker problem. My application was not able to link with the
+&lt;a href=&quot;/blog/2018/05/16/link-error/&quot;&gt;___isOSVersionAtLeast symbol is undefined&lt;/a&gt; error.
+It was the problem linking &lt;code&gt;curl&lt;/code&gt; with a
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/native-overview.html&quot;&gt;Kotlin/Native&lt;/a&gt;
+app. I did a tiny project to &lt;a href=&quot;https://github.com/jonnyzzz/demo-static-lib&quot;&gt;reproduce the linker error&lt;/a&gt;.
+As a side effect, here is a &lt;a href=&quot;/blog/2018/05/28/minimalistic-kn/&quot;&gt;Minimalistic C library and Kotlin/Native&lt;/a&gt;
+example. And finally, the main &lt;a href=&quot;/blog/2018/06/05/link-error-2/&quot;&gt;rant and investigation post&lt;/a&gt;. The good part
+is I got a suggestion to try.&lt;/p&gt;
+
+&lt;h2 id=&quot;use-clang-not-ld&quot;&gt;Use clang not ld&lt;/h2&gt;
+
+&lt;p&gt;The suggestion I got (and I say thank you for that) was to use &lt;code&gt;clang&lt;/code&gt; command, not the &lt;code&gt;ld&lt;/code&gt; one:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;clang -mmacosx-version-min&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;10.10 -lc main.o lib.a&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;It did work. It was able to link. Next, we may try &lt;code&gt;-v&lt;/code&gt; switch to see how it works inside, 
+with arguments split per lines and long paths simplified:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;gt; clang -mmacosx-version-min=10.10 -lc main.o lib.a -v
+
+Apple LLVM version 9.1.0 (clang-902.0.39.2)
+Target: x86_64-apple-darwin17.6.0
+Thread model: posix
+InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld 
+    -demangle 
+    -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib 
+    -dynamic 
+    -arch x86_64 
+    -macosx_version_min 10.10.0 
+    -o a.out 
+    -lc 
+    main.o 
+    lib.a 
+    -lSystem 
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
+    &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The right path (and I did it wrong in the &lt;a href=&quot;/blog/2018/06/05/link-error-2/&quot;&gt;previous post&lt;/a&gt;) is&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Still, the best way to use that commandline is to have no such commandline in the build.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-linker-error-solution&quot;&gt;The Linker Error Solution&lt;/h2&gt;
+
+&lt;p&gt;The answer here is to use &lt;code&gt;clang&lt;/code&gt; command instead of &lt;code&gt;ld&lt;/code&gt; command. Note, that
+command line options are different, and &lt;code&gt;clang&lt;/code&gt; calls
+(specify &lt;code&gt;-v&lt;/code&gt; key to see that) &lt;code&gt;ld&lt;/code&gt; with additional arguments.&lt;/p&gt;
+
+&lt;h1 id=&quot;linking-with-kotlinnative&quot;&gt;Linking with Kotlin/Native&lt;/h1&gt;
+
+&lt;p&gt;At that point, we have a workable &lt;code&gt;inc.sh&lt;/code&gt; script to compile and link the static library with the executable
+&lt;a href=&quot;https://github.com/jonnyzzz/demo-static-lib&quot;&gt;in the repository on GitHub&lt;/a&gt;. Time to fix &lt;code&gt;in.sh&lt;/code&gt; that links
+the static C library with a &lt;a href=&quot;https://kotlinlang.org/docs/reference/native-overview.html&quot;&gt;Kotlin/Native&lt;/a&gt;
+executable. You may want to have a look at the introductory post
+&lt;a href=&quot;/blog/2018/05/28/minimalistic-kn/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-dumb-approach&quot;&gt;A Dumb Approach&lt;/h2&gt;
+
+&lt;p&gt;The very first (and dump) fix is to include the &lt;code&gt;libclang_rt.osx.a&lt;/code&gt; path (see above) into the &lt;code&gt;konanc&lt;/code&gt; call with
+the &lt;code&gt;-linkerOpts &amp;lt;path&amp;gt;/libclang_rt.osx.a&lt;/code&gt;. It make the code compile and run.&lt;/p&gt;
+
+&lt;h2 id=&quot;right-approach&quot;&gt;Right Approach&lt;/h2&gt;
+
+&lt;p&gt;Let’s debug how Kotlin/Native executes the linker first. You pass the &lt;code&gt;--verbose linker&lt;/code&gt; to see the verbose output 
+from the linking phase (use &lt;code&gt;konanc --list_phases&lt;/code&gt; to learn all phases). The output on my machine is as follows, 
+with arguments split per lines and long paths simplified:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;&amp;gt; konanc -l lib.klib main.kt -linkerOpts  lib.a  -linkerOpts $L -o main.kexe --verbose linker
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld \
+    -demangle
+    -object_path_lto temporary.o 
+    -lto_library /Users/jonnyzzz/.konan/dependencies/clang-llvm-5.0.0-darwin-macos/lib/libLTO.dylib 
+    -dynamic 
+    -arch x86_64 
+    -macosx_version_min 10.11.0 
+    -syslibroot /Applications/Xcode.app/&amp;lt;...&amp;gt;/SDKs/MacOSX10.13.sdk 
+    -o &amp;lt;target folder&amp;gt;/main.kexe 
+    &amp;lt;temp folder&amp;gt;/combined.o 
+    -S 
+    -lc++ 
+    -lobjc 
+    -framework Foundation 
+    -lSystem &amp;lt;Konan Toolchaing path&amp;gt;/libffi.a 
+    -alias _Konan_main _main 
+    lib.a 
+    &amp;lt;our hack path to&amp;gt;/libclang_rt.osx.a&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Let’s compare the commands. The linker executable is selected right from both sides. The sensible difference
+is we miss &lt;code&gt;libclang_rt.osx.a&lt;/code&gt; from the Kotlin/Native command. There are two ways to go:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;link the &lt;code&gt;libclang_rt.osx.a&lt;/code&gt; with &lt;code&gt;lib.a&lt;/code&gt; before the final linking&lt;/li&gt;
+  &lt;li&gt;infer path to &lt;code&gt;libclang_rt.osx.a&lt;/code&gt; and include it into the linker command&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Checking &lt;code&gt;clang --help&lt;/code&gt; and I found the &lt;code&gt;-print-libgcc-file-name&lt;/code&gt; argument. It does provide hints, 
+but it is not enough just now.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-outcome&quot;&gt;The Outcome&lt;/h1&gt;
+
+&lt;p&gt;Frankly, I do not like linking with &lt;code&gt;libclang_rt&lt;/code&gt; explicitly. The library is a part
+of toolchain internals. It will make builds too fragile or not incorrect.
+The hack will not worth it in the long run.&lt;/p&gt;
+
+&lt;p&gt;The right way, as I see it, is to fix the original library build to make 
+sure it is pre-linked with all necessary internals.
+That matches with the encapsulation principle. It simplifies the rest. 
+The backup plan is to call &lt;code&gt;clang&lt;/code&gt; with &lt;code&gt;-v&lt;/code&gt; key, parse the command output
+to get the path to the &lt;code&gt;libclang_rt&lt;/code&gt;, and use it as an explicit library.&lt;/p&gt;
+
+&lt;h2 id=&quot;building-curl&quot;&gt;Building Curl&lt;/h2&gt;
+
+&lt;p&gt;A pre-history. I first saw the missing &lt;code&gt;___isOSVersionAtLeast&lt;/code&gt; symbol error
+while 
+&lt;a href=&quot;/blog/2018/05/16/link-error/&quot;&gt;building and static linking&lt;/a&gt;
+the &lt;a href=&quot;https://curl.haxx.se&quot;&gt;libcurl&lt;/a&gt;. My goal is to have a
+self-contained static library out of it.&lt;/p&gt;
+
+&lt;p&gt;I used the wrong artifact and build it incorrectly. I see the right static library 
+is somewhere under &lt;code&gt;curl&lt;/code&gt; build directory. 
+I did that wrong. Do that right. Respect the privacy and build internals.&lt;/p&gt;
+
+&lt;p&gt;The right way is&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;to set install prefix path in &lt;code&gt;./configure&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;to call &lt;code&gt;make install&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;use artifacts for the prefix path&lt;/li&gt;
+  &lt;li&gt;deliver the &lt;code&gt;libclang_rt&lt;/code&gt; as dependency (or &lt;a href=&quot;https://stackoverflow.com/questions/3821916/how-to-merge-two-ar-static-libraries-into-one&quot;&gt;merge it in?&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The library under the prefix do contain reference to our 
+favorite &lt;code&gt;___isOSVersionAtLeast&lt;/code&gt; symbol. The &lt;code&gt;make install&lt;/code&gt; package
+looks reusable and reduces hard-coded build hacks, still.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mac" />
+  
+    <category term="macOS" />
+  
+    <category term="linker" />
+  
+    <category term="kotlin" />
+  
+    <category term="kotlin/native" />
+  
+    <category term="curl" />
+  
+    <summary type="html">Understanding ___isOSVersionAtLeast on macOS is not defined</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Undefined isOSVersionAtLeast on macOS</title>
@@ -118,7 +292,9 @@ version to do that. And the trickiest is to make sure the path is updated once X
 else is updated.&lt;/p&gt;
 
 &lt;p&gt;I am looking to find the best way to include the &lt;code&gt;compiler-rt&lt;/code&gt;. If you know something, 
-please comment below.&lt;/p&gt;</content>
+please comment below.&lt;/p&gt;
+
+&lt;p&gt;Continue reading the &lt;a href=&quot;/blog/2018/06/13/link-error-3/&quot;&gt;next part of the investigation&lt;/a&gt;&lt;/p&gt;</content>
 
   
   
@@ -1335,271 +1511,6 @@ And let me know if you know the better way to Go.&lt;/p&gt;</content>
     <category term="build" />
   
     <summary type="html">No Silver-Go-Bullet. Yet another ad-hoc build.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">A Kotlin Coroutine for an OutputStream Filtering</title>
-    <link href="http://jonnyzzz.com/blog/2017/06/21/coroutine-to-process-data/" rel="alternate" type="text/html" title="A Kotlin Coroutine for an OutputStream Filtering" />
-    <published>2017-06-21T00:00:00+00:00</published>
-    <updated>2017-06-21T00:00:00+00:00</updated>
-    <id>/blog/2017/06/21/coroutine-to-process-data</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/06/21/coroutine-to-process-data/">&lt;p&gt;Kotlin coroutines for OutputStream.&lt;/p&gt;
-
-&lt;p&gt;In this post, we consider a low-level implementation for specific 
-coroutines that are used to process streams in a server-side Java application. 
-There is an existing code that writes the output to a given &lt;code&gt;OutputStream&lt;/code&gt; object. 
-One may write it in Java as:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ExistingService&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;callExistingCode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resultOutput&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;We need to intercept the output that is bing written by the &lt;code&gt;#callExistingCode&lt;/code&gt; function.&lt;/p&gt;
-
-&lt;h1 id=&quot;example&quot;&gt;Example&lt;/h1&gt;
-&lt;p&gt;Say the &lt;code&gt;ExistingService&lt;/code&gt; replies with an HTML, and the goal is to extract some part of it, say a &lt;code&gt;&amp;lt;div&amp;gt;&lt;/code&gt;
-with a given &lt;code&gt;id&lt;/code&gt;.
-Or an &lt;code&gt;ExistingService&lt;/code&gt; may be returning a ZIP archive, and the goal can be to add a file in it.&lt;/p&gt;
-
-&lt;p&gt;There are many similar cases, where an &lt;code&gt;OutputStream&lt;/code&gt; post processing can be necessary.&lt;/p&gt;
-
-&lt;h1 id=&quot;problem-statement&quot;&gt;Problem Statement&lt;/h1&gt;
-&lt;p&gt;Suppose the &lt;code&gt;ExistingService&lt;/code&gt; writes output in the following format:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;(&amp;lt;SIZE&amp;gt;&amp;lt;CHANNEL-ID&amp;gt;&amp;lt;DATA&amp;gt;)*&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Where &lt;code&gt;&amp;lt;SIZE&amp;gt;&lt;/code&gt; is 4 bytes length message. &lt;code&gt;&amp;lt;CHANNEL-ID&amp;gt;&lt;/code&gt; is a one-byte message. &lt;code&gt;&amp;lt;DATA&amp;gt;&lt;/code&gt; is a 
-byte sequence of given size.&lt;/p&gt;
-
-&lt;p&gt;The such or similar format is widely used to send several streams within one connection. For example,
-it is used in &lt;a href=&quot;https://www.ietf.org/rfc/rfc4251.txt&quot;&gt;SSH-2&lt;/a&gt;, &lt;a href=&quot;https://tools.ietf.org/html/rfc7540&quot;&gt;HTTP/2&lt;/a&gt;
-or &lt;a href=&quot;https://github.com/git/git/blob/master/Documentation/technical/pack-protocol.txt&quot;&gt;Git&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Out goal is to include additional messages to the stream on the fly, while it is being generated 
-by the call to an &lt;code&gt;ExistingService&lt;/code&gt;.
-We just need to implement the method:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h1 id=&quot;a-trivial-java-implementation&quot;&gt;A Trivial Java Implementation&lt;/h1&gt;
-
-&lt;p&gt;In Java we have &lt;code&gt;PipedOutputStream&lt;/code&gt;/&lt;code&gt;PipedInputStream&lt;/code&gt; classes that may turn an OutputStream 
-into an &lt;code&gt;InputStream&lt;/code&gt;. Next, the processing can be done easily.&lt;/p&gt;
-
-&lt;p&gt;We have a thread, that reads data from an &lt;code&gt;InputStream&lt;/code&gt;, e.g.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;PipedOutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PipeOutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;PipedInputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pis&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;PipedInputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-  
-  &lt;span class=&quot;n&quot;&gt;runInThread&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pis&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pos&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;InputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;c1&quot;&gt;//omitted error processing here&lt;/span&gt;
-      &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extractSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isLastBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
-
-      &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extractChannelId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;());&lt;/span&gt;
-
-      &lt;span class=&quot;n&quot;&gt;writeHeader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;copyBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The cost here is high. We need an additional thread to implement that. Additionally, 
-the whole data is copied to a buffer from which a &lt;code&gt;PipedInputStream&lt;/code&gt; is reading. 
-Finally, piped streams implementation uses a level of synchronization to wait for 
-next data portion to arrive. That can be problematic for some loads.&lt;/p&gt;
-
-&lt;h1 id=&quot;a-smart-java-implementation&quot;&gt;A Smart Java Implementation&lt;/h1&gt;
-
-&lt;p&gt;One can do a smarter implementation. Directly implement the &lt;code&gt;OutputStream&lt;/code&gt; and do the processing
-and patching the output in there.&lt;/p&gt;
-
-&lt;p&gt;What we do here is to add a state to our &lt;code&gt;OutputStream&lt;/code&gt; implementation. Each call to &lt;code&gt;write&lt;/code&gt; method
-yields an update of the state.&lt;/p&gt;
-
-&lt;p&gt;A &lt;em&gt;State Machine&lt;/em&gt;. That is what the code from here is about. It is up to programmer if to have a state
-explicitly or not. Think about maintainability of such code first.&lt;/p&gt;
-
-&lt;p&gt;The implementation here can be quite complex. As an example, I show a byte-by-byte 
-processing. In real cases, it can be way more efficient to implement 
-&lt;code&gt;write(byte[], int, int)&lt;/code&gt; method.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IOException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isReadingSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-       &lt;span class=&quot;n&quot;&gt;readMoreSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt; 
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isReadingChannelId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;readMoreChannelId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isProcessingData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;processModeData&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;IOException&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Unexpected state&amp;quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
-      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;};&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The benefit here is that we no longer need an extra thread to pipe the output as input. Sill, code 
-is getting more complex.&lt;/p&gt;
-
-&lt;h1 id=&quot;a-coroutine-state-machine&quot;&gt;A Coroutine State Machine&lt;/h1&gt;
-
-&lt;p&gt;In Kotlin 1.1 we have &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;coroutines&lt;/a&gt;. The alternative way 
-to implement a state machine with the help of compiler, with way more readable, linear-looking code.&lt;/p&gt;
-
-&lt;p&gt;First, we need to declare an interface with &lt;code&gt;suspend&lt;/code&gt; functions, e.g.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataReader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;
-  
-  &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pipe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;to:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Also, we need an implementation of the &lt;code&gt;OutputStream&lt;/code&gt; that allows us to use the &lt;code&gt;DataReader&lt;/code&gt;. That is 
-the function &lt;code&gt;inverseRead&lt;/code&gt;. We’ll turn back to the implementation a bit later.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;inverseRead&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;reader:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Finally, we are able to implement the data processing:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-java&quot; data-lang=&quot;java&quot;&gt;&lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;weaveStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;target:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;inverseRead&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;readStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;readStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;source:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;target:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extractSize&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isLastBlock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extractChannelId&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt;
-
-    &lt;span class=&quot;n&quot;&gt;writeHeader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;pipe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Check the code above. It is quite similar to what we had in &lt;em&gt;A Trivial Java Implementation&lt;/em&gt;. The difference
-is huge. Every call to &lt;code&gt;suspend&lt;/code&gt; function pauses the execution of a method, so the execution turns to
-the &lt;code&gt;write&lt;/code&gt; method implementation of &lt;code&gt;OutputStream&lt;/code&gt; in &lt;code&gt;inverseRead&lt;/code&gt;. We are able now to write
-a linear looking code, that is executed in a piece-by-piece manner.&lt;/p&gt;
-
-&lt;h1 id=&quot;implementation-of-the-coroutine&quot;&gt;Implementation of the Coroutine&lt;/h1&gt;
-
-&lt;p&gt;The only missing part is the &lt;code&gt;inverseRead&lt;/code&gt;. We follow the &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;coroutines documentation&lt;/a&gt;
-to implement that. Great is there are many examples too.&lt;/p&gt;
-
-&lt;p&gt;We implement &lt;code&gt;DataReader#read&lt;/code&gt; and &lt;code&gt;DataReader#pipe&lt;/code&gt; functions to suspend execution until there is enough data
-send to &lt;code&gt;OutputStream#write&lt;/code&gt; method. We have the following state object for that:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataReaderState&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;readByteContinuation&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Continuation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;?&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;pipeContinuation&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Continuation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;?&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;pipeTarget&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;pipeSizeToWrite&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Next, we are able to implement the &lt;code&gt;DataReader&lt;/code&gt; interface in the following way:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataReaderImpl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pipe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;suspendCoroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeContinuation&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeSizeToWrite&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sz&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeTarget&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;to&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;suspendCoroutine&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readByteContinuation&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;All we have here is a call to the specific &lt;code&gt;suspendCoroutine&lt;/code&gt; function in Kotlin, which does the suspend. I decided
-to omit for simplicity a defensive asserts that one may have in both &lt;code&gt;pipe&lt;/code&gt; and &lt;code&gt;read&lt;/code&gt; function implementation.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code&gt;OutputStream&lt;/code&gt; implementation in the example is executing next suspended function in a loop. The current
-implementation does not check the state at the end of data too. The straightforward implementation is as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DataReaderOutputStreamImpl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;byteArrayOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toByte&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tailrec&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ByteArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;len&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;readOneByte&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readByteContinuation&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readOneByte&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;readOneByte&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;pipe&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeContinuation&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipe&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;toPipe&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeSizeToWrite&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeTarget&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!!&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;toPipe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;off&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toPipe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;len&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;toPipe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;Illegal state&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;At that moment we are ready to implement the &lt;code&gt;inverseRead&lt;/code&gt; function.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;inverseRead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataReader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderState&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;outputStream&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderOutputStreamImpl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;dataReader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderImpl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;continuation&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DataReaderContinuation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;createCoroutine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dataReader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;continuation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resume&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputStream&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h1 id=&quot;coroutine-vs-state-machine&quot;&gt;Coroutine vs State Machine&lt;/h1&gt;
-
-&lt;p&gt;It turned out we still needed to implement a state machine (via &lt;code&gt;DataReaderState&lt;/code&gt; class). It 
-was necessary to add a state for each &lt;code&gt;suspend&lt;/code&gt; function of &lt;code&gt;DataReader&lt;/code&gt; interface. That was 
-the code we need to write as building block (and there 
-are &lt;a href=&quot;https://github.com/Kotlin/kotlinx.coroutines&quot;&gt;amazing libraries&lt;/a&gt; for most 
-of the cases)&lt;/p&gt;
-
-&lt;p&gt;The good part is that the rest part of the code, where we do the actual data decoding (the &lt;code&gt;readStream&lt;/code&gt; function)
-now free from an explicit state machine style programming. One can have code written as easy
-as possible. It’s easier to understand and to check. And, for example, we may use loops, try-catches 
-and any other code constructs we like using for ordinary programs.&lt;/p&gt;
-
-&lt;p&gt;In other words, with the help of Kotlin suspend functions we may minimize the number of complex functions and
-concentrate on the actual development.&lt;/p&gt;
-
-&lt;p&gt;For more information on coroutines power in Kotlin, you may refer to 
-&lt;a href=&quot;https://vimeo.com/221264980/b3ac7f9001&quot;&gt;GeekOut Talk by Roman Elizarov&lt;/a&gt;
-or to &lt;a href=&quot;http://kotlinlang.org/docs/reference/coroutines.html&quot;&gt;the documentation&lt;/a&gt;&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="coroutine" />
-  
-    <summary type="html">Kotlin coroutines for OutputStream.</summary>
   
   </entry>
   
