@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-07-02T13:25:44+00:00</updated>
+  <updated>2018-07-05T15:10:31+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,67 @@
   
 
   
+  
+  <entry>
+    <title type="html">Terraform Wrapper</title>
+    <link href="http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/" rel="alternate" type="text/html" title="Terraform Wrapper" />
+    <published>2018-07-05T00:00:00+00:00</published>
+    <updated>2018-07-05T00:00:00+00:00</updated>
+    <id>/blog/2018/07/05/terraform-wrapper</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/">&lt;p&gt;Use Terraform without install&lt;/p&gt;
+
+&lt;p&gt;It is always a problem to have the right tools installed. Right versions often mean the
+versions specific to a given project or branch. What if you need several at a time?&lt;/p&gt;
+
+&lt;p&gt;I like to zero-configuration approach, where one does not change the global state
+of the machine. And it plays nicely if you have several working machines too!&lt;/p&gt;
+
+&lt;p&gt;Here is what I do to use Terraform in &lt;code&gt;bash&lt;/code&gt;, tested on macOS:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;DIR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$( cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; dirname &lt;span class=&quot;s2&quot;&gt;&amp;quot;${BASH_SOURCE[0]}&amp;quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; pwd )&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;TERRAFORM_ROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$(cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$DIR&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; cd .. &amp;amp;&amp;amp; pwd)&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;AWS_ROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$(cd ~/.aws &amp;amp;&amp;amp; pwd)&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;TERRAFORM_VERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0.11.7
+
+docker run &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          --rm &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          -it &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          --dns &lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;dig +short &amp;lt;YOUR DNS&amp;gt; &lt;span class=&quot;p&quot;&gt;|&lt;/span&gt; tail -1&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          --volume &lt;span class=&quot;s2&quot;&gt;&amp;quot;$TERRAFORM_ROOT:$TERRAFORM_ROOT&amp;quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          --volume &lt;span class=&quot;s2&quot;&gt;&amp;quot;$AWS_ROOT:/root/.aws:ro&amp;quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          --workdir &lt;span class=&quot;s2&quot;&gt;&amp;quot;$(pwd)&amp;quot;&lt;/span&gt;  &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+          hashicorp/terraform:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TERRAFORM_VERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$*&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I code Terraform scripts in 
+&lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; with 
+the amazing plugin done by a friend of mine: 
+&lt;a href=&quot;https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support&quot;&gt;Terraform Support plugin&lt;/a&gt;
+.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="terraform" />
+  
+    <category term="devops" />
+  
+    <category term="aws" />
+  
+    <category term="docker" />
+  
+    <summary type="html">Use Terraform without install</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Understanding isOSVersionAtLeast on macOS</title>
@@ -1399,118 +1460,6 @@ I extended the &lt;a href=&quot;/blog/2017/07/05/go-build/&quot;&gt;bash script&
     <category term="build" />
   
     <summary type="html">An ad-hoc bash test runner with TeamCity support</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Building Go Project</title>
-    <link href="http://jonnyzzz.com/blog/2017/07/05/go-build/" rel="alternate" type="text/html" title="Building Go Project" />
-    <published>2017-07-05T00:00:00+00:00</published>
-    <updated>2017-07-05T00:00:00+00:00</updated>
-    <id>/blog/2017/07/05/go-build</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/07/05/go-build/">&lt;p&gt;No Silver-Go-Bullet. Yet another ad-hoc build.&lt;/p&gt;
-
-&lt;p&gt;I was doing a small Go command line tool project. All the time I was starting Go codebase, I looking for 
-the proper way to setup project and to build it.&lt;/p&gt;
-
-&lt;p&gt;The right build to me is the build which is reproducible. Such build is likely to be isolated 
-from a machine where you run it. Be it Linux, Mac or Windows. 
-Also, the right build should have all dependencies fixed. Otherwise, we have merely no chances
-to recreated it in the future.&lt;/p&gt;
-
-&lt;p&gt;As the very first example, I decided to use the approach from &lt;a href=&quot;https://github.com/hashicorp/consul-template&quot;&gt;Consul Template&lt;/a&gt;.
-That time (May 2017) it was a &lt;code&gt;make&lt;/code&gt; based build which was using the official Docker container to run.
-It was great! I was able to kick-start the project and to focus on development. But, it was crazy slow. 
-It took seconds to compile a tiny project. It was also unable to run on Windows.&lt;/p&gt;
-
-&lt;p&gt;I did research. Found several approaches to building Go with Gradle. I decided to try 
-&lt;a href=&quot;https://github.com/gogradle/gogradle&quot;&gt;Gogradle&lt;/a&gt;. Also, there is &lt;a href=&quot;https://github.com/echocat/gradle-golang-plugin&quot;&gt;gradle-golang-plugin&lt;/a&gt;.
-Overall, the story did not play well because some issues I came across. And again, the solution was heavy!&lt;/p&gt;
-
-&lt;p&gt;Isolation. Docker. Cool stuff. But, the best stuff, it to think Docker, and event avoid it. The Go itself 
-is amazing in that sense. The go binaries have zero dependencies. And this means we are able to zero-copy
-dependencies.&lt;/p&gt;
-
-&lt;p&gt;Finally, I created the following script. A still waiting for something better, and easier to use.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; dirname &lt;span class=&quot;s2&quot;&gt;&amp;quot;${BASH_SOURCE[0]}&amp;quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; pwd )&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; -e -x -u
-
-&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1.8.1
-
-&lt;span class=&quot;nv&quot;&gt;LOCAL_DIST&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$(pwd)/dist&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;LOCAL_GO_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_DIST/go-$(uname)-$GOVERSION&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; ! -f &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;/bin/go &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-  &lt;span class=&quot;nv&quot;&gt;GO_PKG&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_DIST&lt;/span&gt;/go-pkg-&lt;span class=&quot;nv&quot;&gt;$GOVERSION&lt;/span&gt;/go-binary.tar.gz
-  &lt;span class=&quot;nv&quot;&gt;GO_UNPACK&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_DIST&lt;/span&gt;/go-pkg-&lt;span class=&quot;nv&quot;&gt;$GOVERSION&lt;/span&gt;/unpack
-
-  rm -rf   &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mkdir -p &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( uname )&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~ .*&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;Dd&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;arwin.* &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-    curl -o &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; https://storage.googleapis.com/golang/go&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.darwin-amd64.tar.gz
-  &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;
-    curl -o &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; https://storage.googleapis.com/golang/go&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;GOVERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;.linux-amd64.tar.gz
-  &lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-
-  tar -xf &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt; -C &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt;
-
-  rm -rf &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mkdir -p &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;  &lt;/span&gt;mv &lt;span class=&quot;nv&quot;&gt;$GO_UNPACK&lt;/span&gt;/go/** &lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;/
-
-  rm -f &lt;span class=&quot;nv&quot;&gt;$GO_PKG&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;PATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_GO_HOME/bin:$PATH&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;GOROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$LOCAL_GO_HOME&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;GOPATH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;PATH
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GOROOT
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;GOPATH
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;CGO_ENABLED&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$(which go)&amp;quot;&lt;/span&gt; !&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$LOCAL_GO_HOME/bin/go&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Incorrect go binary is still used: $(which go)&amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
-&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; ! &lt;span class=&quot;s2&quot;&gt;&amp;quot;$(go version)&amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~ &lt;span class=&quot;s2&quot;&gt;&amp;quot;go${GOVERSION} &amp;quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Failed to install required Go version. &amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
-&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The script downloads Go binaries for Mac or Linux to a build folder. It does not update the folder if
-there is Go already.&lt;/p&gt;
-
-&lt;p&gt;You may find the actual version on GitHub. &lt;a href=&quot;https://github.com/jonnyzzz/go-build-script&quot;&gt;https://github.com/jonnyzzz/go-build-script&lt;/a&gt;
-And let me know if you know the better way to Go.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="shell" />
-  
-    <category term="bash" />
-  
-    <category term="ci" />
-  
-    <category term="go" />
-  
-    <category term="build" />
-  
-    <summary type="html">No Silver-Go-Bullet. Yet another ad-hoc build.</summary>
   
   </entry>
   

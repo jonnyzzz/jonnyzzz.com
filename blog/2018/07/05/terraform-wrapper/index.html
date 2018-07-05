@@ -5,14 +5,18 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>Homepage &#8211; Eugene Petrenko</title>
-<meta name="description" content="Eugene Petrenko Site & Blog"/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
+<title>Terraform Wrapper &#8211; Eugene Petrenko</title>
+<meta name="description" content="Use Terraform without install
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, terraform, devops, aws, docker" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Homepage -- Eugene Petrenko" />
-<meta name="twitter:description" content="Eugene Petrenko Site & Blog" />
+<meta name="twitter:title" content="Terraform Wrapper -- Eugene Petrenko" />
+<meta name="twitter:description" content="Use Terraform without install
+
+" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -22,9 +26,11 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Homepage -- Eugene Petrenko" />
-<meta property="og:description" content="Eugene Petrenko Site & Blog" />
-<meta property="og:url" content="http://jonnyzzz.com/" />
+<meta property="og:title" content="Terraform Wrapper -- Eugene Petrenko" />
+<meta property="og:description" content="Use Terraform without install
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -34,6 +40,14 @@
 <meta property="article:tag" content="Eugene Petrenko" />
 
 
+<meta property="article:tag" content="terraform" />
+
+<meta property="article:tag" content="devops" />
+
+<meta property="article:tag" content="aws" />
+
+<meta property="article:tag" content="docker" />
+
 
 
 <!-- Webmaster Tools verfication -->
@@ -42,7 +56,7 @@
 
 
 
-<link rel="canonical" href="http://jonnyzzz.com/" />
+<link rel="canonical" href="http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -108,7 +122,7 @@
 
 </head>
 
-<body id="page">
+<body id="post">
 
 <div class="navigation-wrapper">
 	<nav role="navigation" id="site-nav" class="animated drop">
@@ -147,34 +161,105 @@
 
 
 <div id="main" role="main">
-  <article class="entry">
+  <article class="hentry">
     
     <div class="entry-wrapper">
       <header class="entry-header">
-        <h1 class="entry-title">Homepage</h1>
+        <ul class="entry-tags">
+          <li><a href="/tags/#terraform" title="Pages tagged terraform">terraform</a></li><li><a href="/tags/#devops" title="Pages tagged devops">devops</a></li><li><a href="/tags/#aws" title="Pages tagged aws">aws</a></li><li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Terraform Wrapper</h1>
+        
       </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-07-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 05, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=terraform,devops,aws,docker&amp;text=Terraform%20Wrapper&amp;url=http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
       <div class="entry-content">
-        <ul class="post-list">
-  <li><article><a href="/about/">About me</a></article></li>
-  <li><article><a href="/projects/">My projects</a></article></li>
-  <li><article><a href="/talks/">My Talks</a></article></li>
+        <p>Use Terraform without install</p>
+
+<p>It is always a problem to have the right tools installed. Right versions often mean the
+versions specific to a given project or branch. What if you need several at a time?</p>
+
+<p>I like to zero-configuration approach, where one does not change the global state
+of the machine. And it plays nicely if you have several working machines too!</p>
+
+<p>Here is what I do to use Terraform in <code>bash</code>, tested on macOS:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+
+<span class="nv">DIR</span><span class="o">=</span><span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
+<span class="nv">TERRAFORM_ROOT</span><span class="o">=</span><span class="s2">&quot;$(cd &quot;</span><span class="nv">$DIR</span><span class="s2">&quot; &amp;&amp; cd .. &amp;&amp; pwd)&quot;</span>
+<span class="nv">AWS_ROOT</span><span class="o">=</span><span class="s2">&quot;$(cd ~/.aws &amp;&amp; pwd)&quot;</span>
+<span class="nv">TERRAFORM_VERSION</span><span class="o">=</span>0.11.7
+
+docker run <span class="se">\</span>
+          --rm <span class="se">\</span>
+          -it <span class="se">\</span>
+          --dns <span class="k">$(</span>dig +short &lt;YOUR DNS&gt; <span class="p">|</span> tail -1<span class="k">)</span> <span class="se">\</span>
+          --volume <span class="s2">&quot;$TERRAFORM_ROOT:$TERRAFORM_ROOT&quot;</span> <span class="se">\</span>
+          --volume <span class="s2">&quot;$AWS_ROOT:/root/.aws:ro&quot;</span> <span class="se">\</span>
+          --workdir <span class="s2">&quot;$(pwd)&quot;</span>  <span class="se">\</span>
+          hashicorp/terraform:<span class="k">${</span><span class="nv">TERRAFORM_VERSION</span><span class="k">}</span> <span class="nv">$*</span></code></pre></figure>
+
+<p>I code Terraform scripts in 
+<a href="https://jetbrains.com/idea">IntelliJ IDEA</a> with 
+the amazing plugin done by a friend of mine: 
+<a href="https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support">Terraform Support plugin</a>
+.</p>
 
 
-  <li><article><a href="/blog/2018/07/05/terraform-wrapper/">Terraform Wrapper <span class="entry-date"><time datetime="2018-07-05T00:00:00+00:00">July 05, 2018</time></span></a></article></li>
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
 
-  <li><article><a href="/blog/2018/06/13/link-error-3/">Understanding isOSVersionAtLeast on macOS <span class="entry-date"><time datetime="2018-06-13T00:00:00+00:00">June 13, 2018</time></span></a></article></li>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
 
-  <li><article><a href="/blog/2018/06/05/link-error-2/">Undefined isOSVersionAtLeast on macOS <span class="entry-date"><time datetime="2018-06-05T00:00:00+00:00">June 05, 2018</time></span></a></article></li>
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
 
-  <li><article><a href="/blog/2018/05/28/minimalistic-kn/">Minimalistic C library and Kotlin/Native <span class="entry-date"><time datetime="2018-05-28T00:00:00+00:00">May 28, 2018</time></span></a></article></li>
-
-  <li><article><a href="/blog/2018/05/16/link-error/">Undefined Symbol on macOS <span class="entry-date"><time datetime="2018-05-16T00:00:00+00:00">May 16, 2018</time></span></a></article></li>
-
-  <li><article><a href="/blog/">and more...</a></article></li>
-</ul>
-
+        
       </div><!-- /.entry-content -->
     </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2018/06/13/link-error-3/" class="btn" title="Understanding isOSVersionAtLeast on macOS">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
   </article>
 </div><!-- /#main -->
 
