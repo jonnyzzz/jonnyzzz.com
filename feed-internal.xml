@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="http://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="http://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-07-05T15:10:31+00:00</updated>
+  <updated>2018-07-18T21:56:53+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,168 @@
   
 
   
+  
+  <entry>
+    <title type="html">Java Builders with Kotlin</title>
+    <link href="http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/" rel="alternate" type="text/html" title="Java Builders with Kotlin" />
+    <published>2018-07-18T00:00:00+00:00</published>
+    <updated>2018-07-18T00:00:00+00:00</updated>
+    <id>/blog/2018/07/18/kotlin-builder</id>
+    <content type="html" xml:base="http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/">&lt;p&gt;A higher order function to simplify Java builders usage&lt;/p&gt;
+
+&lt;p&gt;I was working with &lt;a href=&quot;https://auth0.com/&quot;&gt;auth0&lt;/a&gt;’s &lt;a href=&quot;https://github.com/auth0/java-jwt&quot;&gt;java library&lt;/a&gt;
+to issue and verify &lt;a href=&quot;https://tools.ietf.org/html/rfc7519&quot;&gt;JWT&lt;/a&gt; tokens. The library
+is &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1016575537257607168&quot;&gt;easy to use and pretty strait-forward&lt;/a&gt;.
+At some point, I had a Kotlin code to issue a JWT token:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;
+       &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+       &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;userId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;serviceId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;serviceId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The code is trivial. I create a new JWT token and fill claims with some data.
+I put a claim only if a respective data is not &lt;code&gt;null&lt;/code&gt;. 
+The code above is long and hard to read. Typically, one writes it with a copy-paste
+approach. I’m not an exception here too. I even did a typoe copying 
+things: &lt;code&gt;&quot;userId&quot;&lt;/code&gt; is used twice:&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; data-conversation=&quot;none&quot; data-lang=&quot;en&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;And that I had before &lt;a href=&quot;https://t.co/2grxbvpKnP&quot;&gt;pic.twitter.com/2grxbvpKnP&lt;/a&gt;&lt;/p&gt;&amp;mdash; Eugene Petrenko (@jonnyzzz) &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1016602927102820352?ref_src=twsrc%5Etfw&quot;&gt;July 10, 2018&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;h1 id=&quot;the-goal-immutability&quot;&gt;The Goal. Immutability&lt;/h1&gt;
+
+&lt;p&gt;The best programs, so far, are immutable programs. Let’s make the &lt;code&gt;builder&lt;/code&gt; variable immutable.
+Here is the trick I like in Kotlin. Usually, a builder function returns a builder instance, e.g.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withSomething&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Something&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;You never know, if a returned &lt;code&gt;Builder&lt;/code&gt; is the same as the &lt;code&gt;Builder&lt;/code&gt; you call a &lt;code&gt;with*()&lt;/code&gt; 
+method on. As of &lt;code&gt;Builder&lt;/code&gt; implementation, it is hard to return a new instance of a
+builder every time. People tend
+to &lt;code&gt;return this&lt;/code&gt; from builder functions, it is just easier and does not require tricks.&lt;/p&gt;
+
+&lt;p&gt;I see the dilemma here. Do we assume the &lt;code&gt;Builder&lt;/code&gt; is mutable or not?&lt;/p&gt;
+
+&lt;p&gt;Kotlin &lt;a href=&quot;https://kotlinlang.org/docs/reference/data-classes.html&quot;&gt;data classes&lt;/a&gt; and &lt;code&gt;copy(...)&lt;/code&gt; function
+makes it easier, no you know it.&lt;/p&gt;
+
+&lt;h2 id=&quot;mutable-builder&quot;&gt;Mutable Builder&lt;/h2&gt;
+
+&lt;p&gt;Let’s assume the &lt;code&gt;Builder&lt;/code&gt; returns &lt;code&gt;this&lt;/code&gt; from &lt;code&gt;with*(...)&lt;/code&gt; methods.
+And trivially, we may turn the &lt;code&gt;builder&lt;/code&gt; variable to be immutable 
+and call &lt;code&gt;with*(...)&lt;/code&gt; methods:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;userId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I do not like that assumption. A sudden change of the builder 
+implementation will introduce a hard to find a bug in the code.&lt;/p&gt;
+
+&lt;h2 id=&quot;immutable-or-mutable-builder&quot;&gt;Immutable or Mutable Builder&lt;/h2&gt;
+
+&lt;p&gt;Now, let’s assume we have no assumptions on &lt;code&gt;Builder&lt;/code&gt; implementation. It is 
+allowed and not forced to return same &lt;code&gt;this&lt;/code&gt; from a &lt;code&gt;with*()&lt;/code&gt; functions. We still need either 
+a mutable variable &lt;code&gt;builder&lt;/code&gt; or a longer expression.&lt;/p&gt;
+
+&lt;h2 id=&quot;expression-and-extension-functions&quot;&gt;Expression and Extension Functions&lt;/h2&gt;
+
+&lt;p&gt;But, here we need a function call that takes &lt;code&gt;Builder&lt;/code&gt; as the receiver, 
+aka &lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension function&lt;/a&gt;,
+and the function should check and call something in the builder.&lt;/p&gt;
+
+&lt;p&gt;I created the following function:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ƒ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ƒ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;That one allows me to turn the whole method into:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;userId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)}&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&amp;quot;serviceId&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I like that one. It is shorted and read better!&lt;/p&gt;
+
+&lt;h2 id=&quot;reflection-and-callable-references&quot;&gt;Reflection and Callable References&lt;/h2&gt;
+
+&lt;p&gt;I got the question from my friend on Twitter&lt;/p&gt;
+&lt;blockquote&gt;
+  &lt;p&gt;Is it possible to get rid of strings, too?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot; data-lang=&quot;en&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Is it possible to get rid of strings, too?&lt;/p&gt;&amp;mdash; Eugeny Schepotiev (@zeckson) &lt;a href=&quot;https://twitter.com/zeckson/status/1016965146424426496?ref_src=twsrc%5Etfw&quot;&gt;July 11, 2018&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;It is possible, for that, you use
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html#property-references&quot;&gt;property references&lt;/a&gt;
+and &lt;a href=&quot;https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-property/index.html&quot;&gt;KProperty&lt;/a&gt;
+to grab property name at the runtime:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KProperty0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&amp;gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Builder&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+        &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Here I use &lt;code&gt;principal::userId&lt;/code&gt; and &lt;code&gt;principal::serviceId&lt;/code&gt; to pass both the property name 
+and the function to get the property value. It makes the code shorter.
+We do not have the explicit names anymore.&lt;/p&gt;
+
+&lt;p&gt;One should understand the &lt;em&gt;risk&lt;/em&gt;. A sudden
+refactoring and rename of &lt;code&gt;userId&lt;/code&gt; or &lt;code&gt;serviceId&lt;/code&gt; properties of the &lt;code&gt;principal&lt;/code&gt; class 
+will change the names we use in the builder. It may
+cause trouble on a production. Several unit 
+tests (or integration tests) will help to preserve the API.&lt;/p&gt;
+
+&lt;p&gt;The same trick with &lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html#callable-references&quot;&gt;callable references&lt;/a&gt;
+works for functions too. You might check the whole documentation page on
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html&quot;&gt;reflection in Kotlin&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I checked, and it is not required (at least with Kotlin/JVM v1.2.51) to have &lt;code&gt;kotlin-reflect&lt;/code&gt; library to make the example above
+work.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="kotlin" />
+  
+    <category term="java" />
+  
+    <category term="builder" />
+  
+    <category term="dsl" />
+  
+    <summary type="html">A higher order function to simplify Java builders usage</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Terraform Wrapper</title>
@@ -1363,103 +1525,6 @@ work again with new SSH clients. That was fun!&lt;/p&gt;</content>
     <category term="service" />
   
     <summary type="html">An accident and investigation of the server failure</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">A Bash Test Runner for TeamCity</title>
-    <link href="http://jonnyzzz.com/blog/2017/08/09/test-runner/" rel="alternate" type="text/html" title="A Bash Test Runner for TeamCity" />
-    <published>2017-08-09T00:00:00+00:00</published>
-    <updated>2017-08-09T00:00:00+00:00</updated>
-    <id>/blog/2017/08/09/test-runner</id>
-    <content type="html" xml:base="http://jonnyzzz.com/blog/2017/08/09/test-runner/">&lt;p&gt;An ad-hoc bash test runner with TeamCity support&lt;/p&gt;
-
-&lt;p&gt;That time I was playing with a tiny &lt;a href=&quot;https://golang.org&quot;&gt;Go&lt;/a&gt; project. I was doing a console tool 
-to update &lt;a href=&quot;https://www.consul.io/&quot;&gt;Consul KV&lt;/a&gt; in the required way, with transaction and domain specifics.&lt;/p&gt;
-
-&lt;p&gt;Why the tool? Well, I was needed to update several keys from our &lt;a href=&quot;https://www.ansible.com/&quot;&gt;Ansible&lt;/a&gt; deployment
-scripts. And &lt;a href=&quot;https://www.consul.io/api/txn.html&quot;&gt;transactions&lt;/a&gt; were the nice way
-to run an atomic update. Secondly, it is better to offload tricky domain specific code to a dedicated 
-place, which has better tests and build process. The alternative in my case was to 
-use &lt;code&gt;curl&lt;/code&gt; or similar to run Consul KV transactions with no easy way to test it easily.&lt;/p&gt;
-
-&lt;p&gt;By the time I realized it is better to call the tool from a command line to test it
-does correct changed to the KV. So I was looking for a test runner.&lt;/p&gt;
-
-&lt;p&gt;After some research, I decided to use 
-&lt;a href=&quot;https://confluence.jetbrains.com/display/TCD10/Build+Script+Interaction+with+TeamCity&quot;&gt;TeamCity Service Messages&lt;/a&gt;
-to report test progress back to the CI.&lt;/p&gt;
-
-&lt;p&gt;The idea of tests is as follows. Each test is created as an &lt;code&gt;.sh&lt;/code&gt; file under &lt;code&gt;tests&lt;/code&gt; folder. Exit code is used to tell 
-a failure from success. That is necessary to be able to run every test and only one test locally while developing.&lt;/p&gt;
-
-&lt;p&gt;Finally, I created the following test runner:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; -e -x -u
-&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;$( cd &amp;quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; dirname &lt;span class=&quot;s2&quot;&gt;&amp;quot;${BASH_SOURCE[0]}&amp;quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot; &amp;amp;&amp;amp; pwd )&amp;quot;&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;Running integration tests...&amp;quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;FAILED&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
-&lt;span class=&quot;nv&quot;&gt;TC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;c&quot;&gt;##teamcity&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testSuiteStarted name=&amp;#39;integration-tests&amp;#39;] &amp;quot;&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; TEST in tests/* &lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt;
-  &lt;span class=&quot;nv&quot;&gt;TEST_NAME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;basename &lt;span class=&quot;nv&quot;&gt;$TEST&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testStarted name=&amp;#39;$TEST_NAME&amp;#39; captureStandardOutput=&amp;#39;true&amp;#39;] &amp;quot;&lt;/span&gt;
-  ./&lt;span class=&quot;nv&quot;&gt;$TEST&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testFailed name=&amp;#39;$TEST_NAME&amp;#39;] &amp;quot;&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testFinished name=&amp;#39;$TEST_NAME&amp;#39;] &amp;quot;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot; ${TC}[testSuiteFinished name=&amp;#39;integration-tests&amp;#39;] &amp;quot;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to &lt;code&gt;go test&lt;/code&gt; in the future. 
-The best feature of the test above is it supported by &lt;a href=&quot;https://jetbrains.com/teamcity&quot;&gt;TeamCity&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Yoy may find the actual version of it on GitHub. 
-&lt;a href=&quot;https://github.com/jonnyzzz/teamcity-test-script&quot;&gt;https://github.com/jonnyzzz/teamcity-test-script&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;UPD. I have re-evaluated approaches and decided to implement integration tests with 
-&lt;a href=&quot;https://golang.org/pkg/testing/&quot;&gt;go test&lt;/a&gt; instead. The main problem was that I need to pass many 
-parameters to my tool to start it in a test. Hard-coding those parameters for every test was not worth it. 
-In Go it was easier to create an assertions API to check Consul KV state too. The API helps to setup 
-necessary KV state too. The whole approach makes it simpler to write tests.&lt;/p&gt;
-
-&lt;p&gt;I’m able to run all of my tests from &lt;a href=&quot;https://www.jetbrains.com/go/&quot;&gt;Gogland&lt;/a&gt;. 
-The test assumes Consul is running by checking a particular file under the &lt;code&gt;GOPATH&lt;/code&gt;. 
-There is a setup bash script that downloads and starts Consul dev server both for development and continuous integration. 
-I extended the &lt;a href=&quot;/blog/2017/07/05/go-build/&quot;&gt;bash script&lt;/a&gt; for that.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="teamcity" />
-  
-    <category term="test" />
-  
-    <category term="testrunner" />
-  
-    <category term="shell" />
-  
-    <category term="bash" />
-  
-    <category term="ci" />
-  
-    <category term="go" />
-  
-    <category term="build" />
-  
-    <summary type="html">An ad-hoc bash test runner with TeamCity support</summary>
   
   </entry>
   

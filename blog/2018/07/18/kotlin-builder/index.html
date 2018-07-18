@@ -1,0 +1,425 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Java Builders with Kotlin &#8211; Eugene Petrenko</title>
+<meta name="description" content="A higher order function to simplify Java builders usage
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, java, builder, dsl" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Java Builders with Kotlin -- Eugene Petrenko" />
+<meta name="twitter:description" content="A higher order function to simplify Java builders usage
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="http://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="http://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Java Builders with Kotlin -- Eugene Petrenko" />
+<meta property="og:description" content="A higher order function to simplify Java builders usage
+
+" />
+<meta property="og:url" content="http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="builder" />
+
+<meta property="article:tag" content="dsl" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#builder" title="Pages tagged builder">builder</a></li><li><a href="/tags/#dsl" title="Pages tagged dsl">dsl</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Java Builders with Kotlin</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-07-18T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 18, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,java,builder,dsl&amp;text=Java%20Builders%20with%20Kotlin&amp;url=http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://jonnyzzz.com/blog/2018/07/18/kotlin-builder/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>A higher order function to simplify Java builders usage</p>
+
+<p>I was working with <a href="https://auth0.com/">auth0</a>’s <a href="https://github.com/auth0/java-jwt">java library</a>
+to issue and verify <a href="https://tools.ietf.org/html/rfc7519">JWT</a> tokens. The library
+is <a href="https://twitter.com/jonnyzzz/status/1016575537257607168">easy to use and pretty strait-forward</a>.
+At some point, I had a Kotlin code to issue a JWT token:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">var</span> <span class="py">builder</span> <span class="p">=</span> <span class="n">JWT</span>
+       <span class="p">.</span><span class="n">create</span><span class="p">()</span>
+       <span class="p">.</span><span class="n">withIssuer</span><span class="p">(</span><span class="n">ISSUER</span><span class="p">)</span>
+
+<span class="k">val</span> <span class="py">userId</span> <span class="p">=</span> <span class="n">principal</span><span class="p">.</span><span class="n">userId</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">userId</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">builder</span> <span class="p">=</span> <span class="n">builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="n">userId</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">val</span> <span class="py">serviceId</span> <span class="p">=</span> <span class="n">principal</span><span class="p">.</span><span class="n">serviceId</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">serviceId</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">builder</span> <span class="p">=</span> <span class="n">builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;serviceId&quot;</span><span class="p">,</span> <span class="n">serviceId</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">return</span> <span class="n">builder</span><span class="p">.</span><span class="n">sign</span><span class="p">(</span><span class="n">algorithm</span><span class="p">())</span></code></pre></figure>
+
+<p>The code is trivial. I create a new JWT token and fill claims with some data.
+I put a claim only if a respective data is not <code>null</code>. 
+The code above is long and hard to read. Typically, one writes it with a copy-paste
+approach. I’m not an exception here too. I even did a typoe copying 
+things: <code>"userId"</code> is used twice:</p>
+
+<blockquote class="twitter-tweet" data-conversation="none" data-lang="en"><p lang="en" dir="ltr">And that I had before <a href="https://t.co/2grxbvpKnP">pic.twitter.com/2grxbvpKnP</a></p>&mdash; Eugene Petrenko (@jonnyzzz) <a href="https://twitter.com/jonnyzzz/status/1016602927102820352?ref_src=twsrc%5Etfw">July 10, 2018</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<h1 id="the-goal-immutability">The Goal. Immutability</h1>
+
+<p>The best programs, so far, are immutable programs. Let’s make the <code>builder</code> variable immutable.
+Here is the trick I like in Kotlin. Usually, a builder function returns a builder instance, e.g.</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">fun</span> <span class="nf">withSomething</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Something</span><span class="p">)</span> <span class="p">:</span> <span class="n">Builder</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span></code></pre></figure>
+
+<p>You never know, if a returned <code>Builder</code> is the same as the <code>Builder</code> you call a <code>with*()</code> 
+method on. As of <code>Builder</code> implementation, it is hard to return a new instance of a
+builder every time. People tend
+to <code>return this</code> from builder functions, it is just easier and does not require tricks.</p>
+
+<p>I see the dilemma here. Do we assume the <code>Builder</code> is mutable or not?</p>
+
+<p>Kotlin <a href="https://kotlinlang.org/docs/reference/data-classes.html">data classes</a> and <code>copy(...)</code> function
+makes it easier, no you know it.</p>
+
+<h2 id="mutable-builder">Mutable Builder</h2>
+
+<p>Let’s assume the <code>Builder</code> returns <code>this</code> from <code>with*(...)</code> methods.
+And trivially, we may turn the <code>builder</code> variable to be immutable 
+and call <code>with*(...)</code> methods:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="p">...</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">userId</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="n">userId</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="p">...</span></code></pre></figure>
+
+<p>I do not like that assumption. A sudden change of the builder 
+implementation will introduce a hard to find a bug in the code.</p>
+
+<h2 id="immutable-or-mutable-builder">Immutable or Mutable Builder</h2>
+
+<p>Now, let’s assume we have no assumptions on <code>Builder</code> implementation. It is 
+allowed and not forced to return same <code>this</code> from a <code>with*()</code> functions. We still need either 
+a mutable variable <code>builder</code> or a longer expression.</p>
+
+<h2 id="expression-and-extension-functions">Expression and Extension Functions</h2>
+
+<p>But, here we need a function call that takes <code>Builder</code> as the receiver, 
+aka <a href="https://kotlinlang.org/docs/reference/extensions.html">extension function</a>,
+and the function should check and call something in the builder.</p>
+
+<p>I created the following function:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="err">&lt;</span><span class="nf">B</span> <span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Y</span> <span class="p">:</span> <span class="n">Any</span><span class="p">&gt;</span> <span class="n">B</span><span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Y</span><span class="p">?,</span> <span class="n">ƒ</span><span class="p">:</span> <span class="n">B</span><span class="p">.(</span><span class="n">Y</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">B</span><span class="p">):</span> <span class="n">B</span>
+        <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">obj</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">ƒ</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">else</span> <span class="k">this</span></code></pre></figure>
+
+<p>That one allows me to turn the whole method into:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">    <span class="k">return</span> <span class="n">JWT</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+            <span class="p">.</span><span class="n">withIssuer</span><span class="p">(</span><span class="n">ISSUER</span><span class="p">)</span>
+            <span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">principal</span><span class="p">.</span><span class="n">userId</span><span class="p">)</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="n">it</span><span class="p">)}</span>
+            <span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">principal</span><span class="p">.</span><span class="n">serviceId</span><span class="p">)</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;serviceId&quot;</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span> <span class="p">}</span>
+            <span class="p">.</span><span class="n">sign</span><span class="p">(</span><span class="n">algorithm</span><span class="p">())</span></code></pre></figure>
+
+<p>I like that one. It is shorted and read better!</p>
+
+<h2 id="reflection-and-callable-references">Reflection and Callable References</h2>
+
+<p>I got the question from my friend on Twitter</p>
+<blockquote>
+  <p>Is it possible to get rid of strings, too?</p>
+</blockquote>
+
+<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Is it possible to get rid of strings, too?</p>&mdash; Eugeny Schepotiev (@zeckson) <a href="https://twitter.com/zeckson/status/1016965146424426496?ref_src=twsrc%5Etfw">July 11, 2018</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>It is possible, for that, you use
+<a href="https://kotlinlang.org/docs/reference/reflection.html#property-references">property references</a>
+and <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-property/index.html">KProperty</a>
+to grab property name at the runtime:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">Builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">KProperty0</span><span class="p">&lt;</span><span class="n">String</span><span class="p">?&gt;):</span> <span class="n">Builder</span>
+        <span class="p">=</span> <span class="n">p</span><span class="p">.</span><span class="n">getter</span><span class="p">()</span><span class="o">?.</span><span class="n">let</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span> <span class="p">}</span> <span class="o">?:</span> <span class="k">this</span>
+
+<span class="k">return</span> <span class="n">JWT</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+        <span class="p">.</span><span class="n">withIssuer</span><span class="p">(</span><span class="n">ISSUER</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="n">principal</span><span class="o">::</span><span class="n">userId</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="n">principal</span><span class="o">::</span><span class="n">serviceId</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">sign</span><span class="p">(</span><span class="n">algorithm</span><span class="p">())</span>
+        </code></pre></figure>
+
+<p>Here I use <code>principal::userId</code> and <code>principal::serviceId</code> to pass both the property name 
+and the function to get the property value. It makes the code shorter.
+We do not have the explicit names anymore.</p>
+
+<p>One should understand the <em>risk</em>. A sudden
+refactoring and rename of <code>userId</code> or <code>serviceId</code> properties of the <code>principal</code> class 
+will change the names we use in the builder. It may
+cause trouble on a production. Several unit 
+tests (or integration tests) will help to preserve the API.</p>
+
+<p>The same trick with <a href="https://kotlinlang.org/docs/reference/reflection.html#callable-references">callable references</a>
+works for functions too. You might check the whole documentation page on
+<a href="https://kotlinlang.org/docs/reference/reflection.html">reflection in Kotlin</a>.</p>
+
+<p>I checked, and it is not required (at least with Kotlin/JVM v1.2.51) to have <code>kotlin-reflect</code> library to make the example above
+work.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2018/07/05/terraform-wrapper/" class="btn" title="Terraform Wrapper">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2018 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
