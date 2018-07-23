@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-07-18T22:08:22+00:00</updated>
+  <updated>2018-07-23T20:34:05+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,194 @@
   
 
   
+  
+  <entry>
+    <title type="html">Condition in Terraform and API Gateway</title>
+    <link href="https://jonnyzzz.com/blog/2018/07/23/terraform-if/" rel="alternate" type="text/html" title="Condition in Terraform and API Gateway" />
+    <published>2018-07-23T00:00:00+00:00</published>
+    <updated>2018-07-23T00:00:00+00:00</updated>
+    <id>/blog/2018/07/23/terraform-if</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/07/23/terraform-if/">&lt;p&gt;Create an AWS API Gateway resource based on conditions&lt;/p&gt;
+
+&lt;p&gt;You may know &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt;, the tool to create infrastructure
+as a code. I use it for several &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;AWS&lt;/a&gt; experiments, I do. 
+It is declarative and uses HCL language to declare resources to create. Let’s see how
+one can create resources based on a condition.&lt;/p&gt;
+
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;I wrote scripts to create &lt;a href=&quot;https://aws.amazon.com/api-gateway/&quot;&gt;API Gateway&lt;/a&gt; for my project.
+The API Gateway service is tricky, and in Terraform one uses several resources to make it work.&lt;/p&gt;
+
+&lt;p&gt;You start with adding the
+&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_rest_api.html&quot;&gt;aws_api_gateway_api&lt;/a&gt;
+resource, which defines the API Gateway itself. Handler paths are represented 
+as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Tree_(data_structure)&quot;&gt;tree structure&lt;/a&gt;. The root of the 
+tree matches to the empty path. The root node ID is returned from the &lt;code&gt;root_resource_id&lt;/code&gt; output
+parameter of the &lt;code&gt;aws_api_gateway_api&lt;/code&gt; resource.&lt;/p&gt;
+
+&lt;p&gt;I use Terraform &lt;a href=&quot;https://www.terraform.io/docs/modules/usage.html&quot;&gt;Modules&lt;/a&gt; in my scripts
+to reduce complexity. Modules are the same as functions in other programming languages. 
+It helps to reuse code and reduce duplicates.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-need-of-a-condition&quot;&gt;The Need of a Condition&lt;/h2&gt;
+
+&lt;p&gt;I have a module to define API Gateway handlers. That module accepts a handler path and the 
+&lt;code&gt;root_resource_id&lt;/code&gt; parameter. In the module, I have to decide either
+to create new resource 
+&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_resource.html&quot;&gt;aws_api_gateway_resource&lt;/a&gt;,
+for non-empty path, or to use the base &lt;code&gt;root_resource_id&lt;/code&gt; instead, for the empty one.&lt;/p&gt;
+
+&lt;p&gt;In a pseudo-code the problem looks as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;root_path&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;root_resource_id&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&amp;quot;aws_api_gateway_resource&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;a-condition-implementation&quot;&gt;A Condition Implementation&lt;/h2&gt;
+
+&lt;p&gt;I head that story from my friend Mikhail Kuzmin several years ago. I have no idea,
+how I recalled that, but still. He told me something about the &lt;code&gt;count&lt;/code&gt; parameter is helpful
+to implement a condition in Terraform.&lt;/p&gt;
+
+&lt;p&gt;Also, I found that in Terraform we have 
+&lt;a href=&quot;https://www.terraform.io/docs/configuration/interpolation.html#conditionals&quot;&gt;ternary operator expression&lt;/a&gt;,
+aka &lt;code&gt;condition ? foo : bar&lt;/code&gt;, which helps me to extract the right resource ID at the end.&lt;/p&gt;
+
+&lt;p&gt;The overall condition for a resource did not look trivial. I decided to extract it as a dedicated module
+from the very beginning. That is what I created:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;variable &amp;quot;api_gateway_id&amp;quot; {}
+variable &amp;quot;parent_resource_id&amp;quot; {}
+
+variable &amp;quot;path_part&amp;quot; {
+  description = &amp;quot;Resource path or empty string to use parent_resource_id&amp;quot;
+}
+
+resource &amp;quot;aws_api_gateway_resource&amp;quot; &amp;quot;handler&amp;quot; {
+  parent_id   = &amp;quot;${var.parent_resource_id}&amp;quot;
+  rest_api_id = &amp;quot;${var.api_gateway_id}&amp;quot;
+
+  path_part   = &amp;quot;${var.path_part}&amp;quot;
+
+  count       = &amp;quot;${var.path_part == &amp;quot;&amp;quot; ? 0 : 1 }&amp;quot;
+}
+
+output &amp;quot;handler_id&amp;quot; {
+  value = &amp;quot;${
+    var.path_part == &amp;quot;&amp;quot;
+    ? var.parent_resource_id
+    : element(concat(aws_api_gateway_resource.handler.*.id, list(&amp;quot;&amp;quot;)),0)
+  }&amp;quot;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;I do several tricks in that module. The first trick is to set &lt;code&gt;count&lt;/code&gt; for &lt;code&gt;aws_api_gateway_resource&lt;/code&gt;
+to zero when I need no resource created. Otherwise, I put &lt;code&gt;count = 1&lt;/code&gt;, which is the default.&lt;/p&gt;
+
+&lt;p&gt;The second trick is in the &lt;code&gt;hardler_id&lt;/code&gt; output parameters. I select
+either the created ID or the &lt;code&gt;parent_resource_id&lt;/code&gt; parameter.&lt;/p&gt;
+
+&lt;h2 id=&quot;ternary-expression-and-complexity&quot;&gt;Ternary Expression and Complexity&lt;/h2&gt;
+
+&lt;p&gt;You may want to ask, why is it so complicated, me too. I started with the more 
+trivial variant of the second condition:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;output &amp;quot;handler_id&amp;quot; {
+  value = &amp;quot;${
+    var.path_part == &amp;quot;&amp;quot;
+    ? var.parent_resource_id
+    : element(aws_api_gateway_resource.handler.*.id,0)
+  }&amp;quot;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;And then, I found out that Terraform computes both expressions in the ternary
+expression. It differs from the semantics we got used from C-like languages. And so, 
+I had to have a non-empty list in the second expression. I use the &lt;code&gt;concat&lt;/code&gt; to 
+join two lists, and &lt;code&gt;list(&quot;&quot;)&lt;/code&gt; to create a new list with one element.
+Finally, &lt;code&gt;concat(aws_api_gateway_resource.handler.*.id, list(&quot;&quot;)&lt;/code&gt; does the trick 
+making a list contain at least one element, even if the &lt;code&gt;count&lt;/code&gt; was equal to &lt;code&gt;0&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;That is how I found the workable condition expression from the full example above.&lt;/p&gt;
+
+&lt;h2 id=&quot;avoiding-ternary-operator&quot;&gt;Avoiding Ternary Operator&lt;/h2&gt;
+
+&lt;p&gt;I was speaking with a colleague on that, and realized, the code can be simplified. 
+Instead of the conditional operator, 
+now I join two lists and pick the first element:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;output &amp;quot;handler_id&amp;quot; {
+  value = &amp;quot;${
+    element(concat(aws_api_gateway_resource.handler.*.id, list(root_resource_id)), 0) 
+  }&amp;quot;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The &lt;code&gt;aws_api_gateway_resource.handler.*.id&lt;/code&gt; gives me an empty list if &lt;code&gt;count = 0&lt;/code&gt;.
+That works the same way, but better and shorter. We have only one real condition in 
+the code now.&lt;/p&gt;
+
+&lt;h2 id=&quot;recursive-creation&quot;&gt;Recursive Creation&lt;/h2&gt;
+
+&lt;p&gt;I got yet another crazy idea. What if I wish to support &lt;code&gt;long/path/to/create&lt;/code&gt; in my module.
+What shall I do? The idea was to call the same module recursively for all needed path parts
+to build the resources tree.&lt;/p&gt;
+
+&lt;p&gt;I failed.&lt;/p&gt;
+
+&lt;p&gt;There are several problems, I came across. The first one. It is not possible to have a
+&lt;code&gt;count&lt;/code&gt; parameter on Terraform module usage.&lt;/p&gt;
+
+&lt;p&gt;https://github.com/hashicorp/terraform/issues/953&lt;/p&gt;
+
+&lt;p&gt;I tried to include the same module from itself. It turned out, Terraform does not
+support such inclusion and starts an infinite resolution in &lt;code&gt;terraform init&lt;/code&gt; call.&lt;/p&gt;
+
+&lt;p&gt;What if I fix &lt;code&gt;source&lt;/code&gt; attribute? 
+It is not possible too. One is not allowed to use a non-constant expression for the &lt;code&gt;source&lt;/code&gt; 
+parameter of a module.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;I recalled and implemented the common pattern in Terraform to handle a conditional resources
+creation and applied it for AWS API Gateway resources. It plays well for my project, 
+and I hope it will help you too.&lt;/p&gt;
+
+&lt;p&gt;Note. It cost me hours of endless debugging. One needs to call
+&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_deployment.html&quot;&gt;api_gateway_deployment&lt;/a&gt;
+after &lt;em&gt;any&lt;/em&gt; change in the API Gateway configuration is done. 
+That is hard to code all dependencies in Terraform correctly for it. It is even harder
+if you have modules around.&lt;/p&gt;
+
+&lt;p&gt;I code Terraform scripts in 
+&lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; with 
+the fantastic plugin done by a friend of mine: 
+&lt;a href=&quot;https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support&quot;&gt;Terraform Support plugin&lt;/a&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="terraform" />
+  
+    <category term="aws" />
+  
+    <category term="api gateway" />
+  
+    <category term="cloud" />
+  
+    <category term="infrastructure" />
+  
+    <summary type="html">Create an AWS API Gateway resource based on conditions</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Java Builders with Kotlin</title>
@@ -1212,319 +1400,6 @@ request &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;here
     <category term="kotlin" />
   
     <summary type="html">helps to detect problems with split packages prior to the migration</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">A Sudden SSH out-of-memory</title>
-    <link href="https://jonnyzzz.com/blog/2017/08/23/ssh-oom/" rel="alternate" type="text/html" title="A Sudden SSH out-of-memory" />
-    <published>2017-08-23T00:00:00+00:00</published>
-    <updated>2017-08-23T00:00:00+00:00</updated>
-    <id>/blog/2017/08/23/ssh-oom</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2017/08/23/ssh-oom/">&lt;p&gt;An accident and investigation of the server failure&lt;/p&gt;
-
-&lt;p&gt;In this post, I am going to share an accident I had recently with
-in-house production.&lt;/p&gt;
-
-&lt;p&gt;Let’s assume we have an SSH server. Clients who call
-commands through it. Quite simple, right?&lt;/p&gt;
-
-&lt;p&gt;Of course, we cannot have only one SSH server. Instead, we run 
-several SSH servers and use HAProxy to load-balance traffic 
-to them. It is way more safe to have several servers, 
-instead of one. For example, it simplifies maintenance, allows 
-to easily implement 
-&lt;a href=&quot;https://en.wikipedia.org/wiki/Rolling_release&quot;&gt;Rolling Updates&lt;/a&gt;
-or say 
-&lt;a href=&quot;https://en.wikipedia.org/wiki/A/B_testing&quot;&gt;A/B Testing&lt;/a&gt;.
-I &lt;a href=&quot;/blog/2017/05/24/ssh-haproxy/&quot;&gt;wrote in a previous post&lt;/a&gt;
-more details on our HAProxy setup some time ago&lt;/p&gt;
-
-&lt;h1 id=&quot;the-outage-as-seen-by-users&quot;&gt;The outage as seen by users&lt;/h1&gt;
-
-&lt;p&gt;At some day, our users (as I can recreate from reports) started to see
-strange connection timeouts from SSH server calls. The call they did was 
-to download several gigabytes of data.&lt;/p&gt;
-
-&lt;p&gt;From a user perspective, it’s totally OK to retry a command once it failed 
-for the very first time. So they did it.&lt;/p&gt;
-
-&lt;p&gt;After several retries, they tend to give up. At that time our system
-was no longer capable of serving any SSH requests at all&lt;/p&gt;
-
-&lt;h1 id=&quot;the-outage-as-seen-from-the-server-side&quot;&gt;The outage as seen from the server-side&lt;/h1&gt;
-
-&lt;p&gt;We are running several SSH servers behind HAProxy. Servers were running 
-in JVM. I use amazing &lt;a href=&quot;https://mina.apache.org/sshd-project/&quot;&gt;Apache Mina SSHD&lt;/a&gt;
-to implement our &lt;a href=&quot;https://jonnyzzz.com/contrib/#apache-mina-sshd&quot;&gt;SSH server&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Alerts appeared for our SSH servers. HAProxy started to drain traffic from dead SSH 
-servers, based on health checks. It was good since other requests were still 
-able to execute on still live servers.&lt;/p&gt;
-
-&lt;p&gt;There were only two servers in our setup. So the system was too fast to be killed.&lt;/p&gt;
-
-&lt;p&gt;All dead server had an out-of-memory (OOM) before death. Sadly, but it is 
-hard to write an application that is can survive OOMs and continue to function. In our case, OOM
-tended to kill either SSH server socket processing for either SSH or HTTP.&lt;/p&gt;
-
-&lt;p&gt;The good side was that those SSH servers had not sensible state. Thus it was easy to restart
-them to be back in business. So we had the workaround&lt;/p&gt;
-
-&lt;h1 id=&quot;java-heap-dump-analysis&quot;&gt;Java heap dump analysis&lt;/h1&gt;
-
-&lt;p&gt;By that time I had several memory dumps (.hprof) files from failed servers. It was
-time to analyze what is there. 
-All those failures were only because a send buffer was full of data, consuming the 
-rest of heap memory. More detailed, I found a massive SSH session object.&lt;/p&gt;
-
-&lt;p&gt;With more analysis, I found the whole memory was consumed by the write queue.&lt;/p&gt;
-
-&lt;p&gt;A closer look in memory dumps and I was able to figure out the outage was caused by
-a fresh &lt;a href=&quot;https://www.chiark.greenend.org.uk/~sgtatham/putty/&quot;&gt;Putty&lt;/a&gt; client on Windows, e.g. 
-&lt;code&gt;SSH-2.0-PuTTY_Release_0.69&lt;/code&gt;. At the time of the accident, it was the most recent version.&lt;/p&gt;
-
-&lt;p&gt;The state was that I had an OOM issue downloading several gigabytes of data over the 
-SSH with Putty client. It was time to write integration tests to reproduce the problem. 
-I did it. I was able to test every putty client version. I tried &lt;code&gt;0.67&lt;/code&gt;, &lt;code&gt;0.68&lt;/code&gt; and &lt;code&gt;0.69&lt;/code&gt;.
-The OOM problem was likely to be introduced in &lt;code&gt;0.68&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1 id=&quot;client-problem-and-users&quot;&gt;Client problem and users&lt;/h1&gt;
-
-&lt;p&gt;Memory snapshot analysis was helpful to realize the problem was with a specific 
-version of an SSH client. I also knew, only users with fresh computers we reporting 
-the issue too.&lt;/p&gt;
-
-&lt;p&gt;It was evident I cannot do anything with the client. Users decided to use it for 
-their reasons. Also, my SSH server implementation did not support the client 
-filtering. Anyway, I’d be too hard to explain everyone the problem is probably with 
-recent update of their software.&lt;/p&gt;
-
-&lt;h1 id=&quot;debugging-the-problem&quot;&gt;Debugging the problem&lt;/h1&gt;
-
-&lt;p&gt;Thanks to integration tests I did, I was also able to debug the problem and realize
-the cause of the issue.&lt;/p&gt;
-
-&lt;p&gt;I found the method, which handles all writes on the server: 
-&lt;code&gt;org.apache.sshd.common.session.AbstractSession#writePacket(org.apache.sshd.common.util.buffer.Buffer)&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;Apache Mina SSHD server is async. Instead of writing data directly to the socket it 
-enqueues the data and sends once the OS is ready for it.&lt;/p&gt;
-
-&lt;p&gt;Also, the implementation writes messages to a dedicated queue while 
-re-key process is running. This method is called for every SSH command 
-channel writes too. SSH window size is checked before calling the method, so
-the command writer is blocked to wait while queued messages are sent.&lt;/p&gt;
-
-&lt;p&gt;In memory dumps of the session object, I saw the window was barely unlimited.
-&lt;img src=&quot;/images/posts/2017-08-23-snapshot.jpg&quot; alt=&quot;Memory Snapshot&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Having unlimited window and a slow network is enough for a server to consume all memory
-with messages queue. In my case SSH, command was streaming several gigabytes of data from memory.&lt;/p&gt;
-
-&lt;p&gt;There are two questions:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Why is it happening only now?&lt;/li&gt;
-  &lt;li&gt;How can we avoid the problem?&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1 id=&quot;ssh-window-abuse&quot;&gt;SSH window abuse&lt;/h1&gt;
-
-&lt;p&gt;As we know, SSH protocol uses windows to limit the number of data being queued. Why didn’t it work?&lt;/p&gt;
-
-&lt;p&gt;It was easy to debug. I found out Putty was sending 2GB (e.g., signed integer max value) as the size 
-of the receive window. Well, I saw no reason why. But having such a huge send window makes 
-SSH server enqueue up to 2GB of data per session.&lt;/p&gt;
-
-&lt;p&gt;An optimistic approach, as we are a victim of it, is to trust SSH client and use the window as-is.&lt;/p&gt;
-
-&lt;p&gt;A defensive approach is to have an additional send window in SSH server to avoid blindly trusting a client.&lt;/p&gt;
-
-&lt;h1 id=&quot;sshd-patch&quot;&gt;SSHD patch&lt;/h1&gt;
-
-&lt;p&gt;Now it was more or less clear. The problem was in unlimited write queue and infinite send window. 
-I created an issue for the Apache Mina SSHD project to let anyone know there is such a problem.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://issues.apache.org/jira/browse/SSHD-754&quot;&gt;https://issues.apache.org/jira/browse/SSHD-754&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;I did a trivial patch on for the server. I decided to limit write queue for channel messages
-to block the sender even in the case send window is unlimited. I simply use a semaphore for it:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;CHANNEL_STDOUT_LOCK&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PressureLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;CHANNEL_STDERR_LOCK&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PressureLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;writePacket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// The workaround for&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// https://issues.apache.org/jira/browse/SSHD-754&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// the trick is to block writer thread once there are more&lt;/span&gt;
-    &lt;span class=&quot;c1&quot;&gt;// than 100 messages in either rekey wait queue or nio write queue&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rpos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()])&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;SshConstants&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SSH_MSG_CHANNEL_DATA&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHANNEL_STDOUT_LOCK&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;SshConstants&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SSH_MSG_CHANNEL_EXTENDED_DATA&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CHANNEL_STDERR_LOCK&lt;/span&gt;
-      &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;future&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writePacket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;addListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The code above is included in my inheritor of the &lt;code&gt;org.apache.sshd.common.session.AbstractSession&lt;/code&gt;.
-I like Apache Mina SSHD library is designed in an extensible way making such workaround possible.&lt;/p&gt;
-
-&lt;p&gt;And the &lt;code&gt;PressureLock&lt;/code&gt; was implemented this way:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PressureLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;semaphore&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;listener&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;SshFutureListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;operationComplete&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;future&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;release&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;SshFutureListener&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;IoWriteFuture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;semaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;acquire&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listener&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I checked the fix with my tests. The problem was solved.&lt;/p&gt;
-
-&lt;h1 id=&quot;putty-changes&quot;&gt;Putty changes&lt;/h1&gt;
-
-&lt;p&gt;With integration tests, I was able to detect that it started 
-to fail only with Putty 0.68. Putty 0.67 was working great. 
-Also, all our problems were only from putty SSH clients on Windows.&lt;/p&gt;
-
-&lt;p&gt;I decided to dig dipper and see, that change was it. 
-Sadly, there were so many changes between 0.67 and 0.68. 
-Also, it took several years for them too.&lt;/p&gt;
-
-&lt;p&gt;I knew I was looking the change to windows size. I confirmed in debugger,
-Putty 0.67 was using 16K for it.&lt;/p&gt;
-
-&lt;p&gt;And I found the change &lt;a href=&quot;https://git.tartarus.org/?p=simon/putty.git;a=commit;h=b22c0b6f3e6f5254270a89f86df3edfc4da829d2&quot;&gt;b22c0b6f3e6f5254270a89f86df3edfc4da829d2&lt;/a&gt;
-and the &lt;a href=&quot;https://git.tartarus.org/?p=simon/putty.git;a=blobdiff;f=windows/winplink.c;h=99e269fdc106687e7edff5c51fb778ee22d545b7;hp=a0458b39a878b0ad8af99d9a7294e2129b3bf787;hb=b22c0b6f3e6f5254270a89f86df3edfc4da829d2;hpb=34add87ad249205d4ed36381bfb506a431dc0e7a&quot;&gt;winplink.c file&lt;/a&gt;&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-diff&quot; data-lang=&quot;diff&quot;&gt;&lt;span class=&quot;gd&quot;&gt;--- a/windows/winplink.c&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+++ b/windows/winplink.c&lt;/span&gt;
-&lt;span class=&quot;gu&quot;&gt;@@ -618,6 +618,17 @@ int main(int argc, char **argv)&lt;/span&gt;
-        return 1;
-     }
- 
-&lt;span class=&quot;gi&quot;&gt;+    /*&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+     * Plink doesn&amp;#39;t provide any way to add forwardings after the&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+     * connection is set up, so if there are none now, we can safely set&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+     * the &amp;quot;simple&amp;quot; flag.&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+     */&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+    if (conf_get_int(conf, CONF_protocol) == PROT_SSH &amp;amp;&amp;amp;&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+       !conf_get_int(conf, CONF_x11_forward) &amp;amp;&amp;amp;&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+       !conf_get_int(conf, CONF_agentfwd) &amp;amp;&amp;amp;&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+       !conf_get_str_nthstrkey(conf, CONF_portfwd, 0))&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+       conf_set_int(conf, CONF_ssh_simple, TRUE);&lt;/span&gt;
-&lt;span class=&quot;gi&quot;&gt;+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The change was to flip &lt;code&gt;CONF_ssh_simple&lt;/code&gt; mode on Windows. The change 
-did enable 2GB receive window, as you may see from the usages.&lt;/p&gt;
-
-&lt;p&gt;In &lt;code&gt;ssh.c&lt;/code&gt; in &lt;a href=&quot;https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz&quot;&gt;Putty 0.70&lt;/a&gt; we have defines:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;cp&quot;&gt;#define OUR_V2_BIGWIN 0x7fffffff&lt;/span&gt;
-&lt;span class=&quot;cp&quot;&gt;#define OUR_V2_WINSIZE 16384&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;And the code-block:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Ssh&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     * We use the &amp;#39;simple&amp;#39; variant of the SSH protocol if we&amp;#39;re asked&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     * to, except not if we&amp;#39;re also doing connection-sharing (either&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     * tunnelling our packets over an upstream or expecting to be&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     * tunnelled over ourselves), since then the assumption that we&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     * have only one channel to worry about is not true after all.&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt;     */&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf_get_int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CONF_ssh_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt;
-            &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bare_connection&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connshare&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;cm&quot;&gt;/*&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; * Set up most of a new ssh_channel.&lt;/span&gt;
-&lt;span class=&quot;cm&quot;&gt; */&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ssh_channel_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh_channel&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;Ssh&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localid&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc_channel_id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;closes&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pending_eof&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;throttling_conn&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FALSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locwindow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locmaxwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remlocwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-	    &lt;span class=&quot;n&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;OUR_V2_BIGWIN&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OUR_V2_WINSIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;chanreq_head&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;throttle_state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UNTHROTTLED&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
-	&lt;span class=&quot;n&quot;&gt;bufchain_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outbuffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;add234&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;channels&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The windows size is computed by the following expression:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-cpp&quot; data-lang=&quot;cpp&quot;&gt;	&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locwindow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;locmaxwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;v2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;remlocwin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
-	    &lt;span class=&quot;n&quot;&gt;ssh_is_simple&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ssh&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;OUR_V2_BIGWIN&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;OUR_V2_WINSIZE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The windows sizes are exactly the same as I saw in debugger both for
-&lt;code&gt;0.67&lt;/code&gt; and &lt;code&gt;0.69&lt;/code&gt; versions.&lt;/p&gt;
-
-&lt;p&gt;That was it. And it was in April 2016. It took more than a year 
-for the change to cause the issues I was debugging.&lt;/p&gt;
-
-&lt;p&gt;Thanks to the opensource, I was able to dig that deep to see the source
-of the problem. I liked it.&lt;/p&gt;
-
-&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
-
-&lt;p&gt;I was running these SSH servers for more than a year. I like people 
-say, ‘Hey, I did no changes to anything, why is it failing now?’&lt;/p&gt;
-
-&lt;p&gt;It was indeed the change. And the system started to fail. It was
-the outer world that changed.&lt;/p&gt;
-
-&lt;p&gt;I found the source of the issue and did a patch to make the server
-work again with new SSH clients. That was fun!&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="git" />
-  
-    <category term="ssh" />
-  
-    <category term="java" />
-  
-    <category term="oom" />
-  
-    <category term="putty" />
-  
-    <category term="opensource" />
-  
-    <category term="debug" />
-  
-    <category term="service" />
-  
-    <summary type="html">An accident and investigation of the server failure</summary>
   
   </entry>
   

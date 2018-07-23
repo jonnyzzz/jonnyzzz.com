@@ -1,0 +1,452 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Condition in Terraform and API Gateway &#8211; Eugene Petrenko</title>
+<meta name="description" content="Create an AWS API Gateway resource based on conditions
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, terraform, aws, api gateway, cloud, infrastructure" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Condition in Terraform and API Gateway -- Eugene Petrenko" />
+<meta name="twitter:description" content="Create an AWS API Gateway resource based on conditions
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Condition in Terraform and API Gateway -- Eugene Petrenko" />
+<meta property="og:description" content="Create an AWS API Gateway resource based on conditions
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2018/07/23/terraform-if/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="terraform" />
+
+<meta property="article:tag" content="aws" />
+
+<meta property="article:tag" content="api gateway" />
+
+<meta property="article:tag" content="cloud" />
+
+<meta property="article:tag" content="infrastructure" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2018/07/23/terraform-if/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+
+<!-- MathJax -->
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+
+<script type="text/javascript">
+    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#terraform" title="Pages tagged terraform">terraform</a></li><li><a href="/tags/#aws" title="Pages tagged aws">aws</a></li><li><a href="/tags/#api gateway" title="Pages tagged api gateway">api gateway</a></li><li><a href="/tags/#cloud" title="Pages tagged cloud">cloud</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Condition in Terraform and API Gateway</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-07-23T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 23, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=terraform,aws,apigateway,cloud,infrastructure&amp;text=Condition%20in%20Terraform%20and%20API%20Gateway&amp;url=https://jonnyzzz.com/blog/2018/07/23/terraform-if/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/07/23/terraform-if/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Create an AWS API Gateway resource based on conditions</p>
+
+<p>You may know <a href="https://www.terraform.io/">Terraform</a>, the tool to create infrastructure
+as a code. I use it for several <a href="https://aws.amazon.com/">AWS</a> experiments, I do. 
+It is declarative and uses HCL language to declare resources to create. Let’s see how
+one can create resources based on a condition.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>I wrote scripts to create <a href="https://aws.amazon.com/api-gateway/">API Gateway</a> for my project.
+The API Gateway service is tricky, and in Terraform one uses several resources to make it work.</p>
+
+<p>You start with adding the
+<a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_rest_api.html">aws_api_gateway_api</a>
+resource, which defines the API Gateway itself. Handler paths are represented 
+as a <a href="https://en.wikipedia.org/wiki/Tree_(data_structure)">tree structure</a>. The root of the 
+tree matches to the empty path. The root node ID is returned from the <code>root_resource_id</code> output
+parameter of the <code>aws_api_gateway_api</code> resource.</p>
+
+<p>I use Terraform <a href="https://www.terraform.io/docs/modules/usage.html">Modules</a> in my scripts
+to reduce complexity. Modules are the same as functions in other programming languages. 
+It helps to reuse code and reduce duplicates.</p>
+
+<h2 id="the-need-of-a-condition">The Need of a Condition</h2>
+
+<p>I have a module to define API Gateway handlers. That module accepts a handler path and the 
+<code>root_resource_id</code> parameter. In the module, I have to decide either
+to create new resource 
+<a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_resource.html">aws_api_gateway_resource</a>,
+for non-empty path, or to use the base <code>root_resource_id</code> instead, for the empty one.</p>
+
+<p>In a pseudo-code the problem looks as follows:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">if</span> <span class="p">(</span><span class="n">root_path</span> <span class="p">==</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">root_resource_id</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> 
+    <span class="p">(</span><span class="n">resource</span> <span class="s">&quot;aws_api_gateway_resource&quot;</span><span class="p">).</span><span class="n">id</span>
+  <span class="p">}</span></code></pre></figure>
+
+<h2 id="a-condition-implementation">A Condition Implementation</h2>
+
+<p>I head that story from my friend Mikhail Kuzmin several years ago. I have no idea,
+how I recalled that, but still. He told me something about the <code>count</code> parameter is helpful
+to implement a condition in Terraform.</p>
+
+<p>Also, I found that in Terraform we have 
+<a href="https://www.terraform.io/docs/configuration/interpolation.html#conditionals">ternary operator expression</a>,
+aka <code>condition ? foo : bar</code>, which helps me to extract the right resource ID at the end.</p>
+
+<p>The overall condition for a resource did not look trivial. I decided to extract it as a dedicated module
+from the very beginning. That is what I created:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">variable &quot;api_gateway_id&quot; {}
+variable &quot;parent_resource_id&quot; {}
+
+variable &quot;path_part&quot; {
+  description = &quot;Resource path or empty string to use parent_resource_id&quot;
+}
+
+resource &quot;aws_api_gateway_resource&quot; &quot;handler&quot; {
+  parent_id   = &quot;${var.parent_resource_id}&quot;
+  rest_api_id = &quot;${var.api_gateway_id}&quot;
+
+  path_part   = &quot;${var.path_part}&quot;
+
+  count       = &quot;${var.path_part == &quot;&quot; ? 0 : 1 }&quot;
+}
+
+output &quot;handler_id&quot; {
+  value = &quot;${
+    var.path_part == &quot;&quot;
+    ? var.parent_resource_id
+    : element(concat(aws_api_gateway_resource.handler.*.id, list(&quot;&quot;)),0)
+  }&quot;
+}</code></pre></figure>
+
+<p>I do several tricks in that module. The first trick is to set <code>count</code> for <code>aws_api_gateway_resource</code>
+to zero when I need no resource created. Otherwise, I put <code>count = 1</code>, which is the default.</p>
+
+<p>The second trick is in the <code>hardler_id</code> output parameters. I select
+either the created ID or the <code>parent_resource_id</code> parameter.</p>
+
+<h2 id="ternary-expression-and-complexity">Ternary Expression and Complexity</h2>
+
+<p>You may want to ask, why is it so complicated, me too. I started with the more 
+trivial variant of the second condition:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">output &quot;handler_id&quot; {
+  value = &quot;${
+    var.path_part == &quot;&quot;
+    ? var.parent_resource_id
+    : element(aws_api_gateway_resource.handler.*.id,0)
+  }&quot;
+}</code></pre></figure>
+
+<p>And then, I found out that Terraform computes both expressions in the ternary
+expression. It differs from the semantics we got used from C-like languages. And so, 
+I had to have a non-empty list in the second expression. I use the <code>concat</code> to 
+join two lists, and <code>list("")</code> to create a new list with one element.
+Finally, <code>concat(aws_api_gateway_resource.handler.*.id, list("")</code> does the trick 
+making a list contain at least one element, even if the <code>count</code> was equal to <code>0</code>.</p>
+
+<p>That is how I found the workable condition expression from the full example above.</p>
+
+<h2 id="avoiding-ternary-operator">Avoiding Ternary Operator</h2>
+
+<p>I was speaking with a colleague on that, and realized, the code can be simplified. 
+Instead of the conditional operator, 
+now I join two lists and pick the first element:</p>
+
+<figure class="highlight"><pre><code class="language-text" data-lang="text">output &quot;handler_id&quot; {
+  value = &quot;${
+    element(concat(aws_api_gateway_resource.handler.*.id, list(root_resource_id)), 0) 
+  }&quot;
+}</code></pre></figure>
+
+<p>The <code>aws_api_gateway_resource.handler.*.id</code> gives me an empty list if <code>count = 0</code>.
+That works the same way, but better and shorter. We have only one real condition in 
+the code now.</p>
+
+<h2 id="recursive-creation">Recursive Creation</h2>
+
+<p>I got yet another crazy idea. What if I wish to support <code>long/path/to/create</code> in my module.
+What shall I do? The idea was to call the same module recursively for all needed path parts
+to build the resources tree.</p>
+
+<p>I failed.</p>
+
+<p>There are several problems, I came across. The first one. It is not possible to have a
+<code>count</code> parameter on Terraform module usage.</p>
+
+<p>https://github.com/hashicorp/terraform/issues/953</p>
+
+<p>I tried to include the same module from itself. It turned out, Terraform does not
+support such inclusion and starts an infinite resolution in <code>terraform init</code> call.</p>
+
+<p>What if I fix <code>source</code> attribute? 
+It is not possible too. One is not allowed to use a non-constant expression for the <code>source</code> 
+parameter of a module.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I recalled and implemented the common pattern in Terraform to handle a conditional resources
+creation and applied it for AWS API Gateway resources. It plays well for my project, 
+and I hope it will help you too.</p>
+
+<p>Note. It cost me hours of endless debugging. One needs to call
+<a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_deployment.html">api_gateway_deployment</a>
+after <em>any</em> change in the API Gateway configuration is done. 
+That is hard to code all dependencies in Terraform correctly for it. It is even harder
+if you have modules around.</p>
+
+<p>I code Terraform scripts in 
+<a href="https://jetbrains.com/idea">IntelliJ IDEA</a> with 
+the fantastic plugin done by a friend of mine: 
+<a href="https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support">Terraform Support plugin</a></p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2018/07/18/kotlin-builder/" class="btn" title="Java Builders with Kotlin">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2018 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+</body>
+</html>
