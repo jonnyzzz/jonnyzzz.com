@@ -82,11 +82,6 @@
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -104,23 +99,6 @@
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -303,7 +281,7 @@ Once variables are used, rename feature is implemented for free.</p>
 
 <p>Let’s consider <a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration in <code>.properties</code> file as \(Original Language\).</p>
 
-<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span></span><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
 <span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO,stdout</span>
 <span class="c"># meaningful comment goes here</span>
 <span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
@@ -317,7 +295,7 @@ and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
 
 <p>The configuration below can be turned into the following Kotlin code.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">log4j</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
       <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>
@@ -457,6 +435,29 @@ for The DSL Way toolset.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

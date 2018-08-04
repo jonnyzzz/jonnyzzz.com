@@ -95,11 +95,6 @@ integration tests build.
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -117,23 +112,6 @@ integration tests build.
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -231,31 +209,31 @@ Let’s compile Git from sources.</p>
 <p>Git client is easy to checkout and compile. I use the following
 snippet for that</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">  
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>  
 <span class="nv">git_version</span><span class="o">=</span>&lt;a version of Git client to use&gt;
-<span class="nv">git_sources</span><span class="o">=</span><span class="s2">&quot;/gitz/src/git-${git_version}&quot;</span>
-<span class="nv">git_bin</span><span class="o">=</span><span class="s2">&quot;/gitz/bin/git-${git_version}&quot;</span>
-<span class="nv">git_sh</span><span class="o">=</span><span class="s2">&quot;/git-${git_version}.sh&quot;</span>
+<span class="nv">git_sources</span><span class="o">=</span><span class="s2">&quot;/gitz/src/git-</span><span class="si">${</span><span class="nv">git_version</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">git_bin</span><span class="o">=</span><span class="s2">&quot;/gitz/bin/git-</span><span class="si">${</span><span class="nv">git_version</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="nv">git_sh</span><span class="o">=</span><span class="s2">&quot;/git-</span><span class="si">${</span><span class="nv">git_version</span><span class="si">}</span><span class="s2">.sh&quot;</span>
 
-mkdir -p <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>
-mkdir -p <span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span>
+mkdir -p <span class="si">${</span><span class="nv">git_sources</span><span class="si">}</span>
+mkdir -p <span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span>
 
-wget -O <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git.tar.gz https://www.kernel.org/pub/software/scm/git/git-<span class="k">${</span><span class="nv">git_version</span><span class="k">}</span>.tar.gz
-tar xzf <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git.tar.gz -C <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>
+wget -O <span class="si">${</span><span class="nv">git_sources</span><span class="si">}</span>/git.tar.gz https://www.kernel.org/pub/software/scm/git/git-<span class="si">${</span><span class="nv">git_version</span><span class="si">}</span>.tar.gz
+tar xzf <span class="si">${</span><span class="nv">git_sources</span><span class="si">}</span>/git.tar.gz -C <span class="si">${</span><span class="nv">git_sources</span><span class="si">}</span>
 
-<span class="nb">pushd</span> <span class="k">${</span><span class="nv">git_sources</span><span class="k">}</span>/git-<span class="k">${</span><span class="nv">git_version</span><span class="k">}</span>
-make <span class="nv">prefix</span><span class="o">=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span> all <span class="o">&amp;&amp;</span> make <span class="nv">prefix</span><span class="o">=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span> install
+<span class="nb">pushd</span> <span class="si">${</span><span class="nv">git_sources</span><span class="si">}</span>/git-<span class="si">${</span><span class="nv">git_version</span><span class="si">}</span>
+make <span class="nv">prefix</span><span class="o">=</span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span> all <span class="o">&amp;&amp;</span> make <span class="nv">prefix</span><span class="o">=</span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span> install
 <span class="nb">popd</span>
 
-<span class="nb">echo</span> <span class="s1">&#39;#!/bin/bash&#39;</span> &gt; <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span>
-<span class="nb">echo</span> <span class="s2">&quot;GIT_EXEC_PATH=${git_bin}/libexec/git-core PATH=${git_bin}/bin:\$PATH GITPERLLIB=${git_bin}/perl/blib/lib ${git_bin}/bin/git \&quot;\$@\&quot;&quot;</span> &gt; <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span>
-chmod a+rx <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span></code></pre></figure>
+<span class="nb">echo</span> <span class="s1">&#39;#!/bin/bash&#39;</span> &gt; <span class="si">${</span><span class="nv">git_sh</span><span class="si">}</span>
+<span class="nb">echo</span> <span class="s2">&quot;GIT_EXEC_PATH=</span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span><span class="s2">/libexec/git-core PATH=</span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span><span class="s2">/bin:\$PATH GITPERLLIB=</span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span><span class="s2">/perl/blib/lib </span><span class="si">${</span><span class="nv">git_bin</span><span class="si">}</span><span class="s2">/bin/git \&quot;\$@\&quot;&quot;</span> &gt; <span class="si">${</span><span class="nv">git_sh</span><span class="si">}</span>
+chmod a+rx <span class="si">${</span><span class="nv">git_sh</span><span class="si">}</span></code></pre></figure>
 
 <p>The code above generates a starter script for Git client (e.g. <code>/git-1.7.2.sh</code>)</p>
 
 <p>Git build also requires a set of packages to be installed on the OS (for my case on CentOS)</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">yum update -y
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>yum update -y
 yum groupinstall -y <span class="s2">&quot;Development tools&quot;</span>
 yum install -y tar wget m4
 yum install -y autoconf
@@ -323,7 +301,7 @@ Let’s wrap Docker container call into a bash script than!</p>
 
 <p>First of I created a script like that (see <a href="https://docs.docker.com/engine/reference/run/">docker run docs</a>)</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">docker run GIT_CLIENT_IMAGES <span class="nv">$@</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>docker run GIT_CLIENT_IMAGES <span class="nv">$@</span></code></pre></figure>
 
 <p>Well, it did not work, so I added volume with current directory: <code>-v $(pwd):/$(pwd)</code> and switched working 
 directory in Docker to it via <code>-w /$(pwd)</code>.<br />
@@ -367,16 +345,16 @@ Default container command prints the <code>git</code> script to STDOUT.</p>
 
 <p>The Git client setup bash script turned to be as follows:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">docker pull GIT_CLIENT_IMAGE
-docker run --rm GIT_CLIENT_IMAGE 2&gt;/dev/null &gt;git
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>docker pull GIT_CLIENT_IMAGE
+docker run --rm GIT_CLIENT_IMAGE <span class="m">2</span>&gt;/dev/null &gt;git
 chmod +x git
 <span class="nv">PATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/git:<span class="nv">$PATH</span>
-<span class="nb">export </span>PATH
+<span class="nb">export</span> PATH
 
 <span class="nv">GIT_VERSION</span><span class="o">=</span>&lt;a version of Git client to use&gt;
-<span class="nb">export </span>GIT_VERSION
+<span class="nb">export</span> GIT_VERSION
 
-<span class="c">#call integration tests</span></code></pre></figure>
+<span class="c1">#call integration tests</span></code></pre></figure>
 
 <h2 id="wrapping-up">Wrapping Up</h2>
 
@@ -504,6 +482,29 @@ Frankly, I have not yet tried to optimize performance of my scripts.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

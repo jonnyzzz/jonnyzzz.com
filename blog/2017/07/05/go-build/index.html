@@ -82,11 +82,6 @@
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -104,23 +99,6 @@
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -220,54 +198,54 @@ dependencies.</p>
 
 <p>Finally, I created the following script. A still waiting for something better, and easier to use.</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span><span class="ch">#!/bin/bash</span>
 
-<span class="nb">cd</span> <span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
+<span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">)</span><span class="s2">&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">&quot;</span>
 <span class="nb">set</span> -e -x -u
 
-<span class="nv">GOVERSION</span><span class="o">=</span>1.8.1
+<span class="nv">GOVERSION</span><span class="o">=</span><span class="m">1</span>.8.1
 
-<span class="nv">LOCAL_DIST</span><span class="o">=</span><span class="s2">&quot;$(pwd)/dist&quot;</span>
-<span class="nv">LOCAL_GO_HOME</span><span class="o">=</span><span class="s2">&quot;$LOCAL_DIST/go-$(uname)-$GOVERSION&quot;</span>
+<span class="nv">LOCAL_DIST</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">/dist&quot;</span>
+<span class="nv">LOCAL_GO_HOME</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$LOCAL_DIST</span><span class="s2">/go-</span><span class="k">$(</span>uname<span class="k">)</span><span class="s2">-</span><span class="nv">$GOVERSION</span><span class="s2">&quot;</span>
 <span class="k">if</span> <span class="o">[</span> ! -f <span class="nv">$LOCAL_GO_HOME</span>/bin/go <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
   <span class="nv">GO_PKG</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/go-binary.tar.gz
   <span class="nv">GO_UNPACK</span><span class="o">=</span><span class="nv">$LOCAL_DIST</span>/go-pkg-<span class="nv">$GOVERSION</span>/unpack
 
   rm -rf   <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mkdir -p <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
+  mkdir -p <span class="nv">$GO_UNPACK</span> <span class="o">||</span> <span class="nb">true</span>
 
-<span class="nb">  </span><span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$( uname )&quot;</span> <span class="o">=</span>~ .*<span class="o">[</span>Dd<span class="o">]</span>arwin.* <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.darwin-amd64.tar.gz
+  <span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="k">$(</span> uname <span class="k">)</span><span class="s2">&quot;</span> <span class="o">=</span>~ .*<span class="o">[</span>Dd<span class="o">]</span>arwin.* <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="si">${</span><span class="nv">GOVERSION</span><span class="si">}</span>.darwin-amd64.tar.gz
   <span class="k">else</span>
-    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="k">${</span><span class="nv">GOVERSION</span><span class="k">}</span>.linux-amd64.tar.gz
+    curl -o <span class="nv">$GO_PKG</span> https://storage.googleapis.com/golang/go<span class="si">${</span><span class="nv">GOVERSION</span><span class="si">}</span>.linux-amd64.tar.gz
   <span class="k">fi</span>
 
   tar -xf <span class="nv">$GO_PKG</span> -C <span class="nv">$GO_UNPACK</span>
 
   rm -rf <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mkdir -p <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
-<span class="nb">  </span>mv <span class="nv">$GO_UNPACK</span>/go/** <span class="nv">$LOCAL_GO_HOME</span>/
+  mkdir -p <span class="nv">$LOCAL_GO_HOME</span> <span class="o">||</span> <span class="nb">true</span>
+  mv <span class="nv">$GO_UNPACK</span>/go/** <span class="nv">$LOCAL_GO_HOME</span>/
 
   rm -f <span class="nv">$GO_PKG</span>
 <span class="k">fi</span>
 
-<span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;$LOCAL_GO_HOME/bin:$PATH&quot;</span>
+<span class="nv">PATH</span><span class="o">=</span><span class="s2">&quot;</span><span class="nv">$LOCAL_GO_HOME</span><span class="s2">/bin:</span><span class="nv">$PATH</span><span class="s2">&quot;</span>
 <span class="nv">GOROOT</span><span class="o">=</span><span class="nv">$LOCAL_GO_HOME</span>
 <span class="nv">GOPATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
 
-<span class="nb">export </span>PATH
-<span class="nb">export </span>GOROOT
-<span class="nb">export </span>GOPATH
-<span class="nb">export </span><span class="nv">CGO_ENABLED</span><span class="o">=</span>0
+<span class="nb">export</span> PATH
+<span class="nb">export</span> GOROOT
+<span class="nb">export</span> GOPATH
+<span class="nb">export</span> <span class="nv">CGO_ENABLED</span><span class="o">=</span><span class="m">0</span>
 
-<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;$(which go)&quot;</span> !<span class="o">=</span> <span class="s2">&quot;$LOCAL_GO_HOME/bin/go&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
-  <span class="nb">echo</span> <span class="s2">&quot;Incorrect go binary is still used: $(which go)&quot;</span>
-  <span class="nb">exit </span>1
+<span class="k">if</span> <span class="o">[[</span> <span class="s2">&quot;</span><span class="k">$(</span>which go<span class="k">)</span><span class="s2">&quot;</span> !<span class="o">=</span> <span class="s2">&quot;</span><span class="nv">$LOCAL_GO_HOME</span><span class="s2">/bin/go&quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+  <span class="nb">echo</span> <span class="s2">&quot;Incorrect go binary is still used: </span><span class="k">$(</span>which go<span class="k">)</span><span class="s2">&quot;</span>
+  <span class="nb">exit</span> <span class="m">1</span>
 <span class="k">fi</span>
 
-<span class="k">if</span> <span class="o">[[</span> ! <span class="s2">&quot;$(go version)&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;go${GOVERSION} &quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
+<span class="k">if</span> <span class="o">[[</span> ! <span class="s2">&quot;</span><span class="k">$(</span>go version<span class="k">)</span><span class="s2">&quot;</span> <span class="o">=</span>~ <span class="s2">&quot;go</span><span class="si">${</span><span class="nv">GOVERSION</span><span class="si">}</span><span class="s2"> &quot;</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then</span>
   <span class="nb">echo</span> <span class="s2">&quot;Failed to install required Go version. &quot;</span>
-  <span class="nb">exit </span>1
+  <span class="nb">exit</span> <span class="m">1</span>
 <span class="k">fi</span></code></pre></figure>
 
 <p>The script downloads Go binaries for Mac or Linux to a build folder. It does not update the folder if
@@ -370,6 +348,29 @@ And let me know if you know the better way to Go.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

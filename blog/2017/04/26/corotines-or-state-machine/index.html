@@ -82,11 +82,6 @@
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -104,23 +99,6 @@
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -207,12 +185,12 @@ as libraries.</p>
 
 <p>I have the following code snippet:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
 
 <p>Let’s take a look to the bytecode from this method. For the experiment, I use Kotlin 1.1.1 with IntelliJ IDEA 2017.1.
 Results may depend on version. I use <code>javap -c</code> to generate those dumps</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
        0: aload_0
        1: ldc           #13                 // String $continuation
@@ -225,14 +203,14 @@ It contains <code>context</code> and methods to complete continuation: <code>res
 
 <h1 id="a-trivial-suspend-function">A Trivial Suspend function</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b2</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b2</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">a</span><span class="p">()</span>
   <span class="n">c</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Here <code>a()</code> and <code>c()</code> are calls to ordinary Java methods, which were declared in Kotlin without the <code>suspend</code> keyword.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"> public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span> public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
        0: aload_0
        1: ldc           #13                 // String $continuation
@@ -246,7 +224,7 @@ It contains <code>context</code> and methods to complete continuation: <code>res
 
 <h1 id="a-suspend-function-with-a-suspend-call">A suspend function with a suspend call</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b3</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b3</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">a</span><span class="p">()</span>
   <span class="n">b3</span><span class="p">()</span>
   <span class="n">c</span><span class="p">()</span>
@@ -255,7 +233,7 @@ It contains <code>context</code> and methods to complete continuation: <code>res
 <p>In this example, we call <code>b3()</code> suspend function from itself. Here <code>a()</code> and <code>c()</code> are calls to ordinary Java 
 methods, which were declared in Kotlin without <code>suspend</code> keyword. The generated code now looks way different.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     descriptor: (Lkotlin/coroutines/experimental/Continuation;)Ljava/lang/Object;
     Code:
        0: aload_0
@@ -274,7 +252,7 @@ methods, which were declared in Kotlin without <code>suspend</code> keyword. The
 
 <p>The class <code>streams4/ZKt$b3$1</code> is generated as follows</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
   public final java.lang.Object doResume(java.lang.Object, java.lang.Throwable);
     descriptor: (Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
     Code:
@@ -440,6 +418,29 @@ code in my apps.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

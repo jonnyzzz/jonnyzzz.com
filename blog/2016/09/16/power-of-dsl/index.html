@@ -88,11 +88,6 @@ purpose language.
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -110,23 +105,6 @@ purpose language.
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -239,7 +217,7 @@ evaluation of <code>log4j</code> function yield a logger configuration
 <p>Say we have the following code to setup
 <a href="/blog/2016/09/09/log4j-dsl/">loggers</a>.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">+</span> <span class="n">WARN</span>
@@ -250,7 +228,7 @@ evaluation of <code>log4j</code> function yield a logger configuration
 same way. Thanks to Kotlin language features, one is allowed to use a 
 loop, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listOf</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="s">&quot;B&quot;</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">).</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -269,7 +247,7 @@ to generate all definitions.</p>
 
 <p>The following part is now a template:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">+</span> <span class="n">WARN</span>
     <span class="p">}</span>
@@ -278,7 +256,7 @@ to generate all definitions.</p>
 <p>One may go further and decide to extract the collection of categoring into 
 a function. So we turn the logger configuration code into the following</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -300,7 +278,7 @@ during a build phase. On that phase all templates are getting substituted.</p>
 
 <p>A next step is to extract the actual category setup code (a template)</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">declareCategory</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>
@@ -427,6 +405,29 @@ for more formal DSL description for a logger configurations.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

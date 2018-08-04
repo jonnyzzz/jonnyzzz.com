@@ -81,11 +81,6 @@ one hand. From the other it’s the place where it so easy to make mistakes. Som
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -103,23 +98,6 @@ one hand. From the other it’s the place where it so easy to make mistakes. Som
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -260,7 +238,7 @@ those classes will likely register themselves in the OS.</p>
 
 <p>The solution here is the following. We crete a classloader:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
 
 <p>This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
 to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.</p>
@@ -305,7 +283,7 @@ with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>
 
 <p>The overall trick is implemented as follows</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="cm">/*</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="cm">/*</span>
 <span class="cm"> * creates a proxy for an object obj loaded in sourceLoader hierarchy </span>
 <span class="cm"> * that is visible in destLoader as destClass interface</span>
 <span class="cm"> * assuming all methods of destClass are implemented in obj</span>
@@ -338,7 +316,7 @@ with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>
                     <span class="k">if</span> <span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
                       <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
                     <span class="o">}</span>
-                    <span class="k">return</span> <span class="nf">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
+                    <span class="k">return</span> <span class="n">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
                   <span class="o">}));</span>
   <span class="o">}</span></code></pre></figure>
 
@@ -459,6 +437,29 @@ allows one to debug every application or even all applications easily!</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

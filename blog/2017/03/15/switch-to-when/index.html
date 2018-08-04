@@ -92,11 +92,6 @@ Consider the following code in Java
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -114,23 +109,6 @@ Consider the following code in Java
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -211,7 +189,7 @@ Consider the following code in Java
 
 <p>Consider the following code in Java</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">void</span> <span class="nf">action</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kt">void</span> <span class="nf">action</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">Foo</span> <span class="n">f</span><span class="o">;</span>
   <span class="k">switch</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span><span class="o">:</span> 
@@ -219,7 +197,7 @@ Consider the following code in Java
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span><span class="o">:</span>
       <span class="n">f</span> <span class="o">=</span> <span class="n">value444</span><span class="o">();</span>
     <span class="k">default</span><span class="o">:</span>
-      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">();</span>    
+      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">();</span>    
   <span class="o">}</span> 
 
   <span class="n">doSomeMightyWork</span><span class="o">(</span><span class="n">f</span><span class="o">);</span>
@@ -235,14 +213,14 @@ someone dares to add extra enum value, this code will still compile correctly!</
 
 <p>An improvement is still possible to solve some of the problems above. Use <code>return</code> statement! So we have</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">Foo</span> <span class="nf">select</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">Foo</span> <span class="nf">select</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">switch</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span><span class="o">:</span> 
-      <span class="k">return</span> <span class="nf">value42</span><span class="o">();</span>
+      <span class="k">return</span> <span class="n">value42</span><span class="o">();</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span><span class="o">:</span>
-      <span class="k">return</span> <span class="nf">value444</span><span class="o">();</span>
+      <span class="k">return</span> <span class="n">value444</span><span class="o">();</span>
     <span class="k">default</span><span class="o">:</span>
-      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">();</span>    
+      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">();</span>    
   <span class="o">}</span> 
 <span class="o">}</span>
 
@@ -260,7 +238,7 @@ someone dares to add extra enum value, this code will still compile correctly!</
 <a href="https://kotlinlang.org/docs/reference/control-flow.html#when-expression">when expression</a> documentation
 for more details. Note, <code>when</code> expression is more functional than <code>switch</code> in Java.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">fun</span> <span class="nf">action</span><span class="o">(</span><span class="nl">bar:</span> <span class="n">Bar</span><span class="o">)</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">fun</span> <span class="nf">action</span><span class="o">(</span><span class="n">bar</span><span class="o">:</span> <span class="n">Bar</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">var</span> <span class="n">f</span> <span class="o">:</span> <span class="n">Foo</span>
   <span class="nf">when</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span> <span class="o">-&gt;</span>
@@ -268,7 +246,7 @@ for more details. Note, <code>when</code> expression is more functional than <co
     <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span> <span class="o">-&gt;</span>
       <span class="n">f</span> <span class="o">=</span> <span class="n">value444</span><span class="o">()</span>
     <span class="k">else</span> <span class="o">-&gt;</span>
-      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">()</span>
+      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">()</span>
   <span class="o">}</span>
 
   <span class="n">doSomeMightyWork</span><span class="o">(</span><span class="n">f</span><span class="o">)</span>
@@ -288,7 +266,7 @@ Compilation fails if a missing branch is detected.</p>
 
 <p>Overall I turn the example into this:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">void</span> <span class="n">action</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span> <span class="n">Bar</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">void</span> <span class="n">action</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span> <span class="n">Bar</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">f</span> <span class="p">=</span> <span class="k">when</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">Bar</span><span class="p">.</span><span class="n">VALUE</span> <span class="p">-&gt;</span> <span class="n">value42</span><span class="p">();</span>
     <span class="n">Bar</span><span class="p">.</span><span class="n">ELSE</span> <span class="p">-&gt;</span> <span class="n">value444</span><span class="p">();</span>
@@ -304,7 +282,7 @@ Compilation fails if a missing branch is detected.</p>
 <p>Let’s look into bytecode for the <code>when</code> statement call. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin
 1.0.6 plugin. The generated bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  // access flags 0x19
   public final static action(LBar;)V
     @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
    L0
@@ -462,6 +440,29 @@ in switches. We discussed the benefit of using <code>when</code> as expression</
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

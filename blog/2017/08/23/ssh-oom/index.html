@@ -88,11 +88,6 @@
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -110,23 +105,6 @@
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -330,7 +308,7 @@ I created an issue for the Apache Mina SSHD project to let anyone know there is 
 <p>I did a trivial patch on for the server. I decided to limit write queue for channel messages
 to block the sender even in the case send window is unlimited. I simply use a semaphore for it:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
   <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDERR_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
 
   <span class="k">override</span> <span class="k">fun</span> <span class="nf">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">):</span> <span class="n">IoWriteFuture</span> <span class="p">{</span>
@@ -358,7 +336,7 @@ I like Apache Mina SSHD library is designed in an extensible way making such wor
 
 <p>And the <code>PressureLock</code> was implemented this way:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">PressureLock</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">PressureLock</span> <span class="p">{</span>
   <span class="k">private</span> <span class="k">val</span> <span class="py">semaphore</span> <span class="p">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
 
   <span class="k">private</span> <span class="k">val</span> <span class="py">listener</span> <span class="p">=</span> <span class="k">object</span> <span class="err">: </span><span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
@@ -391,7 +369,7 @@ Putty 0.67 was using 16K for it.</p>
 <p>And I found the change <a href="https://git.tartarus.org/?p=simon/putty.git;a=commit;h=b22c0b6f3e6f5254270a89f86df3edfc4da829d2">b22c0b6f3e6f5254270a89f86df3edfc4da829d2</a>
 and the <a href="https://git.tartarus.org/?p=simon/putty.git;a=blobdiff;f=windows/winplink.c;h=99e269fdc106687e7edff5c51fb778ee22d545b7;hp=a0458b39a878b0ad8af99d9a7294e2129b3bf787;hb=b22c0b6f3e6f5254270a89f86df3edfc4da829d2;hpb=34add87ad249205d4ed36381bfb506a431dc0e7a">winplink.c file</a></p>
 
-<figure class="highlight"><pre><code class="language-diff" data-lang="diff"><span class="gd">--- a/windows/winplink.c</span>
+<figure class="highlight"><pre><code class="language-diff" data-lang="diff"><span></span><span class="gd">--- a/windows/winplink.c</span>
 <span class="gi">+++ b/windows/winplink.c</span>
 <span class="gu">@@ -618,6 +618,17 @@ int main(int argc, char **argv)</span>
         return 1;
@@ -414,12 +392,12 @@ did enable 2GB receive window, as you may see from the usages.</p>
 
 <p>In <code>ssh.c</code> in <a href="https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz">Putty 0.70</a> we have defines:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#define OUR_V2_BIGWIN 0x7fffffff</span>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#define OUR_V2_BIGWIN 0x7fffffff</span>
 <span class="cp">#define OUR_V2_WINSIZE 16384</span></code></pre></figure>
 
 <p>And the code-block:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">static</span> <span class="kt">int</span> <span class="nf">ssh_is_simple</span><span class="p">(</span><span class="n">Ssh</span> <span class="n">ssh</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">ssh_is_simple</span><span class="p">(</span><span class="n">Ssh</span> <span class="n">ssh</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="cm">/*</span>
 <span class="cm">     * We use the &#39;simple&#39; variant of the SSH protocol if we&#39;re asked</span>
@@ -454,7 +432,7 @@ did enable 2GB receive window, as you may see from the usages.</p>
 
 <p>The windows size is computed by the following expression:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp">	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span>	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
 	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="nl">OUR_V2_BIGWIN</span> <span class="p">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span></code></pre></figure>
 
 <p>The windows sizes are exactly the same as I saw in debugger both for
@@ -571,6 +549,29 @@ work again with new SSH clients. That was fun!</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

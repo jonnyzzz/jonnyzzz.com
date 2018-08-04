@@ -80,11 +80,6 @@
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -102,23 +97,6 @@
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -198,7 +176,7 @@
 <p>A topic of ownership is better covered in <a href="https://www.rust-lang.org">Rust Language</a>. Still, such problems
 are not solved well enough in the JVM world. Let’s consider a trivial shared state access example</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">private</span> <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
   <span class="k">private</span> <span class="k">var</span> <span class="py">value</span> <span class="p">=</span> <span class="m">42</span>
   
   <span class="k">fun</span> <span class="nf">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
@@ -234,7 +212,7 @@ Such overhead is small, but one may not like it.</p>
 
 <p>An example call code would look like</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="kd">class</span> <span class="nc">State</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>  <span class="kd">class</span> <span class="nc">State</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
   <span class="kt">void</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="n">Consumer</span><span class="o">&lt;</span><span class="n">State</span><span class="o">&gt;</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
 
 
@@ -248,16 +226,16 @@ Such overhead is small, but one may not like it.</p>
 
 <p>Consider the following implementation in Kotlin</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">class</span> <span class="nc">GuardedByLock</span><span class="o">&lt;</span><span class="n">out</span> <span class="nl">L:</span> <span class="n">Lock</span><span class="o">,</span> <span class="n">out</span> <span class="n">T</span><span class="o">&gt;(</span>
-        <span class="n">val</span> <span class="nl">lock:</span> <span class="n">L</span><span class="o">,</span>
-        <span class="n">val</span> <span class="nl">state:</span> <span class="n">T</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kd">class</span> <span class="nc">GuardedByLock</span><span class="o">&lt;</span><span class="n">out</span> <span class="n">L</span><span class="o">:</span> <span class="n">Lock</span><span class="o">,</span> <span class="n">out</span> <span class="n">T</span><span class="o">&gt;(</span>
+        <span class="n">val</span> <span class="n">lock</span><span class="o">:</span> <span class="n">L</span><span class="o">,</span>
+        <span class="n">val</span> <span class="n">state</span><span class="o">:</span> <span class="n">T</span>
 <span class="o">)</span> <span class="o">{</span>
-  <span class="n">inline</span> <span class="n">fun</span> <span class="o">&lt;</span><span class="n">Y</span><span class="o">&gt;</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="nl">action:</span> <span class="n">T</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Y</span><span class="o">)</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="na">withLock</span> <span class="o">{</span> <span class="n">state</span><span class="o">.</span><span class="na">action</span><span class="o">()</span> <span class="o">}</span>
+  <span class="n">inline</span> <span class="n">fun</span> <span class="o">&lt;</span><span class="n">Y</span><span class="o">&gt;</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="n">action</span><span class="o">:</span> <span class="n">T</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Y</span><span class="o">)</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="na">withLock</span> <span class="o">{</span> <span class="n">state</span><span class="o">.</span><span class="na">action</span><span class="o">()</span> <span class="o">}</span>
 <span class="o">}</span></code></pre></figure>
 
 <p>The usage is as follows:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java">   <span class="kd">class</span> <span class="nf">State</span><span class="o">(</span><span class="n">var</span> <span class="nl">value:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">42</span><span class="o">)</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>   <span class="kd">class</span> <span class="nf">State</span><span class="o">(</span><span class="n">var</span> <span class="n">value</span><span class="o">:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">42</span><span class="o">)</span>
    <span class="n">val</span> <span class="n">lock</span> <span class="o">=</span> <span class="n">GuardedByLock</span><span class="o">(</span><span class="n">ReentrantLock</span><span class="o">(),</span> <span class="n">State</span><span class="o">())</span>
    
    <span class="n">fun</span> <span class="nf">main</span><span class="o">()</span> <span class="o">{</span>
@@ -282,7 +260,7 @@ locks are held.</p>
 <p>Finally, the bytecode for the <code>main</code> function is the following. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 
 1.0.6 plugin. The generated bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  // access flags 0x19
   public final static main()V
     TRYCATCHBLOCK L0 L1 L2 null
     TRYCATCHBLOCK L2 L3 L2 null
@@ -455,6 +433,29 @@ The only cost is 2 additional object instances: one for <code>GuardedByLock</cod
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

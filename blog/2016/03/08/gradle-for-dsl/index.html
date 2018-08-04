@@ -88,11 +88,6 @@ a continuous integration build easily.
 <!-- Modernizr -->
 <script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
 
-
-<!-- MathJax -->
-<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -110,23 +105,6 @@ a continuous integration build easily.
 <meta name="msapplication-TileColor" content="#ffffff" />
 <meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
 <meta name="theme-color" content="#ffffff" />
-
-
-<script type="text/javascript">
-    window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-
-<script src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
-
 
 </head>
 
@@ -246,7 +224,7 @@ All we need to know about TeamCity2DSL here are</p>
 
 <p>This is <code>build.gradle</code> script that is only required to have both TeamCity2DSL tasks (<code>dsl2xml</code> and <code>xml2dsl</code>) supported</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">repositories</span> <span class="o">{</span>
     <span class="n">jcenter</span><span class="o">()</span>
     <span class="n">mavenCentral</span><span class="o">()</span>
@@ -281,7 +259,7 @@ The Gradle plugin is implemented with Kotlin as well.</p>
 is selected from plugin dependency. This allows to avoid
 explicit configuration for Kotlin.</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">apply</span> <span class="o">{</span> <span class="n">config</span> <span class="o">-&gt;</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">project</span><span class="o">.</span><span class="na">apply</span> <span class="o">{</span> <span class="n">config</span> <span class="o">-&gt;</span>
   <span class="n">config</span><span class="o">.</span><span class="na">plugin</span><span class="o">(</span><span class="s2">&quot;java&quot;</span><span class="o">)</span>
   <span class="n">config</span><span class="o">.</span><span class="na">plugin</span><span class="o">(</span><span class="s2">&quot;kotlin&quot;</span><span class="o">)</span>
 <span class="o">}</span></code></pre></figure>
@@ -289,17 +267,17 @@ explicit configuration for Kotlin.</p>
 <p>The plugin includes DSL dependencies to itself into <code>compile</code> configuration. Those jars are predefined and 
 we make Gradle download them from Maven repository.</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">val</span> <span class="n">dsl2xml</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s2">&quot;dsl2xml&quot;</span><span class="o">,</span> <span class="nl">Dsl2Xml:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">)</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">val</span> <span class="n">dsl2xml</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s2">&quot;dsl2xml&quot;</span><span class="o">,</span> <span class="nl">Dsl2Xml:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">)</span>
 <span class="n">dsl2xml</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">&quot;classes&quot;</span><span class="o">))</span></code></pre></figure>
 
 <p>Next, we include all <code>buildScript</code> block repositories into code repositories. This helps to avoid 
 duplicates in repositories declaration.</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">buildscript</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">forEach</span> <span class="o">{</span> <span class="n">project</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">it</span><span class="o">)</span> <span class="o">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">project</span><span class="o">.</span><span class="na">buildscript</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">forEach</span> <span class="o">{</span> <span class="n">project</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">it</span><span class="o">)</span> <span class="o">}</span></code></pre></figure>
 
 <p>To add extra source directory we use the following code (that depends on Gradle’s Java plugin)</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">println</span><span class="o">(</span><span class="s2">&quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&quot;</span><span class="o">)</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">println</span><span class="o">(</span><span class="s2">&quot;Adding DSL path to Kotlin source set: ${settings.dslPath}&quot;</span><span class="o">)</span>
 <span class="n">val</span> <span class="n">sourceSets</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">convention</span><span class="o">.</span><span class="na">getPlugin</span><span class="o">(</span><span class="nl">JavaPluginConvention:</span><span class="o">:</span><span class="n">class</span><span class="o">.</span><span class="na">java</span><span class="o">).</span><span class="na">sourceSets</span>
 
 <span class="n">println</span><span class="o">(</span><span class="s2">&quot;Source sets: ${sourceSets.names}&quot;</span><span class="o">)</span>
@@ -417,6 +395,29 @@ leading to easy-to-use and easy-to-adopt solution.</p>
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 
