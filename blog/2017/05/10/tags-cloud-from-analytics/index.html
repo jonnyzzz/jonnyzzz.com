@@ -212,7 +212,7 @@ you may simply say <code>brew install jq</code> to have it.</p>
 
 <p>The finally, to prepare the data, I use to following snipped</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"> 
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span> 
 curl -s http://gh-prod-blue-backend-01/~api/manage/metrics | \
   jq --raw-output \
   &#39;[ .block[] |  { key: .id, value : .counters.&quot;outbound-traffic&quot;  } ] | del (.[] | select(.value == null ) ) | from_entries &#39;  
@@ -220,7 +220,7 @@ curl -s http://gh-prod-blue-backend-01/~api/manage/metrics | \
 
 <p>The output from the tool was like the following</p>
 
-<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="p">{</span>
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span></span><span class="p">{</span>
   <span class="s2">&quot;entity-name-1&quot;</span><span class="o">:</span> <span class="mi">39090</span><span class="p">,</span>
   <span class="s2">&quot;entity-name-2&quot;</span><span class="o">:</span> <span class="mi">5533</span><span class="p">,</span>
   <span class="s2">&quot;entity-name-3&quot;</span><span class="o">:</span> <span class="mi">13750</span><span class="p">,</span>
@@ -240,41 +240,41 @@ to my need in <a href="https://www.jetbrains.com/pycharm/">PyCharm</a>.</p>
 
 <p>That is the snipped I finally did</p>
 
-<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">json</span>
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span></span><span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">wordcloud</span> <span class="kn">import</span> <span class="n">WordCloud</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
 
-<span class="n">theData</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s">&quot; { &#39;json&#39; : &#39;data is here&#39; } &quot;</span><span class="p">)</span>
+<span class="n">theData</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s2">&quot; { &#39;json&#39; : &#39;data is here&#39; } &quot;</span><span class="p">)</span>
 
 <span class="k">print</span> <span class="n">theData</span>
 
 <span class="n">theDataMax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">theData</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 <span class="n">theDataMin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">theData</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-<span class="c">##</span>
-<span class="c">## normalize the data first</span>
-<span class="c">##</span>
+<span class="c1">##</span>
+<span class="c1">## normalize the data first</span>
+<span class="c1">##</span>
 <span class="n">theData</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">e</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">theDataMax</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="p">)</span> 
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">theData</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> 
           <span class="p">}</span>
 
 <span class="k">print</span> <span class="n">theData</span>
 
-<span class="c"># Generate a word cloud image</span>
-<span class="n">wordcloud</span> <span class="o">=</span> <span class="n">WordCloud</span><span class="p">(</span><span class="n">background_color</span><span class="o">=</span><span class="s">&quot;white&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="c1"># Generate a word cloud image</span>
+<span class="n">wordcloud</span> <span class="o">=</span> <span class="n">WordCloud</span><span class="p">(</span><span class="n">background_color</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                  <span class="n">ranks_only</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefer_horizontal</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                  <span class="n">color_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_words</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">min_font_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                  <span class="n">stopwords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                 <span class="n">max_font_size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&quot;RGB&quot;</span><span class="p">,</span>
+                 <span class="n">max_font_size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span>
                  <span class="n">relative_scaling</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">collocations</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                  <span class="n">colormap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">normalize_plurals</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>\
     <span class="o">.</span><span class="n">generate_from_frequencies</span><span class="p">(</span><span class="n">theData</span><span class="p">)</span>
 
-<span class="c"># Display the generated image:</span>
+<span class="c1"># Display the generated image:</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wordcloud</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s">&quot;bilinear&quot;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">&quot;off&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wordcloud</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;bilinear&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></code></pre></figure>
 
 <h1 id="conclusion">Conclusion</h1>

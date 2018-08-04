@@ -221,7 +221,7 @@ You shall have C/C++ toolchain installed too. On macOS, it is enough to install 
 
 <p>The <code>lib.h</code> file looks as follows</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#ifndef LIB2_H_INCLUDED</span>
 <span class="cp">#define LIB2_H_INCLUDED</span>
 
 <span class="cp">#ifdef __cplusplus</span>
@@ -239,7 +239,7 @@ You shall have C/C++ toolchain installed too. On macOS, it is enough to install 
 for <a href="https://stackoverflow.com/questions/1041866/what-is-the-effect-of-extern-c-in-c">C++ compatibility</a>.
 Thus you may shrink the file to <code>lib.h</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#ifndef LIB2_H_INCLUDED</span>
 <span class="cp">#define LIB2_H_INCLUDED</span>
 
 <span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
@@ -254,7 +254,7 @@ with Kotlin/Native <code>cinterop</code> tool import the function into Kotlin/Na
 
 <p>Let’s create a <code>lib.c</code> for implementation for the <code>foo</code> function in C:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &quot;lib.h&quot;</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#include</span> <span class="cpf">&quot;lib.h&quot;</span><span class="cp"></span>
 
 <span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">return</span> <span class="mi">42</span><span class="p">;</span>
@@ -263,7 +263,7 @@ with Kotlin/Native <code>cinterop</code> tool import the function into Kotlin/Na
 <p>Now we compile the C sources into a C library. For that we call <code>gcc</code> to compile (and link)
 the <code>.c</code> sources into a C static library:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc -c <span class="s2">&quot;-I$(pwd)&quot;</span> lib.c -o lib.o
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>gcc -c <span class="s2">&quot;-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span> lib.c -o lib.o
 ar rcs lib.a lib.o</code></pre></figure>
 
 <p>It will be a bit more complicated if you have several <code>.c</code> source files.</p>
@@ -283,13 +283,13 @@ calling a <code>cinterop</code> tool.</p>
 
 <p>The <code>cinterop</code> tool uses the definition file for my library <code>lib.def</code>:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">header = lib.h</code></pre></figure>
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>header = lib.h</code></pre></figure>
 
 <p>The file helps to specify all necessary options for bigger libraries.</p>
 
 <p>Not it is the time to call the <code>cinterop</code> with the following options:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">cinterop -def lib.def -compilerOpts <span class="s2">&quot;-I$(pwd)&quot;</span> -o lib.klib</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>cinterop -def lib.def -compilerOpts <span class="s2">&quot;-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span> -o lib.klib</code></pre></figure>
 
 <p>The result is a <code>lib.klib</code> file. A Kotlin/Native library file. It contains Kotlin APIs for 
 our <code>lib.h</code>. It bridges C types and Kotlin/Native types (trivial <code>Int</code> in our case) and helps
@@ -309,14 +309,14 @@ to deal with memory management (not needed for our example).</p>
 
 <p>We need an entry point and Kotlin sources. I created the <code>main.kt</code> file for that</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">z</span> <span class="p">=</span> <span class="n">lib</span><span class="p">.</span><span class="n">foo</span><span class="p">()</span>
   <span class="n">println</span><span class="p">(</span><span class="s">&quot;The foo() from lib.h returned $z&quot;</span><span class="p">)</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>And I compile it with the following command</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">konanc -l lib.klib main.kt -linkerOpts lib.a -o main.kexe</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>konanc -l lib.klib main.kt -linkerOpts lib.a -o main.kexe</code></pre></figure>
 
 <p>and run the <code>./main.kexe</code> to see the resulting text is being printed:</p>
 

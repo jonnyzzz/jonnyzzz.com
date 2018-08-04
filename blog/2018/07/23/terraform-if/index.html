@@ -228,7 +228,7 @@ for non-empty path, or to use the base <code>root_resource_id</code> instead, fo
 
 <p>In a pseudo-code the problem looks as follows:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">if</span> <span class="p">(</span><span class="n">root_path</span> <span class="p">==</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">root_path</span> <span class="p">==</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">root_resource_id</span>
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> 
     <span class="p">(</span><span class="n">resource</span> <span class="s">&quot;aws_api_gateway_resource&quot;</span><span class="p">).</span><span class="n">id</span>
@@ -247,7 +247,7 @@ aka <code>condition ? foo : bar</code>, which helps me to extract the right reso
 <p>The overall condition for a resource did not look trivial. I decided to extract it as a dedicated module
 from the very beginning. That is what I created:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">variable &quot;api_gateway_id&quot; {}
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>variable &quot;api_gateway_id&quot; {}
 variable &quot;parent_resource_id&quot; {}
 
 variable &quot;path_part&quot; {
@@ -282,7 +282,7 @@ either the created ID or the <code>parent_resource_id</code> parameter.</p>
 <p>You may want to ask, why is it so complicated, me too. I started with the more 
 trivial variant of the second condition:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">output &quot;handler_id&quot; {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>output &quot;handler_id&quot; {
   value = &quot;${
     var.path_part == &quot;&quot;
     ? var.parent_resource_id
@@ -305,7 +305,7 @@ making a list contain at least one element, even if the <code>count</code> was e
 Instead of the conditional operator, 
 now I join two lists and pick the first element:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">output &quot;handler_id&quot; {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>output &quot;handler_id&quot; {
   value = &quot;${
     element(concat(aws_api_gateway_resource.handler.*.id, list(root_resource_id)), 0) 
   }&quot;

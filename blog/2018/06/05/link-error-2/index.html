@@ -210,8 +210,8 @@ or with a plain C.</p>
 
 <p>The <code>main.c</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include &quot;lib.h&quot;</span>
-<span class="cp">#include &lt;stdio.h&gt;</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#include</span> <span class="cpf">&quot;lib.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">arg</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">z</span>  <span class="o">=</span> <span class="n">foo</span><span class="p">();</span>
@@ -221,8 +221,8 @@ or with a plain C.</p>
 <p>I call the following to compile and link <code>main.c</code> with my <code>lib.a</code> 
 <a href="/blog/2018/05/28/minimalistic-kn/">library</a>:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc -c  main.c -o main.o
-ld -macosx_version_min 10.10  -lc  main.o lib.a</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>gcc -c  main.c -o main.o
+ld -macosx_version_min <span class="m">10</span>.10  -lc  main.o lib.a</code></pre></figure>
 
 <p>I do the on macOS 10.13.3 with Xcode 9.3.1 and macOS 10.13.5, Xcode 9.4.</p>
 
@@ -233,7 +233,7 @@ ld -macosx_version_min 10.10  -lc  main.o lib.a</code></pre></figure>
 and finally, I was able to reproduce the linkage error with 
 only the following code in <code>lib.c</code> targeting macOS <code>10.10</code>, but not macOS <code>10.13</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
   <span class="c1">/// that is a CLang extension</span>
   <span class="k">if</span><span class="p">(</span><span class="n">__builtin_available</span><span class="p">(</span><span class="n">macOS</span> <span class="mf">10.12</span><span class="p">,</span> <span class="n">iOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">2.0</span><span class="p">,</span> <span class="o">*</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">return</span> <span class="mi">256</span><span class="p">;</span>
@@ -244,7 +244,7 @@ only the following code in <code>lib.c</code> targeting macOS <code>10.10</code>
 
 <p>And the linker error:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">Undefined symbols for architecture x86_64:
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Undefined symbols for architecture x86_64:
   &quot;___isOSVersionAtLeast&quot;, referenced from:
       _foo in lib.a(lib.o)</code></pre></figure>
 

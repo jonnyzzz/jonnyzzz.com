@@ -239,7 +239,7 @@ evaluation of <code>log4j</code> function yield a logger configuration
 <p>Say we have the following code to setup
 <a href="/blog/2016/09/09/log4j-dsl/">loggers</a>.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">+</span> <span class="n">WARN</span>
@@ -250,7 +250,7 @@ evaluation of <code>log4j</code> function yield a logger configuration
 same way. Thanks to Kotlin language features, one is allowed to use a 
 loop, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listOf</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="s">&quot;B&quot;</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">).</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -269,7 +269,7 @@ to generate all definitions.</p>
 
 <p>The following part is now a template:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">+</span> <span class="n">WARN</span>
     <span class="p">}</span>
@@ -278,7 +278,7 @@ to generate all definitions.</p>
 <p>One may go further and decide to extract the collection of categoring into 
 a function. So we turn the logger configuration code into the following</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -300,7 +300,7 @@ during a build phase. On that phase all templates are getting substituted.</p>
 
 <p>A next step is to extract the actual category setup code (a template)</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">declareCategory</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>

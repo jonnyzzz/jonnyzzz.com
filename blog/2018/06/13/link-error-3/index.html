@@ -214,12 +214,12 @@ is I got a suggestion to try.</p>
 
 <p>The suggestion I got (and I say thank you for that) was to use <code>clang</code> command, not the <code>ld</code> one:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash">clang -mmacosx-version-min<span class="o">=</span>10.10 -lc main.o lib.a</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>clang -mmacosx-version-min<span class="o">=</span><span class="m">10</span>.10 -lc main.o lib.a</code></pre></figure>
 
 <p>It did work. It was able to link. Next, we may try <code>-v</code> switch to see how it works inside, 
 with arguments split per lines and long paths simplified:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">&gt; clang -mmacosx-version-min=10.10 -lc main.o lib.a -v
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>&gt; clang -mmacosx-version-min=10.10 -lc main.o lib.a -v
 
 Apple LLVM version 9.1.0 (clang-902.0.39.2)
 Target: x86_64-apple-darwin17.6.0
@@ -271,7 +271,7 @@ the <code>-linkerOpts &lt;path&gt;/libclang_rt.osx.a</code>. It make the code co
 from the linking phase (use <code>konanc --list_phases</code> to learn all phases). The output on my machine is as follows, 
 with arguments split per lines and long paths simplified:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">&gt; konanc -l lib.klib main.kt -linkerOpts  lib.a  -linkerOpts $L -o main.kexe --verbose linker
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>&gt; konanc -l lib.klib main.kt -linkerOpts  lib.a  -linkerOpts $L -o main.kexe --verbose linker
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld \
     -demangle

@@ -228,14 +228,14 @@ and use. For us it’s vital that is has a static typed
 
 <p>A configuration of a Log4j loggers looks like this:</p>
 
-<figure class="highlight"><pre><code class="language-properties" data-lang="properties"> 
- <span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
- <span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO</span>
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span></span> 
+<span class="na"> log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
+<span class="na"> log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO</span>
  <span class="c"># meaningful comment goes here</span>
- <span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
- <span class="na">log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
- <span class="na">log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
- <span class="na">log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n</span></code></pre></figure>
+<span class="na"> log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
+<span class="na"> log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
+<span class="na"> log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
+<span class="na"> log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n</span></code></pre></figure>
 
 <h1 id="a-transformation">A Transformation</h1>
 
@@ -281,13 +281,13 @@ As a starting point we need an entry function <code>log4j</code>, a builder inte
 two methods <code>comment</code> and <code>param</code>. <code>Log4JBase</code> is added here for compatibility with future
 code samples.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
-<span class="n">interface</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
+<span class="k">interface</span> <span class="nc">Log4JBase</span> <span class="p">{</span>
   <span class="k">fun</span> <span class="nf">comment</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
   <span class="k">fun</span> <span class="nf">param</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="n">interface</span> <span class="n">Log4J</span><span class="p">:</span> <span class="n">Log4JBase</span>
+<span class="k">interface</span> <span class="nc">Log4J</span><span class="p">:</span> <span class="n">Log4JBase</span>
 
 <span class="k">fun</span> <span class="nf">log4j</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">Log4J</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> </code></pre></figure>
 
@@ -296,7 +296,7 @@ of the code above.</p>
 
 <p>This allows us to \(generate\) the following Kotlin code for a Logger configurations</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="n">log4j</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.rootLogger&quot;</span><span class="p">,</span> <span class="s">&quot;ERROR,stdout&quot;</span><span class="p">)</span>
   <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.logger.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;INFO&quot;</span><span class="p">)</span>
   <span class="n">comment</span><span class="p">(</span><span class="s">&quot;meaningful comment goes here&quot;</span><span class="p">)</span>
@@ -326,13 +326,13 @@ Finally, one may misprint the name of it.
 Let’s replace it with an explicit call. For an 
 <a href="https://kotlinlang.org/docs/reference/extensions.html">extension property</a> in Kotlin is used</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">var</span> <span class="py">Log4J</span><span class="p">.</span><span class="n">rootLogger</span> <span class="p">:</span> <span class="n">String</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">var</span> <span class="py">Log4J</span><span class="p">.</span><span class="n">rootLogger</span> <span class="p">:</span> <span class="n">String</span>
   <span class="k">set</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="p">=</span> <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.rootLogger&quot;</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
   <span class="k">get</span><span class="p">()</span> <span class="p">=</span> <span class="k">throw</span> <span class="n">Error</span><span class="p">(</span><span class="s">&quot;Read API is not implemented&quot;</span><span class="p">)</span></code></pre></figure>
 
 <p>Now the improved part is</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">log4j</span> <span class="p">{</span>
   <span class="n">rootLogger</span> <span class="p">=</span> <span class="s">&quot;stdout&quot;</span>
 
   <span class="c1">//instead of</span>
@@ -343,7 +343,7 @@ Let’s replace it with an explicit call. For an
 
 <p>Let’s take a look on the code</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span>
   <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span>
   <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.appender.stdout.layout.ConversionPattern&quot;</span><span class="p">,</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span><span class="p">)</span></code></pre></figure>
 
@@ -353,17 +353,17 @@ Let’s avoid constant repeating strings and make those lines more expressive. F
 the following <a href="https://kotlinlang.org/docs/reference/extensions.html">extension methods</a> in the 
 \(DSL Library\).</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">Log4J</span><span class="p">.</span><span class="n">appender</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="k">type</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JAppender</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">Log4J</span><span class="p">.</span><span class="n">appender</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">type</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JAppender</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
            
-<span class="n">interface</span> <span class="n">Log4JAppender</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="nf">layout</span><span class="p">(</span><span class="k">type</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLayout</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+<span class="k">interface</span> <span class="nc">Log4JAppender</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">layout</span><span class="p">(</span><span class="n">type</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLayout</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="n">interface</span> <span class="n">Log4JLayout</span> <span class="p">:</span> <span class="n">Log4JBase</span> </code></pre></figure>
+<span class="k">interface</span> <span class="nc">Log4JLayout</span> <span class="p">:</span> <span class="n">Log4JBase</span> </code></pre></figure>
 
 <p>And this allows us to tune the \(generator\) to have the following Kotlin code</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="c1">//use this</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="c1">//use this</span>
 <span class="n">appender</span><span class="p">(</span><span class="s">&quot;stdout&quot;</span><span class="p">,</span> <span class="s">&quot;org.apache.log4j.ConsoleAppender&quot;</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">layout</span><span class="p">(</span><span class="s">&quot;org.apache.log4j.PatternLayout&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">param</span><span class="p">(</span><span class="s">&quot;ConversionPattern&quot;</span><span class="p">,</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span><span class="p">)</span>
@@ -380,14 +380,14 @@ the following <a href="https://kotlinlang.org/docs/reference/extensions.html">ex
 
 <p>Let’s simplify the rest of Log4j configuration code. Consider the following code</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">rootLogger</span> <span class="p">=</span> <span class="s">&quot;ERROR,stdout&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">rootLogger</span> <span class="p">=</span> <span class="s">&quot;ERROR,stdout&quot;</span>
 <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.logger.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;INFO&quot;</span><span class="p">)</span>
 <span class="n">param</span><span class="p">(</span><span class="s">&quot;log4j.additivity.corp.mega&quot;</span><span class="p">,</span> <span class="s">&quot;false&quot;</span><span class="p">)</span></code></pre></figure>
 
 <p>Here we refer to a logger called <code>stdout</code> by typing it’s name as a string. There are several keys used to encode
 the logger. Let’s normalize values and improve readability by spliting appender binging and level.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">interface</span> <span class="n">Log4JLogger</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">interface</span> <span class="nc">Log4JLogger</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
   <span class="k">var</span> <span class="py">additivity</span> <span class="p">:</span> <span class="n">Boolean</span><span class="p">?</span>
   <span class="k">var</span> <span class="py">level</span> <span class="p">:</span> <span class="n">Log4JLevel</span><span class="p">?</span>
   <span class="k">var</span> <span class="py">appenders</span> <span class="p">:</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span>
@@ -399,7 +399,7 @@ the logger. Let’s normalize values and improve readability by spliting appende
 
 <p>Now the generated code would look like that</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">rootLogger</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">rootLogger</span> <span class="p">{</span>
   <span class="n">level</span> <span class="p">=</span> <span class="n">ERROR</span>
   <span class="n">appenders</span> <span class="p">+=</span> <span class="s">&quot;stdout&quot;</span>
 <span class="p">}</span>
@@ -451,7 +451,7 @@ rename appender by changing this field.</p>
 
 <p>This is a DSL for Log4j configurations usage example</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">log4j</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
       <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>

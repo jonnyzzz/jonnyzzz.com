@@ -224,25 +224,25 @@ a failure from success. That is necessary to be able to run every test and only 
 
 <p>Finally, I created the following test runner:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span><span class="ch">#!/bin/bash</span>
 <span class="nb">set</span> -e -x -u
-<span class="nb">cd</span> <span class="s2">&quot;$( cd &quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;${BASH_SOURCE[0]}&quot;</span> <span class="k">)</span><span class="s2">&quot; &amp;&amp; pwd )&quot;</span>
+<span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">)</span><span class="s2">&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">&quot;</span>
 
 <span class="nb">echo</span> <span class="s2">&quot;Running integration tests...&quot;</span>
-<span class="nv">FAILED</span><span class="o">=</span>0
-<span class="nv">TC</span><span class="o">=</span><span class="c">##teamcity</span>
-<span class="nb">echo</span> <span class="s2">&quot; ${TC}[testSuiteStarted name=&#39;integration-tests&#39;] &quot;</span>
+<span class="nv">FAILED</span><span class="o">=</span><span class="m">0</span>
+<span class="nv">TC</span><span class="o">=</span><span class="c1">##teamcity</span>
+<span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testSuiteStarted name=&#39;integration-tests&#39;] &quot;</span>
 
 <span class="k">for</span> TEST in tests/* <span class="p">;</span> <span class="k">do</span>
   <span class="nv">TEST_NAME</span><span class="o">=</span><span class="k">$(</span>basename <span class="nv">$TEST</span><span class="k">)</span>
-  <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testStarted name=&#39;$TEST_NAME&#39; captureStandardOutput=&#39;true&#39;] &quot;</span>
+  <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testStarted name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39; captureStandardOutput=&#39;true&#39;] &quot;</span>
   ./<span class="nv">$TEST</span> <span class="o">||</span> <span class="o">{</span>
-    <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testFailed name=&#39;$TEST_NAME&#39;] &quot;</span>
+    <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testFailed name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39;] &quot;</span>
   <span class="o">}</span>
-  <span class="nb">echo</span> <span class="s2">&quot; ${TC}[testFinished name=&#39;$TEST_NAME&#39;] &quot;</span>
+  <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testFinished name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39;] &quot;</span>
 <span class="k">done</span>
 
-<span class="nb">echo</span> <span class="s2">&quot; ${TC}[testSuiteFinished name=&#39;integration-tests&#39;] &quot;</span></code></pre></figure>
+<span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testSuiteFinished name=&#39;integration-tests&#39;] &quot;</span></code></pre></figure>
 
 <p>By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to <code>go test</code> in the future. 
 The best feature of the test above is it supported by <a href="https://jetbrains.com/teamcity">TeamCity</a>.</p>

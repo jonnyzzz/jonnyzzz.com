@@ -303,7 +303,7 @@ Once variables are used, rename feature is implemented for free.</p>
 
 <p>Let’s consider <a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration in <code>.properties</code> file as \(Original Language\).</p>
 
-<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span></span><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
 <span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO,stdout</span>
 <span class="c"># meaningful comment goes here</span>
 <span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
@@ -317,7 +317,7 @@ and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
 
 <p>The configuration below can be turned into the following Kotlin code.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">log4j</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
       <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>

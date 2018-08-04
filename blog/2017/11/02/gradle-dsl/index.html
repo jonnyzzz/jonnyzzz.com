@@ -208,7 +208,7 @@ constants with a Gradle-looking DSL.</p>
 
 <p>Namely, instead of (and many Gradle plugin integration tests have similar)</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span><span class="p">(</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span><span class="p">(</span>
         <span class="s">&quot;apply plugin: &#39;java-library&#39;\n&quot;</span> <span class="p">+</span>
         <span class="s">&quot;repositories {\n&quot;</span> <span class="p">+</span>
         <span class="s">&quot;  mavenCentral()\n&quot;</span> <span class="p">+</span>
@@ -224,7 +224,7 @@ The DSL generates test-data files for me. Kotlin compiler and IDE
 helps to prevent errors before a test is executed. Code completion 
 makes a new test authoring easier. Here is the DSL usage example:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span> <span class="p">{</span>
   <span class="err">`</span><span class="n">apply</span> <span class="n">plugin</span><span class="err">`</span><span class="p">(</span><span class="s">&quot;java-library&quot;</span><span class="p">)</span>
 
   <span class="n">repositories</span> <span class="p">{</span>
@@ -269,13 +269,13 @@ It is only about 150 lines (now) of
 
 <p>I started with a line writer interface:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">interface</span> <span class="n">LineWriter</span> <span class="p">{</span>
-  <span class="n">operator</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">interface</span> <span class="nc">LineWriter</span> <span class="p">{</span>
+  <span class="k">operator</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Inside the interface, I use unary minus, e.g., <code>-"foo"</code> as the function to write a line. It reads better in DSLs, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">lineWriter</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">lineWriter</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span>
   <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
 <span class="p">}</span></code></pre></figure>
 
@@ -290,7 +290,7 @@ or ask me, if you need to clarify the trick.</p>
 
 <p>The implementation of the interface could be something trivial, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">String</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">String</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">StringBuilder</span><span class="p">()</span>
   <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
     <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
@@ -302,7 +302,7 @@ or ask me, if you need to clarify the trick.</p>
 
 <p>The usage could be:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">val</span> <span class="py">text</span> <span class="p">:</span> <span class="n">String</span> <span class="p">=</span> <span class="n">generateDSL</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">val</span> <span class="py">text</span> <span class="p">:</span> <span class="n">String</span> <span class="p">=</span> <span class="n">generateDSL</span> <span class="p">{</span>
   <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
 <span class="p">}</span></code></pre></figure>
 
@@ -315,7 +315,7 @@ of <code>LineWriter</code> inside the lambda scope.</p>
 
 <p>For short, we may compact the <code>generateDSL</code> function to the following:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">=</span> <span class="n">buildString</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">=</span> <span class="n">buildString</span> <span class="p">{</span>
   <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
     <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
        <span class="n">appendln</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
@@ -336,7 +336,7 @@ to, say, generate a string, a file or something else. The rest does not depend o
 <p>Text generation for languages like Gradle requires indenting. We have blocks, and it’s nice
 to simplify blocks generation. At first, I created an <code>offset</code> function for it:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">offset</span><span class="p">():</span> <span class="n">LineWriter</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">offset</span><span class="p">():</span> <span class="n">LineWriter</span> <span class="p">{</span>
   <span class="k">val</span> <span class="py">outer</span> <span class="p">=</span> <span class="k">this</span>
   <span class="k">return</span> <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
     <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span> <span class="p">{</span>
@@ -353,7 +353,7 @@ no need to change the original <code>LineWriter</code> interface, but it still r
 
 <p>The <code>block</code> function is as follows:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">block</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">block</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
   <span class="p">-</span><span class="s">&quot;$name {&quot;</span>
   <span class="n">offset</span><span class="p">().</span><span class="n">builder</span><span class="p">()</span>
   <span class="p">-</span><span class="s">&quot;}&quot;</span>
@@ -365,7 +365,7 @@ to simplify code of the first line.</p>
 
 <p>At that point I can write the DSL snippets like that:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span> <span class="p">{</span>
   <span class="n">block</span><span class="p">(</span><span class="s">&quot;jonnyzzz&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">-</span><span class="s">&quot;test&quot;</span>
   <span class="p">}</span>
@@ -373,7 +373,7 @@ to simplify code of the first line.</p>
 
 <p>And it yields</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">jonnyzzz {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>jonnyzzz {
   test
 }  </code></pre></figure>
 
@@ -390,7 +390,7 @@ Now it is time to implement specific parts of the DSL and allow some constructs 
 
 <p>First, we need a builder interface and implementation. It can be done as follows:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">interface RepositoriesWriter : LineWriter {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>interface RepositoriesWriter : LineWriter {
   fun mavenCentral() { -&quot;mavenCentral()&quot; }
   fun mavenLocal() { -&quot;mavenLocal()&quot; }
   fun jcenter() { -&quot;jcenter()&quot; }
@@ -412,7 +412,7 @@ So short to write and powerful!</p>
 
 <p>As the result, we can have</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">generateDSL {
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>generateDSL {
   repositories {
      mavenCentral()
      -&quot;// another line&quot;

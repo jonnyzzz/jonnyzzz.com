@@ -260,7 +260,7 @@ those classes will likely register themselves in the OS.</p>
 
 <p>The solution here is the following. We crete a classloader:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
 
 <p>This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
 to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.</p>
@@ -305,7 +305,7 @@ with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>
 
 <p>The overall trick is implemented as follows</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="cm">/*</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="cm">/*</span>
 <span class="cm"> * creates a proxy for an object obj loaded in sourceLoader hierarchy </span>
 <span class="cm"> * that is visible in destLoader as destClass interface</span>
 <span class="cm"> * assuming all methods of destClass are implemented in obj</span>
@@ -338,7 +338,7 @@ with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>
                     <span class="k">if</span> <span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
                       <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
                     <span class="o">}</span>
-                    <span class="k">return</span> <span class="nf">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
+                    <span class="k">return</span> <span class="n">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
                   <span class="o">}));</span>
   <span class="o">}</span></code></pre></figure>
 

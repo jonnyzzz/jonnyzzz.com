@@ -200,7 +200,7 @@ to issue and verify <a href="https://tools.ietf.org/html/rfc7519">JWT</a> tokens
 is <a href="https://twitter.com/jonnyzzz/status/1016575537257607168">easy to use and pretty strait-forward</a>.
 At some point, I had a Kotlin code to issue a JWT token:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">var</span> <span class="py">builder</span> <span class="p">=</span> <span class="n">JWT</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">var</span> <span class="py">builder</span> <span class="p">=</span> <span class="n">JWT</span>
        <span class="p">.</span><span class="n">create</span><span class="p">()</span>
        <span class="p">.</span><span class="n">withIssuer</span><span class="p">(</span><span class="n">ISSUER</span><span class="p">)</span>
 
@@ -230,7 +230,7 @@ things: <code>"userId"</code> is used twice:</p>
 <p>The best programs, so far, are immutable programs. Let’s make the <code>builder</code> variable immutable.
 Here is the trick I like in Kotlin. Usually, a builder function returns a builder instance, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">fun</span> <span class="nf">withSomething</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Something</span><span class="p">)</span> <span class="p">:</span> <span class="n">Builder</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">fun</span> <span class="nf">withSomething</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">Something</span><span class="p">)</span> <span class="p">:</span> <span class="n">Builder</span> <span class="p">{</span> <span class="p">...</span> <span class="p">}</span></code></pre></figure>
 
 <p>You never know, if a returned <code>Builder</code> is the same as the <code>Builder</code> you call a <code>with*()</code> 
 method on. As of <code>Builder</code> implementation, it is hard to return a new instance of a
@@ -248,7 +248,7 @@ makes it easier, no you know it.</p>
 And trivially, we may turn the <code>builder</code> variable to be immutable 
 and call <code>with*(...)</code> methods:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="p">...</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="p">...</span>
 <span class="k">if</span> <span class="p">(</span><span class="n">userId</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
   <span class="n">builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="n">userId</span><span class="p">)</span>
 <span class="p">}</span>
@@ -271,12 +271,12 @@ and the function should check and call something in the builder.</p>
 
 <p>I created the following function:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="err">&lt;</span><span class="nf">B</span> <span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Y</span> <span class="p">:</span> <span class="n">Any</span><span class="p">&gt;</span> <span class="n">B</span><span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Y</span><span class="p">?,</span> <span class="n">ƒ</span><span class="p">:</span> <span class="n">B</span><span class="p">.(</span><span class="n">Y</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">B</span><span class="p">):</span> <span class="n">B</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="err">&lt;</span><span class="nf">B</span> <span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Y</span> <span class="p">:</span> <span class="n">Any</span><span class="p">&gt;</span> <span class="n">B</span><span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="n">Y</span><span class="p">?,</span> <span class="n">ƒ</span><span class="p">:</span> <span class="n">B</span><span class="p">.(</span><span class="n">Y</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">B</span><span class="p">):</span> <span class="n">B</span>
         <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">obj</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">ƒ</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">else</span> <span class="k">this</span></code></pre></figure>
 
 <p>That one allows me to turn the whole method into:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">    <span class="k">return</span> <span class="n">JWT</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>    <span class="k">return</span> <span class="n">JWT</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>
             <span class="p">.</span><span class="n">withIssuer</span><span class="p">(</span><span class="n">ISSUER</span><span class="p">)</span>
             <span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">principal</span><span class="p">.</span><span class="n">userId</span><span class="p">)</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;userId&quot;</span><span class="p">,</span> <span class="n">it</span><span class="p">)}</span>
             <span class="p">.</span><span class="n">withX</span><span class="p">(</span><span class="n">principal</span><span class="p">.</span><span class="n">serviceId</span><span class="p">)</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="s">&quot;serviceId&quot;</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span> <span class="p">}</span>
@@ -299,7 +299,7 @@ and the function should check and call something in the builder.</p>
 and <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-property/index.html">KProperty</a>
 to grab property name at the runtime:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">Builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">KProperty0</span><span class="p">&lt;</span><span class="n">String</span><span class="p">?&gt;):</span> <span class="n">Builder</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">Builder</span><span class="p">.</span><span class="n">withClaim</span><span class="p">(</span><span class="n">p</span><span class="p">:</span> <span class="n">KProperty0</span><span class="p">&lt;</span><span class="n">String</span><span class="p">?&gt;):</span> <span class="n">Builder</span>
         <span class="p">=</span> <span class="n">p</span><span class="p">.</span><span class="n">getter</span><span class="p">()</span><span class="o">?.</span><span class="n">let</span> <span class="p">{</span> <span class="n">withClaim</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span> <span class="p">}</span> <span class="o">?:</span> <span class="k">this</span>
 
 <span class="k">return</span> <span class="n">JWT</span><span class="p">.</span><span class="n">create</span><span class="p">()</span>

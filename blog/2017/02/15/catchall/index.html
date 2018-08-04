@@ -210,7 +210,7 @@ outer login.</p>
 <p>A trivial solution is to use <code>try/catch</code>. But it makes a code quite ugly when you have several statements to call. It 
 may look like that</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="k">try</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> <span class="k">try</span> <span class="p">{</span>
    <span class="n">callAction1</span><span class="p">()</span>
  <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">t</span> <span class="p">:</span> <span class="n">ExceptionType</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">handleAction1Error</span><span class="p">()</span>
@@ -243,7 +243,7 @@ it has no overhead at all.</p>
 
 <p>This is the function I use:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">inline</span> <span class="k">fun</span> <span class="nf">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">:</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">inline</span> <span class="k">fun</span> <span class="nf">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">:</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="n">action</span><span class="p">()</span>
   <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Throwable</span><span class="p">)</span> <span class="p">{</span>
@@ -253,7 +253,7 @@ it has no overhead at all.</p>
 
 <p>So now I may rewrite the above example in a way consise fashion</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;action1&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;action1&quot;</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">callAction1</span><span class="p">()</span>
  <span class="p">}</span>
  <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;action2&quot;</span><span class="p">)</span> <span class="p">{</span>
@@ -268,7 +268,7 @@ it has no overhead at all.</p>
 inlines the action anonymous function <code>action</code> too. There is no overhead! Let’s consider the following
 example:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
   <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;println&quot;</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">println</span><span class="p">(</span><span class="s">&quot;Test console output&quot;</span><span class="p">)</span>
   <span class="p">}</span>
@@ -277,7 +277,7 @@ example:</p>
 <p>The following bytecode is generated out of it. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated
 bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">public final static main([Ljava/lang/String;)V
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>public final static main([Ljava/lang/String;)V
     @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
     TRYCATCHBLOCK L0 L1 L2 java/lang/Throwable
    L3

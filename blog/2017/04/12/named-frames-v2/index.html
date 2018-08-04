@@ -230,7 +230,7 @@ lost in an exception or in a logger message? Can we make it more context-aware a
 
 <p>Consider an application, which runs a request for a given, say, <code>userId</code>. And it crashes with code like</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:5)
 	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
 	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
@@ -256,13 +256,13 @@ library, which aims to help by including an additional information as <em>method
 <p>Let’s now update the code and include <code>userId</code> and RemoteCrashMicroService backend URL into the thread
 dump. That is done be wrapping method calls with code like that:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">NamedStackFrame</span><span class="o">.</span><span class="na">global</span><span class="o">().</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;YOUR TEXT HERE&quot;</span><span class="o">).</span><span class="na">run</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">NamedStackFrame</span><span class="o">.</span><span class="na">global</span><span class="o">().</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;YOUR TEXT HERE&quot;</span><span class="o">).</span><span class="na">run</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
     <span class="c1">// it is called from a method, which contains &#39;YOUR TEXT HERE&#39; in the full name</span>
 <span class="o">});</span></code></pre></figure>
 
 <p>The updated thread dump from the exception is now the following</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:8)
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:5)
 

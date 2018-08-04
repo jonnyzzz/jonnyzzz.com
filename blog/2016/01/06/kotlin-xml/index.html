@@ -216,7 +216,7 @@ to achieve better readability, avoid explicit type names for serialization/deser
 
 <p>Let’s consider an example. Say you have an XML:</p>
 
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span></span><span class="nt">&lt;project&gt;</span>
   <span class="nt">&lt;settings</span> <span class="na">type=</span><span class="s">&quot;q&quot;</span><span class="nt">&gt;</span>
      <span class="nt">&lt;name&gt;</span>Foo<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;/settings&gt;</span>
@@ -230,7 +230,7 @@ to achieve better readability, avoid explicit type names for serialization/deser
 <p>Thanks to the <a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a>, you may 
 parse it with the following DSL in Kotlin:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
   <span class="k">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
   <span class="k">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;name&quot;</span> <span class="p">/</span> <span class="n">XText</span>
   <span class="k">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;keys&quot;</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
@@ -269,7 +269,7 @@ are still in use to scan available object properties too on serialization/deseri
 You may find more details in <a href="https://github.com/jonnyzzz/kotlin.xml.dsl">kotlin.xml.dsl</a> on GitHub. 
 This is an example of unit test</p>
 
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml">@Test
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span></span>@Test
 public fun test_read_any_element_does_not_include_parsed() {
   class Data {
     var X by JXML / &quot;x&quot; / XUnknown
