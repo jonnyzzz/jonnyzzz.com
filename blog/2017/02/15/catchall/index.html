@@ -174,7 +174,7 @@
         <p>A tiny inline function for consise try/catch</p>
 
 <p>In JVM every call can throw an exception. In Java language, we have dedicated declaration that a method is 
-expected to throw some exception types. But still, some other (<code>Throwable</code>, <code>Error</code>, <code>RuntimeException</code>) exceptions 
+expected to throw some exception types. But still, some other (<code class="highlighter-rouge">Throwable</code>, <code class="highlighter-rouge">Error</code>, <code class="highlighter-rouge">RuntimeException</code>) exceptions 
 may still be thrown.</p>
 
 <p>In Kotlin there are no checked exceptions (like, say in C#). Sill, one have to expect
@@ -185,10 +185,10 @@ where an exception may break code logic. In asynchronous applications (for examp
 most of the code is a callback, it may turn out necessary to make sure an exception is not breaking some 
 outer login.</p>
 
-<p>A trivial solution is to use <code>try/catch</code>. But it makes a code quite ugly when you have several statements to call. It 
+<p>A trivial solution is to use <code class="highlighter-rouge">try/catch</code>. But it makes a code quite ugly when you have several statements to call. It 
 may look like that</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> <span class="k">try</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="k">try</span> <span class="p">{</span>
    <span class="n">callAction1</span><span class="p">()</span>
  <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="n">t</span> <span class="p">:</span> <span class="n">ExceptionType</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">handleAction1Error</span><span class="p">()</span>
@@ -205,69 +205,69 @@ may look like that</p>
    <span class="n">handleActionNError</span><span class="p">()</span>
  <span class="p">}</span></code></pre></figure>
 
-<p>A good think here is that <code>try/catch</code> is expression in Kotlin, but still it is quite long to use.</p>
+<p>A good think here is that <code class="highlighter-rouge">try/catch</code> is expression in Kotlin, but still it is quite long to use.</p>
 
 <p>In my application, I found that about 80% of such catches were done to 
-log actual problem and to continue forking further. Meaning <code>handleActionNError()</code> functions in my case were 
-calls to a <code>Logger</code>.</p>
+log actual problem and to continue forking further. Meaning <code class="highlighter-rouge">handleActionNError()</code> functions in my case were 
+calls to a <code class="highlighter-rouge">Logger</code>.</p>
 
 <p>There is now equivalent way in Java to replace this long construction. Of course, it is possible to pass a 
-lambda expression into a function like <code>catchAll</code>. But this would change a program and it would add extra 
+lambda expression into a function like <code class="highlighter-rouge">catchAll</code>. But this would change a program and it would add extra 
 object creation in most of the cases.</p>
 
-<p>One can implement similar <code>catchAll</code> function in Kotlin too. Thanks to 
+<p>One can implement similar <code class="highlighter-rouge">catchAll</code> function in Kotlin too. Thanks to 
 <a href="https://kotlinlang.org/docs/reference/inline-functions.html">inline functions</a>
 it has no overhead at all.</p>
 
 <p>This is the function I use:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">inline</span> <span class="k">fun</span> <span class="nf">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">:</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">inline</span> <span class="k">fun</span> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">:</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="n">action</span><span class="p">()</span>
   <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Throwable</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">LOG</span><span class="p">.</span><span class="n">warn</span><span class="p">(</span><span class="s">&quot;Failed to $message. ${t.message}&quot;</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">LOG</span><span class="p">.</span><span class="n">warn</span><span class="p">(</span><span class="s">"Failed to $message. ${t.message}"</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>So now I may rewrite the above example in a way consise fashion</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;action1&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">"action1"</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">callAction1</span><span class="p">()</span>
  <span class="p">}</span>
- <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;action2&quot;</span><span class="p">)</span> <span class="p">{</span>
+ <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">"action2"</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">callAction2</span><span class="p">()</span>
  <span class="p">}</span>
  <span class="c1">///  ....</span>
- <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;actionN&quot;</span><span class="p">)</span> <span class="p">{</span>
+ <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">"actionN"</span><span class="p">)</span> <span class="p">{</span>
    <span class="n">callActionN</span><span class="p">()</span>
  <span class="p">}</span></code></pre></figure>
 
-<p>Every usage of the function <code>catchAll</code> is inlined by Kotlin compiler in to a caller method bodies. Kotlin compiler also
-inlines the action anonymous function <code>action</code> too. There is no overhead! Let’s consider the following
+<p>Every usage of the function <code class="highlighter-rouge">catchAll</code> is inlined by Kotlin compiler in to a caller method bodies. Kotlin compiler also
+inlines the action anonymous function <code class="highlighter-rouge">action</code> too. There is no overhead! Let’s consider the following
 example:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
-  <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">&quot;println&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">println</span><span class="p">(</span><span class="s">&quot;Test console output&quot;</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+  <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">"println"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">println</span><span class="p">(</span><span class="s">"Test console output"</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>The following bytecode is generated out of it. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated
 bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>public final static main([Ljava/lang/String;)V
+<figure class="highlight"><pre><code class="language-text" data-lang="text">public final static main([Ljava/lang/String;)V
     @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
     TRYCATCHBLOCK L0 L1 L2 java/lang/Throwable
    L3
     ALOAD 0
-    LDC &quot;args&quot;
+    LDC "args"
     INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
    L4
     LINENUMBER 17 L4
     GETSTATIC LOG.INSTANCE : LLOG;
     CHECKCAST Logger
     ASTORE 1
-    LDC &quot;println&quot;
+    LDC "println"
     ASTORE 2
     NOP
    L5
@@ -280,7 +280,7 @@ bytecode may change with a future version of tools.</p>
     NOP
    L8
     LINENUMBER 18 L8
-    LDC &quot;Test console output&quot;
+    LDC "Test console output"
     ASTORE 3
     NOP
    L9
@@ -305,11 +305,11 @@ bytecode may change with a future version of tools.</p>
     NEW java/lang/StringBuilder
     DUP
     INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
-    LDC &quot;Failed to &quot;
+    LDC "Failed to "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 2
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
-    LDC &quot;. &quot;
+    LDC ". "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 3
     INVOKEVIRTUAL java/lang/Throwable.getMessage ()Ljava/lang/String;
@@ -335,8 +335,8 @@ bytecode may change with a future version of tools.</p>
     MAXSTACK = 3
     MAXLOCALS = 6</code></pre></figure>
 
-<p>As we see the <code>catchAll</code> function call is inlined. We have <code>println</code> call as-is, without any anonymous function 
-wrappers. Any combination of <code>catchAll</code> calls generates similar bytecode with <code>try/catch</code> blocks. Once can easily combine 
+<p>As we see the <code class="highlighter-rouge">catchAll</code> function call is inlined. We have <code class="highlighter-rouge">println</code> call as-is, without any anonymous function 
+wrappers. Any combination of <code class="highlighter-rouge">catchAll</code> calls generates similar bytecode with <code class="highlighter-rouge">try/catch</code> blocks. Once can easily combine 
 such calls to make a program easier to read on some higher level.</p>
 
 <p>Disclaimer. Checked or unchecked exceptions are meaningful. I’m not trying to promote the idea to catch all possible exceptions

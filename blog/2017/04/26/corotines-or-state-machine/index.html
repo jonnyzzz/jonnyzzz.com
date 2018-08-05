@@ -176,7 +176,7 @@
         <p>A simple suspend function, and its bytecode.</p>
 
 <p>The new thing in Kotlin 1.1 is <a href="http://kotlinlang.org/docs/reference/coroutines.html">coroutines</a>. As we know
-from the documentation, it is the <code>suspend</code> keyword that was added to the language. The rest is implemented 
+from the documentation, it is the <code class="highlighter-rouge">suspend</code> keyword that was added to the language. The rest is implemented 
 as libraries.</p>
 
 <p>Let’s take a look at the bytecode side of this feature.</p>
@@ -185,12 +185,12 @@ as libraries.</p>
 
 <p>I have the following code snippet:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="n">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
 
 <p>Let’s take a look to the bytecode from this method. For the experiment, I use Kotlin 1.1.1 with IntelliJ IDEA 2017.1.
-Results may depend on version. I use <code>javap -c</code> to generate those dumps</p>
+Results may depend on version. I use <code class="highlighter-rouge">javap -c</code> to generate those dumps</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
        0: aload_0
        1: ldc           #13                 // String $continuation
@@ -198,19 +198,19 @@ Results may depend on version. I use <code>javap -c</code> to generate those dum
        6: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
        9: areturn</code></pre></figure>
 
-<p>The interface <code>Continuation</code> is declared in the Kotlin standard library, see <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/">documentation</a>.
-It contains <code>context</code> and methods to complete continuation: <code>resume</code> and <code>resumeWithException</code>.</p>
+<p>The interface <code class="highlighter-rouge">Continuation</code> is declared in the Kotlin standard library, see <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/">documentation</a>.
+It contains <code class="highlighter-rouge">context</code> and methods to complete continuation: <code class="highlighter-rouge">resume</code> and <code class="highlighter-rouge">resumeWithException</code>.</p>
 
 <h1 id="a-trivial-suspend-function">A Trivial Suspend function</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b2</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="n">b2</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">a</span><span class="p">()</span>
   <span class="n">c</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Here <code>a()</code> and <code>c()</code> are calls to ordinary Java methods, which were declared in Kotlin without the <code>suspend</code> keyword.</p>
+<p>Here <code class="highlighter-rouge">a()</code> and <code class="highlighter-rouge">c()</code> are calls to ordinary Java methods, which were declared in Kotlin without the <code class="highlighter-rouge">suspend</code> keyword.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span> public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text"> public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
        0: aload_0
        1: ldc           #13                 // String $continuation
@@ -224,16 +224,16 @@ It contains <code>context</code> and methods to complete continuation: <code>res
 
 <h1 id="a-suspend-function-with-a-suspend-call">A suspend function with a suspend call</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b3</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="n">b3</span><span class="p">()</span> <span class="p">{</span>
   <span class="n">a</span><span class="p">()</span>
   <span class="n">b3</span><span class="p">()</span>
   <span class="n">c</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>In this example, we call <code>b3()</code> suspend function from itself. Here <code>a()</code> and <code>c()</code> are calls to ordinary Java 
-methods, which were declared in Kotlin without <code>suspend</code> keyword. The generated code now looks way different.</p>
+<p>In this example, we call <code class="highlighter-rouge">b3()</code> suspend function from itself. Here <code class="highlighter-rouge">a()</code> and <code class="highlighter-rouge">c()</code> are calls to ordinary Java 
+methods, which were declared in Kotlin without <code class="highlighter-rouge">suspend</code> keyword. The generated code now looks way different.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     descriptor: (Lkotlin/coroutines/experimental/Continuation;)Ljava/lang/Object;
     Code:
        0: aload_0
@@ -242,17 +242,17 @@ methods, which were declared in Kotlin without <code>suspend</code> keyword. The
        6: new           #34                 // class streams4/ZKt$b3$1
        9: dup
       10: aload_0
-      11: invokespecial #38                 // Method streams4/ZKt$b3$1.&quot;&lt;init&gt;&quot;:(Lkotlin/coroutines/experimental/Continuation;)V
+      11: invokespecial #38                 // Method streams4/ZKt$b3$1."&lt;init&gt;":(Lkotlin/coroutines/experimental/Continuation;)V
       14: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
       17: aconst_null
       18: invokevirtual #42                 // Method streams4/ZKt$b3$1.doResume:(Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
       21: areturn</code></pre></figure>
 
-<p>Instead of having the method in-place, it now generates an inner class for the state-machine to implement the <code>suspend</code>.</p>
+<p>Instead of having the method in-place, it now generates an inner class for the state-machine to implement the <code class="highlighter-rouge">suspend</code>.</p>
 
-<p>The class <code>streams4/ZKt$b3$1</code> is generated as follows</p>
+<p>The class <code class="highlighter-rouge">streams4/ZKt$b3$1</code> is generated as follows</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
+<figure class="highlight"><pre><code class="language-text" data-lang="text">final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
   public final java.lang.Object doResume(java.lang.Object, java.lang.Throwable);
     descriptor: (Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
     Code:
@@ -293,8 +293,8 @@ methods, which were declared in Kotlin without <code>suspend</code> keyword. The
       73: areturn
       74: new           #38                 // class java/lang/IllegalStateException
       77: dup
-      78: ldc           #40                 // String call to &#39;resume&#39; before &#39;invoke&#39; with coroutine
-      80: invokespecial #44                 // Method java/lang/IllegalStateException.&quot;&lt;init&gt;&quot;:(Ljava/lang/String;)V
+      78: ldc           #40                 // String call to 'resume' before 'invoke' with coroutine
+      80: invokespecial #44                 // Method java/lang/IllegalStateException."&lt;init&gt;":(Ljava/lang/String;)V
       83: athrow
 
   streams4.ZKt$b3$1(kotlin.coroutines.experimental.Continuation);
@@ -303,16 +303,16 @@ methods, which were declared in Kotlin without <code>suspend</code> keyword. The
        0: aload_0
        1: iconst_0
        2: aload_1
-       3: invokespecial #58                 // Method kotlin/coroutines/experimental/jvm/internal/CoroutineImpl.&quot;&lt;init&gt;&quot;:(ILkotlin/coroutines/experimental/Continuation;)V
+       3: invokespecial #58                 // Method kotlin/coroutines/experimental/jvm/internal/CoroutineImpl."&lt;init&gt;":(ILkotlin/coroutines/experimental/Continuation;)V
        6: return
 }</code></pre></figure>
 
-<p>The implementation of <code>b3()</code> function is moved to a state machine anonymous object. The main method of 
+<p>The implementation of <code class="highlighter-rouge">b3()</code> function is moved to a state machine anonymous object. The main method of 
 the inner object does a switch over states of the state machine.
-The <code>b3()</code> function is split by every <code>suspend</code> function call. On the example below,
+The <code class="highlighter-rouge">b3()</code> function is split by every <code class="highlighter-rouge">suspend</code> function call. On the example below,
 we have only 2 states. This is up to helper functions to assert the machine is always in a correct state.</p>
 
-<p>On every <code>suspend</code> function call, Kotlin creates an object to encapsulate the state of the state machine, that 
+<p>On every <code class="highlighter-rouge">suspend</code> function call, Kotlin creates an object to encapsulate the state of the state machine, that 
 is created to implement the continuations on top of JVM.</p>
 
 <h1 id="conclusion">Conclusion</h1>

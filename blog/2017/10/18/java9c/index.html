@@ -202,12 +202,12 @@ classpath for conflicts. So I created the plugin for Gradle.</p>
 
 <p>Usage is pretty simple.</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">plugins</span> <span class="o">{</span>
- <span class="n">id</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span> <span class="n">version</span> <span class="s1">&#39;0.2.1&#39;</span>  <span class="c1">/// Mind the updates!</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">plugins</span> <span class="o">{</span>
+ <span class="n">id</span> <span class="s1">'org.jonnyzzz.java9c'</span> <span class="n">version</span> <span class="s1">'0.2.1'</span>  <span class="c1">/// Mind the updates!</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>Once the plugin is applied, it adds the <code>java9c</code> task. The task itself depends on several generated tasks for 
-every source set, e.g., <code>main</code> or <code>test</code>. <code>java9c</code> task, prints out the detected package conflicts for each source set.</p>
+<p>Once the plugin is applied, it adds the <code class="highlighter-rouge">java9c</code> task. The task itself depends on several generated tasks for 
+every source set, e.g., <code class="highlighter-rouge">main</code> or <code class="highlighter-rouge">test</code>. <code class="highlighter-rouge">java9c</code> task, prints out the detected package conflicts for each source set.</p>
 
 <p>For the demonstration, I created a tiny project that has classes in the junit’s main package. The report looks like that:</p>
 
@@ -216,18 +216,18 @@ every source set, e.g., <code>main</code> or <code>test</code>. <code>java9c</co
 <p>For multiple project Gradle projects, you may include the plugin in the following way, or, alternatively, 
 you may select only specific projects to check.</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">plugins</span> <span class="o">{</span>
- <span class="n">id</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span> <span class="n">version</span> <span class="s1">&#39;0.2.1&#39;</span>  <span class="c1">/// Mind the updates!</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">plugins</span> <span class="o">{</span>
+ <span class="n">id</span> <span class="s1">'org.jonnyzzz.java9c'</span> <span class="n">version</span> <span class="s1">'0.2.1'</span>  <span class="c1">/// Mind the updates!</span>
 <span class="o">}</span>
 
 <span class="n">subprojects</span> <span class="o">{</span>
-  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">&#39;org.jonnyzzz.java9c&#39;</span>
+  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">'org.jonnyzzz.java9c'</span>
 <span class="o">}</span></code></pre></figure>
 
 <p>The plugin is open source. You may find sources on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a>.</p>
 
 <p>It is so easy to create so many different features. This time I decided to create a feature-poor plugin. 
-Meanwhile, I reserved the <code>java9c</code> extension in Gradle for future features for the plugin.
+Meanwhile, I reserved the <code class="highlighter-rouge">java9c</code> extension in Gradle for future features for the plugin.
 Let me know if there is something I missed. Also, you may create a pull 
 request <a href="https://github.com/jonnyzzz/gradle-java9c">here</a>.</p>
 

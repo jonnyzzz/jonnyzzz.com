@@ -188,7 +188,7 @@ to update <a href="https://www.consul.io/">Consul KV</a> in the required way, wi
 scripts. And <a href="https://www.consul.io/api/txn.html">transactions</a> were the nice way
 to run an atomic update. Secondly, it is better to offload tricky domain specific code to a dedicated 
 place, which has better tests and build process. The alternative in my case was to 
-use <code>curl</code> or similar to run Consul KV transactions with no easy way to test it easily.</p>
+use <code class="highlighter-rouge">curl</code> or similar to run Consul KV transactions with no easy way to test it easily.</p>
 
 <p>By the time I realized it is better to call the tool from a command line to test it
 does correct changed to the KV. So I was looking for a test runner.</p>
@@ -197,32 +197,32 @@ does correct changed to the KV. So I was looking for a test runner.</p>
 <a href="https://confluence.jetbrains.com/display/TCD10/Build+Script+Interaction+with+TeamCity">TeamCity Service Messages</a>
 to report test progress back to the CI.</p>
 
-<p>The idea of tests is as follows. Each test is created as an <code>.sh</code> file under <code>tests</code> folder. Exit code is used to tell 
+<p>The idea of tests is as follows. Each test is created as an <code class="highlighter-rouge">.sh</code> file under <code class="highlighter-rouge">tests</code> folder. Exit code is used to tell 
 a failure from success. That is necessary to be able to run every test and only one test locally while developing.</p>
 
 <p>Finally, I created the following test runner:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span><span class="ch">#!/bin/bash</span>
-<span class="nb">set</span> -e -x -u
-<span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">)</span><span class="s2">&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">&quot;</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span> <span class="nt">-x</span> <span class="nt">-u</span>
+<span class="nb">cd</span> <span class="s2">"</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">"</span><span class="k">$(</span> <span class="nb">dirname</span> <span class="s2">"</span><span class="k">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="k">}</span><span class="s2">"</span> <span class="k">)</span><span class="s2">"</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">"</span>
 
-<span class="nb">echo</span> <span class="s2">&quot;Running integration tests...&quot;</span>
-<span class="nv">FAILED</span><span class="o">=</span><span class="m">0</span>
-<span class="nv">TC</span><span class="o">=</span><span class="c1">##teamcity</span>
-<span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testSuiteStarted name=&#39;integration-tests&#39;] &quot;</span>
+<span class="nb">echo</span> <span class="s2">"Running integration tests..."</span>
+<span class="nv">FAILED</span><span class="o">=</span>0
+<span class="nv">TC</span><span class="o">=</span><span class="c">##teamcity</span>
+<span class="nb">echo</span> <span class="s2">" </span><span class="k">${</span><span class="nv">TC</span><span class="k">}</span><span class="s2">[testSuiteStarted name='integration-tests'] "</span>
 
-<span class="k">for</span> TEST in tests/* <span class="p">;</span> <span class="k">do</span>
-  <span class="nv">TEST_NAME</span><span class="o">=</span><span class="k">$(</span>basename <span class="nv">$TEST</span><span class="k">)</span>
-  <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testStarted name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39; captureStandardOutput=&#39;true&#39;] &quot;</span>
+<span class="k">for </span>TEST <span class="k">in </span>tests/<span class="k">*</span> <span class="p">;</span> <span class="k">do
+  </span><span class="nv">TEST_NAME</span><span class="o">=</span><span class="k">$(</span><span class="nb">basename</span> <span class="nv">$TEST</span><span class="k">)</span>
+  <span class="nb">echo</span> <span class="s2">" </span><span class="k">${</span><span class="nv">TC</span><span class="k">}</span><span class="s2">[testStarted name='</span><span class="nv">$TEST_NAME</span><span class="s2">' captureStandardOutput='true'] "</span>
   ./<span class="nv">$TEST</span> <span class="o">||</span> <span class="o">{</span>
-    <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testFailed name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39;] &quot;</span>
+    <span class="nb">echo</span> <span class="s2">" </span><span class="k">${</span><span class="nv">TC</span><span class="k">}</span><span class="s2">[testFailed name='</span><span class="nv">$TEST_NAME</span><span class="s2">'] "</span>
   <span class="o">}</span>
-  <span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testFinished name=&#39;</span><span class="nv">$TEST_NAME</span><span class="s2">&#39;] &quot;</span>
-<span class="k">done</span>
+  <span class="nb">echo</span> <span class="s2">" </span><span class="k">${</span><span class="nv">TC</span><span class="k">}</span><span class="s2">[testFinished name='</span><span class="nv">$TEST_NAME</span><span class="s2">'] "</span>
+<span class="k">done
 
-<span class="nb">echo</span> <span class="s2">&quot; </span><span class="si">${</span><span class="nv">TC</span><span class="si">}</span><span class="s2">[testSuiteFinished name=&#39;integration-tests&#39;] &quot;</span></code></pre></figure>
+</span><span class="nb">echo</span> <span class="s2">" </span><span class="k">${</span><span class="nv">TC</span><span class="k">}</span><span class="s2">[testSuiteFinished name='integration-tests'] "</span></code></pre></figure>
 
-<p>By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to <code>go test</code> in the future. 
+<p>By the time, I’m still uncertain, if I need to use this one. Or, maybe I should switch to <code class="highlighter-rouge">go test</code> in the future. 
 The best feature of the test above is it supported by <a href="https://jetbrains.com/teamcity">TeamCity</a>.</p>
 
 <p>Yoy may find the actual version of it on GitHub. 
@@ -235,7 +235,7 @@ In Go it was easier to create an assertions API to check Consul KV state too. Th
 necessary KV state too. The whole approach makes it simpler to write tests.</p>
 
 <p>I’m able to run all of my tests from <a href="https://www.jetbrains.com/go/">Gogland</a>. 
-The test assumes Consul is running by checking a particular file under the <code>GOPATH</code>. 
+The test assumes Consul is running by checking a particular file under the <code class="highlighter-rouge">GOPATH</code>. 
 There is a setup bash script that downloads and starts Consul dev server both for development and continuous integration. 
 I extended the <a href="/blog/2017/07/05/go-build/">bash script</a> for that.</p>
 

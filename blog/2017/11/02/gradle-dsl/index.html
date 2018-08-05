@@ -186,15 +186,15 @@ constants with a Gradle-looking DSL.</p>
 
 <p>Namely, instead of (and many Gradle plugin integration tests have similar)</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span><span class="p">(</span>
-        <span class="s">&quot;apply plugin: &#39;java-library&#39;\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;repositories {\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;  mavenCentral()\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;}\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;dependencies {\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;  implementation &#39;junit:junit:4.12&#39;\n&quot;</span> <span class="p">+</span>
-        <span class="s">&quot;}\n&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span><span class="p">(</span>
+        <span class="s">"apply plugin: 'java-library'\n"</span> <span class="p">+</span>
+        <span class="s">"repositories {\n"</span> <span class="p">+</span>
+        <span class="s">"  mavenCentral()\n"</span> <span class="p">+</span>
+        <span class="s">"}\n"</span> <span class="p">+</span>
+        <span class="s">"\n"</span> <span class="p">+</span>
+        <span class="s">"dependencies {\n"</span> <span class="p">+</span>
+        <span class="s">"  implementation 'junit:junit:4.12'\n"</span> <span class="p">+</span>
+        <span class="s">"}\n"</span>
 <span class="p">)</span></code></pre></figure>
 
 <p>I created a tiny DSL that looks (and parses) like a Gradle script. 
@@ -202,19 +202,19 @@ The DSL generates test-data files for me. Kotlin compiler and IDE
 helps to prevent errors before a test is executed. Code completion 
 makes a new test authoring easier. Here is the DSL usage example:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span> <span class="p">{</span>
-  <span class="err">`</span><span class="n">apply</span> <span class="n">plugin</span><span class="err">`</span><span class="p">(</span><span class="s">&quot;java-library&quot;</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="err">`</span><span class="n">apply</span> <span class="n">plugin</span><span class="err">`</span><span class="p">(</span><span class="s">"java-library"</span><span class="p">)</span>
 
   <span class="n">repositories</span> <span class="p">{</span>
     <span class="n">mavenCentral</span><span class="p">()</span>
   <span class="p">}</span>
 
   <span class="n">dependencies</span> <span class="p">{</span>
-    <span class="n">implementation</span><span class="p">(</span><span class="n">Text</span><span class="p">(</span><span class="s">&quot;junit:junit:4.12&quot;</span><span class="p">))</span>
+    <span class="n">implementation</span><span class="p">(</span><span class="n">Text</span><span class="p">(</span><span class="s">"junit:junit:4.12"</span><span class="p">))</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>More examples are on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a> in <code>java9c</code> plugin test sources.</p>
+<p>More examples are on <a href="https://github.com/jonnyzzz/gradle-java9c">GitHub</a> in <code class="highlighter-rouge">java9c</code> plugin test sources.</p>
 
 <p>The example looks like a Gradle script. There was no goal to make it 100% same looking. Also, 
 there is an amazing <a href="https://github.com/gradle/kotlin-dsl">project</a> run by Gradle to support
@@ -247,19 +247,19 @@ It is only about 150 lines (now) of
 
 <p>I started with a line writer interface:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">interface</span> <span class="nc">LineWriter</span> <span class="p">{</span>
-  <span class="k">operator</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">interface</span> <span class="nc">LineWriter</span> <span class="p">{</span>
+  <span class="k">operator</span> <span class="k">fun</span> <span class="n">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Inside the interface, I use unary minus, e.g., <code>-"foo"</code> as the function to write a line. It reads better in DSLs, e.g.</p>
+<p>Inside the interface, I use unary minus, e.g., <code class="highlighter-rouge">-"foo"</code> as the function to write a line. It reads better in DSLs, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">lineWriter</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span>
-  <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">lineWriter</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">"line of text"</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Well, you may decide to have a <code>fun line(text: String)</code> instead. That does not change the rest, so, please
-feel free to use a function instead of an operator. Alternatively, you may use <code>String.unaryPlus</code>, so that
-you’d have <code>+"foo"</code>.</p>
+<p>Well, you may decide to have a <code class="highlighter-rouge">fun line(text: String)</code> instead. That does not change the rest, so, please
+feel free to use a function instead of an operator. Alternatively, you may use <code class="highlighter-rouge">String.unaryPlus</code>, so that
+you’d have <code class="highlighter-rouge">+"foo"</code>.</p>
 
 <p>See <a href="https://kotlinlang.org/docs/reference/operator-overloading.html">Operator Overloading</a> documentation
 or ask me, if you need to clarify the trick.</p>
@@ -268,10 +268,10 @@ or ask me, if you need to clarify the trick.</p>
 
 <p>The implementation of the interface could be something trivial, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">String</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">StringBuilder</span><span class="p">()</span>
-  <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">String</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">StringBuilder</span><span class="p">()</span>
+  <span class="kd">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="n">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
        <span class="n">result</span><span class="p">.</span><span class="n">appendln</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
     <span class="p">}</span>
   <span class="p">}.</span><span class="n">builder</span><span class="p">()</span> 
@@ -280,62 +280,62 @@ or ask me, if you need to clarify the trick.</p>
 
 <p>The usage could be:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">val</span> <span class="py">text</span> <span class="p">:</span> <span class="n">String</span> <span class="p">=</span> <span class="n">generateDSL</span> <span class="p">{</span>
-  <span class="p">-</span><span class="s">&quot;line of text&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">val</span> <span class="py">text</span> <span class="p">:</span> <span class="n">String</span> <span class="p">=</span> <span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">"line of text"</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>The <code>generateDSL</code> receives a <a href="https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver">lambda with receiver</a>
+<p>The <code class="highlighter-rouge">generateDSL</code> receives a <a href="https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver">lambda with receiver</a>
 and returns resulting string. It is the implementation detail to pass the instance of 
-<code>LineWriter</code> to the lambda. Inside the lambda, the receiver is <code>LineWriter</code>, it means, that <code>this</code> keyword 
-resolves to an instance of <code>LineWriter</code>. Of course, <code>this.</code> can be omitted and all methods are resolved
-against <code>LineWriter</code> instance. It follows that <code>- "foo"</code> calls resolves to <code>String.unaryMinus()</code> function
-of <code>LineWriter</code> inside the lambda scope.</p>
+<code class="highlighter-rouge">LineWriter</code> to the lambda. Inside the lambda, the receiver is <code class="highlighter-rouge">LineWriter</code>, it means, that <code class="highlighter-rouge">this</code> keyword 
+resolves to an instance of <code class="highlighter-rouge">LineWriter</code>. Of course, <code class="highlighter-rouge">this.</code> can be omitted and all methods are resolved
+against <code class="highlighter-rouge">LineWriter</code> instance. It follows that <code class="highlighter-rouge">- "foo"</code> calls resolves to <code class="highlighter-rouge">String.unaryMinus()</code> function
+of <code class="highlighter-rouge">LineWriter</code> inside the lambda scope.</p>
 
-<p>For short, we may compact the <code>generateDSL</code> function to the following:</p>
+<p>For short, we may compact the <code class="highlighter-rouge">generateDSL</code> function to the following:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">=</span> <span class="n">buildString</span> <span class="p">{</span>
-  <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">generateDSL</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">=</span> <span class="n">buildString</span> <span class="p">{</span>
+  <span class="kd">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="n">String</span><span class="p">.</span><span class="n">unaryMinis</span><span class="p">()</span> <span class="p">{</span>
        <span class="n">appendln</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
     <span class="p">}</span>
   <span class="p">}.</span><span class="n">builder</span><span class="p">()</span>  
 <span class="p">}</span></code></pre></figure>
 
-<p>Here I use a <code>fun buildString(builderAction: StringBuilder.() -&gt; Unit): String</code> function from the Kotlin standard library. 
+<p>Here I use a <code class="highlighter-rouge">fun buildString(builderAction: StringBuilder.() -&gt; Unit): String</code> function from the Kotlin standard library. 
 It receives yet another <a href="https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver">lambda with receiver</a> 
-on <code>StringBuilder</code> type so that <code>appendln</code> is a function from it.</p>
+on <code class="highlighter-rouge">StringBuilder</code> type so that <code class="highlighter-rouge">appendln</code> is a function from it.</p>
 
-<p>Theoretically, you may have several different entry point functions (e.g., <code>generateDSL</code>)
+<p>Theoretically, you may have several different entry point functions (e.g., <code class="highlighter-rouge">generateDSL</code>)
 to, say, generate a string, a file or something else. The rest does not depend on a particular 
-<code>generate*</code> function.</p>
+<code class="highlighter-rouge">generate*</code> function.</p>
 
 <h1 id="indenting-and-blocks">Indenting and Blocks</h1>
 
 <p>Text generation for languages like Gradle requires indenting. We have blocks, and it’s nice
-to simplify blocks generation. At first, I created an <code>offset</code> function for it:</p>
+to simplify blocks generation. At first, I created an <code class="highlighter-rouge">offset</code> function for it:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">offset</span><span class="p">():</span> <span class="n">LineWriter</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">outer</span> <span class="p">=</span> <span class="k">this</span>
-  <span class="k">return</span> <span class="k">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="k">fun</span> <span class="nf">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span> <span class="p">{</span>
-      <span class="k">val</span> <span class="py">s</span> <span class="p">=</span> <span class="k">this</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">LineWriter</span><span class="p">.</span><span class="n">offset</span><span class="p">():</span> <span class="n">LineWriter</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">outer</span> <span class="p">=</span> <span class="k">this</span>
+  <span class="k">return</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">LineWriter</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="n">String</span><span class="p">.</span><span class="n">unaryMinus</span><span class="p">()</span> <span class="p">{</span>
+      <span class="kd">val</span> <span class="py">s</span> <span class="p">=</span> <span class="k">this</span>
       <span class="n">outer</span><span class="p">.</span><span class="n">apply</span> <span class="p">{</span> 
-        <span class="p">-(</span><span class="s">&quot;  &quot;</span> <span class="p">+</span> <span class="n">s</span><span class="p">)</span> 
+        <span class="p">-(</span><span class="s">"  "</span> <span class="p">+</span> <span class="n">s</span><span class="p">)</span> 
       <span class="p">}</span>
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>The function is an <a href="https://kotlinlang.org/docs/reference/extensions.html">extension function</a>. It makes
-no need to change the original <code>LineWriter</code> interface, but it still reads as a method call.</p>
+no need to change the original <code class="highlighter-rouge">LineWriter</code> interface, but it still reads as a method call.</p>
 
-<p>The <code>block</code> function is as follows:</p>
+<p>The <code class="highlighter-rouge">block</code> function is as follows:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">LineWriter</span><span class="p">.</span><span class="n">block</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
-  <span class="p">-</span><span class="s">&quot;$name {&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">LineWriter</span><span class="p">.</span><span class="n">block</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span><span class="p">:</span> <span class="n">LineWriter</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">-</span><span class="s">"$name {"</span>
   <span class="n">offset</span><span class="p">().</span><span class="n">builder</span><span class="p">()</span>
-  <span class="p">-</span><span class="s">&quot;}&quot;</span>
-  <span class="p">-</span><span class="s">&quot;&quot;</span>
+  <span class="p">-</span><span class="s">"}"</span>
+  <span class="p">-</span><span class="s">""</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Here I use <a href="https://kotlinlang.org/docs/reference/idioms.html#string-interpolation">string interpolation</a>
@@ -343,15 +343,15 @@ to simplify code of the first line.</p>
 
 <p>At that point I can write the DSL snippets like that:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">generateDSL</span> <span class="p">{</span>
-  <span class="n">block</span><span class="p">(</span><span class="s">&quot;jonnyzzz&quot;</span><span class="p">)</span> <span class="p">{</span>
-    <span class="p">-</span><span class="s">&quot;test&quot;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">generateDSL</span> <span class="p">{</span>
+  <span class="n">block</span><span class="p">(</span><span class="s">"jonnyzzz"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="p">-</span><span class="s">"test"</span>
   <span class="p">}</span>
 <span class="p">}</span>  </code></pre></figure>
 
 <p>And it yields</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>jonnyzzz {
+<figure class="highlight"><pre><code class="language-text" data-lang="text">jonnyzzz {
   test
 }  </code></pre></figure>
 
@@ -359,41 +359,41 @@ to simplify code of the first line.</p>
 
 <h1 id="gradle-specific-constructs">Gradle Specific Constructs</h1>
 
-<p>With <code>block</code> function one can create all necessary functions to generate blocks like <code>repositories</code>, <code>dependencies</code> and so on. 
+<p>With <code class="highlighter-rouge">block</code> function one can create all necessary functions to generate blocks like <code class="highlighter-rouge">repositories</code>, <code class="highlighter-rouge">dependencies</code> and so on. 
 Now it is time to implement specific parts of the DSL and allow some constructs only inside other constructs.</p>
 
 <h2 id="repositories">Repositories</h2>
 
-<p>Let’s consider <code>repositories</code> block. Inside we have pre-defined functions for <code>mavenCentral()</code> and <code>jcenter()</code>.</p>
+<p>Let’s consider <code class="highlighter-rouge">repositories</code> block. Inside we have pre-defined functions for <code class="highlighter-rouge">mavenCentral()</code> and <code class="highlighter-rouge">jcenter()</code>.</p>
 
 <p>First, we need a builder interface and implementation. It can be done as follows:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>interface RepositoriesWriter : LineWriter {
-  fun mavenCentral() { -&quot;mavenCentral()&quot; }
-  fun mavenLocal() { -&quot;mavenLocal()&quot; }
-  fun jcenter() { -&quot;jcenter()&quot; }
+<figure class="highlight"><pre><code class="language-text" data-lang="text">interface RepositoriesWriter : LineWriter {
+  fun mavenCentral() { -"mavenCentral()" }
+  fun mavenLocal() { -"mavenLocal()" }
+  fun jcenter() { -"jcenter()" }
 }
 
 fun RepositoriesHolder.repositories(builder: RepositoriesWriter.() -&gt; Unit) =
-        block(&quot;repositories&quot;) {
+        block("repositories") {
           object : RepositoriesWriter, LineWriter by it {
           }.builder()
         }</code></pre></figure>
 
-<p>We define an interface <code>RepositoriesWriter</code> to play as the scope of the generation. In the interface,
-we have <code>mavenLocal</code> and other functions with trivial implementations. Those functions can be alternatively 
-implemented as extension functions of inside the <code>repositories</code> function. That is up to the author.</p>
+<p>We define an interface <code class="highlighter-rouge">RepositoriesWriter</code> to play as the scope of the generation. In the interface,
+we have <code class="highlighter-rouge">mavenLocal</code> and other functions with trivial implementations. Those functions can be alternatively 
+implemented as extension functions of inside the <code class="highlighter-rouge">repositories</code> function. That is up to the author.</p>
 
-<p>In the <code>repositories</code> function, I use <a href="https://kotlinlang.org/docs/reference/delegation.html">class delegation</a> aka <code>by</code>
-keyword to implement <code>LineWriter</code> from <code>RepositoriesWriter</code> to delegate to another instance of <code>LineWriter</code>. 
+<p>In the <code class="highlighter-rouge">repositories</code> function, I use <a href="https://kotlinlang.org/docs/reference/delegation.html">class delegation</a> aka <code class="highlighter-rouge">by</code>
+keyword to implement <code class="highlighter-rouge">LineWriter</code> from <code class="highlighter-rouge">RepositoriesWriter</code> to delegate to another instance of <code class="highlighter-rouge">LineWriter</code>. 
 So short to write and powerful!</p>
 
 <p>As the result, we can have</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>generateDSL {
+<figure class="highlight"><pre><code class="language-text" data-lang="text">generateDSL {
   repositories {
      mavenCentral()
-     -&quot;// another line&quot;
+     -"// another line"
   }
 }   </code></pre></figure>
 
@@ -403,11 +403,11 @@ was using in my tests. You may take a look
 
 <h2 id="specific-dsl-alternatives">Specific DSL Alternatives</h2>
 
-<p>It was another design decision to allow <code>LineWriter</code> functions and extension functions (e.g., <code>block</code>) 
-of the scope of <code>RepositoriesWriter</code> lambda. We might have decided opposite. In the case, we would need
+<p>It was another design decision to allow <code class="highlighter-rouge">LineWriter</code> functions and extension functions (e.g., <code class="highlighter-rouge">block</code>) 
+of the scope of <code class="highlighter-rouge">RepositoriesWriter</code> lambda. We might have decided opposite. In the case, we would need
 <a href="https://kotlinlang.org/docs/reference/type-safe-builders.html#scope-control-dslmarker-since-11">DslMarker</a>
-annotation to make sure <code>LineWriter</code> functions and extension functions are not resolved to the 
-outer scope. We probably have a <code>generateDSL</code> function call on the top.</p>
+annotation to make sure <code class="highlighter-rouge">LineWriter</code> functions and extension functions are not resolved to the 
+outer scope. We probably have a <code class="highlighter-rouge">generateDSL</code> function call on the top.</p>
 
 <h1 id="wrapping-up">Wrapping Up</h1>
 

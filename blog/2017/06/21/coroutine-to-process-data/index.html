@@ -171,28 +171,28 @@
 
 <p>In this post, we consider a low-level implementation for specific 
 coroutines that are used to process streams in a server-side Java application. 
-There is an existing code that writes the output to a given <code>OutputStream</code> object. 
+There is an existing code that writes the output to a given <code class="highlighter-rouge">OutputStream</code> object. 
 One may write it in Java as:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kd">interface</span> <span class="nc">ExistingService</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">interface</span> <span class="nc">ExistingService</span> <span class="o">{</span>
   <span class="kt">void</span> <span class="nf">callExistingCode</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">resultOutput</span><span class="o">)</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>We need to intercept the output that is bing written by the <code>#callExistingCode</code> function.</p>
+<p>We need to intercept the output that is bing written by the <code class="highlighter-rouge">#callExistingCode</code> function.</p>
 
 <h1 id="example">Example</h1>
-<p>Say the <code>ExistingService</code> replies with an HTML, and the goal is to extract some part of it, say a <code>&lt;div&gt;</code>
-with a given <code>id</code>.
-Or an <code>ExistingService</code> may be returning a ZIP archive, and the goal can be to add a file in it.</p>
+<p>Say the <code class="highlighter-rouge">ExistingService</code> replies with an HTML, and the goal is to extract some part of it, say a <code class="highlighter-rouge">&lt;div&gt;</code>
+with a given <code class="highlighter-rouge">id</code>.
+Or an <code class="highlighter-rouge">ExistingService</code> may be returning a ZIP archive, and the goal can be to add a file in it.</p>
 
-<p>There are many similar cases, where an <code>OutputStream</code> post processing can be necessary.</p>
+<p>There are many similar cases, where an <code class="highlighter-rouge">OutputStream</code> post processing can be necessary.</p>
 
 <h1 id="problem-statement">Problem Statement</h1>
-<p>Suppose the <code>ExistingService</code> writes output in the following format:</p>
+<p>Suppose the <code class="highlighter-rouge">ExistingService</code> writes output in the following format:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>(&lt;SIZE&gt;&lt;CHANNEL-ID&gt;&lt;DATA&gt;)*</code></pre></figure>
+<figure class="highlight"><pre><code class="language-text" data-lang="text">(&lt;SIZE&gt;&lt;CHANNEL-ID&gt;&lt;DATA&gt;)*</code></pre></figure>
 
-<p>Where <code>&lt;SIZE&gt;</code> is 4 bytes length message. <code>&lt;CHANNEL-ID&gt;</code> is a one-byte message. <code>&lt;DATA&gt;</code> is a 
+<p>Where <code class="highlighter-rouge">&lt;SIZE&gt;</code> is 4 bytes length message. <code class="highlighter-rouge">&lt;CHANNEL-ID&gt;</code> is a one-byte message. <code class="highlighter-rouge">&lt;DATA&gt;</code> is a 
 byte sequence of given size.</p>
 
 <p>The such or similar format is widely used to send several streams within one connection. For example,
@@ -200,19 +200,19 @@ it is used in <a href="https://www.ietf.org/rfc/rfc4251.txt">SSH-2</a>, <a href=
 or <a href="https://github.com/git/git/blob/master/Documentation/technical/pack-protocol.txt">Git</a>.</p>
 
 <p>Out goal is to include additional messages to the stream on the fly, while it is being generated 
-by the call to an <code>ExistingService</code>.
+by the call to an <code class="highlighter-rouge">ExistingService</code>.
 We just need to implement the method:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">);</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">);</span></code></pre></figure>
 
 <h1 id="a-trivial-java-implementation">A Trivial Java Implementation</h1>
 
-<p>In Java we have <code>PipedOutputStream</code>/<code>PipedInputStream</code> classes that may turn an OutputStream 
-into an <code>InputStream</code>. Next, the processing can be done easily.</p>
+<p>In Java we have <code class="highlighter-rouge">PipedOutputStream</code>/<code class="highlighter-rouge">PipedInputStream</code> classes that may turn an OutputStream 
+into an <code class="highlighter-rouge">InputStream</code>. Next, the processing can be done easily.</p>
 
-<p>We have a thread, that reads data from an <code>InputStream</code>, e.g.</p>
+<p>We have a thread, that reads data from an <code class="highlighter-rouge">InputStream</code>, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
   <span class="n">PipedOutputStream</span> <span class="n">pos</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PipeOutputStream</span><span class="o">();</span>
   <span class="n">PipedInputStream</span> <span class="n">pis</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PipedInputStream</span><span class="o">(</span><span class="n">pos</span><span class="o">);</span>
   
@@ -234,16 +234,16 @@ into an <code>InputStream</code>. Next, the processing can be done easily.</p>
 <span class="o">}</span></code></pre></figure>
 
 <p>The cost here is high. We need an additional thread to implement that. Additionally, 
-the whole data is copied to a buffer from which a <code>PipedInputStream</code> is reading. 
+the whole data is copied to a buffer from which a <code class="highlighter-rouge">PipedInputStream</code> is reading. 
 Finally, piped streams implementation uses a level of synchronization to wait for 
 next data portion to arrive. That can be problematic for some loads.</p>
 
 <h1 id="a-smart-java-implementation">A Smart Java Implementation</h1>
 
-<p>One can do a smarter implementation. Directly implement the <code>OutputStream</code> and do the processing
+<p>One can do a smarter implementation. Directly implement the <code class="highlighter-rouge">OutputStream</code> and do the processing
 and patching the output in there.</p>
 
-<p>What we do here is to add a state to our <code>OutputStream</code> implementation. Each call to <code>write</code> method
+<p>What we do here is to add a state to our <code class="highlighter-rouge">OutputStream</code> implementation. Each call to <code class="highlighter-rouge">write</code> method
 yields an update of the state.</p>
 
 <p>A <em>State Machine</em>. That is what the code from here is about. It is up to programmer if to have a state
@@ -251,10 +251,10 @@ explicitly or not. Think about maintainability of such code first.</p>
 
 <p>The implementation here can be quite complex. As an example, I show a byte-by-byte 
 processing. In real cases, it can be way more efficient to implement 
-<code>write(byte[], int, int)</code> method.</p>
+<code class="highlighter-rouge">write(byte[], int, int)</code> method.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="k">new</span> <span class="n">OutputStream</span><span class="o">()</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">OutputStream</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">OutputStream</span> <span class="n">target</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="nf">OutputStream</span><span class="o">()</span> <span class="o">{</span>
     <span class="nd">@Override</span>
     <span class="kd">public</span> <span class="kt">void</span> <span class="nf">write</span><span class="o">(</span><span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
       <span class="k">if</span> <span class="o">(</span><span class="n">isReadingSize</span><span class="o">())</span> <span class="o">{</span>
@@ -264,7 +264,7 @@ processing. In real cases, it can be way more efficient to implement
       <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">isProcessingData</span><span class="o">())</span> <span class="o">{</span>
         <span class="n">processModeData</span><span class="o">(</span><span class="n">b</span><span class="o">);</span>
       <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
-        <span class="k">throw</span> <span class="k">new</span> <span class="n">IOException</span><span class="o">(</span><span class="s">&quot;Unexpected state&quot;</span><span class="o">);</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">IOException</span><span class="o">(</span><span class="s">"Unexpected state"</span><span class="o">);</span>
       <span class="o">}</span>
     <span class="o">}</span>
   <span class="o">};</span>
@@ -278,28 +278,28 @@ is getting more complex.</p>
 <p>In Kotlin 1.1 we have <a href="http://kotlinlang.org/docs/reference/coroutines.html">coroutines</a>. The alternative way 
 to implement a state machine with the help of compiler, with way more readable, linear-looking code.</p>
 
-<p>First, we need to declare an interface with <code>suspend</code> functions, e.g.</p>
+<p>First, we need to declare an interface with <code class="highlighter-rouge">suspend</code> functions, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kd">interface</span> <span class="nc">DataReader</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">interface</span> <span class="nc">DataReader</span> <span class="o">{</span>
   <span class="n">suspend</span> <span class="n">fun</span> <span class="nf">read</span><span class="o">()</span> <span class="o">:</span> <span class="n">Int</span>
   
-  <span class="n">suspend</span> <span class="n">fun</span> <span class="nf">pipe</span><span class="o">(</span><span class="n">sz</span> <span class="o">:</span> <span class="n">Int</span><span class="o">,</span> <span class="n">to</span><span class="o">:</span> <span class="n">OutputStream</span><span class="o">)</span>
+  <span class="n">suspend</span> <span class="n">fun</span> <span class="nf">pipe</span><span class="o">(</span><span class="n">sz</span> <span class="o">:</span> <span class="n">Int</span><span class="o">,</span> <span class="nl">to:</span> <span class="n">OutputStream</span><span class="o">)</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>Also, we need an implementation of the <code>OutputStream</code> that allows us to use the <code>DataReader</code>. That is 
-the function <code>inverseRead</code>. We’ll turn back to the implementation a bit later.</p>
+<p>Also, we need an implementation of the <code class="highlighter-rouge">OutputStream</code> that allows us to use the <code class="highlighter-rouge">DataReader</code>. That is 
+the function <code class="highlighter-rouge">inverseRead</code>. We’ll turn back to the implementation a bit later.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">fun</span> <span class="nf">inverseRead</span><span class="o">(</span><span class="n">reader</span><span class="o">:</span> <span class="n">suspend</span> <span class="n">DataReader</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Unit</span><span class="o">)</span> <span class="o">:</span> <span class="n">OutputStream</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">fun</span> <span class="nf">inverseRead</span><span class="o">(</span><span class="nl">reader:</span> <span class="n">suspend</span> <span class="n">DataReader</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Unit</span><span class="o">)</span> <span class="o">:</span> <span class="n">OutputStream</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span></code></pre></figure>
 
 <p>Finally, we are able to implement the data processing:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">fun</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="n">target</span><span class="o">:</span> <span class="n">OutputStream</span><span class="o">):</span> <span class="n">OutputStream</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">fun</span> <span class="nf">weaveStream</span><span class="o">(</span><span class="nl">target:</span> <span class="n">OutputStream</span><span class="o">):</span> <span class="n">OutputStream</span> <span class="o">{</span>
   <span class="k">return</span> <span class="n">inverseRead</span> <span class="o">{</span> <span class="n">reader</span> <span class="o">-&gt;</span>
     <span class="n">readStream</span><span class="o">(</span><span class="n">reader</span><span class="o">,</span> <span class="n">target</span><span class="o">)</span>
   <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="n">suspend</span> <span class="n">fun</span> <span class="nf">readStream</span><span class="o">(</span><span class="n">source</span><span class="o">:</span> <span class="n">DataReader</span><span class="o">,</span> <span class="n">target</span><span class="o">:</span> <span class="n">OutputStream</span><span class="o">)</span> <span class="o">{</span>
+<span class="n">suspend</span> <span class="n">fun</span> <span class="nf">readStream</span><span class="o">(</span><span class="nl">source:</span> <span class="n">DataReader</span><span class="o">,</span> <span class="nl">target:</span> <span class="n">OutputStream</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">while</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">val</span> <span class="n">sz</span> <span class="o">=</span> <span class="n">extractSize</span><span class="o">(</span><span class="n">source</span><span class="o">.</span><span class="na">read</span><span class="o">(),</span> <span class="n">source</span><span class="o">.</span><span class="na">read</span><span class="o">(),</span> <span class="n">source</span><span class="o">.</span><span class="na">read</span><span class="o">(),</span> <span class="n">source</span><span class="o">.</span><span class="na">read</span><span class="o">())</span>
 
@@ -312,76 +312,76 @@ the function <code>inverseRead</code>. We’ll turn back to the implementation a
 <span class="o">}</span></code></pre></figure>
 
 <p>Check the code above. It is quite similar to what we had in <em>A Trivial Java Implementation</em>. The difference
-is huge. Every call to <code>suspend</code> function pauses the execution of a method, so the execution turns to
-the <code>write</code> method implementation of <code>OutputStream</code> in <code>inverseRead</code>. We are able now to write
+is huge. Every call to <code class="highlighter-rouge">suspend</code> function pauses the execution of a method, so the execution turns to
+the <code class="highlighter-rouge">write</code> method implementation of <code class="highlighter-rouge">OutputStream</code> in <code class="highlighter-rouge">inverseRead</code>. We are able now to write
 a linear looking code, that is executed in a piece-by-piece manner.</p>
 
 <h1 id="implementation-of-the-coroutine">Implementation of the Coroutine</h1>
 
-<p>The only missing part is the <code>inverseRead</code>. We follow the <a href="http://kotlinlang.org/docs/reference/coroutines.html">coroutines documentation</a>
+<p>The only missing part is the <code class="highlighter-rouge">inverseRead</code>. We follow the <a href="http://kotlinlang.org/docs/reference/coroutines.html">coroutines documentation</a>
 to implement that. Great is there are many examples too.</p>
 
-<p>We implement <code>DataReader#read</code> and <code>DataReader#pipe</code> functions to suspend execution until there is enough data
-send to <code>OutputStream#write</code> method. We have the following state object for that:</p>
+<p>We implement <code class="highlighter-rouge">DataReader#read</code> and <code class="highlighter-rouge">DataReader#pipe</code> functions to suspend execution until there is enough data
+send to <code class="highlighter-rouge">OutputStream#write</code> method. We have the following state object for that:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">DataReaderState</span> <span class="p">{</span>
-  <span class="k">var</span> <span class="py">readByteContinuation</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">Continuation</span><span class="p">&lt;</span><span class="n">Int</span><span class="p">&gt;?</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">DataReaderState</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="py">readByteContinuation</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">Continuation</span><span class="p">&lt;</span><span class="n">Int</span><span class="p">&gt;?</span>
 
-  <span class="k">var</span> <span class="py">pipeContinuation</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">Continuation</span><span class="p">&lt;</span><span class="n">Unit</span><span class="p">&gt;?</span>
-  <span class="k">var</span> <span class="py">pipeTarget</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">OutputStream</span><span class="p">?</span>
-  <span class="k">var</span> <span class="py">pipeSizeToWrite</span> <span class="p">=</span> <span class="m">0</span>
+  <span class="kd">var</span> <span class="py">pipeContinuation</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">Continuation</span><span class="p">&lt;</span><span class="n">Unit</span><span class="p">&gt;?</span>
+  <span class="kd">var</span> <span class="py">pipeTarget</span> <span class="p">=</span> <span class="k">null</span> <span class="k">as</span> <span class="n">OutputStream</span><span class="p">?</span>
+  <span class="kd">var</span> <span class="py">pipeSizeToWrite</span> <span class="p">=</span> <span class="m">0</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Next, we are able to implement the <code>DataReader</code> interface in the following way:</p>
+<p>Next, we are able to implement the <code class="highlighter-rouge">DataReader</code> interface in the following way:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">DataReaderImpl</span><span class="p">(</span><span class="k">val</span> <span class="py">state</span><span class="p">:</span> <span class="n">DataReaderState</span><span class="p">)</span> <span class="p">:</span> <span class="n">DataReader</span> <span class="p">{</span>
-  <span class="n">suspend</span> <span class="k">override</span> <span class="k">fun</span> <span class="nf">pipe</span><span class="p">(</span><span class="n">sz</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">to</span><span class="p">:</span> <span class="n">OutputStream</span><span class="p">):</span> <span class="n">Unit</span> <span class="p">=</span> <span class="n">suspendCoroutine</span><span class="p">&lt;</span><span class="n">Unit</span><span class="p">&gt;</span> <span class="p">{</span> <span class="n">c</span> <span class="p">-&gt;</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">DataReaderImpl</span><span class="p">(</span><span class="kd">val</span> <span class="py">state</span><span class="p">:</span> <span class="n">DataReaderState</span><span class="p">)</span> <span class="p">:</span> <span class="n">DataReader</span> <span class="p">{</span>
+  <span class="n">suspend</span> <span class="k">override</span> <span class="k">fun</span> <span class="n">pipe</span><span class="p">(</span><span class="n">sz</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">to</span><span class="p">:</span> <span class="n">OutputStream</span><span class="p">):</span> <span class="n">Unit</span> <span class="p">=</span> <span class="n">suspendCoroutine</span><span class="p">&lt;</span><span class="n">Unit</span><span class="p">&gt;</span> <span class="p">{</span> <span class="n">c</span> <span class="p">-&gt;</span>
     <span class="n">state</span><span class="p">.</span><span class="n">pipeContinuation</span> <span class="p">=</span> <span class="n">c</span>
     <span class="n">state</span><span class="p">.</span><span class="n">pipeSizeToWrite</span> <span class="p">=</span> <span class="n">sz</span>
     <span class="n">state</span><span class="p">.</span><span class="n">pipeTarget</span> <span class="p">=</span> <span class="n">to</span>
   <span class="p">}</span>
 
-  <span class="n">suspend</span> <span class="k">override</span> <span class="k">fun</span> <span class="nf">read</span><span class="p">():</span> <span class="n">Int</span> <span class="p">=</span> <span class="n">suspendCoroutine</span> <span class="p">{</span> <span class="n">c</span> <span class="p">-&gt;</span>
+  <span class="n">suspend</span> <span class="k">override</span> <span class="k">fun</span> <span class="n">read</span><span class="p">():</span> <span class="n">Int</span> <span class="p">=</span> <span class="n">suspendCoroutine</span> <span class="p">{</span> <span class="n">c</span> <span class="p">-&gt;</span>
     <span class="n">state</span><span class="p">.</span><span class="n">readByteContinuation</span> <span class="p">=</span> <span class="n">c</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>All we have here is a call to the specific <code>suspendCoroutine</code> function in Kotlin, which does the suspend. I decided
-to omit for simplicity a defensive asserts that one may have in both <code>pipe</code> and <code>read</code> function implementation.</p>
+<p>All we have here is a call to the specific <code class="highlighter-rouge">suspendCoroutine</code> function in Kotlin, which does the suspend. I decided
+to omit for simplicity a defensive asserts that one may have in both <code class="highlighter-rouge">pipe</code> and <code class="highlighter-rouge">read</code> function implementation.</p>
 
-<p>The <code>OutputStream</code> implementation in the example is executing next suspended function in a loop. The current
+<p>The <code class="highlighter-rouge">OutputStream</code> implementation in the example is executing next suspended function in a loop. The current
 implementation does not check the state at the end of data too. The straightforward implementation is as follows:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">DataReaderOutputStreamImpl</span><span class="p">(</span><span class="k">val</span> <span class="py">state</span><span class="p">:</span> <span class="n">DataReaderState</span><span class="p">)</span> <span class="p">:</span> <span class="n">OutputStream</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">override</span> <span class="k">fun</span> <span class="nf">write</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">=</span> <span class="n">write</span><span class="p">(</span><span class="n">byteArrayOf</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">toByte</span><span class="p">()))</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">DataReaderOutputStreamImpl</span><span class="p">(</span><span class="kd">val</span> <span class="py">state</span><span class="p">:</span> <span class="n">DataReaderState</span><span class="p">)</span> <span class="p">:</span> <span class="n">OutputStream</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="k">fun</span> <span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">=</span> <span class="n">write</span><span class="p">(</span><span class="n">byteArrayOf</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="n">toByte</span><span class="p">()))</span>
 
-  <span class="k">override</span> <span class="k">tailrec</span> <span class="k">fun</span> <span class="nf">write</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">ByteArray</span><span class="p">,</span> <span class="n">off</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">len</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="k">tailrec</span> <span class="k">fun</span> <span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">ByteArray</span><span class="p">,</span> <span class="n">off</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">len</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">len</span> <span class="p">&lt;=</span> <span class="m">0</span><span class="p">)</span> <span class="k">return</span>
 
-    <span class="k">val</span> <span class="py">readOneByte</span> <span class="p">=</span> <span class="n">state</span><span class="p">.</span><span class="n">readByteContinuation</span>
+    <span class="kd">val</span> <span class="py">readOneByte</span> <span class="p">=</span> <span class="n">state</span><span class="p">.</span><span class="n">readByteContinuation</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">readOneByte</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
       <span class="n">readOneByte</span><span class="p">.</span><span class="n">resume</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="n">off</span><span class="p">].</span><span class="n">toInt</span><span class="p">())</span>
       <span class="k">return</span> <span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">off</span><span class="p">+</span><span class="m">1</span><span class="p">,</span> <span class="n">len</span><span class="p">-</span><span class="m">1</span><span class="p">)</span>
     <span class="p">}</span>
 
-    <span class="k">val</span> <span class="py">pipe</span> <span class="p">=</span> <span class="n">state</span><span class="p">.</span><span class="n">pipeContinuation</span>
+    <span class="kd">val</span> <span class="py">pipe</span> <span class="p">=</span> <span class="n">state</span><span class="p">.</span><span class="n">pipeContinuation</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">pipe</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-      <span class="k">val</span> <span class="py">toPipe</span> <span class="p">=</span> <span class="n">Math</span><span class="p">.</span><span class="n">min</span><span class="p">(</span><span class="n">len</span><span class="p">,</span> <span class="n">state</span><span class="p">.</span><span class="n">pipeSizeToWrite</span><span class="p">)</span>
+      <span class="kd">val</span> <span class="py">toPipe</span> <span class="p">=</span> <span class="n">Math</span><span class="p">.</span><span class="n">min</span><span class="p">(</span><span class="n">len</span><span class="p">,</span> <span class="n">state</span><span class="p">.</span><span class="n">pipeSizeToWrite</span><span class="p">)</span>
       <span class="n">state</span><span class="p">.</span><span class="n">pipeTarget</span><span class="o">!!</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">off</span><span class="p">,</span> <span class="n">toPipe</span><span class="p">)</span>
       <span class="k">return</span> <span class="n">write</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">off</span><span class="p">+</span><span class="n">toPipe</span><span class="p">,</span> <span class="n">len</span> <span class="p">-</span> <span class="n">toPipe</span><span class="p">)</span>
     <span class="p">}</span>
 
-    <span class="k">throw</span> <span class="n">Error</span><span class="p">(</span><span class="s">&quot;Illegal state&quot;</span><span class="p">)</span>
+    <span class="k">throw</span> <span class="n">Error</span><span class="p">(</span><span class="s">"Illegal state"</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>At that moment we are ready to implement the <code>inverseRead</code> function.</p>
+<p>At that moment we are ready to implement the <code class="highlighter-rouge">inverseRead</code> function.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">inverseRead</span><span class="p">(</span><span class="n">reader</span><span class="p">:</span> <span class="n">suspend</span> <span class="p">(</span><span class="n">DataReader</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">OutputStream</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">state</span> <span class="p">=</span> <span class="n">DataReaderState</span><span class="p">()</span>
-  <span class="k">val</span> <span class="py">outputStream</span> <span class="p">=</span> <span class="n">DataReaderOutputStreamImpl</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-  <span class="k">val</span> <span class="py">dataReader</span> <span class="p">=</span> <span class="n">DataReaderImpl</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-  <span class="k">val</span> <span class="py">continuation</span> <span class="p">=</span> <span class="n">DataReaderContinuation</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">inverseRead</span><span class="p">(</span><span class="n">reader</span><span class="p">:</span> <span class="n">suspend</span> <span class="p">(</span><span class="n">DataReader</span><span class="p">)</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">:</span> <span class="n">OutputStream</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">state</span> <span class="p">=</span> <span class="n">DataReaderState</span><span class="p">()</span>
+  <span class="kd">val</span> <span class="py">outputStream</span> <span class="p">=</span> <span class="n">DataReaderOutputStreamImpl</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+  <span class="kd">val</span> <span class="py">dataReader</span> <span class="p">=</span> <span class="n">DataReaderImpl</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+  <span class="kd">val</span> <span class="py">continuation</span> <span class="p">=</span> <span class="n">DataReaderContinuation</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
 
   <span class="n">reader</span><span class="p">.</span><span class="n">createCoroutine</span><span class="p">(</span><span class="n">dataReader</span><span class="p">,</span><span class="n">continuation</span><span class="p">).</span><span class="n">resume</span><span class="p">(</span><span class="n">Unit</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">outputStream</span>
@@ -389,13 +389,13 @@ implementation does not check the state at the end of data too. The straightforw
 
 <h1 id="coroutine-vs-state-machine">Coroutine vs State Machine</h1>
 
-<p>It turned out we still needed to implement a state machine (via <code>DataReaderState</code> class). It 
-was necessary to add a state for each <code>suspend</code> function of <code>DataReader</code> interface. That was 
+<p>It turned out we still needed to implement a state machine (via <code class="highlighter-rouge">DataReaderState</code> class). It 
+was necessary to add a state for each <code class="highlighter-rouge">suspend</code> function of <code class="highlighter-rouge">DataReader</code> interface. That was 
 the code we need to write as building block (and there 
 are <a href="https://github.com/Kotlin/kotlinx.coroutines">amazing libraries</a> for most 
 of the cases)</p>
 
-<p>The good part is that the rest part of the code, where we do the actual data decoding (the <code>readStream</code> function)
+<p>The good part is that the rest part of the code, where we do the actual data decoding (the <code class="highlighter-rouge">readStream</code> function)
 now free from an explicit state machine style programming. One can have code written as easy
 as possible. It’s easier to understand and to check. And, for example, we may use loops, try-catches 
 and any other code constructs we like using for ordinary programs.</p>

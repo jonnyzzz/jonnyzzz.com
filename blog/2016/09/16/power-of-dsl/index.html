@@ -193,7 +193,7 @@ objects for some domain.</p>
 This means we are allowed to mix the libraly calls with other 
 general language calls features. This forms a templates.</p>
 
-<p>You may recall a <code>.php</code> or <code>.jsp</code> condition or loop tags as an example.</p>
+<p>You may recall a <code class="highlighter-rouge">.php</code> or <code class="highlighter-rouge">.jsp</code> condition or loop tags as an example.</p>
 
 <p>For the DSL case the general purpose 
 language turns into a powerfull templage engine. Unlike string 
@@ -211,15 +211,15 @@ too.</p>
 <p>I will be using <a href="https://www.jetbrains.com/idea/">IntelliJ IDEA</a> as an IDE 
 and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \) below. Suppose
 we have a DSL API library for logger configuration implemented in Kotlin. An
-evaluation of <code>log4j</code> function yield a logger configuration 
+evaluation of <code class="highlighter-rouge">log4j</code> function yield a logger configuration 
 (e.g. for <a href="http://logging.apache.org/log4j/1.2/">Log4j</a>).</p>
 
 <p>Say we have the following code to setup
 <a href="/blog/2016/09/09/log4j-dsl/">loggers</a>.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
 <span class="n">log4j</span> <span class="p">{</span>
-  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">logger</span><span class="p">(</span><span class="s">"category2warn"</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">+</span> <span class="n">WARN</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
@@ -228,10 +228,10 @@ evaluation of <code>log4j</code> function yield a logger configuration
 same way. Thanks to Kotlin language features, one is allowed to use a 
 loop, e.g.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
 <span class="n">log4j</span> <span class="p">{</span>
-  <span class="n">listOf</span><span class="p">(</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="s">&quot;B&quot;</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">).</span><span class="n">forEach</span> <span class="p">{</span>
-    <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">listOf</span><span class="p">(</span><span class="s">"A"</span><span class="p">,</span> <span class="s">"B"</span><span class="p">,</span> <span class="s">"C"</span><span class="p">).</span><span class="n">forEach</span> <span class="p">{</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s">"category2warn.$it"</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">+</span> <span class="n">WARN</span>
     <span class="p">}</span>
   <span class="p">}</span>
@@ -247,8 +247,8 @@ to generate all definitions.</p>
 
 <p>The following part is now a template:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
-    <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
+    <span class="n">logger</span><span class="p">(</span><span class="s">"category2warn.$it"</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">+</span> <span class="n">WARN</span>
     <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
@@ -256,16 +256,16 @@ to generate all definitions.</p>
 <p>One may go further and decide to extract the collection of categoring into 
 a function. So we turn the logger configuration code into the following</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
-    <span class="n">logger</span><span class="p">(</span><span class="s">&quot;category2warn.$it&quot;</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s">"category2warn.$it"</span><span class="p">)</span> <span class="p">{</span>
       <span class="p">+</span> <span class="n">WARN</span>
     <span class="p">}</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Here we assume the <code>listAllRootPackages()</code> to return a list of 
+<p>Here we assume the <code class="highlighter-rouge">listAllRootPackages()</code> to return a list of 
 categories. There is no longer necessary to have this 
 function to return a constant list. Instead, it can be implemented
 as we like it to, e.g. it may scan an application package to collect
@@ -278,7 +278,7 @@ during a build phase. On that phase all templates are getting substituted.</p>
 
 <p>A next step is to extract the actual category setup code (a template)</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span> 
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
 <span class="n">log4j</span> <span class="p">{</span>
   <span class="n">listAllRootPackages</span><span class="p">().</span><span class="n">forEach</span> <span class="p">{</span>
     <span class="n">declareCategory</span><span class="p">(</span><span class="n">it</span><span class="p">)</span>

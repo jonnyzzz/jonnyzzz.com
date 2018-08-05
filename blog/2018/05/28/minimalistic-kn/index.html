@@ -177,12 +177,12 @@ example of using C library
       </footer>
       <div class="entry-content">
         <p>The most trivial <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> 
-example of using <code>C</code> library</p>
+example of using <code class="highlighter-rouge">C</code> library</p>
 
 <p>Some time ago I stuck linking a C binary into an executable with 
 <a href="/blog/2018/05/16/link-error/">___isOSVersionAtLeast is undefined</a>. 
 And thus I decided to simplify things to localize the problem. I will write 
-a dedicated post with the solution for <code>___isOSVersionAtLeast is undefined</code>.</p>
+a dedicated post with the solution for <code class="highlighter-rouge">___isOSVersionAtLeast is undefined</code>.</p>
 
 <p>Let’s focus on the most trivial library example. To start with, I assume 
 you have <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a>
@@ -190,118 +190,118 @@ compiler in the OS Path. Have a look at
 <a href="https://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler">the main tutorial</a>
 or merely download the compiler from <a href="https://github.com/JetBrains/kotlin-native/releases" target="_blank">GitHub Releases page</a>.
 Beware, the compiler will download the toolchain on the very first run.
-The <code>konanc</code> and <code>cinterop</code> tools should be in the <code>PATH</code> of your terminal or console.</p>
+The <code class="highlighter-rouge">konanc</code> and <code class="highlighter-rouge">cinterop</code> tools should be in the <code class="highlighter-rouge">PATH</code> of your terminal or console.</p>
 
 <p>The rest of the post is created and tested on macOS. It should just work on Linux, but I did not check it. 
 You shall have C/C++ toolchain installed too. On macOS, it is enough to install and run Xcode.</p>
 
 <h2 id="c-library">C Library</h2>
 
-<p>The <code>lib.h</code> file looks as follows</p>
+<p>The <code class="highlighter-rouge">lib.h</code> file looks as follows</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#ifndef LIB2_H_INCLUDED</span>
-<span class="cp">#define LIB2_H_INCLUDED</span>
-
-<span class="cp">#ifdef __cplusplus</span>
-   <span class="k">extern</span> <span class="err">“</span><span class="n">C</span><span class="err">”</span> <span class="p">{</span>
-<span class="cp">#endif</span>
-
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED
+#define LIB2_H_INCLUDED
+</span>
+<span class="cp">#ifdef __cplusplus
+</span>   <span class="k">extern</span> <span class="err">“</span><span class="n">C</span><span class="err">”</span> <span class="p">{</span>
+<span class="cp">#endif
+</span>
 <span class="kt">int</span> <span class="n">foo</span><span class="p">();</span>
 
-<span class="cp">#ifdef __cplusplus</span>
-   <span class="p">}</span>
-<span class="cp">#endif</span>
-<span class="cp">#endif </span><span class="c1">//LIB2_H_INCLUDED</span></code></pre></figure>
+<span class="cp">#ifdef __cplusplus
+</span>   <span class="p">}</span>
+<span class="cp">#endif
+#endif //LIB2_H_INCLUDED</span></code></pre></figure>
 
-<p>The <code>extern "C"</code> block is not needed (unless you use C++) and left here 
+<p>The <code class="highlighter-rouge">extern "C"</code> block is not needed (unless you use C++) and left here 
 for <a href="https://stackoverflow.com/questions/1041866/what-is-the-effect-of-extern-c-in-c">C++ compatibility</a>.
-Thus you may shrink the file to <code>lib.h</code>:</p>
+Thus you may shrink the file to <code class="highlighter-rouge">lib.h</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#ifndef LIB2_H_INCLUDED</span>
-<span class="cp">#define LIB2_H_INCLUDED</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#ifndef LIB2_H_INCLUDED
+#define LIB2_H_INCLUDED
+</span>
+<span class="kt">int</span> <span class="n">foo</span><span class="p">();</span>
 
-<span class="kt">int</span> <span class="nf">foo</span><span class="p">();</span>
-
-<span class="cp">#endif </span><span class="c1">//LIB2_H_INCLUDED</span></code></pre></figure>
+<span class="cp">#endif //LIB2_H_INCLUDED</span></code></pre></figure>
 
 <p><a href="https://stackoverflow.com/questions/1653958/why-are-ifndef-and-define-used-in-c-header-files">#include guards</a>
-in your <code>.h</code> files are a standard ritual. They are necessary for multiple <code>.h</code> files projects.</p>
+in your <code class="highlighter-rouge">.h</code> files are a standard ritual. They are necessary for multiple <code class="highlighter-rouge">.h</code> files projects.</p>
 
-<p>The code above declares one function for export <code>int foo()</code>. We use the <code>.h</code> file later 
-with Kotlin/Native <code>cinterop</code> tool import the function into Kotlin/Native.</p>
+<p>The code above declares one function for export <code class="highlighter-rouge">int foo()</code>. We use the <code class="highlighter-rouge">.h</code> file later 
+with Kotlin/Native <code class="highlighter-rouge">cinterop</code> tool import the function into Kotlin/Native.</p>
 
-<p>Let’s create a <code>lib.c</code> for implementation for the <code>foo</code> function in C:</p>
+<p>Let’s create a <code class="highlighter-rouge">lib.c</code> for implementation for the <code class="highlighter-rouge">foo</code> function in C:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#include</span> <span class="cpf">&quot;lib.h&quot;</span><span class="cp"></span>
-
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include "lib.h"
+</span>
 <span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
   <span class="k">return</span> <span class="mi">42</span><span class="p">;</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Now we compile the C sources into a C library. For that we call <code>gcc</code> to compile (and link)
-the <code>.c</code> sources into a C static library:</p>
+<p>Now we compile the C sources into a C library. For that we call <code class="highlighter-rouge">gcc</code> to compile (and link)
+the <code class="highlighter-rouge">.c</code> sources into a C static library:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>gcc -c <span class="s2">&quot;-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span> lib.c -o lib.o
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc <span class="nt">-c</span> <span class="s2">"-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span> lib.c <span class="nt">-o</span> lib.o
 ar rcs lib.a lib.o</code></pre></figure>
 
-<p>It will be a bit more complicated if you have several <code>.c</code> source files.</p>
+<p>It will be a bit more complicated if you have several <code class="highlighter-rouge">.c</code> source files.</p>
 
 <p>At that moment we have</p>
 <ul>
-  <li><code>lib.h</code> – the header</li>
-  <li><code>lib.c</code> – the implementation</li>
-  <li><code>lib.o</code> – the intermediate object file</li>
-  <li><code>lib.a</code> – the compiled static library</li>
+  <li><code class="highlighter-rouge">lib.h</code> – the header</li>
+  <li><code class="highlighter-rouge">lib.c</code> – the implementation</li>
+  <li><code class="highlighter-rouge">lib.o</code> – the intermediate object file</li>
+  <li><code class="highlighter-rouge">lib.a</code> – the compiled static library</li>
 </ul>
 
 <h2 id="importing-to-kotlinnative">Importing to Kotlin/Native</h2>
 
 <p>We need to import the C library to be used with Kotlin/Native. It is as tricky as 
-calling a <code>cinterop</code> tool.</p>
+calling a <code class="highlighter-rouge">cinterop</code> tool.</p>
 
-<p>The <code>cinterop</code> tool uses the definition file for my library <code>lib.def</code>:</p>
+<p>The <code class="highlighter-rouge">cinterop</code> tool uses the definition file for my library <code class="highlighter-rouge">lib.def</code>:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>header = lib.h</code></pre></figure>
+<figure class="highlight"><pre><code class="language-text" data-lang="text">header = lib.h</code></pre></figure>
 
 <p>The file helps to specify all necessary options for bigger libraries.</p>
 
-<p>Not it is the time to call the <code>cinterop</code> with the following options:</p>
+<p>Not it is the time to call the <code class="highlighter-rouge">cinterop</code> with the following options:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>cinterop -def lib.def -compilerOpts <span class="s2">&quot;-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span> -o lib.klib</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">cinterop <span class="nt">-def</span> lib.def <span class="nt">-compilerOpts</span> <span class="s2">"-I</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span> <span class="nt">-o</span> lib.klib</code></pre></figure>
 
-<p>The result is a <code>lib.klib</code> file. A Kotlin/Native library file. It contains Kotlin APIs for 
-our <code>lib.h</code>. It bridges C types and Kotlin/Native types (trivial <code>Int</code> in our case) and helps
+<p>The result is a <code class="highlighter-rouge">lib.klib</code> file. A Kotlin/Native library file. It contains Kotlin APIs for 
+our <code class="highlighter-rouge">lib.h</code>. It bridges C types and Kotlin/Native types (trivial <code class="highlighter-rouge">Int</code> in our case) and helps
 to deal with memory management (not needed for our example).</p>
 
 <p>At that moment we have</p>
 <ul>
-  <li><code>lib.h</code> – the header</li>
-  <li><code>lib.c</code> – the implementation</li>
-  <li><code>lib.o</code> – the intermediate object file</li>
-  <li><code>lib.a</code> – the compiled static library</li>
-  <li><code>lib.def</code> – the definitions for <code>cinterop</code>, reference to <code>lib.h</code></li>
-  <li><code>lib.klib</code> – the compiled Kotlin/Native library to access API from <code>lib.h</code></li>
+  <li><code class="highlighter-rouge">lib.h</code> – the header</li>
+  <li><code class="highlighter-rouge">lib.c</code> – the implementation</li>
+  <li><code class="highlighter-rouge">lib.o</code> – the intermediate object file</li>
+  <li><code class="highlighter-rouge">lib.a</code> – the compiled static library</li>
+  <li><code class="highlighter-rouge">lib.def</code> – the definitions for <code class="highlighter-rouge">cinterop</code>, reference to <code class="highlighter-rouge">lib.h</code></li>
+  <li><code class="highlighter-rouge">lib.klib</code> – the compiled Kotlin/Native library to access API from <code class="highlighter-rouge">lib.h</code></li>
 </ul>
 
 <h2 id="compiling-with-kotlinnative">Compiling with Kotlin/Native</h2>
 
-<p>We need an entry point and Kotlin sources. I created the <code>main.kt</code> file for that</p>
+<p>We need an entry point and Kotlin sources. I created the <code class="highlighter-rouge">main.kt</code> file for that</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">z</span> <span class="p">=</span> <span class="n">lib</span><span class="p">.</span><span class="n">foo</span><span class="p">()</span>
-  <span class="n">println</span><span class="p">(</span><span class="s">&quot;The foo() from lib.h returned $z&quot;</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">z</span> <span class="p">=</span> <span class="n">lib</span><span class="p">.</span><span class="n">foo</span><span class="p">()</span>
+  <span class="n">println</span><span class="p">(</span><span class="s">"The foo() from lib.h returned $z"</span><span class="p">)</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>And I compile it with the following command</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>konanc -l lib.klib main.kt -linkerOpts lib.a -o main.kexe</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">konanc <span class="nt">-l</span> lib.klib main.kt <span class="nt">-linkerOpts</span> lib.a <span class="nt">-o</span> main.kexe</code></pre></figure>
 
-<p>and run the <code>./main.kexe</code> to see the resulting text is being printed:</p>
+<p>and run the <code class="highlighter-rouge">./main.kexe</code> to see the resulting text is being printed:</p>
 
-<pre><code>./main.kexe
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./main.kexe
 The foo() from lib.h returned 42
 
-</code></pre>
+</code></pre></div></div>
 
 <h2 id="conclusion">Conclusion</h2>
 

@@ -183,25 +183,25 @@ dependencies, and thus without requirements and dependencies hassle. That is eas
 baking os-specific packages or installers.</p>
 
 <p><a href="https://curl.haxx.se/">Curl</a> is one of my dependencies for this project. So I compiled it to 
-<code>libcurl.a</code> and lined to <a href="https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md">Kotlin/Native</a>
+<code class="highlighter-rouge">libcurl.a</code> and lined to <a href="https://github.com/JetBrains/kotlin-native/blob/master/INTEROP.md">Kotlin/Native</a>
 easily with a few lines of Gradle script.</p>
 
 <p>It failed with something cryptic on my macOS 10.13.4 with Xcode 9.3.1.</p>
 
-<pre><code>Undefined symbols for architecture x86_64:
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Undefined symbols for architecture x86_64:
   "___isOSVersionAtLeast", referenced from:
       _singleipconnect in libcurl.a(libcurl_la-connect.o)
       _darwinssl_connect_common in libcurl.a(libcurl_la-darwinssl.o)
       _darwinssl_version_from_curl in libcurl.a(libcurl_la-darwinssl.o)
 ld: symbol(s) not found for architecture x86_64
-</code></pre>
+</code></pre></div></div>
 
 <p>Digging internet did not help. And that is mostly why I am blogging that one. Changing or patching the 
 way I build curl was useless too. Nikolay suggested me to check target version of my binaries. That was it.
 Kudos Nikolay!</p>
 
-<p>I should have compiled the curl with <code>10.13</code> as min version for Mac. I did that by setting
-<code>CFLAGS</code> environment variable to <code>-mmacosx-version-min=10.13</code> for <code>./configure</code> and <code>make</code> commands.</p>
+<p>I should have compiled the curl with <code class="highlighter-rouge">10.13</code> as min version for Mac. I did that by setting
+<code class="highlighter-rouge">CFLAGS</code> environment variable to <code class="highlighter-rouge">-mmacosx-version-min=10.13</code> for <code class="highlighter-rouge">./configure</code> and <code class="highlighter-rouge">make</code> commands.</p>
 
 <p>Continue reading the <a href="/blog/2018/06/05/link-error-2/">next part of the investigation</a></p>
 

@@ -191,42 +191,42 @@ with each call. To fix that we may return a value object with all fields, but it
 of mess to the callee code.</p>
 
 <p>Yet another apporach is to make the method return a base class or interface and to have an 
-implementation per return case. This would make code cleaner, but with a cost of <code>instenceof</code>
+implementation per return case. This would make code cleaner, but with a cost of <code class="highlighter-rouge">instenceof</code>
 or <a href="https://en.wikipedia.org/wiki/Visitor_pattern">visitor pattern</a> impementation.</p>
 
 <p>A nice thing in Kotlin is we are able to use 
 <a href="https://kotlinlang.org/docs/reference/control-flow.html#when-expression">when expression</a> 
 to make this checking code read better. In <a href="/blog/2017/03/15/switch-to-when/">a recent post</a>
-I covered <code>when</code> expression benefits.</p>
+I covered <code class="highlighter-rouge">when</code> expression benefits.</p>
 
-<p>We may also make sure we check all possible branchs in <code>when</code> expression. For this we only need to 
+<p>We may also make sure we check all possible branchs in <code class="highlighter-rouge">when</code> expression. For this we only need to 
 use <a href="https://kotlinlang.org/docs/reference/classes.html#sealed-classes">sealed classes</a> for 
 return objects hierarchy.</p>
 
-<p>This is example implementation code with sealed class and <code>when</code> expression:</p>
+<p>This is example implementation code with sealed class and <code class="highlighter-rouge">when</code> expression:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">UserId</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
-<span class="k">class</span> <span class="nc">MagicToken</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">UserId</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
+<span class="kd">class</span> <span class="nc">MagicToken</span> <span class="p">{</span> <span class="cm">/* ... */</span> <span class="p">}</span>
 
-<span class="k">sealed</span> <span class="k">class</span> <span class="nc">AuthResult</span> <span class="p">{</span>
-  <span class="k">class</span> <span class="nc">NotAuthenticated</span><span class="p">(</span><span class="k">val</span> <span class="py">message</span><span class="p">:</span><span class="n">String</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
-  <span class="k">class</span> <span class="nc">NotAuthorized</span><span class="p">(</span><span class="k">val</span> <span class="py">id</span> <span class="p">:</span> <span class="n">UserId</span><span class="p">,</span> <span class="k">val</span> <span class="py">message</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
-  <span class="k">class</span> <span class="nc">Success</span><span class="p">(</span><span class="k">val</span> <span class="py">id</span><span class="p">:</span> <span class="n">UserId</span><span class="p">,</span> <span class="k">val</span> <span class="py">token</span> <span class="p">:</span> <span class="n">MagicToken</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
+<span class="k">sealed</span> <span class="kd">class</span> <span class="nc">AuthResult</span> <span class="p">{</span>
+  <span class="kd">class</span> <span class="nc">NotAuthenticated</span><span class="p">(</span><span class="kd">val</span> <span class="py">message</span><span class="p">:</span><span class="n">String</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
+  <span class="kd">class</span> <span class="nc">NotAuthorized</span><span class="p">(</span><span class="kd">val</span> <span class="py">id</span> <span class="p">:</span> <span class="n">UserId</span><span class="p">,</span> <span class="kd">val</span> <span class="py">message</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
+  <span class="kd">class</span> <span class="nc">Success</span><span class="p">(</span><span class="kd">val</span> <span class="py">id</span><span class="p">:</span> <span class="n">UserId</span><span class="p">,</span> <span class="kd">val</span> <span class="py">token</span> <span class="p">:</span> <span class="n">MagicToken</span><span class="p">)</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="k">fun</span> <span class="nf">proceed</span><span class="p">(</span><span class="n">r</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">)</span> <span class="p">=</span> <span class="k">when</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">is</span> <span class="n">NotAuthenticated</span> <span class="p">-&gt;</span> <span class="s">&quot;NotAuthenticated ${r.message}&quot;</span>
-  <span class="k">is</span> <span class="n">NotAuthorized</span> <span class="p">-&gt;</span> <span class="s">&quot;NotAuthorized ${r.id}, ${r.message}&quot;</span>
-  <span class="k">is</span> <span class="n">Success</span> <span class="p">-&gt;</span> <span class="s">&quot;Success ${r.token}&quot;</span>
+<span class="k">fun</span> <span class="n">proceed</span><span class="p">(</span><span class="n">r</span> <span class="p">:</span> <span class="n">AuthResult</span><span class="p">)</span> <span class="p">=</span> <span class="k">when</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">is</span> <span class="n">NotAuthenticated</span> <span class="p">-&gt;</span> <span class="s">"NotAuthenticated ${r.message}"</span>
+  <span class="k">is</span> <span class="n">NotAuthorized</span> <span class="p">-&gt;</span> <span class="s">"NotAuthorized ${r.id}, ${r.message}"</span>
+  <span class="k">is</span> <span class="n">Success</span> <span class="p">-&gt;</span> <span class="s">"Success ${r.token}"</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>In this example we also need not specify <code>else</code> case for 
+<p>In this example we also need not specify <code class="highlighter-rouge">else</code> case for 
 <a href="https://kotlinlang.org/docs/reference/control-flow.html#when-expression">when expression</a>.
 Kotlin compiler is able to prove we listed all types if this sealed class.</p>
 
 <p>Thanks to <a href="https://kotlinlang.org/docs/reference/typecasts.html#smart-casts">smart casts</a> 
-in each <code>when</code> branch we use exactly matched type, so for example, <code>r.message</code> in the first branch 
-is <code>NotAuthenticated#message</code> and so on.</p>
+in each <code class="highlighter-rouge">when</code> branch we use exactly matched type, so for example, <code class="highlighter-rouge">r.message</code> in the first branch 
+is <code class="highlighter-rouge">NotAuthenticated#message</code> and so on.</p>
 
 <h1 id="generated-bytecode">Generated bytecode</h1>
 
@@ -234,13 +234,13 @@ is <code>NotAuthenticated#message</code> and so on.</p>
 Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 1.0.6 plugin. The generated bytecode 
 may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  // access flags 0x19
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
   public final static proceed(LAuthResult;)Ljava/lang/String;
     @Lorg/jetbrains/annotations/NotNull;() // invisible
     @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
    L0
     ALOAD 0
-    LDC &quot;r&quot;
+    LDC "r"
     INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
    L1
     LINENUMBER 25 L1
@@ -255,7 +255,7 @@ may change with a future version of tools.</p>
     NEW java/lang/StringBuilder
     DUP
     INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
-    LDC &quot;NotAuthenticated &quot;
+    LDC "NotAuthenticated "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 0
     CHECKCAST AuthResult$NotAuthenticated
@@ -272,13 +272,13 @@ may change with a future version of tools.</p>
     NEW java/lang/StringBuilder
     DUP
     INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
-    LDC &quot;NotAuthorized &quot;
+    LDC "NotAuthorized "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 0
     CHECKCAST AuthResult$NotAuthorized
     INVOKEVIRTUAL AuthResult$NotAuthorized.getId ()LUserId;
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/Object;)Ljava/lang/StringBuilder;
-    LDC &quot;, &quot;
+    LDC ", "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 0
     CHECKCAST AuthResult$NotAuthorized
@@ -295,7 +295,7 @@ may change with a future version of tools.</p>
     NEW java/lang/StringBuilder
     DUP
     INVOKESPECIAL java/lang/StringBuilder.&lt;init&gt; ()V
-    LDC &quot;Success &quot;
+    LDC "Success "
     INVOKEVIRTUAL java/lang/StringBuilder.append (Ljava/lang/String;)Ljava/lang/StringBuilder;
     ALOAD 0
     CHECKCAST AuthResult$Success
@@ -318,16 +318,16 @@ may change with a future version of tools.</p>
     MAXSTACK = 2
     MAXLOCALS = 2</code></pre></figure>
 
-<p>Kotlin compiler generated an <code>if-else</code> chain with <code>instanceof</code> checks. First it checks 
-if the value is <code>AuthResult$NotAuthenticated</code>, next <code>AuthResult$NotAuthorized</code> and finally
-<code>AuthResult$Success</code>. In a case something went terribly wrong, a <code>kotlin.NoWhenBranchMatchedException</code>
+<p>Kotlin compiler generated an <code class="highlighter-rouge">if-else</code> chain with <code class="highlighter-rouge">instanceof</code> checks. First it checks 
+if the value is <code class="highlighter-rouge">AuthResult$NotAuthenticated</code>, next <code class="highlighter-rouge">AuthResult$NotAuthorized</code> and finally
+<code class="highlighter-rouge">AuthResult$Success</code>. In a case something went terribly wrong, a <code class="highlighter-rouge">kotlin.NoWhenBranchMatchedException</code>
 exception is thrown. And this can be achieved if older version of our snippet is executed with a
-newer version of <code>AuthResult</code> class. A full re-compile will fail with error so we were able to 
+newer version of <code class="highlighter-rouge">AuthResult</code> class. A full re-compile will fail with error so we were able to 
 fix the problem easily.</p>
 
 <h1 id="conclusion">Conclusion</h1>
 
-<p>In this post, we looked how <code>when</code> expression is working with <code>sealed classes</code>, which are really nice
+<p>In this post, we looked how <code class="highlighter-rouge">when</code> expression is working with <code class="highlighter-rouge">sealed classes</code>, which are really nice
 to use for cases, where one needs to return several different unrelated values.</p>
 
 <h1 id="related-work">Related work</h1>

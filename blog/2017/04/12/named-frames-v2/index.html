@@ -191,10 +191,10 @@ What a command was it? Or, say you were digging the roots of a NullPointerExcept
 
 <p>Most time it’s hard.</p>
 
-<p>There is a simple remedy. One may call <code>Threads.setName</code> to set/unset thread
+<p>There is a simple remedy. One may call <code class="highlighter-rouge">Threads.setName</code> to set/unset thread
 name to indicate current activity and/or to add more information.</p>
 
-<p>Hey, be aware of the <code>Threads.setName</code>. Some other code may also use it in their way.
+<p>Hey, be aware of the <code class="highlighter-rouge">Threads.setName</code>. Some other code may also use it in their way.
 Please, do not spoil it, if you can</p>
 
 <p>Unfortunately, exception stack trace does not container thread name. So the fragile context is
@@ -206,9 +206,9 @@ lost in an exception or in a logger message? Can we make it more context-aware a
 
 <h1 id="an-example">An example</h1>
 
-<p>Consider an application, which runs a request for a given, say, <code>userId</code>. And it crashes with code like</p>
+<p>Consider an application, which runs a request for a given, say, <code class="highlighter-rouge">userId</code>. And it crashes with code like</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread "main" com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl.itWillNotCrash(crash.kt:5)
 	at com.jonnyzzz.blog.example.logic.business.BusinessLogic.mightyMethod(BusinessLogic.kt:7)
 	at com.jonnyzzz.blog.example.db.transaction.internals.InternalsForSure.transaction(InternalsForSure.kt:9)
@@ -231,16 +231,16 @@ lost in an exception or in a logger message? Can we make it more context-aware a
 <p>I created the <a href="https://github.com/jonnyzzz/named-java-frames">Named Frames</a>
 library, which aims to help by including an additional information as <em>method calls</em>.</p>
 
-<p>Let’s now update the code and include <code>userId</code> and RemoteCrashMicroService backend URL into the thread
+<p>Let’s now update the code and include <code class="highlighter-rouge">userId</code> and RemoteCrashMicroService backend URL into the thread
 dump. That is done be wrapping method calls with code like that:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">NamedStackFrame</span><span class="o">.</span><span class="na">global</span><span class="o">().</span><span class="na">forName</span><span class="o">(</span><span class="s">&quot;YOUR TEXT HERE&quot;</span><span class="o">).</span><span class="na">run</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
-    <span class="c1">// it is called from a method, which contains &#39;YOUR TEXT HERE&#39; in the full name</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">NamedStackFrame</span><span class="o">.</span><span class="na">global</span><span class="o">().</span><span class="na">forName</span><span class="o">(</span><span class="s">"YOUR TEXT HERE"</span><span class="o">).</span><span class="na">run</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="c1">// it is called from a method, which contains 'YOUR TEXT HERE' in the full name</span>
 <span class="o">});</span></code></pre></figure>
 
 <p>The updated thread dump from the exception is now the following</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Exception in thread &quot;main&quot; com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Exception in thread "main" com.jonnyzzz.blog.example.wtf.RemoteCrashServiceTimeOutException
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:8)
 	at com.jonnyzzz.blog.example.wtf.RemoteCrashMicroServiceAccessImpl$itWillNotCrash$1.call(crash.kt:5)
 
@@ -272,11 +272,11 @@ which can be used to debug the original problem.</p>
 <h1 id="api">API</h1>
 
 <p>Named stack frames API is easy and flexible. 
-The main entry point is <code>org.jonnyzzz.stack.NamedStackFrame</code>. There you may use either <code>#global()</code> method to access 
+The main entry point is <code class="highlighter-rouge">org.jonnyzzz.stack.NamedStackFrame</code>. There you may use either <code class="highlighter-rouge">#global()</code> method to access 
 statically cached factory of named framed. 
-The better is to use <code>#newInstance()</code> method to have an instance of the factory to explicitly control the lifetime.</p>
+The better is to use <code class="highlighter-rouge">#newInstance()</code> method to have an instance of the factory to explicitly control the lifetime.</p>
 
-<p>Both methods return an instance of <code>org.jonnyzzz.stack.NamedExecutor</code> interface, which contains all possible methods to wrap
+<p>Both methods return an instance of <code class="highlighter-rouge">org.jonnyzzz.stack.NamedExecutor</code> interface, which contains all possible methods to wrap
 a call with a named frame.</p>
 
 <h1 id="implementation">Implementation</h1>
@@ -304,7 +304,7 @@ it’s your responsibility to make sure you will not consume all JVM memory on t
 <p>Do you use a profiler to monitor your application? A profiler presents such named 
 methods (just like ordinary methods) as different method calls. That means you’ll see a distribution of calls.</p>
 
-<p>You’ll see a distribution of time spent by each name: a distribution by <code>userId</code>, <code>action type</code> or <code>serviceId</code>
+<p>You’ll see a distribution of time spent by each name: a distribution by <code class="highlighter-rouge">userId</code>, <code class="highlighter-rouge">action type</code> or <code class="highlighter-rouge">serviceId</code>
 for the example above.</p>
 
 <h1 id="android-support">Android Support</h1>
@@ -325,14 +325,14 @@ Please contribute!</p>
 <p><a href="https://bintray.com/jonnyzzz/maven/named-frames/_latestVersion"> <img src="https://api.bintray.com/packages/jonnyzzz/maven/named-frames/images/download.svg" alt="Download" /> </a> <a href="https://travis-ci.org/jonnyzzz/named-java-frames"> <img src="https://travis-ci.org/jonnyzzz/named-java-frames.svg?branch=master" alt="Build Status" /></a></p>
 
 <p>In Gradle, just add</p>
-<pre><code>repositories {
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>repositories {
   jcenter()
 }
 
 dependencies {
   compile 'org.jonnyzzz.named-frames:named-frames:&lt;LATEST VERSION&gt;'
 }
-</code></pre>
+</code></pre></div></div>
 
 <h1 id="issues">Issues</h1>
 

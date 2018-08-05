@@ -187,13 +187,13 @@ This makes the scripting done with groovy too.</p>
 
 <p>Here goes an example to run an Amazon API and wrap it as Gradle task:</p>
 
-<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span></span><span class="n">buildscript</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">repositories</span> <span class="o">{</span>
     <span class="n">jcenter</span><span class="o">();</span>
   <span class="o">}</span>
   <span class="n">dependencies</span> <span class="o">{</span>
     <span class="c1">// List all dependencies for scripting here</span>
-    <span class="n">classpath</span> <span class="s1">&#39;com.amazonaws:aws-java-sdk:1.10.48&#39;</span>
+    <span class="n">classpath</span> <span class="s1">'com.amazonaws:aws-java-sdk:1.10.48'</span>
   <span class="o">}</span>
 <span class="o">}</span>
 
@@ -204,7 +204,7 @@ This makes the scripting done with groovy too.</p>
 <span class="n">task</span> <span class="n">runScriptForAmazon</span> <span class="o">&lt;&lt;</span> <span class="o">{</span>
   <span class="c1">// The script source goes here!</span>
   <span class="kt">def</span> <span class="n">s3client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AmazonS3Client</span><span class="o">(</span><span class="k">new</span> <span class="n">ProfileCredentialsProvider</span><span class="o">())</span>
-  <span class="n">println</span> <span class="s2">&quot;Working with endpoint: $s3client.endpoint&quot;</span>
+  <span class="n">println</span> <span class="s2">"Working with endpoint: $s3client.endpoint"</span>
 <span class="o">}</span></code></pre></figure>
 
 <p>The only trick here is that Gradle includes all script dependencies into classpath 
@@ -212,7 +212,7 @@ where tasks are loaded and executed.</p>
 
 <p>Even more, adding <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper</a> 
 makes it runnable on eveny machine with JVM only. 
-(A <code>Wrapper</code> task can be used to have Gradle generate wrapper scripts)</p>
+(A <code class="highlighter-rouge">Wrapper</code> task can be used to have Gradle generate wrapper scripts)</p>
 
 <p>Happy scripting!</p>
 

@@ -197,14 +197,14 @@ dependencies.</p>
 
 <h1 id="the-problem">The Problem</h1>
 
-<p>Say we have and <code>API.jar</code> and <code>IMPL.jar</code>. We are looking on how to load the <code>IMPL.jar</code> with a clean
-classpath and still have a change to bind it to the <code>API.jar</code> that is a part of some other huge classpath.</p>
+<p>Say we have and <code class="highlighter-rouge">API.jar</code> and <code class="highlighter-rouge">IMPL.jar</code>. We are looking on how to load the <code class="highlighter-rouge">IMPL.jar</code> with a clean
+classpath and still have a change to bind it to the <code class="highlighter-rouge">API.jar</code> that is a part of some other huge classpath.</p>
 
 <p>The goal is to the following:</p>
 
 <ul>
-  <li>Test framework uses <code>API.jar</code></li>
-  <li>IMPL.jar also uses <code>API.jar</code>, but it does not see any test-related classes</li>
+  <li>Test framework uses <code class="highlighter-rouge">API.jar</code></li>
+  <li>IMPL.jar also uses <code class="highlighter-rouge">API.jar</code>, but it does not see any test-related classes</li>
 </ul>
 
 <p>The problem is that it is test framework / test runner that loading test classes. We are unlikely to change that.
@@ -238,7 +238,7 @@ those classes will likely register themselves in the OS.</p>
 
 <p>The solution here is the following. We crete a classloader:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="n">val</span> <span class="n">jvmClassLoaderDelegate</span> <span class="o">=</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="k">new</span> <span class="n">URL</span><span class="o">[</span><span class="mi">0</span><span class="o">],</span> <span class="kc">null</span><span class="o">)</span></code></pre></figure>
 
 <p>This classloader is the first one to check in the child classloader implementation. It is the easiest way I know
 to delegate to the system classloader. The Classloader itself uses native method in order to delegate to it.</p>
@@ -249,23 +249,23 @@ to delegate to the system classloader. The Classloader itself uses native method
 strategy must be implemented for resources too. Otherwise, it may break some libraries which uses resources.</p>
 
 <p>Finally classloading with child first delegation does not solve the initial problem. It does not allow to 
-fully isolate test classes (e.g. test framework) from <code>IMPL.jar</code> classes</p>
+fully isolate test classes (e.g. test framework) from <code class="highlighter-rouge">IMPL.jar</code> classes</p>
 
 <h1 id="the-proxy-trick">The Proxy Trick</h1>
 
-<p>The idea is to load <code>API.jar</code> twice and than use to <code>java.lang.reflect.Proxy</code> to bind interfaces part from 
+<p>The idea is to load <code class="highlighter-rouge">API.jar</code> twice and than use to <code class="highlighter-rouge">java.lang.reflect.Proxy</code> to bind interfaces part from 
 tests classspath to implementations.</p>
 
-<p>A trick is to have yet another classloader with <code>null</code> as parent. The loader classpath includes 
-only <code>API.jar</code>, <code>IMPL.jar</code> and dependencies of <code>IMPL.jar</code>.</p>
+<p>A trick is to have yet another classloader with <code class="highlighter-rouge">null</code> as parent. The loader classpath includes 
+only <code class="highlighter-rouge">API.jar</code>, <code class="highlighter-rouge">IMPL.jar</code> and dependencies of <code class="highlighter-rouge">IMPL.jar</code>.</p>
 
-<p>Next we create a <code>java.lang.reflect.Proxy</code> to create an instance of an API interface that delegates
+<p>Next we create a <code class="highlighter-rouge">java.lang.reflect.Proxy</code> to create an instance of an API interface that delegates
 to the implementation class that is loaded by the other classloader. We are not able to cast here,
-since we have <code>API.jar</code> loaded twice.</p>
+since we have <code class="highlighter-rouge">API.jar</code> loaded twice.</p>
 
 <p>Unfortunately, this will only work when API interface methods uses JVM classes as parameters 
 and return types. There are no common 
-classloaders between <code>IMPL.jar</code> and tests, thus ClassCastException will be thrown for other types.</p>
+classloaders between <code class="highlighter-rouge">IMPL.jar</code> and tests, thus ClassCastException will be thrown for other types.</p>
 
 <h1 id="recursive-proxy-trick">Recursive Proxy Trick</h1>
 
@@ -275,20 +275,20 @@ classloaders between <code>IMPL.jar</code> and tests, thus ClassCastException wi
   <li>Create a proxy for API interface</li>
   <li>In the implementation, check all parameter types and proxy every parameter with non system classloader</li>
   <li>In the implementation, proxy return values in opposite way</li>
-  <li>Apply the following proxies recursively if <code>API.jar</code> interfaces are complex</li>
+  <li>Apply the following proxies recursively if <code class="highlighter-rouge">API.jar</code> interfaces are complex</li>
 </ul>
 
-<p>This approach allows to use JVM classes and <code>API.jar</code> interfaces between the bound. It will not work 
-with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>.</p>
+<p>This approach allows to use JVM classes and <code class="highlighter-rouge">API.jar</code> interfaces between the bound. It will not work 
+with classes, since it is the limitation of <code class="highlighter-rouge">java.lang.reflect.Proxy</code>.</p>
 
 <p>The overall trick is implemented as follows</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="cm">/*</span>
-<span class="cm"> * creates a proxy for an object obj loaded in sourceLoader hierarchy </span>
-<span class="cm"> * that is visible in destLoader as destClass interface</span>
-<span class="cm"> * assuming all methods of destClass are implemented in obj</span>
-<span class="cm"> * exactly with same signature</span>
-<span class="cm">*/</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="cm">/*
+ * creates a proxy for an object obj loaded in sourceLoader hierarchy 
+ * that is visible in destLoader as destClass interface
+ * assuming all methods of destClass are implemented in obj
+ * exactly with same signature
+*/</span>
 <span class="n">Object</span> <span class="nf">proxy</span><span class="o">(</span><span class="kd">final</span> <span class="n">Object</span> <span class="n">obj</span><span class="o">,</span>
              <span class="kd">final</span> <span class="n">ClassLoader</span> <span class="n">sourceLoader</span><span class="o">,</span>
              <span class="kd">final</span> <span class="n">ClassLoader</span> <span class="n">destLoader</span><span class="o">,</span>
@@ -316,23 +316,23 @@ with classes, since it is the limitation of <code>java.lang.reflect.Proxy</code>
                     <span class="k">if</span> <span class="o">(</span><span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">().</span><span class="na">getClassLoader</span><span class="o">()</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
                       <span class="k">return</span> <span class="n">result</span><span class="o">;</span>
                     <span class="o">}</span>
-                    <span class="k">return</span> <span class="n">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
+                    <span class="k">return</span> <span class="nf">proxy</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="n">sourceLoader</span><span class="o">,</span> <span class="n">destLoader</span><span class="o">,</span> <span class="n">method</span><span class="o">.</span><span class="na">getReturnType</span><span class="o">());</span>
                   <span class="o">}));</span>
   <span class="o">}</span></code></pre></figure>
 
 <h1 id="limitations">Limitations</h1>
 
 <p>Current implementation works only with API interfaces. It does not allow sharing classes or enums. 
-Enums from <code>API.jar</code> can be easily supported be adding an explicit checking. 
-Classes cannot be mapped this way. At least because it is not allowed in <code>java.lang.reflect.Proxy</code>. 
+Enums from <code class="highlighter-rouge">API.jar</code> can be easily supported be adding an explicit checking. 
+Classes cannot be mapped this way. At least because it is not allowed in <code class="highlighter-rouge">java.lang.reflect.Proxy</code>. 
 From the other hand, it’s not clear how class state can be transferred at all.</p>
 
 <h1 id="side-note">Side Note</h1>
 
-<p>It may be necessary to change <code>Thread#contextClassloader</code> to the right one before calling a 
+<p>It may be necessary to change <code class="highlighter-rouge">Thread#contextClassloader</code> to the right one before calling a 
 method from different classloader. This trick makes dynamic classloading in libraries work 
 correctly for some cases. Otherwise, there is a possibility that a class from another classpath
-is created from <code>IMPL.jar</code> code (say, via <code>Class#forName</code> call)</p>
+is created from <code class="highlighter-rouge">IMPL.jar</code> code (say, via <code class="highlighter-rouge">Class#forName</code> call)</p>
 
 <h1 id="conclusion">Conclusion</h1>
 

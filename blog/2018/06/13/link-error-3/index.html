@@ -181,7 +181,7 @@
 
 <p>I came across with the linker problem. My application was not able to link with the
 <a href="/blog/2018/05/16/link-error/">___isOSVersionAtLeast symbol is undefined</a> error.
-It was the problem linking <code>curl</code> with a
+It was the problem linking <code class="highlighter-rouge">curl</code> with a
 <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a>
 app. I did a tiny project to <a href="https://github.com/jonnyzzz/demo-static-lib">reproduce the linker error</a>.
 As a side effect, here is a <a href="/blog/2018/05/28/minimalistic-kn/">Minimalistic C library and Kotlin/Native</a>
@@ -190,14 +190,14 @@ is I got a suggestion to try.</p>
 
 <h2 id="use-clang-not-ld">Use clang not ld</h2>
 
-<p>The suggestion I got (and I say thank you for that) was to use <code>clang</code> command, not the <code>ld</code> one:</p>
+<p>The suggestion I got (and I say thank you for that) was to use <code class="highlighter-rouge">clang</code> command, not the <code class="highlighter-rouge">ld</code> one:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>clang -mmacosx-version-min<span class="o">=</span><span class="m">10</span>.10 -lc main.o lib.a</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">clang <span class="nt">-mmacosx-version-min</span><span class="o">=</span>10.10 <span class="nt">-lc</span> main.o lib.a</code></pre></figure>
 
-<p>It did work. It was able to link. Next, we may try <code>-v</code> switch to see how it works inside, 
+<p>It did work. It was able to link. Next, we may try <code class="highlighter-rouge">-v</code> switch to see how it works inside, 
 with arguments split per lines and long paths simplified:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>&gt; clang -mmacosx-version-min=10.10 -lc main.o lib.a -v
+<figure class="highlight"><pre><code class="language-text" data-lang="text">&gt; clang -mmacosx-version-min=10.10 -lc main.o lib.a -v
 
 Apple LLVM version 9.1.0 (clang-902.0.39.2)
 Target: x86_64-apple-darwin17.6.0
@@ -219,37 +219,37 @@ InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault
     </code></pre></figure>
 
 <p>The right path (and I did it wrong in the <a href="/blog/2018/06/05/link-error-2/">previous post</a>) is</p>
-<pre><code>/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
-</code></pre>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
+</code></pre></div></div>
 
 <p>Still, the best way to use that commandline is to have no such commandline in the build.</p>
 
 <h2 id="the-linker-error-solution">The Linker Error Solution</h2>
 
-<p>The answer here is to use <code>clang</code> command instead of <code>ld</code> command. Note, that
-command line options are different, and <code>clang</code> calls
-(specify <code>-v</code> key to see that) <code>ld</code> with additional arguments.</p>
+<p>The answer here is to use <code class="highlighter-rouge">clang</code> command instead of <code class="highlighter-rouge">ld</code> command. Note, that
+command line options are different, and <code class="highlighter-rouge">clang</code> calls
+(specify <code class="highlighter-rouge">-v</code> key to see that) <code class="highlighter-rouge">ld</code> with additional arguments.</p>
 
 <h1 id="linking-with-kotlinnative">Linking with Kotlin/Native</h1>
 
-<p>At that point, we have a workable <code>inc.sh</code> script to compile and link the static library with the executable
-<a href="https://github.com/jonnyzzz/demo-static-lib">in the repository on GitHub</a>. Time to fix <code>in.sh</code> that links
+<p>At that point, we have a workable <code class="highlighter-rouge">inc.sh</code> script to compile and link the static library with the executable
+<a href="https://github.com/jonnyzzz/demo-static-lib">in the repository on GitHub</a>. Time to fix <code class="highlighter-rouge">in.sh</code> that links
 the static C library with a <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a>
 executable. You may want to have a look at the introductory post
 <a href="/blog/2018/05/28/minimalistic-kn/">here</a>.</p>
 
 <h2 id="a-dumb-approach">A Dumb Approach</h2>
 
-<p>The very first (and dump) fix is to include the <code>libclang_rt.osx.a</code> path (see above) into the <code>konanc</code> call with
-the <code>-linkerOpts &lt;path&gt;/libclang_rt.osx.a</code>. It make the code compile and run.</p>
+<p>The very first (and dump) fix is to include the <code class="highlighter-rouge">libclang_rt.osx.a</code> path (see above) into the <code class="highlighter-rouge">konanc</code> call with
+the <code class="highlighter-rouge">-linkerOpts &lt;path&gt;/libclang_rt.osx.a</code>. It make the code compile and run.</p>
 
 <h2 id="right-approach">Right Approach</h2>
 
-<p>Let’s debug how Kotlin/Native executes the linker first. You pass the <code>--verbose linker</code> to see the verbose output 
-from the linking phase (use <code>konanc --list_phases</code> to learn all phases). The output on my machine is as follows, 
+<p>Let’s debug how Kotlin/Native executes the linker first. You pass the <code class="highlighter-rouge">--verbose linker</code> to see the verbose output 
+from the linking phase (use <code class="highlighter-rouge">konanc --list_phases</code> to learn all phases). The output on my machine is as follows, 
 with arguments split per lines and long paths simplified:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>&gt; konanc -l lib.klib main.kt -linkerOpts  lib.a  -linkerOpts $L -o main.kexe --verbose linker
+<figure class="highlight"><pre><code class="language-text" data-lang="text">&gt; konanc -l lib.klib main.kt -linkerOpts  lib.a  -linkerOpts $L -o main.kexe --verbose linker
 
 /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld \
     -demangle
@@ -271,49 +271,49 @@ with arguments split per lines and long paths simplified:</p>
     &lt;our hack path to&gt;/libclang_rt.osx.a</code></pre></figure>
 
 <p>Let’s compare the commands. The linker executable is selected right from both sides. The sensible difference
-is we miss <code>libclang_rt.osx.a</code> from the Kotlin/Native command. There are two ways to go:</p>
+is we miss <code class="highlighter-rouge">libclang_rt.osx.a</code> from the Kotlin/Native command. There are two ways to go:</p>
 <ul>
-  <li>link the <code>libclang_rt.osx.a</code> with <code>lib.a</code> before the final linking</li>
-  <li>infer path to <code>libclang_rt.osx.a</code> and include it into the linker command</li>
+  <li>link the <code class="highlighter-rouge">libclang_rt.osx.a</code> with <code class="highlighter-rouge">lib.a</code> before the final linking</li>
+  <li>infer path to <code class="highlighter-rouge">libclang_rt.osx.a</code> and include it into the linker command</li>
 </ul>
 
-<p>Checking <code>clang --help</code> and I found the <code>-print-libgcc-file-name</code> argument. It does provide hints, 
+<p>Checking <code class="highlighter-rouge">clang --help</code> and I found the <code class="highlighter-rouge">-print-libgcc-file-name</code> argument. It does provide hints, 
 but it is not enough just now.</p>
 
 <h1 id="the-outcome">The Outcome</h1>
 
-<p>Frankly, I do not like linking with <code>libclang_rt</code> explicitly. The library is a part
+<p>Frankly, I do not like linking with <code class="highlighter-rouge">libclang_rt</code> explicitly. The library is a part
 of toolchain internals. It will make builds too fragile or not incorrect.
 The hack will not worth it in the long run.</p>
 
 <p>The right way, as I see it, is to fix the original library build to make 
 sure it is pre-linked with all necessary internals.
 That matches with the encapsulation principle. It simplifies the rest. 
-The backup plan is to call <code>clang</code> with <code>-v</code> key, parse the command output
-to get the path to the <code>libclang_rt</code>, and use it as an explicit library.</p>
+The backup plan is to call <code class="highlighter-rouge">clang</code> with <code class="highlighter-rouge">-v</code> key, parse the command output
+to get the path to the <code class="highlighter-rouge">libclang_rt</code>, and use it as an explicit library.</p>
 
 <h2 id="building-curl">Building Curl</h2>
 
-<p>A pre-history. I first saw the missing <code>___isOSVersionAtLeast</code> symbol error
+<p>A pre-history. I first saw the missing <code class="highlighter-rouge">___isOSVersionAtLeast</code> symbol error
 while 
 <a href="/blog/2018/05/16/link-error/">building and static linking</a>
 the <a href="https://curl.haxx.se">libcurl</a>. My goal is to have a
 self-contained static library out of it.</p>
 
 <p>I used the wrong artifact and build it incorrectly. I see the right static library 
-is somewhere under <code>curl</code> build directory. 
+is somewhere under <code class="highlighter-rouge">curl</code> build directory. 
 I did that wrong. Do that right. Respect the privacy and build internals.</p>
 
 <p>The right way is</p>
 <ul>
-  <li>to set install prefix path in <code>./configure</code></li>
-  <li>to call <code>make install</code></li>
+  <li>to set install prefix path in <code class="highlighter-rouge">./configure</code></li>
+  <li>to call <code class="highlighter-rouge">make install</code></li>
   <li>use artifacts for the prefix path</li>
-  <li>deliver the <code>libclang_rt</code> as dependency (or <a href="https://stackoverflow.com/questions/3821916/how-to-merge-two-ar-static-libraries-into-one">merge it in?</a>)</li>
+  <li>deliver the <code class="highlighter-rouge">libclang_rt</code> as dependency (or <a href="https://stackoverflow.com/questions/3821916/how-to-merge-two-ar-static-libraries-into-one">merge it in?</a>)</li>
 </ul>
 
 <p>The library under the prefix do contain reference to our 
-favorite <code>___isOSVersionAtLeast</code> symbol. The <code>make install</code> package
+favorite <code class="highlighter-rouge">___isOSVersionAtLeast</code> symbol. The <code class="highlighter-rouge">make install</code> package
 looks reusable and reduces hard-coded build hacks, still.</p>
 
         

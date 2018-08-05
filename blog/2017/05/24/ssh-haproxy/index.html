@@ -185,11 +185,11 @@
 
 <h1 id="ssh-backgrounds">SSH backgrounds</h1>
 
-<p>SSH acronym means <code>The Secure Shell</code>. More precisely, we’ll be talking about SSH2 protocol, which is
+<p>SSH acronym means <code class="highlighter-rouge">The Secure Shell</code>. More precisely, we’ll be talking about SSH2 protocol, which is
 a de-facto standard. This protocol is covered by the <a href="https://tools.ietf.org/html/rfc4253">RFC 4253</a>.</p>
 
 <p>Barely (as simply as possible), the connection is done as follows. A client opens new TCP connection 
-to the server. It checks server public key(s) (using the <code>known_hosts</code> file). Then server 
+to the server. It checks server public key(s) (using the <code class="highlighter-rouge">known_hosts</code> file). Then server 
 and client do key exchange, authentication and open channels to run commands or 
 interactive sessions.</p>
 
@@ -216,7 +216,7 @@ for <a href="https://www.quora.com/What-is-the-difference-between-layer-3-and-la
 
 <p>The configuration is quite simple.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+<figure class="highlight"><pre><code class="language-text" data-lang="text">listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
     mode tcp
 
     server &lt;SERVER_NAME_1&gt; &lt;SERVER_HOST_1&gt;:&lt;SERVER_PORT_1&gt; weight &lt;WEIGHT_1&gt;
@@ -231,15 +231,15 @@ to all backends.</p>
 
 <h1 id="ssh-server-server-keys">SSH Server Server Keys</h1>
 
-<p>It is necessary to have same server keys on all <code>SERVERN_1</code> … <code>SERVER_N</code> family, otherwise an SSH client 
-will warn a possible MIIM attach, as client likely to access any SSH server from the same IP. And the <code>known_hosts</code>
+<p>It is necessary to have same server keys on all <code class="highlighter-rouge">SERVERN_1</code> … <code class="highlighter-rouge">SERVER_N</code> family, otherwise an SSH client 
+will warn a possible MIIM attach, as client likely to access any SSH server from the same IP. And the <code class="highlighter-rouge">known_hosts</code>
 file stores server public key info for each known IP.</p>
 
 <h1 id="tcp-balancing-issues-request-ip">TCP Balancing Issues: Request IP</h1>
 
 <p>There are several differences between an HTTP-level (L7) balancing and TCP-level balancing. You are not able
 to send request IP address that easy as via HTTP. The protocol is only about streams. There is no notion of headers,
-where one is able to pass extra data, e.g. as in HTTP with <code>X-Forwarded-For</code>.</p>
+where one is able to pass extra data, e.g. as in HTTP with <code class="highlighter-rouge">X-Forwarded-For</code>.</p>
 
 <p>There is no solution in general, but one can use <a href="http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt">HAProxy PROXY protocol</a>.
 That is an extension to any TCP protocol that blindly sends a specific string with request/response information to the 
@@ -250,26 +250,26 @@ server. One has to have a server, supporting PROXY protocol on the other end.</p
 <p>Bad news. Open SSH server implementation does not support it out of the box, but one may apply patches to support that.
 I created and shared patches for <a href="https://issues.apache.org/jira/browse/SSHD-656">Apache Mina SSHD</a> library.</p>
 
-<p>To enable the support, add <code>send-proxy</code> each server line. You may replace the line</p>
+<p>To enable the support, add <code class="highlighter-rouge">send-proxy</code> each server line. You may replace the line</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; check weight &lt;WEIGHT_N&gt;</code></pre></figure>
+<figure class="highlight"><pre><code class="language-text" data-lang="text">     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; check weight &lt;WEIGHT_N&gt;</code></pre></figure>
 
 <p>with</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; send-proxy weight &lt;WEIGHT_N&gt;</code></pre></figure>
+<figure class="highlight"><pre><code class="language-text" data-lang="text">     server &lt;SERVER_NAME_N&gt; &lt;SERVER_HOST_N&gt;:&lt;SERVER_PORT_N&gt; send-proxy weight &lt;WEIGHT_N&gt;</code></pre></figure>
 
 <h1 id="health-checks">Health Checks</h1>
 
 <p>HAProxy supports automated health checks on TCP level. Ones a backend server is not able to reply on checks, 
 the traffic is no longer send to an unhealthy host.</p>
 
-<p>I use the following configuration for that <code>tcp-check expect string SSH-2.0-</code>. The option instructs HAProxy
-to run checks and to check if the remote end replies with a string that starts with <code>SSH-2.0-</code>. Such answer is 
+<p>I use the following configuration for that <code class="highlighter-rouge">tcp-check expect string SSH-2.0-</code>. The option instructs HAProxy
+to run checks and to check if the remote end replies with a string that starts with <code class="highlighter-rouge">SSH-2.0-</code>. Such answer is 
 the standard message required by the SSH2 protocol.</p>
 
 <p>Overall we have the following configuration:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
+<figure class="highlight"><pre><code class="language-text" data-lang="text">listen ssh 0.0.0.0:{{ app.ports.ssh.active }}
     mode tcp
     
     tcp-check expect string SSH-2.0-

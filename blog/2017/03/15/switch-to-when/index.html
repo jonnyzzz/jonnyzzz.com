@@ -189,7 +189,7 @@ Consider the following code in Java
 
 <p>Consider the following code in Java</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kt">void</span> <span class="nf">action</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kt">void</span> <span class="nf">action</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
   <span class="n">Foo</span> <span class="n">f</span><span class="o">;</span>
   <span class="k">switch</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span><span class="o">:</span> 
@@ -197,30 +197,30 @@ Consider the following code in Java
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span><span class="o">:</span>
       <span class="n">f</span> <span class="o">=</span> <span class="n">value444</span><span class="o">();</span>
     <span class="k">default</span><span class="o">:</span>
-      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">();</span>    
+      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">();</span>    
   <span class="o">}</span> 
 
   <span class="n">doSomeMightyWork</span><span class="o">(</span><span class="n">f</span><span class="o">);</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>Widespread pattern, isn’t it? There are several things wrong with it! First, <code>Foo f</code> variable is not final, 
+<p>Widespread pattern, isn’t it? There are several things wrong with it! First, <code class="highlighter-rouge">Foo f</code> variable is not final, 
 so it can be ocassionally changed in the future after some code changes.</p>
 
-<p>Next, we switll have <code>default</code> branch which is not necessary as we cover all enum values. But if 
+<p>Next, we switll have <code class="highlighter-rouge">default</code> branch which is not necessary as we cover all enum values. But if 
 someone dares to add extra enum value, this code will still compile correctly!</p>
 
-<p>Enough problems? Nope! I forgot <code>break;</code> in each <code>case</code> branch. Surprise.</p>
+<p>Enough problems? Nope! I forgot <code class="highlighter-rouge">break;</code> in each <code class="highlighter-rouge">case</code> branch. Surprise.</p>
 
-<p>An improvement is still possible to solve some of the problems above. Use <code>return</code> statement! So we have</p>
+<p>An improvement is still possible to solve some of the problems above. Use <code class="highlighter-rouge">return</code> statement! So we have</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">Foo</span> <span class="nf">select</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">Foo</span> <span class="nf">select</span><span class="o">(</span><span class="n">Bar</span> <span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
   <span class="k">switch</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span><span class="o">:</span> 
-      <span class="k">return</span> <span class="n">value42</span><span class="o">();</span>
+      <span class="k">return</span> <span class="nf">value42</span><span class="o">();</span>
     <span class="k">case</span> <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span><span class="o">:</span>
-      <span class="k">return</span> <span class="n">value444</span><span class="o">();</span>
+      <span class="k">return</span> <span class="nf">value444</span><span class="o">();</span>
     <span class="k">default</span><span class="o">:</span>
-      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">();</span>    
+      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">();</span>    
   <span class="o">}</span> 
 <span class="o">}</span>
 
@@ -230,44 +230,44 @@ someone dares to add extra enum value, this code will still compile correctly!</
   <span class="n">doSomeMightyWork</span><span class="o">(</span><span class="n">f</span><span class="o">);</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>Is it better now? More or less yes. But would you create an additional function for every <code>switch</code>? I’m not sure.</p>
+<p>Is it better now? More or less yes. But would you create an additional function for every <code class="highlighter-rouge">switch</code>? I’m not sure.</p>
 
 <h1 id="when-in-kotlin">When in Kotlin</h1>
 
-<p>The equivalent constuction to <code>switch</code> in Java is <code>when</code> in Kotlin. You may take a look to the 
+<p>The equivalent constuction to <code class="highlighter-rouge">switch</code> in Java is <code class="highlighter-rouge">when</code> in Kotlin. You may take a look to the 
 <a href="https://kotlinlang.org/docs/reference/control-flow.html#when-expression">when expression</a> documentation
-for more details. Note, <code>when</code> expression is more functional than <code>switch</code> in Java.</p>
+for more details. Note, <code class="highlighter-rouge">when</code> expression is more functional than <code class="highlighter-rouge">switch</code> in Java.</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="n">fun</span> <span class="nf">action</span><span class="o">(</span><span class="n">bar</span><span class="o">:</span> <span class="n">Bar</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">var</span> <span class="n">f</span> <span class="o">:</span> <span class="n">Foo</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="n">fun</span> <span class="nf">action</span><span class="o">(</span><span class="nl">bar:</span> <span class="n">Bar</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kt">var</span> <span class="n">f</span> <span class="o">:</span> <span class="n">Foo</span>
   <span class="nf">when</span><span class="o">(</span><span class="n">bar</span><span class="o">)</span> <span class="o">{</span>
     <span class="n">Bar</span><span class="o">.</span><span class="na">VALUE</span> <span class="o">-&gt;</span>
       <span class="n">f</span> <span class="o">=</span> <span class="n">value42</span><span class="o">()</span>
     <span class="n">Bar</span><span class="o">.</span><span class="na">ELSE</span> <span class="o">-&gt;</span>
       <span class="n">f</span> <span class="o">=</span> <span class="n">value444</span><span class="o">()</span>
     <span class="k">else</span> <span class="o">-&gt;</span>
-      <span class="k">throw</span> <span class="n">ThisCanNeverHappenException</span><span class="o">()</span>
+      <span class="k">throw</span> <span class="nf">ThisCanNeverHappenException</span><span class="o">()</span>
   <span class="o">}</span>
 
   <span class="n">doSomeMightyWork</span><span class="o">(</span><span class="n">f</span><span class="o">)</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>This was just one-to-one conversion to Kotlin and I see the warning to convert <code>var f</code> to <code>val f</code> at first.</p>
+<p>This was just one-to-one conversion to Kotlin and I see the warning to convert <code class="highlighter-rouge">var f</code> to <code class="highlighter-rouge">val f</code> at first.</p>
 
-<p>It is good to notice, <code>when</code> can be used as expression! We may avoid assigning <code>f</code> variable inside each case.</p>
+<p>It is good to notice, <code class="highlighter-rouge">when</code> can be used as expression! We may avoid assigning <code class="highlighter-rouge">f</code> variable inside each case.</p>
 
-<p>The right of <code>-&gt;</code> is also an expression. If you need more things to do, use <code>{</code> and <code>}</code>. There is no <code>break</code> 
+<p>The right of <code class="highlighter-rouge">-&gt;</code> is also an expression. If you need more things to do, use <code class="highlighter-rouge">{</code> and <code class="highlighter-rouge">}</code>. There is no <code class="highlighter-rouge">break</code> 
 exists or required.</p>
 
-<p>If <code>when</code> is used as expression, <code>else</code> branch is not necessary, the compiler can prove all branches are included.
+<p>If <code class="highlighter-rouge">when</code> is used as expression, <code class="highlighter-rouge">else</code> branch is not necessary, the compiler can prove all branches are included.
 At least this works if you checking enum or 
 <a href="https://kotlinlang.org/docs/reference/classes.html#sealed-classes">sealed classes</a>. 
 Compilation fails if a missing branch is detected.</p>
 
 <p>Overall I turn the example into this:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">void</span> <span class="n">action</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span> <span class="n">Bar</span><span class="p">)</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">f</span> <span class="p">=</span> <span class="k">when</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">void</span> <span class="n">action</span><span class="p">(</span><span class="n">bar</span><span class="p">:</span> <span class="n">Bar</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">f</span> <span class="p">=</span> <span class="k">when</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">Bar</span><span class="p">.</span><span class="n">VALUE</span> <span class="p">-&gt;</span> <span class="n">value42</span><span class="p">();</span>
     <span class="n">Bar</span><span class="p">.</span><span class="n">ELSE</span> <span class="p">-&gt;</span> <span class="n">value444</span><span class="p">();</span>
   <span class="p">}</span> 
@@ -279,15 +279,15 @@ Compilation fails if a missing branch is detected.</p>
 
 <h1 id="generated-bytecode">Generated bytecode</h1>
 
-<p>Let’s look into bytecode for the <code>when</code> statement call. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin
+<p>Let’s look into bytecode for the <code class="highlighter-rouge">when</code> statement call. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin
 1.0.6 plugin. The generated bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  // access flags 0x19
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
   public final static action(LBar;)V
     @Lorg/jetbrains/annotations/NotNull;() // invisible, parameter 0
    L0
     ALOAD 0
-    LDC &quot;e&quot;
+    LDC "e"
     INVOKESTATIC kotlin/jvm/internal/Intrinsics.checkParameterIsNotNull (Ljava/lang/Object;Ljava/lang/String;)V
    L1
     LINENUMBER 13 L1
@@ -330,20 +330,20 @@ Compilation fails if a missing branch is detected.</p>
     MAXSTACK = 2
     MAXLOCALS = 2</code></pre></figure>
 
-<p>From the bytecode we see it throws <code>kotlin/NoWhenBranchMatchedException</code> in case it turned out
+<p>From the bytecode we see it throws <code class="highlighter-rouge">kotlin/NoWhenBranchMatchedException</code> in case it turned out
 there is an additional case. For example, this may happen if we are running a compiled code 
-againt updated <code>Bar</code> enum with additional case added.</p>
+againt updated <code class="highlighter-rouge">Bar</code> enum with additional case added.</p>
 
 <p>Still, a re-compilation will show there is an errors.</p>
 
-<p>The only problem is that <code>NoWhenBranchMatchedException</code> contains no information on what 
-kind of instance was there, maybe a <code>toString()</code> or <code>getClass().getName()</code> were nice to 
+<p>The only problem is that <code class="highlighter-rouge">NoWhenBranchMatchedException</code> contains no information on what 
+kind of instance was there, maybe a <code class="highlighter-rouge">toString()</code> or <code class="highlighter-rouge">getClass().getName()</code> were nice to 
 have helpers. Still, in general, such calls may also throw exceptions.</p>
 
 <h1 id="conclusion">Conclusion</h1>
 
-<p>In this post we see how <code>when</code> expression can help one avoid trivial errors
-in switches. We discussed the benefit of using <code>when</code> as expression</p>
+<p>In this post we see how <code class="highlighter-rouge">when</code> expression can help one avoid trivial errors
+in switches. We discussed the benefit of using <code class="highlighter-rouge">when</code> as expression</p>
 
 
         

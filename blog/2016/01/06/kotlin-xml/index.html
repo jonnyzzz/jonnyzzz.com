@@ -194,8 +194,8 @@ to achieve better readability, avoid explicit type names for serialization/deser
 
 <p>Let’s consider an example. Say you have an XML:</p>
 
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span></span><span class="nt">&lt;project&gt;</span>
-  <span class="nt">&lt;settings</span> <span class="na">type=</span><span class="s">&quot;q&quot;</span><span class="nt">&gt;</span>
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span class="nt">&lt;project&gt;</span>
+  <span class="nt">&lt;settings</span> <span class="na">type=</span><span class="s">"q"</span><span class="nt">&gt;</span>
      <span class="nt">&lt;name&gt;</span>Foo<span class="nt">&lt;/name&gt;</span>
   <span class="nt">&lt;/settings&gt;</span>
   <span class="nt">&lt;keys&gt;</span>
@@ -208,18 +208,18 @@ to achieve better readability, avoid explicit type names for serialization/deser
 <p>Thanks to the <a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a>, you may 
 parse it with the following DSL in Kotlin:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">Project</span> <span class="p">{</span>
-  <span class="k">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">&quot;type&quot;</span><span class="p">)</span>
-  <span class="k">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;name&quot;</span> <span class="p">/</span> <span class="n">XText</span>
-  <span class="k">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;keys&quot;</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">&quot;key&quot;</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
-  <span class="k">var</span> <span class="py">any</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">&quot;parameters&quot;</span> <span class="p">/</span> <span class="n">XAnyElements</span> <span class="p">/</span> <span class="n">XSub</span><span class="p">(</span><span class="n">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
-  <span class="k">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XUnknown</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">Project</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">"type"</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"name"</span> <span class="p">/</span> <span class="n">XText</span>
+  <span class="kd">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"keys"</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">"key"</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
+  <span class="kd">var</span> <span class="py">any</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"parameters"</span> <span class="p">/</span> <span class="n">XAnyElements</span> <span class="p">/</span> <span class="n">XSub</span><span class="p">(</span><span class="n">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XUnknown</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Kotlin compiler infers types for properties, so one should not write types at all. 
-In the example above <code>type</code> and <code>name</code> properties are <code>String?</code>, 
-<code>keys</code> is <code>List&lt;String&gt;?</code>. <code>XAnyElements</code> means result will be as collection, <code>XSub</code> 
-parses sub-elements as <code>XSub</code> objects.</p>
+In the example above <code class="highlighter-rouge">type</code> and <code class="highlighter-rouge">name</code> properties are <code class="highlighter-rouge">String?</code>, 
+<code class="highlighter-rouge">keys</code> is <code class="highlighter-rouge">List&lt;String&gt;?</code>. <code class="highlighter-rouge">XAnyElements</code> means result will be as collection, <code class="highlighter-rouge">XSub</code> 
+parses sub-elements as <code class="highlighter-rouge">XSub</code> objects.</p>
 
 <p><a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a> provides serialization and deserialization.</p>
 
@@ -234,12 +234,12 @@ parses sub-elements as <code>XSub</code> objects.</p>
 <p>You may find API declarations <a href="https://github.com/jonnyzzz/kotlin.xml.bind/blob/master/api/src/main/kotlin/org/jonnyzzz/kotlin/xml/bind/XBind.API.kt">here</a>. 
 For every DSL <a href="https://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols">grammar rule</a> of the DSL I created an interface in Kotlin.</p>
 
-<p>The main trick is that expressions like <code>JXML / "keys" / XElements("key") / XText</code> returns an object
+<p>The main trick is that expressions like <code class="highlighter-rouge">JXML / "keys" / XElements("key") / XText</code> returns an object
 that implements requirements of
 <a href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated Properties</a>
 .</p>
 
-<p>The library adds a tiny overhead on every object creation. So now to create an object (e.g. <code>Project</code> class above)
+<p>The library adds a tiny overhead on every object creation. So now to create an object (e.g. <code class="highlighter-rouge">Project</code> class above)
 it has to create a number of objects from the DSL that are used behind delegated properties. Reflections 
 are still in use to scan available object properties too on serialization/deserialization.</p>
 
@@ -247,26 +247,26 @@ are still in use to scan available object properties too on serialization/deseri
 You may find more details in <a href="https://github.com/jonnyzzz/kotlin.xml.dsl">kotlin.xml.dsl</a> on GitHub. 
 This is an example of unit test</p>
 
-<figure class="highlight"><pre><code class="language-xml" data-lang="xml"><span></span>@Test
+<figure class="highlight"><pre><code class="language-xml" data-lang="xml">@Test
 public fun test_read_any_element_does_not_include_parsed() {
   class Data {
-    var X by JXML / &quot;x&quot; / XUnknown
-    var Y by JXML / &quot;Y&quot; / XUnknown
+    var X by JXML / "x" / XUnknown
+    var Y by JXML / "Y" / XUnknown
     var Z by JXML / XAnyElements / XUnknown
   }
 
-  val el = jdom(&quot;aaa&quot;) {
-    element(&quot;x&quot;) { text(&quot;yohoho&quot;)}
-    element(&quot;Y&quot;) { text(&quot;123&quot;)}
-    element(&quot;z&quot;) { text(&quot;www&quot;)}
-    element(&quot;p&quot;) { text(&quot;www&quot;)}
+  val el = jdom("aaa") {
+    element("x") { text("yohoho")}
+    element("Y") { text("123")}
+    element("z") { text("www")}
+    element("p") { text("www")}
   }
 
   val d : Data = JDOM.load(el , Data::class.java)
 
   Assert.assertEquals(d.Z?.size, 2)
-  Assert.assertEquals(d.Z?.get(0)?.name, &quot;z&quot;)
-  Assert.assertEquals(d.Z?.get(1)?.name, &quot;p&quot;)
+  Assert.assertEquals(d.Z?.get(0)?.name, "z")
+  Assert.assertEquals(d.Z?.get(1)?.name, "p")
 }</code></pre></figure>
 
 <p>I use <a href="https://gradle.org/">Gradle</a> as project model now. 

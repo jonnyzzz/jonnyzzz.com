@@ -186,21 +186,21 @@ Now I can check the linking either with
 <a href="https://kotlinlang.org/docs/reference/native-overview.html">Kotlin/Native</a> 
 or with a plain C.</p>
 
-<p>The <code>main.c</code>:</p>
+<p>The <code class="highlighter-rouge">main.c</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="cp">#include</span> <span class="cpf">&quot;lib.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
-
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="cp">#include "lib.h"
+#include &lt;stdio.h&gt;
+</span>
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">arg</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">z</span>  <span class="o">=</span> <span class="n">foo</span><span class="p">();</span>
-  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;The result is %d&quot;</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"The result is %d"</span><span class="p">,</span> <span class="n">z</span><span class="p">);</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>I call the following to compile and link <code>main.c</code> with my <code>lib.a</code> 
+<p>I call the following to compile and link <code class="highlighter-rouge">main.c</code> with my <code class="highlighter-rouge">lib.a</code> 
 <a href="/blog/2018/05/28/minimalistic-kn/">library</a>:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span>gcc -c  main.c -o main.o
-ld -macosx_version_min <span class="m">10</span>.10  -lc  main.o lib.a</code></pre></figure>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">gcc <span class="nt">-c</span>  main.c <span class="nt">-o</span> main.o
+ld <span class="nt">-macosx_version_min</span> 10.10  <span class="nt">-lc</span>  main.o lib.a</code></pre></figure>
 
 <p>I do the on macOS 10.13.3 with Xcode 9.3.1 and macOS 10.13.5, Xcode 9.4.</p>
 
@@ -209,11 +209,11 @@ ld -macosx_version_min <span class="m">10</span>.10  -lc  main.o lib.a</code></p
 <p>It was an assumption of mine to check for 
 <a href="https://clang.llvm.org/docs/LanguageExtensions.html">Clang Language Extensions</a>,
 and finally, I was able to reproduce the linkage error with 
-only the following code in <code>lib.c</code> targeting macOS <code>10.10</code>, but not macOS <code>10.13</code>:</p>
+only the following code in <code class="highlighter-rouge">lib.c</code> targeting macOS <code class="highlighter-rouge">10.10</code>, but not macOS <code class="highlighter-rouge">10.13</code>:</p>
 
-<figure class="highlight"><pre><code class="language-c" data-lang="c"><span></span><span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span>
   <span class="c1">/// that is a CLang extension</span>
-  <span class="k">if</span><span class="p">(</span><span class="n">__builtin_available</span><span class="p">(</span><span class="n">macOS</span> <span class="mf">10.12</span><span class="p">,</span> <span class="n">iOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mf">9.0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mf">2.0</span><span class="p">,</span> <span class="o">*</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="n">__builtin_available</span><span class="p">(</span><span class="n">macOS</span> <span class="mi">10</span><span class="p">.</span><span class="mi">12</span><span class="p">,</span> <span class="n">iOS</span> <span class="mi">9</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">tvOS</span> <span class="mi">9</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="n">watchOS</span> <span class="mi">2</span><span class="p">.</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="p">))</span> <span class="p">{</span>
     <span class="k">return</span> <span class="mi">256</span><span class="p">;</span>
   <span class="p">}</span>
 
@@ -222,28 +222,28 @@ only the following code in <code>lib.c</code> targeting macOS <code>10.10</code>
 
 <p>And the linker error:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>Undefined symbols for architecture x86_64:
-  &quot;___isOSVersionAtLeast&quot;, referenced from:
+<figure class="highlight"><pre><code class="language-text" data-lang="text">Undefined symbols for architecture x86_64:
+  "___isOSVersionAtLeast", referenced from:
       _foo in lib.a(lib.o)</code></pre></figure>
 
-<p>I ran the <code>ld</code> command with <code>-macosx_version_min 10.10</code> to target macOS <code>10.10</code>. The 
+<p>I ran the <code class="highlighter-rouge">ld</code> command with <code class="highlighter-rouge">-macosx_version_min 10.10</code> to target macOS <code class="highlighter-rouge">10.10</code>. The 
 argument specifies the minimal version of macOS the created binary supports.</p>
 
 <p>More experiments with arguments help me to find that CLang is smart to optimize that 
 code if the check makes no sense.
-For example, CLang optimizes the call <code>__builtin_available(macOS 10.12,*)</code> when I target
-<code>10.12</code> or <code>10.13</code>. It also means no linkage error. 
-The call <code>__builtin_available(macOS 10.14,*)</code> is never optimized, as long as I cannot target
-<code>10.14</code> yet.</p>
+For example, CLang optimizes the call <code class="highlighter-rouge">__builtin_available(macOS 10.12,*)</code> when I target
+<code class="highlighter-rouge">10.12</code> or <code class="highlighter-rouge">10.13</code>. It also means no linkage error. 
+The call <code class="highlighter-rouge">__builtin_available(macOS 10.14,*)</code> is never optimized, as long as I cannot target
+<code class="highlighter-rouge">10.14</code> yet.</p>
 
 <p>My <a href="/blog/2018/05/16/link-error/">linkage problem</a> was not in the target version 
 specification at all. Otherwise, the problem was with a missing library. I was missing the 
-compiler-runtime library in my <code>ld</code> call.
+compiler-runtime library in my <code class="highlighter-rouge">ld</code> call.
 I found the hacky path (on <a href="https://www.google.de/search?q=works+on+my+machine" target="_blank">my machine</a>) 
 to solve the linker error:</p>
 
-<pre><code>/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
-</code></pre>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/Library/Developer/CommandLineTools/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
+</code></pre></div></div>
 
 <p>That one defines the symbol I was missing. The only problem is the path hard-codes 
 too many internals. It is too internal to be used directly from a build. It seems to 
@@ -258,15 +258,15 @@ I have no plans to build my own toolchain.</p>
 
 <h2 id="the-right-fix">The right fix</h2>
 
-<p>The best fix for <code>___isOSVersionAtLeast</code> undefined symbol so far is to include the missing 
-runtime library to an <code>ld</code> command. It only needs a path to the static library with no other
+<p>The best fix for <code class="highlighter-rouge">___isOSVersionAtLeast</code> undefined symbol so far is to include the missing 
+runtime library to an <code class="highlighter-rouge">ld</code> command. It only needs a path to the static library with no other
 arguments. Shall a build tool help here? I do not know yet.</p>
 
 <p>The worst here is one needs to generate the path manually. One need to know the Xcode (aka toolchain)
 version to do that. And the trickiest is to make sure the path is updated once Xcode or something
 else is updated.</p>
 
-<p>I am looking to find the best way to include the <code>compiler-rt</code>. If you know something, 
+<p>I am looking to find the best way to include the <code class="highlighter-rouge">compiler-rt</code>. If you know something, 
 please comment below.</p>
 
 <p>Continue reading the <a href="/blog/2018/06/13/link-error-3/">next part of the investigation</a></p>

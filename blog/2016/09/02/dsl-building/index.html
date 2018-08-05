@@ -204,7 +204,7 @@ There has to be a system that accepts it too.</p>
 so that it’d be fast enough to play well in IDE. The parser should also support invalid text input too, e.g. 
 incorrect code that is being entered. That can be tricky.</p>
 
-<p>Well, a parser may not be necessary, if, say IDE support some base language, e.g. <code>.properties</code> or <code>.xml</code> format.
+<p>Well, a parser may not be necessary, if, say IDE support some base language, e.g. <code class="highlighter-rouge">.properties</code> or <code class="highlighter-rouge">.xml</code> format.
 But in that case a deep IDE APIs has to be used.</p>
 
 <p>Finally, a plugin will depend on IDE. Meaning it has to be updated to work with newer IDE versions. It’s not in
@@ -279,26 +279,26 @@ Once variables are used, rename feature is implemented for free.</p>
 
 <h1 id="example">Example</h1>
 
-<p>Let’s consider <a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration in <code>.properties</code> file as \(Original Language\).</p>
+<p>Let’s consider <a href="http://logging.apache.org/log4j/1.2/">Log4j</a> configuration in <code class="highlighter-rouge">.properties</code> file as \(Original Language\).</p>
 
-<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span></span><span class="na">log4j.rootLogger</span><span class="o">=</span><span class="s">ERROR,stdout</span>
-<span class="na">log4j.logger.corp.mega</span><span class="o">=</span><span class="s">INFO,stdout</span>
-<span class="c"># meaningful comment goes here</span>
-<span class="na">log4j.logger.corp.mega.itl.web.metrics</span><span class="o">=</span><span class="s">INFO</span>
+<figure class="highlight"><pre><code class="language-properties" data-lang="properties"><span class="py">log4j.rootLogger</span><span class="p">=</span><span class="s">ERROR,stdout</span>
+<span class="py">log4j.logger.corp.mega</span><span class="p">=</span><span class="s">INFO,stdout</span>
+<span class="c"># meaningful comment goes here
+</span><span class="py">log4j.logger.corp.mega.itl.web.metrics</span><span class="p">=</span><span class="s">INFO</span>
 
-<span class="na">log4j.appender.stdout</span><span class="o">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
-<span class="na">log4j.appender.stdout.layout</span><span class="o">=</span><span class="s">org.apache.log4j.PatternLayout</span>
-<span class="na">log4j.appender.stdout.layout.ConversionPattern</span><span class="o">=</span><span class="s">%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n</span></code></pre></figure>
+<span class="py">log4j.appender.stdout</span><span class="p">=</span><span class="s">org.apache.log4j.ConsoleAppender</span>
+<span class="py">log4j.appender.stdout.layout</span><span class="p">=</span><span class="s">org.apache.log4j.PatternLayout</span>
+<span class="py">log4j.appender.stdout.layout.ConversionPattern</span><span class="p">=</span><span class="s">%p</span><span class="se">\t</span><span class="s">%d{ISO8601}</span><span class="se">\t</span><span class="s">%r</span><span class="se">\t</span><span class="s">%c</span><span class="se">\t</span><span class="s">[%t]</span><span class="se">\t</span><span class="s">%m%n</span></code></pre></figure>
 
 <p>I decided to use <a href="https://www.jetbrains.com/idea/">IntelliJ IDEA</a> as IDE 
 and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
 
 <p>The configuration below can be turned into the following Kotlin code.</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="n">log4j</span> <span class="p">{</span>
-  <span class="k">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">&quot;stdout&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">log4j</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">stdout</span> <span class="p">=</span> <span class="n">appender</span><span class="p">&lt;</span><span class="n">ConsoleAppender</span><span class="p">&gt;(</span><span class="s">"stdout"</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">layout</span><span class="p">&lt;</span><span class="n">PatternLayout</span><span class="p">&gt;</span> <span class="p">{</span>
-      <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">&quot;%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n&quot;</span>
+      <span class="n">conversionPattern</span> <span class="p">=</span> <span class="s">"%p\t%d{ISO8601}\t%r\t%c\t[%t]\t%m%n"</span>
     <span class="p">}</span>
   <span class="p">}</span>
 
@@ -307,17 +307,17 @@ and <a href="https://kotlinlang.org">Kotlin</a> as \(Target Language \).</p>
     <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
   <span class="p">}</span>
 
-  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega.itl.web.metrics&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">logger</span><span class="p">(</span><span class="s">"corp.mega.itl.web.metrics"</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
   <span class="p">}</span>
 
-  <span class="n">logger</span><span class="p">(</span><span class="s">&quot;corp.mega&quot;</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">logger</span><span class="p">(</span><span class="s">"corp.mega"</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">level</span> <span class="p">=</span> <span class="n">INFO</span>
     <span class="n">appenders</span> <span class="p">+=</span> <span class="n">stdout</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>The evaluation of this Kotlin program yields the similar <code>.properties</code> file back.</p>
+<p>The evaluation of this Kotlin program yields the similar <code class="highlighter-rouge">.properties</code> file back.</p>
 
 <p>The DSL code is way easier to read and to write.</p>
 

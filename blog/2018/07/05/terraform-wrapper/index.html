@@ -179,23 +179,23 @@ versions specific to a given project or branch. What if you need several at a ti
 <p>I like to zero-configuration approach, where one does not change the global state
 of the machine. And it plays nicely if you have several working machines too!</p>
 
-<p>Here is what I do to use Terraform in <code>bash</code>, tested on macOS:</p>
+<p>Here is what I do to use Terraform in <code class="highlighter-rouge">bash</code>, tested on macOS:</p>
 
-<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span></span><span class="ch">#!/bin/bash</span>
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#!/bin/bash</span>
 
-<span class="nv">DIR</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">&quot;</span><span class="k">$(</span> dirname <span class="s2">&quot;</span><span class="si">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">)</span><span class="s2">&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">&quot;</span>
-<span class="nv">TERRAFORM_ROOT</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span> <span class="s2">&quot;</span><span class="nv">$DIR</span><span class="s2">&quot;</span> <span class="o">&amp;&amp;</span> <span class="nb">cd</span> .. <span class="o">&amp;&amp;</span> <span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
-<span class="nv">AWS_ROOT</span><span class="o">=</span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">cd</span> ~/.aws <span class="o">&amp;&amp;</span> <span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>
-<span class="nv">TERRAFORM_VERSION</span><span class="o">=</span><span class="m">0</span>.11.7
+<span class="nv">DIR</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span> <span class="nb">cd</span> <span class="s2">"</span><span class="k">$(</span> <span class="nb">dirname</span> <span class="s2">"</span><span class="k">${</span><span class="nv">BASH_SOURCE</span><span class="p">[0]</span><span class="k">}</span><span class="s2">"</span> <span class="k">)</span><span class="s2">"</span> <span class="o">&amp;&amp;</span> <span class="nb">pwd</span> <span class="k">)</span><span class="s2">"</span>
+<span class="nv">TERRAFORM_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span><span class="nb">cd</span> <span class="s2">"</span><span class="nv">$DIR</span><span class="s2">"</span> <span class="o">&amp;&amp;</span> <span class="nb">cd</span> .. <span class="o">&amp;&amp;</span> <span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span>
+<span class="nv">AWS_ROOT</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span><span class="nb">cd</span> ~/.aws <span class="o">&amp;&amp;</span> <span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span>
+<span class="nv">TERRAFORM_VERSION</span><span class="o">=</span>0.11.7
 
 docker run <span class="se">\</span>
-          --rm <span class="se">\</span>
-          -it <span class="se">\</span>
-          --dns <span class="k">$(</span>dig +short &lt;YOUR DNS&gt; <span class="p">|</span> tail -1<span class="k">)</span> <span class="se">\</span>
-          --volume <span class="s2">&quot;</span><span class="nv">$TERRAFORM_ROOT</span><span class="s2">:</span><span class="nv">$TERRAFORM_ROOT</span><span class="s2">&quot;</span> <span class="se">\</span>
-          --volume <span class="s2">&quot;</span><span class="nv">$AWS_ROOT</span><span class="s2">:/root/.aws:ro&quot;</span> <span class="se">\</span>
-          --workdir <span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">&quot;</span>  <span class="se">\</span>
-          hashicorp/terraform:<span class="si">${</span><span class="nv">TERRAFORM_VERSION</span><span class="si">}</span> <span class="nv">$*</span></code></pre></figure>
+          <span class="nt">--rm</span> <span class="se">\</span>
+          <span class="nt">-it</span> <span class="se">\</span>
+          <span class="nt">--dns</span> <span class="k">$(</span>dig +short &lt;YOUR DNS&gt; | <span class="nb">tail</span> <span class="nt">-1</span><span class="k">)</span> <span class="se">\</span>
+          <span class="nt">--volume</span> <span class="s2">"</span><span class="nv">$TERRAFORM_ROOT</span><span class="s2">:</span><span class="nv">$TERRAFORM_ROOT</span><span class="s2">"</span> <span class="se">\</span>
+          <span class="nt">--volume</span> <span class="s2">"</span><span class="nv">$AWS_ROOT</span><span class="s2">:/root/.aws:ro"</span> <span class="se">\</span>
+          <span class="nt">--workdir</span> <span class="s2">"</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">"</span>  <span class="se">\</span>
+          hashicorp/terraform:<span class="k">${</span><span class="nv">TERRAFORM_VERSION</span><span class="k">}</span> <span class="nv">$*</span></code></pre></figure>
 
 <p>I code Terraform scripts in 
 <a href="https://jetbrains.com/idea">IntelliJ IDEA</a> with 

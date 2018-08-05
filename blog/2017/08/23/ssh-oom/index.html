@@ -240,12 +240,12 @@ rest of heap memory. More detailed, I found a massive SSH session object.</p>
 
 <p>A closer look in memory dumps and I was able to figure out the outage was caused by
 a fresh <a href="https://www.chiark.greenend.org.uk/~sgtatham/putty/">Putty</a> client on Windows, e.g. 
-<code>SSH-2.0-PuTTY_Release_0.69</code>. At the time of the accident, it was the most recent version.</p>
+<code class="highlighter-rouge">SSH-2.0-PuTTY_Release_0.69</code>. At the time of the accident, it was the most recent version.</p>
 
 <p>The state was that I had an OOM issue downloading several gigabytes of data over the 
 SSH with Putty client. It was time to write integration tests to reproduce the problem. 
-I did it. I was able to test every putty client version. I tried <code>0.67</code>, <code>0.68</code> and <code>0.69</code>.
-The OOM problem was likely to be introduced in <code>0.68</code>.</p>
+I did it. I was able to test every putty client version. I tried <code class="highlighter-rouge">0.67</code>, <code class="highlighter-rouge">0.68</code> and <code class="highlighter-rouge">0.69</code>.
+The OOM problem was likely to be introduced in <code class="highlighter-rouge">0.68</code>.</p>
 
 <h1 id="client-problem-and-users">Client problem and users</h1>
 
@@ -264,7 +264,7 @@ recent update of their software.</p>
 the cause of the issue.</p>
 
 <p>I found the method, which handles all writes on the server: 
-<code>org.apache.sshd.common.session.AbstractSession#writePacket(org.apache.sshd.common.util.buffer.Buffer)</code></p>
+<code class="highlighter-rouge">org.apache.sshd.common.session.AbstractSession#writePacket(org.apache.sshd.common.util.buffer.Buffer)</code></p>
 
 <p>Apache Mina SSHD server is async. Instead of writing data directly to the socket it 
 enqueues the data and sends once the OS is ready for it.</p>
@@ -308,21 +308,21 @@ I created an issue for the Apache Mina SSHD project to let anyone know there is 
 <p>I did a trivial patch on for the server. I decided to limit write queue for channel messages
 to block the sender even in the case send window is unlimited. I simply use a semaphore for it:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
-  <span class="k">private</span> <span class="k">val</span> <span class="py">CHANNEL_STDERR_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="kd">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">CHANNEL_STDERR_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
 
-  <span class="k">override</span> <span class="k">fun</span> <span class="nf">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">):</span> <span class="n">IoWriteFuture</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="k">fun</span> <span class="n">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">):</span> <span class="n">IoWriteFuture</span> <span class="p">{</span>
     <span class="c1">// The workaround for</span>
     <span class="c1">// https://issues.apache.org/jira/browse/SSHD-754</span>
     <span class="c1">// the trick is to block writer thread once there are more</span>
     <span class="c1">// than 100 messages in either rekey wait queue or nio write queue</span>
-    <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="k">when</span> <span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">array</span><span class="p">()[</span><span class="n">buffer</span><span class="p">.</span><span class="n">rpos</span><span class="p">()])</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="k">when</span> <span class="p">(</span><span class="n">buffer</span><span class="p">.</span><span class="n">array</span><span class="p">()[</span><span class="n">buffer</span><span class="p">.</span><span class="n">rpos</span><span class="p">()])</span> <span class="p">{</span>
       <span class="n">SshConstants</span><span class="p">.</span><span class="n">SSH_MSG_CHANNEL_DATA</span> <span class="p">-&gt;</span> <span class="n">CHANNEL_STDOUT_LOCK</span>
       <span class="n">SshConstants</span><span class="p">.</span><span class="n">SSH_MSG_CHANNEL_EXTENDED_DATA</span> <span class="p">-&gt;</span> <span class="n">CHANNEL_STDERR_LOCK</span>
       <span class="k">else</span> <span class="p">-&gt;</span> <span class="k">null</span>
     <span class="p">}</span><span class="o">?.</span><span class="n">acquire</span><span class="p">()</span>
 
-    <span class="k">val</span> <span class="py">future</span> <span class="p">=</span> <span class="k">super</span><span class="p">.</span><span class="n">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
+    <span class="kd">val</span> <span class="py">future</span> <span class="p">=</span> <span class="k">super</span><span class="p">.</span><span class="n">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="n">lock</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
       <span class="n">future</span><span class="p">.</span><span class="n">addListener</span><span class="p">(</span><span class="n">lock</span><span class="p">)</span>
@@ -331,21 +331,21 @@ to block the sender even in the case send window is unlimited. I simply use a se
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>The code above is included in my inheritor of the <code>org.apache.sshd.common.session.AbstractSession</code>.
+<p>The code above is included in my inheritor of the <code class="highlighter-rouge">org.apache.sshd.common.session.AbstractSession</code>.
 I like Apache Mina SSHD library is designed in an extensible way making such workaround possible.</p>
 
-<p>And the <code>PressureLock</code> was implemented this way:</p>
+<p>And the <code class="highlighter-rouge">PressureLock</code> was implemented this way:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span><span class="k">class</span> <span class="nc">PressureLock</span> <span class="p">{</span>
-  <span class="k">private</span> <span class="k">val</span> <span class="py">semaphore</span> <span class="p">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">PressureLock</span> <span class="p">{</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">semaphore</span> <span class="p">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
 
-  <span class="k">private</span> <span class="k">val</span> <span class="py">listener</span> <span class="p">=</span> <span class="k">object</span> <span class="err">: </span><span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="k">fun</span> <span class="nf">operationComplete</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">IoWriteFuture</span><span class="p">?)</span> <span class="p">{</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">listener</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="n">operationComplete</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">IoWriteFuture</span><span class="p">?)</span> <span class="p">{</span>
       <span class="n">semaphore</span><span class="p">.</span><span class="n">release</span><span class="p">()</span>
     <span class="p">}</span>
   <span class="p">}</span>
 
-  <span class="k">fun</span> <span class="nf">acquire</span><span class="p">()</span> <span class="p">:</span> <span class="n">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="n">acquire</span><span class="p">()</span> <span class="p">:</span> <span class="n">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
     <span class="n">semaphore</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">listener</span>
   <span class="p">}</span>
@@ -369,50 +369,50 @@ Putty 0.67 was using 16K for it.</p>
 <p>And I found the change <a href="https://git.tartarus.org/?p=simon/putty.git;a=commit;h=b22c0b6f3e6f5254270a89f86df3edfc4da829d2">b22c0b6f3e6f5254270a89f86df3edfc4da829d2</a>
 and the <a href="https://git.tartarus.org/?p=simon/putty.git;a=blobdiff;f=windows/winplink.c;h=99e269fdc106687e7edff5c51fb778ee22d545b7;hp=a0458b39a878b0ad8af99d9a7294e2129b3bf787;hb=b22c0b6f3e6f5254270a89f86df3edfc4da829d2;hpb=34add87ad249205d4ed36381bfb506a431dc0e7a">winplink.c file</a></p>
 
-<figure class="highlight"><pre><code class="language-diff" data-lang="diff"><span></span><span class="gd">--- a/windows/winplink.c</span>
-<span class="gi">+++ b/windows/winplink.c</span>
-<span class="gu">@@ -618,6 +618,17 @@ int main(int argc, char **argv)</span>
-        return 1;
+<figure class="highlight"><pre><code class="language-diff" data-lang="diff"><span class="gd">--- a/windows/winplink.c
+</span><span class="gi">+++ b/windows/winplink.c
+</span><span class="gu">@@ -618,6 +618,17 @@ int main(int argc, char **argv)
+</span>        return 1;
      }
  
-<span class="gi">+    /*</span>
-<span class="gi">+     * Plink doesn&#39;t provide any way to add forwardings after the</span>
-<span class="gi">+     * connection is set up, so if there are none now, we can safely set</span>
-<span class="gi">+     * the &quot;simple&quot; flag.</span>
-<span class="gi">+     */</span>
-<span class="gi">+    if (conf_get_int(conf, CONF_protocol) == PROT_SSH &amp;&amp;</span>
-<span class="gi">+       !conf_get_int(conf, CONF_x11_forward) &amp;&amp;</span>
-<span class="gi">+       !conf_get_int(conf, CONF_agentfwd) &amp;&amp;</span>
-<span class="gi">+       !conf_get_str_nthstrkey(conf, CONF_portfwd, 0))</span>
-<span class="gi">+       conf_set_int(conf, CONF_ssh_simple, TRUE);</span>
-<span class="gi">+</span></code></pre></figure>
+<span class="gi">+    /*
++     * Plink doesn't provide any way to add forwardings after the
++     * connection is set up, so if there are none now, we can safely set
++     * the "simple" flag.
++     */
++    if (conf_get_int(conf, CONF_protocol) == PROT_SSH &amp;&amp;
++       !conf_get_int(conf, CONF_x11_forward) &amp;&amp;
++       !conf_get_int(conf, CONF_agentfwd) &amp;&amp;
++       !conf_get_str_nthstrkey(conf, CONF_portfwd, 0))
++       conf_set_int(conf, CONF_ssh_simple, TRUE);
++</span></code></pre></figure>
 
-<p>The change was to flip <code>CONF_ssh_simple</code> mode on Windows. The change 
+<p>The change was to flip <code class="highlighter-rouge">CONF_ssh_simple</code> mode on Windows. The change 
 did enable 2GB receive window, as you may see from the usages.</p>
 
-<p>In <code>ssh.c</code> in <a href="https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz">Putty 0.70</a> we have defines:</p>
+<p>In <code class="highlighter-rouge">ssh.c</code> in <a href="https://the.earth.li/~sgtatham/putty/latest/putty-0.70.tar.gz">Putty 0.70</a> we have defines:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="cp">#define OUR_V2_BIGWIN 0x7fffffff</span>
-<span class="cp">#define OUR_V2_WINSIZE 16384</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="cp">#define OUR_V2_BIGWIN 0x7fffffff
+#define OUR_V2_WINSIZE 16384</span></code></pre></figure>
 
 <p>And the code-block:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span><span class="k">static</span> <span class="kt">int</span> <span class="nf">ssh_is_simple</span><span class="p">(</span><span class="n">Ssh</span> <span class="n">ssh</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span class="k">static</span> <span class="kt">int</span> <span class="nf">ssh_is_simple</span><span class="p">(</span><span class="n">Ssh</span> <span class="n">ssh</span><span class="p">)</span>
 <span class="p">{</span>
-    <span class="cm">/*</span>
-<span class="cm">     * We use the &#39;simple&#39; variant of the SSH protocol if we&#39;re asked</span>
-<span class="cm">     * to, except not if we&#39;re also doing connection-sharing (either</span>
-<span class="cm">     * tunnelling our packets over an upstream or expecting to be</span>
-<span class="cm">     * tunnelled over ourselves), since then the assumption that we</span>
-<span class="cm">     * have only one channel to worry about is not true after all.</span>
-<span class="cm">     */</span>
+    <span class="cm">/*
+     * We use the 'simple' variant of the SSH protocol if we're asked
+     * to, except not if we're also doing connection-sharing (either
+     * tunnelling our packets over an upstream or expecting to be
+     * tunnelled over ourselves), since then the assumption that we
+     * have only one channel to worry about is not true after all.
+     */</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">conf_get_int</span><span class="p">(</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">conf</span><span class="p">,</span> <span class="n">CONF_ssh_simple</span><span class="p">)</span> <span class="o">&amp;&amp;</span>
             <span class="o">!</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">bare_connection</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">connshare</span><span class="p">);</span>
 <span class="p">}</span>
 
-<span class="cm">/*</span>
-<span class="cm"> * Set up most of a new ssh_channel.</span>
-<span class="cm"> */</span>
+<span class="cm">/*
+ * Set up most of a new ssh_channel.
+ */</span>
 <span class="k">static</span> <span class="kt">void</span> <span class="nf">ssh_channel_init</span><span class="p">(</span><span class="k">struct</span> <span class="n">ssh_channel</span> <span class="o">*</span><span class="n">c</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="n">Ssh</span> <span class="n">ssh</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="p">;</span>
@@ -422,7 +422,7 @@ did enable 2GB receive window, as you may see from the usages.</p>
     <span class="n">c</span><span class="o">-&gt;</span><span class="n">throttling_conn</span> <span class="o">=</span> <span class="n">FALSE</span><span class="p">;</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="n">version</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span> <span class="p">{</span>
 	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
-	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="nl">OUR_V2_BIGWIN</span> <span class="p">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span>
+	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="n">OUR_V2_BIGWIN</span> <span class="o">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span>
 	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">chanreq_head</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span>
 	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">throttle_state</span> <span class="o">=</span> <span class="n">UNTHROTTLED</span><span class="p">;</span>
 	<span class="n">bufchain_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">outbuffer</span><span class="p">);</span>
@@ -432,11 +432,11 @@ did enable 2GB receive window, as you may see from the usages.</p>
 
 <p>The windows size is computed by the following expression:</p>
 
-<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp"><span></span>	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
-	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="nl">OUR_V2_BIGWIN</span> <span class="p">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-cpp" data-lang="cpp">	<span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locwindow</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">locmaxwin</span> <span class="o">=</span> <span class="n">c</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">.</span><span class="n">v2</span><span class="p">.</span><span class="n">remlocwin</span> <span class="o">=</span>
+	    <span class="n">ssh_is_simple</span><span class="p">(</span><span class="n">ssh</span><span class="p">)</span> <span class="o">?</span> <span class="n">OUR_V2_BIGWIN</span> <span class="o">:</span> <span class="n">OUR_V2_WINSIZE</span><span class="p">;</span></code></pre></figure>
 
 <p>The windows sizes are exactly the same as I saw in debugger both for
-<code>0.67</code> and <code>0.69</code> versions.</p>
+<code class="highlighter-rouge">0.67</code> and <code class="highlighter-rouge">0.69</code> versions.</p>
 
 <p>That was it. And it was in April 2016. It took more than a year 
 for the change to cause the issues I was debugging.</p>

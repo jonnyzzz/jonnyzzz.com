@@ -176,10 +176,10 @@
 <p>A topic of ownership is better covered in <a href="https://www.rust-lang.org">Rust Language</a>. Still, such problems
 are not solved well enough in the JVM world. Let’s consider a trivial shared state access example</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">private</span> <span class="k">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
-  <span class="k">private</span> <span class="k">var</span> <span class="py">value</span> <span class="p">=</span> <span class="m">42</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="kd">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
+  <span class="k">private</span> <span class="kd">var</span> <span class="py">value</span> <span class="p">=</span> <span class="m">42</span>
   
-  <span class="k">fun</span> <span class="nf">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="n">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">lock</span><span class="p">.</span><span class="n">lock</span><span class="p">()</span>
     <span class="k">try</span> <span class="p">{</span>
       <span class="n">updateStateWithNewValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
@@ -203,16 +203,16 @@ help an IDE to be smarter, those annotations will not turn a mistake into a comp
 
 <h1 id="java-style-solution">Java Style solution</h1>
 
-<p>In Java, this can be done in the following way. Create a function <code>runWithLock</code> and make this function accept
-an interface with a method like <code>run(State s)</code>. If necessary a generics can be added to simplify usages.</p>
+<p>In Java, this can be done in the following way. Create a function <code class="highlighter-rouge">runWithLock</code> and make this function accept
+an interface with a method like <code class="highlighter-rouge">run(State s)</code>. If necessary a generics can be added to simplify usages.</p>
 
-<p>To implement that one need to extract a state object (which I call <code>State</code>). Happy Java 1.8 users may benefit
+<p>To implement that one need to extract a state object (which I call <code class="highlighter-rouge">State</code>). Happy Java 1.8 users may benefit
 from Lambda syntax. But the approach itself requires a creation of tiny objects (for lambdas, in most cases) on every call.
 Such overhead is small, but one may not like it.</p>
 
 <p>An example call code would look like</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>  <span class="kd">class</span> <span class="nc">State</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java">  <span class="kd">class</span> <span class="nc">State</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
   <span class="kt">void</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="n">Consumer</span><span class="o">&lt;</span><span class="n">State</span><span class="o">&gt;</span> <span class="n">s</span><span class="o">)</span> <span class="o">{</span> <span class="cm">/*...*/</span> <span class="o">}</span>
 
 
@@ -226,41 +226,41 @@ Such overhead is small, but one may not like it.</p>
 
 <p>Consider the following implementation in Kotlin</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span><span class="kd">class</span> <span class="nc">GuardedByLock</span><span class="o">&lt;</span><span class="n">out</span> <span class="n">L</span><span class="o">:</span> <span class="n">Lock</span><span class="o">,</span> <span class="n">out</span> <span class="n">T</span><span class="o">&gt;(</span>
-        <span class="n">val</span> <span class="n">lock</span><span class="o">:</span> <span class="n">L</span><span class="o">,</span>
-        <span class="n">val</span> <span class="n">state</span><span class="o">:</span> <span class="n">T</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><span class="kd">class</span> <span class="nc">GuardedByLock</span><span class="o">&lt;</span><span class="n">out</span> <span class="nl">L:</span> <span class="n">Lock</span><span class="o">,</span> <span class="n">out</span> <span class="n">T</span><span class="o">&gt;(</span>
+        <span class="n">val</span> <span class="nl">lock:</span> <span class="n">L</span><span class="o">,</span>
+        <span class="n">val</span> <span class="nl">state:</span> <span class="n">T</span>
 <span class="o">)</span> <span class="o">{</span>
-  <span class="n">inline</span> <span class="n">fun</span> <span class="o">&lt;</span><span class="n">Y</span><span class="o">&gt;</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="n">action</span><span class="o">:</span> <span class="n">T</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Y</span><span class="o">)</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="na">withLock</span> <span class="o">{</span> <span class="n">state</span><span class="o">.</span><span class="na">action</span><span class="o">()</span> <span class="o">}</span>
+  <span class="n">inline</span> <span class="n">fun</span> <span class="o">&lt;</span><span class="n">Y</span><span class="o">&gt;</span> <span class="nf">runWithLock</span><span class="o">(</span><span class="nl">action:</span> <span class="n">T</span><span class="o">.()</span> <span class="o">-&gt;</span> <span class="n">Y</span><span class="o">)</span> <span class="o">=</span> <span class="n">lock</span><span class="o">.</span><span class="na">withLock</span> <span class="o">{</span> <span class="n">state</span><span class="o">.</span><span class="na">action</span><span class="o">()</span> <span class="o">}</span>
 <span class="o">}</span></code></pre></figure>
 
 <p>The usage is as follows:</p>
 
-<figure class="highlight"><pre><code class="language-java" data-lang="java"><span></span>   <span class="kd">class</span> <span class="nf">State</span><span class="o">(</span><span class="n">var</span> <span class="n">value</span><span class="o">:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">42</span><span class="o">)</span>
+<figure class="highlight"><pre><code class="language-java" data-lang="java">   <span class="kd">class</span> <span class="nf">State</span><span class="o">(</span><span class="kt">var</span> <span class="nl">value:</span> <span class="n">Int</span> <span class="o">=</span> <span class="mi">42</span><span class="o">)</span>
    <span class="n">val</span> <span class="n">lock</span> <span class="o">=</span> <span class="n">GuardedByLock</span><span class="o">(</span><span class="n">ReentrantLock</span><span class="o">(),</span> <span class="n">State</span><span class="o">())</span>
    
    <span class="n">fun</span> <span class="nf">main</span><span class="o">()</span> <span class="o">{</span>
      <span class="n">lock</span><span class="o">.</span><span class="na">runWithLock</span> <span class="o">{</span> <span class="n">value</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">}</span>
    <span class="o">}</span>  </code></pre></figure>
 
-<p>Let’s take a look closer to the <code>runWithLock</code> call. Here <code>{</code> and <code>}</code> are used to 
+<p>Let’s take a look closer to the <code class="highlighter-rouge">runWithLock</code> call. Here <code class="highlighter-rouge">{</code> and <code class="highlighter-rouge">}</code> are used to 
 declare an <a href="https://kotlinlang.org/docs/reference/lambdas.html">anonymous extension function</a> 
-of type <code>State.() -&gt; Y</code> (<code>Y</code> is a generic type parameter).
-Extension function means that in the body of the function we have <code>this</code> keyword pointing to <code>State</code> object
-instance. And the part <code>value = 5</code> means we assign the value to <code>State</code> object property/field.</p>
+of type <code class="highlighter-rouge">State.() -&gt; Y</code> (<code class="highlighter-rouge">Y</code> is a generic type parameter).
+Extension function means that in the body of the function we have <code class="highlighter-rouge">this</code> keyword pointing to <code class="highlighter-rouge">State</code> object
+instance. And the part <code class="highlighter-rouge">value = 5</code> means we assign the value to <code class="highlighter-rouge">State</code> object property/field.</p>
 
-<p>The <code>inline</code> keyword here makes Kotlin compiler to 
+<p>The <code class="highlighter-rouge">inline</code> keyword here makes Kotlin compiler to 
 <a href="https://kotlinlang.org/docs/reference/inline-functions.html">inline</a>
 the function body to avoid creating an anonymous function in the compiled code. You may refer to 
 <a href="/blog/2017/02/15/catchall/">the previous post</a> for bytecode listing of inline function calls.</p>
 
 <p>With this approach, we avoid creation anonymous classes for Lambdas from one hand. From the other hand,
-the Kotlin compiler is in charge of checking a <code>State</code> object instance in only accessible after necessary
+the Kotlin compiler is in charge of checking a <code class="highlighter-rouge">State</code> object instance in only accessible after necessary
 locks are held.</p>
 
-<p>Finally, the bytecode for the <code>main</code> function is the following. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 
+<p>Finally, the bytecode for the <code class="highlighter-rouge">main</code> function is the following. Note. I use IntelliJ IDEA 2017.1 EAP with Kotlin 
 1.0.6 plugin. The generated bytecode may change with a future version of tools.</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>  // access flags 0x19
+<figure class="highlight"><pre><code class="language-text" data-lang="text">  // access flags 0x19
   public final static main()V
     TRYCATCHBLOCK L0 L1 L2 null
     TRYCATCHBLOCK L2 L3 L2 null
@@ -330,14 +330,14 @@ locks are held.</p>
     MAXSTACK = 2
     MAXLOCALS = 6</code></pre></figure>
 
-<p>As we see from the code, there is NO anonymous class creation.A call to <code>GuardedByLock#runWithLock</code> was inlined into 
-the <code>main</code> function body, meaning less overhead (who’d measure it :).</p>
+<p>As we see from the code, there is NO anonymous class creation.A call to <code class="highlighter-rouge">GuardedByLock#runWithLock</code> was inlined into 
+the <code class="highlighter-rouge">main</code> function body, meaning less overhead (who’d measure it :).</p>
 
 <h1 id="conclusion">Conclusion</h1>
 
-<p>In the post, I presented <code>GuardedByLock</code> class in Kotlin. Using it in your project may help to 
+<p>In the post, I presented <code class="highlighter-rouge">GuardedByLock</code> class in Kotlin. Using it in your project may help to 
 correctly isolate state and make Kotlin complier checking all possible violations for you. 
-The only cost is 2 additional object instances: one for <code>GuardedByLock</code>, and the other one for the <code>State</code>.</p>
+The only cost is 2 additional object instances: one for <code class="highlighter-rouge">GuardedByLock</code>, and the other one for the <code class="highlighter-rouge">State</code>.</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->

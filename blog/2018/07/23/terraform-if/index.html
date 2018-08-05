@@ -189,8 +189,8 @@ The API Gateway service is tricky, and in Terraform one uses several resources t
 <a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_rest_api.html">aws_api_gateway_api</a>
 resource, which defines the API Gateway itself. Handler paths are represented 
 as a <a href="https://en.wikipedia.org/wiki/Tree_(data_structure)">tree structure</a>. The root of the 
-tree matches to the empty path. The root node ID is returned from the <code>root_resource_id</code> output
-parameter of the <code>aws_api_gateway_api</code> resource.</p>
+tree matches to the empty path. The root node ID is returned from the <code class="highlighter-rouge">root_resource_id</code> output
+parameter of the <code class="highlighter-rouge">aws_api_gateway_api</code> resource.</p>
 
 <p>I use Terraform <a href="https://www.terraform.io/docs/modules/usage.html">Modules</a> in my scripts
 to reduce complexity. Modules are the same as functions in other programming languages. 
@@ -199,81 +199,81 @@ It helps to reuse code and reduce duplicates.</p>
 <h2 id="the-need-of-a-condition">The Need of a Condition</h2>
 
 <p>I have a module to define API Gateway handlers. That module accepts a handler path and the 
-<code>root_resource_id</code> parameter. In the module, I have to decide either
+<code class="highlighter-rouge">root_resource_id</code> parameter. In the module, I have to decide either
 to create new resource 
 <a href="https://www.terraform.io/docs/providers/aws/r/api_gateway_resource.html">aws_api_gateway_resource</a>,
-for non-empty path, or to use the base <code>root_resource_id</code> instead, for the empty one.</p>
+for non-empty path, or to use the base <code class="highlighter-rouge">root_resource_id</code> instead, for the empty one.</p>
 
 <p>In a pseudo-code the problem looks as follows:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span></span>  <span class="k">if</span> <span class="p">(</span><span class="n">root_path</span> <span class="p">==</span> <span class="s">&quot;&quot;</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">if</span> <span class="p">(</span><span class="n">root_path</span> <span class="p">==</span> <span class="s">""</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">root_resource_id</span>
   <span class="p">}</span> <span class="k">else</span> <span class="p">{</span> 
-    <span class="p">(</span><span class="n">resource</span> <span class="s">&quot;aws_api_gateway_resource&quot;</span><span class="p">).</span><span class="n">id</span>
+    <span class="p">(</span><span class="n">resource</span> <span class="s">"aws_api_gateway_resource"</span><span class="p">).</span><span class="n">id</span>
   <span class="p">}</span></code></pre></figure>
 
 <h2 id="a-condition-implementation">A Condition Implementation</h2>
 
 <p>I head that story from my friend Mikhail Kuzmin several years ago. I have no idea,
-how I recalled that, but still. He told me something about the <code>count</code> parameter is helpful
+how I recalled that, but still. He told me something about the <code class="highlighter-rouge">count</code> parameter is helpful
 to implement a condition in Terraform.</p>
 
 <p>Also, I found that in Terraform we have 
 <a href="https://www.terraform.io/docs/configuration/interpolation.html#conditionals">ternary operator expression</a>,
-aka <code>condition ? foo : bar</code>, which helps me to extract the right resource ID at the end.</p>
+aka <code class="highlighter-rouge">condition ? foo : bar</code>, which helps me to extract the right resource ID at the end.</p>
 
 <p>The overall condition for a resource did not look trivial. I decided to extract it as a dedicated module
 from the very beginning. That is what I created:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>variable &quot;api_gateway_id&quot; {}
-variable &quot;parent_resource_id&quot; {}
+<figure class="highlight"><pre><code class="language-text" data-lang="text">variable "api_gateway_id" {}
+variable "parent_resource_id" {}
 
-variable &quot;path_part&quot; {
-  description = &quot;Resource path or empty string to use parent_resource_id&quot;
+variable "path_part" {
+  description = "Resource path or empty string to use parent_resource_id"
 }
 
-resource &quot;aws_api_gateway_resource&quot; &quot;handler&quot; {
-  parent_id   = &quot;${var.parent_resource_id}&quot;
-  rest_api_id = &quot;${var.api_gateway_id}&quot;
+resource "aws_api_gateway_resource" "handler" {
+  parent_id   = "${var.parent_resource_id}"
+  rest_api_id = "${var.api_gateway_id}"
 
-  path_part   = &quot;${var.path_part}&quot;
+  path_part   = "${var.path_part}"
 
-  count       = &quot;${var.path_part == &quot;&quot; ? 0 : 1 }&quot;
+  count       = "${var.path_part == "" ? 0 : 1 }"
 }
 
-output &quot;handler_id&quot; {
-  value = &quot;${
-    var.path_part == &quot;&quot;
+output "handler_id" {
+  value = "${
+    var.path_part == ""
     ? var.parent_resource_id
-    : element(concat(aws_api_gateway_resource.handler.*.id, list(&quot;&quot;)),0)
-  }&quot;
+    : element(concat(aws_api_gateway_resource.handler.*.id, list("")),0)
+  }"
 }</code></pre></figure>
 
-<p>I do several tricks in that module. The first trick is to set <code>count</code> for <code>aws_api_gateway_resource</code>
-to zero when I need no resource created. Otherwise, I put <code>count = 1</code>, which is the default.</p>
+<p>I do several tricks in that module. The first trick is to set <code class="highlighter-rouge">count</code> for <code class="highlighter-rouge">aws_api_gateway_resource</code>
+to zero when I need no resource created. Otherwise, I put <code class="highlighter-rouge">count = 1</code>, which is the default.</p>
 
-<p>The second trick is in the <code>hardler_id</code> output parameters. I select
-either the created ID or the <code>parent_resource_id</code> parameter.</p>
+<p>The second trick is in the <code class="highlighter-rouge">hardler_id</code> output parameters. I select
+either the created ID or the <code class="highlighter-rouge">parent_resource_id</code> parameter.</p>
 
 <h2 id="ternary-expression-and-complexity">Ternary Expression and Complexity</h2>
 
 <p>You may want to ask, why is it so complicated, me too. I started with the more 
 trivial variant of the second condition:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>output &quot;handler_id&quot; {
-  value = &quot;${
-    var.path_part == &quot;&quot;
+<figure class="highlight"><pre><code class="language-text" data-lang="text">output "handler_id" {
+  value = "${
+    var.path_part == ""
     ? var.parent_resource_id
     : element(aws_api_gateway_resource.handler.*.id,0)
-  }&quot;
+  }"
 }</code></pre></figure>
 
 <p>And then, I found out that Terraform computes both expressions in the ternary
 expression. It differs from the semantics we got used from C-like languages. And so, 
-I had to have a non-empty list in the second expression. I use the <code>concat</code> to 
-join two lists, and <code>list("")</code> to create a new list with one element.
-Finally, <code>concat(aws_api_gateway_resource.handler.*.id, list("")</code> does the trick 
-making a list contain at least one element, even if the <code>count</code> was equal to <code>0</code>.</p>
+I had to have a non-empty list in the second expression. I use the <code class="highlighter-rouge">concat</code> to 
+join two lists, and <code class="highlighter-rouge">list("")</code> to create a new list with one element.
+Finally, <code class="highlighter-rouge">concat(aws_api_gateway_resource.handler.*.id, list("")</code> does the trick 
+making a list contain at least one element, even if the <code class="highlighter-rouge">count</code> was equal to <code class="highlighter-rouge">0</code>.</p>
 
 <p>That is how I found the workable condition expression from the full example above.</p>
 
@@ -283,34 +283,34 @@ making a list contain at least one element, even if the <code>count</code> was e
 Instead of the conditional operator, 
 now I join two lists and pick the first element:</p>
 
-<figure class="highlight"><pre><code class="language-text" data-lang="text"><span></span>output &quot;handler_id&quot; {
-  value = &quot;${
+<figure class="highlight"><pre><code class="language-text" data-lang="text">output "handler_id" {
+  value = "${
     element(concat(aws_api_gateway_resource.handler.*.id, list(root_resource_id)), 0) 
-  }&quot;
+  }"
 }</code></pre></figure>
 
-<p>The <code>aws_api_gateway_resource.handler.*.id</code> gives me an empty list if <code>count = 0</code>.
+<p>The <code class="highlighter-rouge">aws_api_gateway_resource.handler.*.id</code> gives me an empty list if <code class="highlighter-rouge">count = 0</code>.
 That works the same way, but better and shorter. We have only one real condition in 
 the code now.</p>
 
 <h2 id="recursive-creation">Recursive Creation</h2>
 
-<p>I got yet another crazy idea. What if I wish to support <code>long/path/to/create</code> in my module.
+<p>I got yet another crazy idea. What if I wish to support <code class="highlighter-rouge">long/path/to/create</code> in my module.
 What shall I do? The idea was to call the same module recursively for all needed path parts
 to build the resources tree.</p>
 
 <p>I failed.</p>
 
 <p>There are several problems, I came across. The first one. It is not possible to have a
-<code>count</code> parameter on Terraform module usage.</p>
+<code class="highlighter-rouge">count</code> parameter on Terraform module usage.</p>
 
 <p>https://github.com/hashicorp/terraform/issues/953</p>
 
 <p>I tried to include the same module from itself. It turned out, Terraform does not
-support such inclusion and starts an infinite resolution in <code>terraform init</code> call.</p>
+support such inclusion and starts an infinite resolution in <code class="highlighter-rouge">terraform init</code> call.</p>
 
-<p>What if I fix <code>source</code> attribute? 
-It is not possible too. One is not allowed to use a non-constant expression for the <code>source</code> 
+<p>What if I fix <code class="highlighter-rouge">source</code> attribute? 
+It is not possible too. One is not allowed to use a non-constant expression for the <code class="highlighter-rouge">source</code> 
 parameter of a module.</p>
 
 <h2 id="conclusion">Conclusion</h2>
