@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-08-05T13:15:17+00:00</updated>
+  <updated>2018-08-07T09:12:09+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,217 @@
   
 
   
+  
+  <entry>
+    <title type="html">Ad-hoc Plugins with Gradle</title>
+    <link href="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/" rel="alternate" type="text/html" title="Ad-hoc Plugins with Gradle" />
+    <published>2018-08-07T00:00:00+00:00</published>
+    <updated>2018-08-07T00:00:00+00:00</updated>
+    <id>/blog/2018/08/07/ad-hoc-gradle</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/">&lt;p&gt;Gradle code reuse on steroids.&lt;/p&gt;
+
+&lt;p&gt;There are many ways to reuse code in &lt;a href=&quot;https://gradle.org&quot;&gt;Gradle&lt;/a&gt; builds. The 
+major and the most powerful one is
+to write a Gradle plugin either as an independent project or inside &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. 
+You may want to check official documentation
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/plugins.html&quot;&gt;here&lt;/a&gt;.
+All of these approaches require additional efforts from both the development and the infrastructure sides.
+Will you and your team be happy of you doing that?&lt;/p&gt;
+
+&lt;p&gt;I want to share the short-cut to make code reuse without too much work.
+I will consider a
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/multi_project_builds.html&quot;&gt;Multi-Project Gradle builds&lt;/a&gt;.
+It makes less to no sense for a Single Project Gradle builds, there is nothing to reuse, generally.&lt;/p&gt;
+
+&lt;p&gt;What Gradle code to reuse? There are a plenty of places for it. The most trivial is
+dependencies. You’d like to try using the same versions of libraries along the sub-projects.
+Repositories, packaging, testing, plugins, configurations are the places of reuse too. Yet another
+example is Kotlin plugin or Scala plugin configuration.&lt;/p&gt;
+
+&lt;h2 id=&quot;subprojects&quot;&gt;Subprojects&lt;/h2&gt;
+
+&lt;p&gt;The most standard feature in Gradle builds. 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects&lt;/code&gt; is the 
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/multi_project_builds.html#sec:subproject_configuration&quot;&gt;block&lt;/a&gt;
+where you apply the same code snippet to all child (any level)
+projects.&lt;/p&gt;
+
+&lt;p&gt;Projects in Gradle forms a tree structure, it replicates the filesystem. 
+A &lt;em&gt;parent&lt;/em&gt; project in Gradle is the project that is in the parent folder 
+of a child project folder. The &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; is optional and you are not obliged to
+have one. For example,
+the line &lt;code class=&quot;highlighter-rouge&quot;&gt;include ':a:b:c:d'&lt;/code&gt; from a &lt;code class=&quot;highlighter-rouge&quot;&gt;settings.gradle&lt;/code&gt; file 
+defines the following child projects: &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;c&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;d&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;I like to use &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects { .... } &lt;/code&gt; block in parent projects to configure 
+common stuff, like dependencies, plugins, repositories. Let’s see the example:&lt;/p&gt;
+
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ 
+    &lt;span class=&quot;k&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;org.slf4j:slf4j-api:1.7.25&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;testCompile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;junit:junit:4.12&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;   
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;        
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here I set up the default maven repositories in all child projects.
+Also, I include the standard dependencies, namely, &lt;a href=&quot;https://www.slf4j.org/&quot;&gt;SLF4J&lt;/a&gt; and
+&lt;a href=&quot;https://junit.org/junit4/&quot;&gt;JUnit4&lt;/a&gt;. The configuration of
+&lt;a href=&quot;https://junit.org/junit5/docs/current/user-guide/&quot;&gt;JUnit5&lt;/a&gt; is yet
+another great example to share Gradle code between projects.&lt;/p&gt;
+
+&lt;p&gt;It is possible that one does not want to configure all child projects,
+but some projects only. It is possible. But, It’d be better to move that
+project somewhere instead. I use the following,
+&lt;code class=&quot;highlighter-rouge&quot;&gt;configure(project(':a'), project('b').subprojects) { .... }&lt;/code&gt; to 
+apply the same settings to several projects only.&lt;/p&gt;
+
+&lt;h2 id=&quot;apply-from-file&quot;&gt;Apply From File&lt;/h2&gt;
+
+&lt;p&gt;The next way to apply common configuration is to use &lt;code class=&quot;highlighter-rouge&quot;&gt;apply: from: file(...foo.gradle)&lt;/code&gt; syntax.
+You move the configuration to a dedicated file somewhere in the project. You
+include the file to every project, where you need it.&lt;/p&gt;
+
+&lt;p&gt;That is the way to re-include the same part of your Gradle script into many
+projects. The only problem here is that the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; and the &lt;code class=&quot;highlighter-rouge&quot;&gt;...foo.gradle&lt;/code&gt; 
+are executed in an isolated environment. It might be hard to pass parameters
+back and forth.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-common-plugin&quot;&gt;A Common Plugin&lt;/h2&gt;
+
+&lt;p&gt;The most generic approach is to create a Gradle plugin or a custom task. 
+There is the &lt;a href=&quot;https://docs.gradle.org/current/userguide/plugins.html&quot;&gt;documentation&lt;/a&gt; page.
+Set’s see, how to try writing a plugin just in our &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files.&lt;/p&gt;
+
+&lt;p&gt;I use &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; to navigate to interfaces and javadocs.
+It helps me a lot with code completion and error highlighting
+directly in &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files, which actually use Groovy.&lt;/p&gt;
+
+&lt;p&gt;Gradle allows declaring classes in &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files. That is the way to
+create an ad-hoc plugin just in a parent project. You should know, that you 
+will not be able to see the created class outside the &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; file, where
+you created it. The good part is that you may still use &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects&lt;/code&gt; and write the following:&lt;/p&gt;
+
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyPluginClass&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyPluginClass&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Plugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That is the most trivial way to create you own Gradle plugin and to enable it 
+for all child projects. It does not require one to invest into infrastructure 
+(e.g. deployment of a plugin, build configurations and so on).&lt;/p&gt;
+
+&lt;p&gt;You may use &lt;code class=&quot;highlighter-rouge&quot;&gt;org.gradle.api.plugins.ExtensionContainer#create(...)&lt;/code&gt;
+function to add your own Gradle DSL
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties&quot;&gt;extension&lt;/a&gt;.
+That is the standard way to include parameters from the plugin usages.&lt;/p&gt;
+
+&lt;h2 id=&quot;ext-block&quot;&gt;Ext Block&lt;/h2&gt;
+
+&lt;p&gt;What if I need to apply the ad-hoc plugin only to some selected sub-projects? And I do not
+like to code it in the parent project &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt;. Similarly, I may want to reuse some dependencies
+especially for selected projects.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;ext { .. }&lt;/code&gt; &lt;a href=&quot;https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:declaring_variables&quot;&gt;block&lt;/a&gt;
+in Gradle is for me. I combine it with the &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects { .. }&lt;/code&gt; block.
+&lt;a href=&quot;http://groovy-lang.org/closures.html&quot;&gt;Closure&lt;/a&gt; (or Lambda) is a possible value of a
+property from &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; block too.
+Let’s combine those features to level-up the code-reuse in our Gradle script. First, in 
+a parent project we add the code:&lt;/p&gt;
+
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dep_arrow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-core:0.6.1&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-typeclasses:0.6.1&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-data:0.6.1&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Then in a selected child project I simply enable &lt;a href=&quot;https://arrow-kt.io/&quot;&gt;Arrow&lt;/a&gt; library by
+writing the only one line:&lt;/p&gt;
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dep_arrow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Theoretically, It should work with an implicitly captured Project in Closures, without &lt;code class=&quot;highlighter-rouge&quot;&gt;Project&lt;/code&gt; parameter, e.g.
+&lt;code class=&quot;highlighter-rouge&quot;&gt;dep_arrow = { dependencies { ... } }&lt;/code&gt;. I was lazy to try that.&lt;/p&gt;
+
+&lt;p&gt;The similar trick helps to enable ad-hoc Gradle plugins too.&lt;/p&gt;
+
+&lt;h1 id=&quot;the-use-case&quot;&gt;The Use Case&lt;/h1&gt;
+
+&lt;p&gt;I work on an project, where we decided to use micro-services. Technically, it
+means, we split the whole code base into the set of small executables. 
+The same language, namely Kotlin/JVM, is used to implement all services. There are common things one need 
+to have for every service, for example, it includes logging configuration, communication
+setup, crashes handling. I need the only way to pack those services too.&lt;/p&gt;
+
+&lt;p&gt;What did I do? At first, I use &lt;a href=&quot;https://docs.gradle.org/current/userguide/application_plugin.html&quot;&gt;Application plugin&lt;/a&gt;
+to implement the executable. It executes the same entry-point class. The entry-point class
+finds the micro-service class to start it. I plan to use the &lt;a href=&quot;https://github.com/GoogleContainerTools/jib&quot;&gt;jib&lt;/a&gt; plugin
+to wrap my services into Docker images.&lt;/p&gt;
+
+&lt;p&gt;From the Gradle side of things. I created scripts for one service manually. Then, I turned that code into an ad-hoc
+Gradle plugin. I enabled the plugin explicitly in the service projects.
+The plugin configures the Application plugin, adds dependencies, adds
+an &lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties&quot;&gt;extension&lt;/a&gt;
+to get service-specific parameters.&lt;/p&gt;
+
+&lt;p&gt;Right now, the service is created with only a few Gradle lines:&lt;/p&gt;
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;micro_service&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;micro_service&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;entryClassName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'&amp;lt;THE ENTRY POINT CLASS OF THE SERVICE&amp;gt;'&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let your builds be simply. Feed free to ask me for details in the comments below. 
+There is also the official &lt;a href=&quot;https://docs.gradle.org/current&quot;&gt;documentation&lt;/a&gt; for Gradle.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="java" />
+  
+    <category term="groovy" />
+  
+    <category term="plugin" />
+  
+    <category term="gradle-plugin" />
+  
+    <category term="build" />
+  
+    <category term="dependencies" />
+  
+    <summary type="html">Gradle code reuse on steroids.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Condition in Terraform and API Gateway</title>
@@ -1301,105 +1512,6 @@ documentation or &lt;a href=&quot;https://www.youtube.com/watch?v=BnTtjywqAX8&qu
     <category term="dsl" />
   
     <summary type="html">Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">A Gradle Plugin to Detect Package Conflicts for Migration to Java 9 Modules</title>
-    <link href="https://jonnyzzz.com/blog/2017/10/18/java9c/" rel="alternate" type="text/html" title="A Gradle Plugin to Detect Package Conflicts for Migration to Java 9 Modules" />
-    <published>2017-10-18T00:00:00+00:00</published>
-    <updated>2017-10-18T00:00:00+00:00</updated>
-    <id>/blog/2017/10/18/java9c</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2017/10/18/java9c/">&lt;p&gt;helps to detect problems with split packages prior to the migration&lt;/p&gt;
-
-&lt;p&gt;It was an amazing journey to the &lt;a href=&quot;https://www.oracle.com/javaone/index.html&quot;&gt;JavaOne&lt;/a&gt; this year. 
-There I had a great chance to &lt;a href=&quot;https://www.youtube.com/watch?v=UNg9lmk60sg&amp;amp;feature=youtu.be&amp;amp;t=6903&quot;&gt;present&lt;/a&gt; 
-some features of &lt;a href=&quot;https://www.jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; on the huge 
-&lt;a href=&quot;../../../../../talks/&quot;&gt;stage&lt;/a&gt;. I liked it. I was also amazed by the backstage processes. So many people are involved in there.&lt;/p&gt;
-
-&lt;p&gt;During those crazy times, I realized there is a problem for anyone willing to switch to Java 
-modules. The problem is in packages. Every package is now allowed to be used only in 
-one entry in the module path. It is still ok if you’re on classpath. For more information, 
-you may consider &lt;a href=&quot;http://openjdk.java.net/projects/jigsaw/&quot;&gt;project jigsaw&lt;/a&gt;, 
-&lt;a href=&quot;http://openjdk.java.net/jeps/261&quot;&gt;JEP 261&lt;/a&gt;,
-&lt;a href=&quot;http://openjdk.java.net/projects/jigsaw/spec/issues/#AvoidConcealedPackageConflicts&quot;&gt;AvoidConcealedPackageConflicts&lt;/a&gt;, 
-&lt;a href=&quot;https://blog.codefx.org/java/java-9-migration-guide/#Split-Packages&quot;&gt;Split Packages&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;The first step in the migration to modules is to make sure there are no package name clashes 
-between files. The best way to know that for sure is to have a tool that analyze 
-classpath for conflicts. So I created the plugin for Gradle.&lt;/p&gt;
-
-&lt;p&gt;Usage is pretty simple.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'org.jonnyzzz.java9c'&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'0.2.1'&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;/// Mind the updates!&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Once the plugin is applied, it adds the &lt;code class=&quot;highlighter-rouge&quot;&gt;java9c&lt;/code&gt; task. The task itself depends on several generated tasks for 
-every source set, e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;test&lt;/code&gt;. &lt;code class=&quot;highlighter-rouge&quot;&gt;java9c&lt;/code&gt; task, prints out the detected package conflicts for each source set.&lt;/p&gt;
-
-&lt;p&gt;For the demonstration, I created a tiny project that has classes in the junit’s main package. The report looks like that:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2017-10-18-task-output.png&quot; alt=&quot;java9c task out example image&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;For multiple project Gradle projects, you may include the plugin in the following way, or, alternatively, 
-you may select only specific projects to check.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-groovy&quot; data-lang=&quot;groovy&quot;&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
- &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'org.jonnyzzz.java9c'&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'0.2.1'&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;/// Mind the updates!&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'org.jonnyzzz.java9c'&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The plugin is open source. You may find sources on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;It is so easy to create so many different features. This time I decided to create a feature-poor plugin. 
-Meanwhile, I reserved the &lt;code class=&quot;highlighter-rouge&quot;&gt;java9c&lt;/code&gt; extension in Gradle for future features for the plugin.
-Let me know if there is something I missed. Also, you may create a pull 
-request &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h1 id=&quot;sources--binaries&quot;&gt;Sources &amp;amp; Binaries&lt;/h1&gt;
-
-&lt;p&gt;Sources are on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Plugin page on &lt;a href=&quot;https://plugins.gradle.org/plugin/org.jonnyzzz.java9c&quot;&gt;Gradle Plugins&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;The plugin is implemented in pure &lt;a href=&quot;https://kotlinlang.org&quot;&gt;kotlin&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Have fun! And let me know if it helps.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="java" />
-  
-    <category term="jigsaw" />
-  
-    <category term="java9" />
-  
-    <category term="modules" />
-  
-    <category term="opensource" />
-  
-    <category term="plugin" />
-  
-    <category term="java9c" />
-  
-    <category term="kotlin" />
-  
-    <summary type="html">helps to detect problems with split packages prior to the migration</summary>
   
   </entry>
   

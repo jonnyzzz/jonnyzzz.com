@@ -1,0 +1,475 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Ad-hoc Plugins with Gradle &#8211; Eugene Petrenko</title>
+<meta name="description" content="Gradle code reuse on steroids.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, java, groovy, plugin, gradle-plugin, build, dependencies" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Ad-hoc Plugins with Gradle -- Eugene Petrenko" />
+<meta name="twitter:description" content="Gradle code reuse on steroids.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Ad-hoc Plugins with Gradle -- Eugene Petrenko" />
+<meta property="og:description" content="Gradle code reuse on steroids.
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="groovy" />
+
+<meta property="article:tag" content="plugin" />
+
+<meta property="article:tag" content="gradle-plugin" />
+
+<meta property="article:tag" content="build" />
+
+<meta property="article:tag" content="dependencies" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#groovy" title="Pages tagged groovy">groovy</a></li><li><a href="/tags/#plugin" title="Pages tagged plugin">plugin</a></li><li><a href="/tags/#gradle-plugin" title="Pages tagged gradle-plugin">gradle-plugin</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li><li><a href="/tags/#dependencies" title="Pages tagged dependencies">dependencies</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Ad-hoc Plugins with Gradle</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-08-07T00:00:00+00:00"><i class="fa fa-calendar-o"></i> August 07, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=gradle,java,groovy,plugin,gradle-plugin,build,dependencies&amp;text=Ad-hoc%20Plugins%20with%20Gradle&amp;url=https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Gradle code reuse on steroids.</p>
+
+<p>There are many ways to reuse code in <a href="https://gradle.org">Gradle</a> builds. The 
+major and the most powerful one is
+to write a Gradle plugin either as an independent project or inside <code class="highlighter-rouge">buildSrc</code>. 
+You may want to check official documentation
+<a href="https://docs.gradle.org/current/userguide/plugins.html">here</a>.
+All of these approaches require additional efforts from both the development and the infrastructure sides.
+Will you and your team be happy of you doing that?</p>
+
+<p>I want to share the short-cut to make code reuse without too much work.
+I will consider a
+<a href="https://docs.gradle.org/current/userguide/multi_project_builds.html">Multi-Project Gradle builds</a>.
+It makes less to no sense for a Single Project Gradle builds, there is nothing to reuse, generally.</p>
+
+<p>What Gradle code to reuse? There are a plenty of places for it. The most trivial is
+dependencies. You’d like to try using the same versions of libraries along the sub-projects.
+Repositories, packaging, testing, plugins, configurations are the places of reuse too. Yet another
+example is Kotlin plugin or Scala plugin configuration.</p>
+
+<h2 id="subprojects">Subprojects</h2>
+
+<p>The most standard feature in Gradle builds. 
+<code class="highlighter-rouge">subprojects</code> is the 
+<a href="https://docs.gradle.org/current/userguide/multi_project_builds.html#sec:subproject_configuration">block</a>
+where you apply the same code snippet to all child (any level)
+projects.</p>
+
+<p>Projects in Gradle forms a tree structure, it replicates the filesystem. 
+A <em>parent</em> project in Gradle is the project that is in the parent folder 
+of a child project folder. The <code class="highlighter-rouge">build.gradle</code> is optional and you are not obliged to
+have one. For example,
+the line <code class="highlighter-rouge">include ':a:b:c:d'</code> from a <code class="highlighter-rouge">settings.gradle</code> file 
+defines the following child projects: <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">b</code>, <code class="highlighter-rouge">c</code> and <code class="highlighter-rouge">d</code>.</p>
+
+<p>I like to use <code class="highlighter-rouge">subprojects { .... } </code> block in parent projects to configure 
+common stuff, like dependencies, plugins, repositories. Let’s see the example:</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">subprojects</span> <span class="o">{</span>
+    <span class="k">repositories</span> <span class="o">{</span>
+        <span class="n">jcenter</span><span class="o">()</span>
+        <span class="n">mavenCentral</span><span class="o">()</span>
+    <span class="o">}</span>
+ 
+    <span class="k">dependencies</span> <span class="o">{</span>
+        <span class="n">compile</span> <span class="s2">"org.slf4j:slf4j-api:1.7.25"</span>
+        <span class="n">testCompile</span> <span class="s2">"junit:junit:4.12"</span>
+    <span class="o">}</span>   
+<span class="o">}</span>        
+</code></pre></div></div>
+
+<p>Here I set up the default maven repositories in all child projects.
+Also, I include the standard dependencies, namely, <a href="https://www.slf4j.org/">SLF4J</a> and
+<a href="https://junit.org/junit4/">JUnit4</a>. The configuration of
+<a href="https://junit.org/junit5/docs/current/user-guide/">JUnit5</a> is yet
+another great example to share Gradle code between projects.</p>
+
+<p>It is possible that one does not want to configure all child projects,
+but some projects only. It is possible. But, It’d be better to move that
+project somewhere instead. I use the following,
+<code class="highlighter-rouge">configure(project(':a'), project('b').subprojects) { .... }</code> to 
+apply the same settings to several projects only.</p>
+
+<h2 id="apply-from-file">Apply From File</h2>
+
+<p>The next way to apply common configuration is to use <code class="highlighter-rouge">apply: from: file(...foo.gradle)</code> syntax.
+You move the configuration to a dedicated file somewhere in the project. You
+include the file to every project, where you need it.</p>
+
+<p>That is the way to re-include the same part of your Gradle script into many
+projects. The only problem here is that the <code class="highlighter-rouge">build.gradle</code> and the <code class="highlighter-rouge">...foo.gradle</code> 
+are executed in an isolated environment. It might be hard to pass parameters
+back and forth.</p>
+
+<h2 id="a-common-plugin">A Common Plugin</h2>
+
+<p>The most generic approach is to create a Gradle plugin or a custom task. 
+There is the <a href="https://docs.gradle.org/current/userguide/plugins.html">documentation</a> page.
+Set’s see, how to try writing a plugin just in our <code class="highlighter-rouge">.gradle</code> files.</p>
+
+<p>I use <a href="https://jetbrains.com/idea">IntelliJ IDEA</a> to navigate to interfaces and javadocs.
+It helps me a lot with code completion and error highlighting
+directly in <code class="highlighter-rouge">.gradle</code> files, which actually use Groovy.</p>
+
+<p>Gradle allows declaring classes in <code class="highlighter-rouge">.gradle</code> files. That is the way to
+create an ad-hoc plugin just in a parent project. You should know, that you 
+will not be able to see the created class outside the <code class="highlighter-rouge">.gradle</code> file, where
+you created it. The good part is that you may still use <code class="highlighter-rouge">subprojects</code> and write the following:</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="k">subprojects</span> <span class="o">{</span>
+  <span class="n">apply</span> <span class="nl">plugin:</span> <span class="n">MyPluginClass</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">MyPluginClass</span> <span class="kd">implements</span> <span class="n">Plugin</span><span class="o">&lt;</span><span class="kt">Project</span><span class="o">&gt;</span> <span class="o">{</span>
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">apply</span><span class="o">(</span><span class="kt">Project</span> <span class="n">project</span><span class="o">)</span> <span class="o">{</span>
+    <span class="o">...</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>That is the most trivial way to create you own Gradle plugin and to enable it 
+for all child projects. It does not require one to invest into infrastructure 
+(e.g. deployment of a plugin, build configurations and so on).</p>
+
+<p>You may use <code class="highlighter-rouge">org.gradle.api.plugins.ExtensionContainer#create(...)</code>
+function to add your own Gradle DSL
+<a href="https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties">extension</a>.
+That is the standard way to include parameters from the plugin usages.</p>
+
+<h2 id="ext-block">Ext Block</h2>
+
+<p>What if I need to apply the ad-hoc plugin only to some selected sub-projects? And I do not
+like to code it in the parent project <code class="highlighter-rouge">build.gradle</code>. Similarly, I may want to reuse some dependencies
+especially for selected projects.</p>
+
+<p>The <code class="highlighter-rouge">ext { .. }</code> <a href="https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:declaring_variables">block</a>
+in Gradle is for me. I combine it with the <code class="highlighter-rouge">subprojects { .. }</code> block.
+<a href="http://groovy-lang.org/closures.html">Closure</a> (or Lambda) is a possible value of a
+property from <code class="highlighter-rouge">ext</code> block too.
+Let’s combine those features to level-up the code-reuse in our Gradle script. First, in 
+a parent project we add the code:</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">subprojects</span> <span class="o">{</span>
+  <span class="n">ext</span> <span class="o">{</span>
+    <span class="n">dep_arrow</span> <span class="o">=</span> <span class="o">{</span><span class="kt">Project</span> <span class="n">project</span> <span class="o">-&gt;</span>
+      <span class="n">project</span><span class="o">.</span><span class="na">dependencies</span> <span class="o">{</span>
+        <span class="n">compile</span> <span class="s2">"io.arrow-kt:arrow-core:0.6.1"</span>
+        <span class="n">compile</span> <span class="s2">"io.arrow-kt:arrow-typeclasses:0.6.1"</span>
+        <span class="n">compile</span> <span class="s2">"io.arrow-kt:arrow-data:0.6.1"</span>
+    <span class="o">}</span>
+  <span class="o">}</span>  
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Then in a selected child project I simply enable <a href="https://arrow-kt.io/">Arrow</a> library by
+writing the only one line:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ext</span><span class="o">.</span><span class="na">dep_arrow</span><span class="o">(</span><span class="n">project</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>Theoretically, It should work with an implicitly captured Project in Closures, without <code class="highlighter-rouge">Project</code> parameter, e.g.
+<code class="highlighter-rouge">dep_arrow = { dependencies { ... } }</code>. I was lazy to try that.</p>
+
+<p>The similar trick helps to enable ad-hoc Gradle plugins too.</p>
+
+<h1 id="the-use-case">The Use Case</h1>
+
+<p>I work on an project, where we decided to use micro-services. Technically, it
+means, we split the whole code base into the set of small executables. 
+The same language, namely Kotlin/JVM, is used to implement all services. There are common things one need 
+to have for every service, for example, it includes logging configuration, communication
+setup, crashes handling. I need the only way to pack those services too.</p>
+
+<p>What did I do? At first, I use <a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application plugin</a>
+to implement the executable. It executes the same entry-point class. The entry-point class
+finds the micro-service class to start it. I plan to use the <a href="https://github.com/GoogleContainerTools/jib">jib</a> plugin
+to wrap my services into Docker images.</p>
+
+<p>From the Gradle side of things. I created scripts for one service manually. Then, I turned that code into an ad-hoc
+Gradle plugin. I enabled the plugin explicitly in the service projects.
+The plugin configures the Application plugin, adds dependencies, adds
+an <a href="https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties">extension</a>
+to get service-specific parameters.</p>
+
+<p>Right now, the service is created with only a few Gradle lines:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ext</span><span class="o">.</span><span class="na">micro_service</span><span class="o">(</span><span class="n">project</span><span class="o">)</span>
+
+<span class="n">micro_service</span> <span class="o">{</span>
+    <span class="n">entryClassName</span> <span class="o">=</span> <span class="s1">'&lt;THE ENTRY POINT CLASS OF THE SERVICE&gt;'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Let your builds be simply. Feed free to ask me for details in the comments below. 
+There is also the official <a href="https://docs.gradle.org/current">documentation</a> for Gradle.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2018/07/23/terraform-if/" class="btn" title="Condition in Terraform and API Gateway">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2018 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
