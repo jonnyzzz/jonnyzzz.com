@@ -1,0 +1,417 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>libcurl and Kotlin/Native on Windows &#8211; Eugene Petrenko</title>
+<meta name="description" content="Building libcurl on Windows and using it from Kotlin/Native
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, curl, libcurl, windows, kotlin, kotlin/native" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="libcurl and Kotlin/Native on Windows -- Eugene Petrenko" />
+<meta name="twitter:description" content="Building libcurl on Windows and using it from Kotlin/Native
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="libcurl and Kotlin/Native on Windows -- Eugene Petrenko" />
+<meta property="og:description" content="Building libcurl on Windows and using it from Kotlin/Native
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="curl" />
+
+<meta property="article:tag" content="libcurl" />
+
+<meta property="article:tag" content="windows" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="kotlin/native" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#curl" title="Pages tagged curl">curl</a></li><li><a href="/tags/#libcurl" title="Pages tagged libcurl">libcurl</a></li><li><a href="/tags/#windows" title="Pages tagged windows">windows</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#kotlin/native" title="Pages tagged kotlin/native">kotlin/native</a></li>
+        </ul>
+        
+          <h1 class="entry-title">libcurl and Kotlin/Native on Windows</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2018-10-29T00:00:00+00:00"><i class="fa fa-calendar-o"></i> October 29, 2018</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=curl,libcurl,windows,kotlin,kotlin/native&amp;text=libcurl%20and%20Kotlin/Native%20on%20Windows&amp;url=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Building libcurl on Windows and using it from Kotlin/Native</p>
+
+<p>Once upon a time, I decided to answer a question on
+<a href="https://stackoverflow.com/questions/52871078/kotlin-native-libcurl-example-on-windows/52872429?noredirect=1#comment92694725_52872429">StackOverflow</a>
+to explain how to use <code class="highlighter-rouge">libcurl</code> with Kotlin/Native. Now it turned out I will cover a
+more detailed instruction here. How <a href="https://twitter.com/shanselman">@shanselman</a> once told in his talk - if
+a reply is big enough it should go to a documentation of a blog post.</p>
+
+<h1 id="building-curl-and-libcurl-on-windows">Building Curl and Libcurl on Windows</h1>
+
+<p>The first step is to open the https://curl.haxx.se/libcurl/ page and read it.
+Let’s download sources from https://curl.haxx.se/download.html. In my case,
+I downloaded the <a href="https://curl.haxx.se/download/curl-7.61.1.zip">curl-7.61.1.zip</a>.
+There is also a sources mirror on GitHub: https://github.com/curl/curl.</p>
+
+<p>Of course, we need a Windows machine or a VM to build it and use it from Windows.</p>
+
+<p>Let’s extract the downloaded sources. There will be the <code class="highlighter-rouge">curl-7.61.1</code> folder. 
+Let’s assume the extracted <code class="highlighter-rouge">curl</code> sources directory
+is the current working directory.</p>
+
+<p>I open the <code class="highlighter-rouge">VS2015 x64 Native Command Prompt</code> shell on my machine. That one comes from
+Microsoft Visual Studio 2015. There might be another shortcut to run the shell 
+from a newer or older version of Visual Studio.</p>
+
+<p>It is a useful file under <a href="https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt">winbuild/BUILD.WINDOWS.txt</a></p>
+
+<p>Execute the command</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd winbuild
+nmake /f Makefile.vc mode=dll
+</code></pre></div></div>
+
+<p>The command above build <code class="highlighter-rouge">curl</code> and <code class="highlighter-rouge">libcurl</code> for us. The build generates static library 
+that uses some default dependencies from the system to run. For example, it uses
+<a href="https://docs.microsoft.com/en-us/windows/desktop/secauthn/sspi">Windows SSPI</a>
+as the implementation of the SSL and TLS. Check out more options on <code class="highlighter-rouge">curl</code> building in the
+<a href="https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt">winbuild/BUILD.WINDOWS.txt</a>.</p>
+
+<p>The compiled binaries are found under the <code class="highlighter-rouge">builds</code> folder. The contest should be as follows:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dir builds
+...
+10/29/2018  09:48 PM    &lt;DIR&gt;          .
+10/29/2018  09:48 PM    &lt;DIR&gt;          ..
+10/29/2018  09:48 PM    &lt;DIR&gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl
+10/29/2018  09:48 PM    &lt;DIR&gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-curl
+10/29/2018  09:48 PM    &lt;DIR&gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-lib
+...
+</code></pre></div></div>
+<p>We have our dynamic <code class="highlighter-rouge">curl</code> library and include files directory under 
+the <code class="highlighter-rouge">builds/libcurl-vc-x64-release-dll-ipv6-sspi-winssl</code> folder.</p>
+
+<h1 id="importing-libcurl-into-kotlinnative">Importing libcurl into Kotlin/Native</h1>
+
+<p>Let’s use the <a href="https://github.com/JetBrains/kotlin-native/tree/master/samples/curl">curl sample</a>
+and the <a href="https://github.com/JetBrains/kotlin-native/tree/master/samples/libcurl">libcurl sample</a> 
+from the Kotlin/Native repository and adapt them to work on Windows too.</p>
+
+<p>The first step is to create the <code class="highlighter-rouge">.def</code> file to import the native <code class="highlighter-rouge">libcurl</code> library into Kotlin. 
+More details on that are explained in the 
+<a href="http://kotlinlang.org/docs/tutorials/native/interop-with-c.html">Interop with C Libraries</a>
+tutorial.</p>
+
+<p>Let’s add the following <code class="highlighter-rouge">libcurl.def</code> file:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>headers = curl/curl.h
+headerFilter = curl/*
+</code></pre></div></div>
+
+<p>Now we may call the <code class="highlighter-rouge">cinteop</code> tool from Kotlin/Native from a parent folder, where we extracted <code class="highlighter-rouge">curl</code> sources:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cinterop -def libcurl.def -compilerOpts -Icurl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\include -o libcurl
+</code></pre></div></div>
+
+<p>We assume here that we have Kotlin/Native compiler installed and registered in the system PATH. For more information, 
+please refer to the 
+<a href="http://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler">A Basic Kotlin Application</a>.
+Let’s assume, we have a console, where the <code class="highlighter-rouge">kotlinc-native</code>, <code class="highlighter-rouge">cinterop</code>, and <code class="highlighter-rouge">klib</code> commands are available.</p>
+
+<p>The call to <code class="highlighter-rouge">cinterop</code> generates the <code class="highlighter-rouge">libcurl.klib</code> file for us. Let’s use it from the Kotlin/Native sources!</p>
+
+<h1 id="using-libcurl-from-kotlinnative">Using libcurl from Kotlin/Native</h1>
+
+<p>It is time to follow the example from the <a href="https://github.com/JetBrains/kotlin-native/tree/master/samples/curl">curl sample</a>
+and create our first <code class="highlighter-rouge">curl</code> application in Windows.</p>
+
+<p>Let’s create the file <code class="highlighter-rouge">curl.kt</code> with the following contents:</p>
+
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">import</span> <span class="nn">libcurl.*</span>
+<span class="k">import</span> <span class="nn">kotlinx.cinterop.*</span>
+
+<span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">curl</span> <span class="p">=</span> <span class="n">curl_easy_init</span><span class="p">()</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">curl</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="n">CURLOPT_URL</span><span class="p">,</span> <span class="s">"http://jonnyzzz.com"</span><span class="p">)</span>
+        <span class="n">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="n">CURLOPT_FOLLOWLOCATION</span><span class="p">,</span> <span class="m">1L</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">res</span> <span class="p">=</span> <span class="n">curl_easy_perform</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="p">!=</span> <span class="n">CURLE_OK</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">println</span><span class="p">(</span><span class="s">"curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">curl_easy_cleanup</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Now we call the command to build the executable with Kotlin/Native:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kotlinc-native curl.kt -l libcurl -linker-options "curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\lib\libcurl.lib"  -o kurl
+</code></pre></div></div>
+
+<p>The application <code class="highlighter-rouge">kurl.exe</code> is ready to go. The only thing it requires is the <code class="highlighter-rouge">libcurl.dll</code>. The file you may find under the
+<code class="highlighter-rouge">curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\bin\libcurl.dll</code> path. You may try running it.</p>
+
+<h1 id="static-linking">Static Linking</h1>
+
+<p>It is not too nice to have a requirement to have the <code class="highlighter-rouge">libcurl.dll</code> included and located near the executable we
+create. Static linking, in theory, allows having only one solid binary, that contains everything.
+One may easily change the <code class="highlighter-rouge">curl</code> build to <code class="highlighter-rouge">mode=static</code>. The result will be the static library <code class="highlighter-rouge">libcurl_a.lib</code>.
+Linking it with Kotlin/Native binary turned out to be tricky. To start, Kotlin/Native uses MinGW environment and 
+the <code class="highlighter-rouge">libcurl_a.lib</code> is compiled to use dynamic MSVCRT. Theoretically, it should be possible to make it work, if you
+know the answer - just let me know!</p>
+
+<p>It is also a good <a href="https://stackoverflow.com/a/52872980/49811">comment for the original StackOverflow thread</a>
+to use MinGW specific build of curl.</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2018/08/07/ad-hoc-gradle/" class="btn" title="Ad-hoc Plugins with Gradle">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2018 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

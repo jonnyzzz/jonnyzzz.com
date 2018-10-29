@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-10-27T02:17:19+00:00</updated>
+  <updated>2018-10-29T21:19:23+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,158 @@
   
 
   
+  
+  <entry>
+    <title type="html">libcurl and Kotlin/Native on Windows</title>
+    <link href="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" rel="alternate" type="text/html" title="libcurl and Kotlin/Native on Windows" />
+    <published>2018-10-29T00:00:00+00:00</published>
+    <updated>2018-10-29T00:00:00+00:00</updated>
+    <id>/blog/2018/10/29/kn-libcurl-windows</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/">&lt;p&gt;Building libcurl on Windows and using it from Kotlin/Native&lt;/p&gt;
+
+&lt;p&gt;Once upon a time, I decided to answer a question on
+&lt;a href=&quot;https://stackoverflow.com/questions/52871078/kotlin-native-libcurl-example-on-windows/52872429?noredirect=1#comment92694725_52872429&quot;&gt;StackOverflow&lt;/a&gt;
+to explain how to use &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; with Kotlin/Native. Now it turned out I will cover a
+more detailed instruction here. How &lt;a href=&quot;https://twitter.com/shanselman&quot;&gt;@shanselman&lt;/a&gt; once told in his talk - if
+a reply is big enough it should go to a documentation of a blog post.&lt;/p&gt;
+
+&lt;h1 id=&quot;building-curl-and-libcurl-on-windows&quot;&gt;Building Curl and Libcurl on Windows&lt;/h1&gt;
+
+&lt;p&gt;The first step is to open the https://curl.haxx.se/libcurl/ page and read it.
+Let’s download sources from https://curl.haxx.se/download.html. In my case,
+I downloaded the &lt;a href=&quot;https://curl.haxx.se/download/curl-7.61.1.zip&quot;&gt;curl-7.61.1.zip&lt;/a&gt;.
+There is also a sources mirror on GitHub: https://github.com/curl/curl.&lt;/p&gt;
+
+&lt;p&gt;Of course, we need a Windows machine or a VM to build it and use it from Windows.&lt;/p&gt;
+
+&lt;p&gt;Let’s extract the downloaded sources. There will be the &lt;code class=&quot;highlighter-rouge&quot;&gt;curl-7.61.1&lt;/code&gt; folder. 
+Let’s assume the extracted &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; sources directory
+is the current working directory.&lt;/p&gt;
+
+&lt;p&gt;I open the &lt;code class=&quot;highlighter-rouge&quot;&gt;VS2015 x64 Native Command Prompt&lt;/code&gt; shell on my machine. That one comes from
+Microsoft Visual Studio 2015. There might be another shortcut to run the shell 
+from a newer or older version of Visual Studio.&lt;/p&gt;
+
+&lt;p&gt;It is a useful file under &lt;a href=&quot;https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt&quot;&gt;winbuild/BUILD.WINDOWS.txt&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Execute the command&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cd winbuild
+nmake /f Makefile.vc mode=dll
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The command above build &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; for us. The build generates static library 
+that uses some default dependencies from the system to run. For example, it uses
+&lt;a href=&quot;https://docs.microsoft.com/en-us/windows/desktop/secauthn/sspi&quot;&gt;Windows SSPI&lt;/a&gt;
+as the implementation of the SSL and TLS. Check out more options on &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; building in the
+&lt;a href=&quot;https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt&quot;&gt;winbuild/BUILD.WINDOWS.txt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The compiled binaries are found under the &lt;code class=&quot;highlighter-rouge&quot;&gt;builds&lt;/code&gt; folder. The contest should be as follows:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dir builds
+...
+10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          .
+10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          ..
+10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl
+10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-curl
+10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-lib
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;We have our dynamic &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; library and include files directory under 
+the &lt;code class=&quot;highlighter-rouge&quot;&gt;builds/libcurl-vc-x64-release-dll-ipv6-sspi-winssl&lt;/code&gt; folder.&lt;/p&gt;
+
+&lt;h1 id=&quot;importing-libcurl-into-kotlinnative&quot;&gt;Importing libcurl into Kotlin/Native&lt;/h1&gt;
+
+&lt;p&gt;Let’s use the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/curl&quot;&gt;curl sample&lt;/a&gt;
+and the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/libcurl&quot;&gt;libcurl sample&lt;/a&gt; 
+from the Kotlin/Native repository and adapt them to work on Windows too.&lt;/p&gt;
+
+&lt;p&gt;The first step is to create the &lt;code class=&quot;highlighter-rouge&quot;&gt;.def&lt;/code&gt; file to import the native &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; library into Kotlin. 
+More details on that are explained in the 
+&lt;a href=&quot;http://kotlinlang.org/docs/tutorials/native/interop-with-c.html&quot;&gt;Interop with C Libraries&lt;/a&gt;
+tutorial.&lt;/p&gt;
+
+&lt;p&gt;Let’s add the following &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.def&lt;/code&gt; file:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;headers = curl/curl.h
+headerFilter = curl/*
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we may call the &lt;code class=&quot;highlighter-rouge&quot;&gt;cinteop&lt;/code&gt; tool from Kotlin/Native from a parent folder, where we extracted &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; sources:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cinterop -def libcurl.def -compilerOpts -Icurl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\include -o libcurl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We assume here that we have Kotlin/Native compiler installed and registered in the system PATH. For more information, 
+please refer to the 
+&lt;a href=&quot;http://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler&quot;&gt;A Basic Kotlin Application&lt;/a&gt;.
+Let’s assume, we have a console, where the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinc-native&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;cinterop&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;klib&lt;/code&gt; commands are available.&lt;/p&gt;
+
+&lt;p&gt;The call to &lt;code class=&quot;highlighter-rouge&quot;&gt;cinterop&lt;/code&gt; generates the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.klib&lt;/code&gt; file for us. Let’s use it from the Kotlin/Native sources!&lt;/p&gt;
+
+&lt;h1 id=&quot;using-libcurl-from-kotlinnative&quot;&gt;Using libcurl from Kotlin/Native&lt;/h1&gt;
+
+&lt;p&gt;It is time to follow the example from the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/curl&quot;&gt;curl sample&lt;/a&gt;
+and create our first &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; application in Windows.&lt;/p&gt;
+
+&lt;p&gt;Let’s create the file &lt;code class=&quot;highlighter-rouge&quot;&gt;curl.kt&lt;/code&gt; with the following contents:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;libcurl.*&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;kotlinx.cinterop.*&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;curl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_easy_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;curl_easy_setopt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLOPT_URL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;http://jonnyzzz.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;curl_easy_setopt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLOPT_FOLLOWLOCATION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_easy_perform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLE_OK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;curl_easy_cleanup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Now we call the command to build the executable with Kotlin/Native:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kotlinc-native curl.kt -l libcurl -linker-options &quot;curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\lib\libcurl.lib&quot;  -o kurl
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The application &lt;code class=&quot;highlighter-rouge&quot;&gt;kurl.exe&lt;/code&gt; is ready to go. The only thing it requires is the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.dll&lt;/code&gt;. The file you may find under the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\bin\libcurl.dll&lt;/code&gt; path. You may try running it.&lt;/p&gt;
+
+&lt;h1 id=&quot;static-linking&quot;&gt;Static Linking&lt;/h1&gt;
+
+&lt;p&gt;It is not too nice to have a requirement to have the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.dll&lt;/code&gt; included and located near the executable we
+create. Static linking, in theory, allows having only one solid binary, that contains everything.
+One may easily change the &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; build to &lt;code class=&quot;highlighter-rouge&quot;&gt;mode=static&lt;/code&gt;. The result will be the static library &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl_a.lib&lt;/code&gt;.
+Linking it with Kotlin/Native binary turned out to be tricky. To start, Kotlin/Native uses MinGW environment and 
+the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl_a.lib&lt;/code&gt; is compiled to use dynamic MSVCRT. Theoretically, it should be possible to make it work, if you
+know the answer - just let me know!&lt;/p&gt;
+
+&lt;p&gt;It is also a good &lt;a href=&quot;https://stackoverflow.com/a/52872980/49811&quot;&gt;comment for the original StackOverflow thread&lt;/a&gt;
+to use MinGW specific build of curl.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="curl" />
+  
+    <category term="libcurl" />
+  
+    <category term="windows" />
+  
+    <category term="kotlin" />
+  
+    <category term="kotlin/native" />
+  
+    <summary type="html">Building libcurl on Windows and using it from Kotlin/Native</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Ad-hoc Plugins with Gradle</title>
@@ -1238,280 +1390,6 @@ hidutil property --set '{&quot;UserKeyMapping&quot;:[{&quot;HIDKeyboardModifierM
     <category term="keys" />
   
     <summary type="html">A tiny trick to remap keys on macOS X</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Kotlin DSL for Test Data</title>
-    <link href="https://jonnyzzz.com/blog/2017/11/02/gradle-dsl/" rel="alternate" type="text/html" title="Kotlin DSL for Test Data" />
-    <published>2017-11-02T00:00:00+00:00</published>
-    <updated>2017-11-02T00:00:00+00:00</updated>
-    <id>/blog/2017/11/02/gradle-dsl</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2017/11/02/gradle-dsl/">&lt;p&gt;Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.&lt;/p&gt;
-
-&lt;p&gt;That time I was working on &lt;a href=&quot;/blog/2017/10/18/java9c/&quot;&gt;java9c&lt;/a&gt; plugin for Gradle, I created
-integration tests. In my case all those tests were of the following pattern: create sample Gradle
-project, execute it, check results. I decided to run a fun experiment and replace boring string
-constants with a Gradle-looking DSL.&lt;/p&gt;
-
-&lt;p&gt;Namely, instead of (and many Gradle plugin integration tests have similar)&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;apply plugin: 'java-library'\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;repositories {\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;  mavenCentral()\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;}\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;dependencies {\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;  implementation 'junit:junit:4.12'\n&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt;
-        &lt;span class=&quot;s&quot;&gt;&quot;}\n&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I created a tiny DSL that looks (and parses) like a Gradle script. 
-The DSL generates test-data files for me. Kotlin compiler and IDE 
-helps to prevent errors before a test is executed. Code completion 
-makes a new test authoring easier. Here is the DSL usage example:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;java-library&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;junit:junit:4.12&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;More examples are on &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;GitHub&lt;/a&gt; in &lt;code class=&quot;highlighter-rouge&quot;&gt;java9c&lt;/code&gt; plugin test sources.&lt;/p&gt;
-
-&lt;p&gt;The example looks like a Gradle script. There was no goal to make it 100% same looking. Also, 
-there is an amazing &lt;a href=&quot;https://github.com/gradle/kotlin-dsl&quot;&gt;project&lt;/a&gt; run by Gradle to support
-Kotlin DSLs in Gradle, natively. That DSL is not 100% same looking to a Gradle-Groovy scripts too.&lt;/p&gt;
-
-&lt;p&gt;The implementation of that my magic DSL fits in 
-&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt&quot;&gt;one file&lt;/a&gt;,
-and it’s about 150 lines.&lt;/p&gt;
-
-&lt;p&gt;Next, I’ll explain how one can create similar DSLs for their own needs. With Kotlin you may target 
-JVM, Android, JS, and Native, reusing same pure-Kotlin code.&lt;/p&gt;
-
-&lt;h1 id=&quot;dsl-basics&quot;&gt;DSL Basics&lt;/h1&gt;
-
-&lt;p&gt;We need to create a text generator DSL. The primary decision if either to generate a bare text or to use an API of a library. 
-You may consider &lt;a href=&quot;https://www.w3.org/DOM/&quot;&gt;XML DOM&lt;/a&gt; or &lt;a href=&quot;https://github.com/FasterXML/jackson&quot;&gt;Jackson&lt;/a&gt;. 
-There are &lt;a href=&quot;https://github.com/square/kotlinpoet&quot;&gt;kotlinpoet&lt;/a&gt; or &lt;a href=&quot;https://github.com/square/javapoet&quot;&gt;javapoet&lt;/a&gt;
-to generate Kotlin or Java code via an API. I bet there are many other libraries. 
-&lt;a href=&quot;https://github.com/nebula-plugins/gradle-lint-plugin&quot;&gt;Nebula Gradle Lint Plugin&lt;/a&gt; can read/write 
-Gradle scripts too.&lt;/p&gt;
-
-&lt;p&gt;There is a trade-off. Dealing with a library may be complicated and time-consuming, but way more stable.&lt;/p&gt;
-
-&lt;p&gt;For the sake of &lt;a href=&quot;/blog/2017/10/18/java9c/&quot;&gt;java9c&lt;/a&gt; tests, I decided to implement the generator 
-based on bare text output. And it’d be me who covers all risks and bugs from the implementation. 
-It is only about 150 lines (now) of 
-&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test-common/src/main/java/org/jonnyzzz/gradle/java9c/files.kt&quot;&gt;code&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;writer-interface&quot;&gt;Writer Interface&lt;/h2&gt;
-
-&lt;p&gt;I started with a line writer interface:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;operator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinus&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Inside the interface, I use unary minus, e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;-&quot;foo&quot;&lt;/code&gt; as the function to write a line. It reads better in DSLs, e.g.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;lineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;line of text&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Well, you may decide to have a &lt;code class=&quot;highlighter-rouge&quot;&gt;fun line(text: String)&lt;/code&gt; instead. That does not change the rest, so, please
-feel free to use a function instead of an operator. Alternatively, you may use &lt;code class=&quot;highlighter-rouge&quot;&gt;String.unaryPlus&lt;/code&gt;, so that
-you’d have &lt;code class=&quot;highlighter-rouge&quot;&gt;+&quot;foo&quot;&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;See &lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html&quot;&gt;Operator Overloading&lt;/a&gt; documentation
-or ask me, if you need to clarify the trick.&lt;/p&gt;
-
-&lt;h2 id=&quot;a-trivial-writer-implementation&quot;&gt;A Trivial Writer Implementation&lt;/h2&gt;
-
-&lt;p&gt;The implementation of the interface could be something trivial, e.g.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;StringBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-       &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;appendln&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; 
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The usage could be:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;text&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;line of text&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;generateDSL&lt;/code&gt; receives a &lt;a href=&quot;https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver&quot;&gt;lambda with receiver&lt;/a&gt;
-and returns resulting string. It is the implementation detail to pass the instance of 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; to the lambda. Inside the lambda, the receiver is &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt;, it means, that &lt;code class=&quot;highlighter-rouge&quot;&gt;this&lt;/code&gt; keyword 
-resolves to an instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt;. Of course, &lt;code class=&quot;highlighter-rouge&quot;&gt;this.&lt;/code&gt; can be omitted and all methods are resolved
-against &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; instance. It follows that &lt;code class=&quot;highlighter-rouge&quot;&gt;- &quot;foo&quot;&lt;/code&gt; calls resolves to &lt;code class=&quot;highlighter-rouge&quot;&gt;String.unaryMinus()&lt;/code&gt; function
-of &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; inside the lambda scope.&lt;/p&gt;
-
-&lt;p&gt;For short, we may compact the &lt;code class=&quot;highlighter-rouge&quot;&gt;generateDSL&lt;/code&gt; function to the following:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buildString&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-       &lt;span class=&quot;n&quot;&gt;appendln&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Here I use a &lt;code class=&quot;highlighter-rouge&quot;&gt;fun buildString(builderAction: StringBuilder.() -&amp;gt; Unit): String&lt;/code&gt; function from the Kotlin standard library. 
-It receives yet another &lt;a href=&quot;https://kotlinlang.org/docs/reference/lambdas.html#function-literals-with-receiver&quot;&gt;lambda with receiver&lt;/a&gt; 
-on &lt;code class=&quot;highlighter-rouge&quot;&gt;StringBuilder&lt;/code&gt; type so that &lt;code class=&quot;highlighter-rouge&quot;&gt;appendln&lt;/code&gt; is a function from it.&lt;/p&gt;
-
-&lt;p&gt;Theoretically, you may have several different entry point functions (e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;generateDSL&lt;/code&gt;)
-to, say, generate a string, a file or something else. The rest does not depend on a particular 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;generate*&lt;/code&gt; function.&lt;/p&gt;
-
-&lt;h1 id=&quot;indenting-and-blocks&quot;&gt;Indenting and Blocks&lt;/h1&gt;
-
-&lt;p&gt;Text generation for languages like Gradle requires indenting. We have blocks, and it’s nice
-to simplify blocks generation. At first, I created an &lt;code class=&quot;highlighter-rouge&quot;&gt;offset&lt;/code&gt; function for it:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;outer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;LineWriter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;unaryMinus&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;outer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
-        &lt;span class=&quot;p&quot;&gt;-(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;  &quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-      &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The function is an &lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension function&lt;/a&gt;. It makes
-no need to change the original &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; interface, but it still reads as a method call.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt; function is as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LineWriter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$name {&quot;&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;offset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;}&quot;&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Here I use &lt;a href=&quot;https://kotlinlang.org/docs/reference/idioms.html#string-interpolation&quot;&gt;string interpolation&lt;/a&gt;
-to simplify code of the first line.&lt;/p&gt;
-
-&lt;p&gt;At that point I can write the DSL snippets like that:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;n&quot;&gt;generateDSL&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jonnyzzz&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;test&quot;&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;And it yields&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;jonnyzzz {
-  test
-}  &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Nice, isn’t it?&lt;/p&gt;
-
-&lt;h1 id=&quot;gradle-specific-constructs&quot;&gt;Gradle Specific Constructs&lt;/h1&gt;
-
-&lt;p&gt;With &lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt; function one can create all necessary functions to generate blocks like &lt;code class=&quot;highlighter-rouge&quot;&gt;repositories&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies&lt;/code&gt; and so on. 
-Now it is time to implement specific parts of the DSL and allow some constructs only inside other constructs.&lt;/p&gt;
-
-&lt;h2 id=&quot;repositories&quot;&gt;Repositories&lt;/h2&gt;
-
-&lt;p&gt;Let’s consider &lt;code class=&quot;highlighter-rouge&quot;&gt;repositories&lt;/code&gt; block. Inside we have pre-defined functions for &lt;code class=&quot;highlighter-rouge&quot;&gt;mavenCentral()&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;jcenter()&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;First, we need a builder interface and implementation. It can be done as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;interface RepositoriesWriter : LineWriter {
-  fun mavenCentral() { -&quot;mavenCentral()&quot; }
-  fun mavenLocal() { -&quot;mavenLocal()&quot; }
-  fun jcenter() { -&quot;jcenter()&quot; }
-}
-
-fun RepositoriesHolder.repositories(builder: RepositoriesWriter.() -&amp;gt; Unit) =
-        block(&quot;repositories&quot;) {
-          object : RepositoriesWriter, LineWriter by it {
-          }.builder()
-        }&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;We define an interface &lt;code class=&quot;highlighter-rouge&quot;&gt;RepositoriesWriter&lt;/code&gt; to play as the scope of the generation. In the interface,
-we have &lt;code class=&quot;highlighter-rouge&quot;&gt;mavenLocal&lt;/code&gt; and other functions with trivial implementations. Those functions can be alternatively 
-implemented as extension functions of inside the &lt;code class=&quot;highlighter-rouge&quot;&gt;repositories&lt;/code&gt; function. That is up to the author.&lt;/p&gt;
-
-&lt;p&gt;In the &lt;code class=&quot;highlighter-rouge&quot;&gt;repositories&lt;/code&gt; function, I use &lt;a href=&quot;https://kotlinlang.org/docs/reference/delegation.html&quot;&gt;class delegation&lt;/a&gt; aka &lt;code class=&quot;highlighter-rouge&quot;&gt;by&lt;/code&gt;
-keyword to implement &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; from &lt;code class=&quot;highlighter-rouge&quot;&gt;RepositoriesWriter&lt;/code&gt; to delegate to another instance of &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt;. 
-So short to write and powerful!&lt;/p&gt;
-
-&lt;p&gt;As the result, we can have&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;generateDSL {
-  repositories {
-     mavenCentral()
-     -&quot;// another line&quot;
-  }
-}   &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The same way I created the whole bunch of functions to support the subset of Gradle scripts I 
-was using in my tests. You may take a look 
-&lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c/blob/master/test/src/test/java/org/jonnyzzz/gradle/java9c/test-4.2.1.kt&quot;&gt;here for more details&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;specific-dsl-alternatives&quot;&gt;Specific DSL Alternatives&lt;/h2&gt;
-
-&lt;p&gt;It was another design decision to allow &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; functions and extension functions (e.g., &lt;code class=&quot;highlighter-rouge&quot;&gt;block&lt;/code&gt;) 
-of the scope of &lt;code class=&quot;highlighter-rouge&quot;&gt;RepositoriesWriter&lt;/code&gt; lambda. We might have decided opposite. In the case, we would need
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html#scope-control-dslmarker-since-11&quot;&gt;DslMarker&lt;/a&gt;
-annotation to make sure &lt;code class=&quot;highlighter-rouge&quot;&gt;LineWriter&lt;/code&gt; functions and extension functions are not resolved to the 
-outer scope. We probably have a &lt;code class=&quot;highlighter-rouge&quot;&gt;generateDSL&lt;/code&gt; function call on the top.&lt;/p&gt;
-
-&lt;h1 id=&quot;wrapping-up&quot;&gt;Wrapping Up&lt;/h1&gt;
-
-&lt;p&gt;DSLs are nice. In the post, I presented the DSL building pattern. 
-Use it to create your DSLs. Ask me if you have questions. 
-You may also check &lt;a href=&quot;https://kotlinlang.org/docs/reference/type-safe-builders.html&quot;&gt;this&lt;/a&gt; article from Kotlin 
-documentation or &lt;a href=&quot;https://www.youtube.com/watch?v=BnTtjywqAX8&quot;&gt;a video of a talk by Hadi&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="java9" />
-  
-    <category term="opensource" />
-  
-    <category term="plugin" />
-  
-    <category term="java9c" />
-  
-    <category term="kotlin" />
-  
-    <category term="dsl" />
-  
-    <summary type="html">Kotlin DSLs can be used to replace a boring test data strings with correct and an easy to read a code.</summary>
   
   </entry>
   
