@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2018-11-15T18:19:22+00:00</updated>
+  <updated>2018-11-22T21:34:34+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,174 @@
   
 
   
+  
+  <entry>
+    <title type="html">Proxy and Checked Exceptions in Java</title>
+    <link href="https://jonnyzzz.com/blog/2018/11/22/proxy/" rel="alternate" type="text/html" title="Proxy and Checked Exceptions in Java" />
+    <published>2018-11-22T00:00:00+00:00</published>
+    <updated>2018-11-22T00:00:00+00:00</updated>
+    <id>/blog/2018/11/22/proxy</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/11/22/proxy/">&lt;p&gt;java.lang.reflect.Proxy and checked exceptions&lt;/p&gt;
+
+&lt;h2 id=&quot;on-the-fly-proxy&quot;&gt;On-the-Fly Proxy&lt;/h2&gt;
+&lt;p&gt;Say on have an interface &lt;code class=&quot;highlighter-rouge&quot;&gt;Foo&lt;/code&gt; with several (hundreds) methods. Is it possible to implement an
+interface on-the-fly? Without having an implementation code? Yes. It is possible. 
+The standard possibility is
+&lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html&quot;&gt;java.lang.reflect.Proxy&lt;/a&gt;.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;newProxyInstance&lt;/code&gt; method helps to create an on-the-fly implementation. One provides
+an interceptor object that is called for every method invocation on the interface implementation instance.&lt;/p&gt;
+
+&lt;p&gt;Besides the standard Proxy API, there are libraries, that do the same thing, for example,
+&lt;a href=&quot;https://bytebuddy.net/&quot;&gt;Byte Buddy&lt;/a&gt; or &lt;a href=&quot;https://github.com/cglib/cglib&quot;&gt;CGLIB&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this post, we will use the standard JRE API - &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.reflect.Proxy&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;proxy-and-checked-exceptions&quot;&gt;Proxy and Checked Exceptions&lt;/h2&gt;
+&lt;p&gt;Let’s consider the following code in Java:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.lang.reflect.InvocationHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.lang.reflect.Method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.lang.reflect.Proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newProxyInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;},&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;InvocationHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;invoke&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Method&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Throwable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;fail&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;});&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;//what is the exception?&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The code is trivial. We have the interface &lt;code class=&quot;highlighter-rouge&quot;&gt;Foo&lt;/code&gt;, and we implement it via &lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt;. 
+The implementation of the Proxy instance throws an exception of type &lt;code class=&quot;highlighter-rouge&quot;&gt;Exception&lt;/code&gt;.
+Will we have the exception of type &lt;code class=&quot;highlighter-rouge&quot;&gt;Exception&lt;/code&gt; as a result?&lt;/p&gt;
+
+&lt;h2 id=&quot;running-the-example&quot;&gt;Running the Example&lt;/h2&gt;
+&lt;p&gt;Let’s execute the example and see what we have:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Exception &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;thread &lt;span class=&quot;s2&quot;&gt;&quot;main&quot;&lt;/span&gt; java.lang.reflect.UndeclaredThrowableException
+	at &lt;span class=&quot;nv&quot;&gt;$Proxy0&lt;/span&gt;.bar&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Unknown Source&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	at ProxyJava.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ProxyJava.java:22&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Caused by: java.lang.Exception: fail
+	at ProxyJava&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;.invoke&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ProxyJava.java:17&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	... 2 more
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The answer is &lt;strong&gt;NO&lt;/strong&gt;. We have &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.reflect.UndeclaredThrowableException&lt;/code&gt; exception.&lt;/p&gt;
+
+&lt;h2 id=&quot;checked-exceptions-in-java&quot;&gt;Checked Exceptions in Java&lt;/h2&gt;
+&lt;p&gt;As we all know, Java has checked exceptions. It means one declares what exceptions are
+possibly thrown from a method. The main class of all exceptions is 
+&lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html&quot;&gt;java.lang.Throwable&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In Java language, we use &lt;code class=&quot;highlighter-rouge&quot;&gt;throws&lt;/code&gt; to indicate that a method may throw an exception. For example,
+&lt;code class=&quot;highlighter-rouge&quot;&gt;throws IOException&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There are two specific sub-classes of &lt;code class=&quot;highlighter-rouge&quot;&gt;Throwable&lt;/code&gt;, which does not require to be declared
+by the &lt;code class=&quot;highlighter-rouge&quot;&gt;throws&lt;/code&gt; keyword - &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.Error&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.RuntimeException&lt;/code&gt;. All sub-classes
+of those two types are free to throw without declaration.&lt;/p&gt;
+
+&lt;h2 id=&quot;proxy-and-undeclaredthrowableexception&quot;&gt;Proxy and UndeclaredThrowableException&lt;/h2&gt;
+&lt;p&gt;The &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/index.html?java/lang/reflect/UndeclaredThrowableException.html&quot;&gt;UndeclaredThrowableException&lt;/a&gt;
+is the specific exception type that is used in the create a proxy implementation of an interface
+to preserve checked exceptions in Java. 
+As we see from the Javadoc, the exception is used to wrap any checked exceptions that are not 
+declared with the &lt;code class=&quot;highlighter-rouge&quot;&gt;throws&lt;/code&gt; block in the interface declaration.&lt;/p&gt;
+
+&lt;h2 id=&quot;proxy-and-jvm-languages&quot;&gt;Proxy and JVM Languages&lt;/h2&gt;
+&lt;p&gt;JVM ecosystem is huge. There are many languages for the JVM, including 
+&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt;,
+&lt;a href=&quot;http://groovy-lang.org/&quot;&gt;Groovy&lt;/a&gt;,
+&lt;a href=&quot;https://www.scala-lang.org/&quot;&gt;Scala&lt;/a&gt;
+and so on, that does not have checked exceptions.&lt;/p&gt;
+
+&lt;p&gt;Checked exceptions are checked by the compiler, on the JVM bytecode level, 
+there is no difference between exceptions at all.&lt;/p&gt;
+
+&lt;p&gt;It is quite easy to get &lt;code class=&quot;highlighter-rouge&quot;&gt;UndeclaredThrowableException&lt;/code&gt; at some 
+unexpected places if mixing such languages with &lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.reflect.Proxy&lt;/code&gt;!&lt;/p&gt;
+
+&lt;p&gt;For example, in Kotlin:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.lang.reflect.Proxy&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;internal&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Foo&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;proxy&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Proxy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newProxyInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;arrayOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;*&amp;gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Exception&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;fail&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Foo&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;proxy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The same code reads correctly but does not work. It is allowed in Kotlin to throw &lt;code class=&quot;highlighter-rouge&quot;&gt;Exception&lt;/code&gt; from
+a method (because exceptions are not checked), but it will &lt;strong&gt;not&lt;/strong&gt; work via the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;java.lang.reflect.Proxy&lt;/code&gt;. We will have the following execution result&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Exception &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;thread &lt;span class=&quot;s2&quot;&gt;&quot;main&quot;&lt;/span&gt; java.lang.reflect.UndeclaredThrowableException
+	at com.sun.proxy.&lt;span class=&quot;nv&quot;&gt;$Proxy0&lt;/span&gt;.bar&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;Unknown Source&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	at ProxyKTKt.main&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ProxyKT.kt:15&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+Caused by: java.lang.Exception: fail
+	at ProxyKTKt&lt;span class=&quot;nv&quot;&gt;$main$proxy$1&lt;/span&gt;.invoke&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ProxyKT.kt:12&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	at ProxyKTKt&lt;span class=&quot;nv&quot;&gt;$main$proxy$1&lt;/span&gt;.invoke&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;ProxyKT.kt&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+	... 2 more
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;fixing-the-undeclaredthrowableexception&quot;&gt;Fixing the UndeclaredThrowableException&lt;/h2&gt;
+&lt;p&gt;To avoid the &lt;code class=&quot;highlighter-rouge&quot;&gt;UndeclaredThrowableException&lt;/code&gt; one need to declare the exceptions
+explicitly with &lt;code class=&quot;highlighter-rouge&quot;&gt;throws&lt;/code&gt; block. That solves the problem in Java example above.
+Similarly, it solves the problem in the Kotlin snippet too: we add the 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;@Throws(Exception::class)&lt;/code&gt; annotation on the &lt;code class=&quot;highlighter-rouge&quot;&gt;bar&lt;/code&gt; function.&lt;/p&gt;
+
+&lt;p&gt;One may have a look at the implementation of the &lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt;
+in the sources of JVM. It turns out it is not possible to disable that
+logic in the implementation. One is not allowed to breach Java’s checked 
+exceptions with &lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;There are two ways. One is to declare &lt;code class=&quot;highlighter-rouge&quot;&gt;throws&lt;/code&gt; for all interfaces 
+that are used with &lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt;. Of course, it is too easy to
+forget doing in languages without checked exceptions. Tests may help.&lt;/p&gt;
+
+&lt;p&gt;An alternative could be to implement or use another variant of the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt;, that does not do the check. Let me know
+in the comments if you’d like to learn more, how exactly the 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;Proxy#newProxyInstance&lt;/code&gt; or similar proxies are implemented.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="java" />
+  
+    <category term="jvm" />
+  
+    <category term="kotlin" />
+  
+    <summary type="html">java.lang.reflect.Proxy and checked exceptions</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">libcurl and Kotlin/Native on Windows</title>
@@ -1325,71 +1493,6 @@ Kudos Nikolay!&lt;/p&gt;
     <category term="curl" />
   
     <summary type="html">___isOSVersionAtLeast is undefined. How I spent several days compiling curl and linking it.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">MacBook Fix Tilde Key</title>
-    <link href="https://jonnyzzz.com/blog/2017/12/04/macos-keys/" rel="alternate" type="text/html" title="MacBook Fix Tilde Key" />
-    <published>2017-12-04T00:00:00+00:00</published>
-    <updated>2017-12-04T00:00:00+00:00</updated>
-    <id>/blog/2017/12/04/macos-keys</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2017/12/04/macos-keys/">&lt;p&gt;A tiny trick to remap keys on macOS X&lt;/p&gt;
-
-&lt;p&gt;Recently I switched from an EN-US MacBook Pro Keyboard to a DE keyboard. Suddenly, I found
-an unexpected problem with keys layout.&lt;/p&gt;
-
-&lt;p&gt;There are several differences in the layout. 
-You may have a look to all possible keyboard layouts 
-&lt;a href=&quot;https://keyshorts.com/blogs/blog/37615873-how-to-identify-macbook-keyboard-localization&quot; target=&quot;_blank&quot;&gt;here&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;The main difference is that in EU version of the keyboard we have additional
-buttons, Enter key is vertical, Left Shift key is shorted to give a room for 
-an extra key.&lt;/p&gt;
-
-&lt;p&gt;The problem is as follows: &lt;code class=&quot;highlighter-rouge&quot;&gt;tilde&lt;/code&gt; key is near &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt; in the EN-US keyboard (and other PC keyboards),
-while it is between Shift and Z in the EU keyboards.&lt;/p&gt;
-
-&lt;p&gt;Also, on Mac OS we use &lt;code class=&quot;highlighter-rouge&quot;&gt;CMD+tilde&lt;/code&gt; to switch between windows on the same App. I have even
-installed &lt;a href=&quot;https://neosmart.net/EasySwitch/&quot; target=&quot;_blank&quot;&gt;Easy Window Switcher&lt;/a&gt; to have the same 
-experience on Windows!&lt;/p&gt;
-
-&lt;p&gt;It is hard for me to learn the trick. And it will not work correctly, if you remap a key. Namely,
-in Russian keyboard layout the remapped shortcut will not work. Yeah! MacOS System shortcuts DO 
-depend on keyboard layout. Sad story.&lt;/p&gt;
-
-&lt;p&gt;I can across a tiny and nice article to remap keys on MacOS. 
-&lt;a href=&quot;https://developer.apple.com/library/content/technotes/tn2450/_index.html&quot; target=&quot;_blank&quot;&gt;TN2450&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;And the way to re-map keys is the following:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;
-hidutil property --set '{&quot;UserKeyMapping&quot;:[{&quot;HIDKeyboardModifierMappingSrc&quot;:0x700000064,&quot;HIDKeyboardModifierMappingDst&quot;:0x700000035},{&quot;HIDKeyboardModifierMappingSrc&quot;:0x700000035,&quot;HIDKeyboardModifierMappingDst&quot;:0x700000064}]}'
-&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;That is all you need. Next you’d need to have a patched Russian keyboard to fix Ё character. For the fix I use 
-&lt;a href=&quot;http://scripts.sil.org/ukelele&quot; target=&quot;_blank&quot;&gt;ukelele&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Anyway, you do not need to install ANY third-party apps to solve the key-remapping problems&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="mac" />
-  
-    <category term="macOS" />
-  
-    <category term="keys" />
-  
-    <summary type="html">A tiny trick to remap keys on macOS X</summary>
   
   </entry>
   
