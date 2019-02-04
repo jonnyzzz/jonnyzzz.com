@@ -1,0 +1,414 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>JVM Bytecode for Kotlin Object and Companion Object &#8211; Eugene Petrenko</title>
+<meta name="description" content="A glance from the JVM bytecode to object and companion object in Kotlin
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, groovy, java, jvm, bytecode" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="JVM Bytecode for Kotlin Object and Companion Object -- Eugene Petrenko" />
+<meta name="twitter:description" content="A glance from the JVM bytecode to object and companion object in Kotlin
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="JVM Bytecode for Kotlin Object and Companion Object -- Eugene Petrenko" />
+<meta property="og:description" content="A glance from the JVM bytecode to object and companion object in Kotlin
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/02/04/companion-and-object/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="groovy" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="bytecode" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/02/04/companion-and-object/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#groovy" title="Pages tagged groovy">groovy</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#bytecode" title="Pages tagged bytecode">bytecode</a></li>
+        </ul>
+        
+          <h1 class="entry-title">JVM Bytecode for Kotlin Object and Companion Object</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-02-04T00:00:00+00:00"><i class="fa fa-calendar-o"></i> February 04, 2019</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,groovy,java,jvm,bytecode&amp;text=JVM%20Bytecode%20for%20Kotlin%20Object%20and%20Companion%20Object&amp;url=https://jonnyzzz.com/blog/2019/02/04/companion-and-object/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/02/04/companion-and-object/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>A glance from the JVM bytecode to object and companion object in Kotlin</p>
+
+<p>There are two ways to declare <del>static</del> global objects in Kotlin. The first
+one is called <code class="highlighter-rouge">object</code> and creates a singleton for us. The second one, which is
+called <code class="highlighter-rouge">companion object</code> declares global <del>static</del> functions and properties
+within a type, that may have own constructor. You may want to
+to walk through the documentation for quickly:</p>
+<ul>
+  <li><a href="https://kotlinlang.org/docs/reference/object-declarations.html#object-declarations">object</a></li>
+  <li><a href="https://kotlinlang.org/docs/reference/object-declarations.html#companion-objects">companion object</a></li>
+</ul>
+
+<p>Both declarations have nothing directly connected to the <code class="highlighter-rouge">static</code> keyword from Java.
+Still, you may use <code class="highlighter-rouge">JvmStatic</code> to turn them static. You may make your
+<code class="highlighter-rouge">object</code> or <code class="highlighter-rouge">companion object</code> in Kotlin to inherit from a class or interface!</p>
+
+<p>My story for that post was as follows. I was trying to use Kotlin library
+with both <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> declarations from Groovy. I was
+upgrading my Gradle/Groovy script into Gradle/Kotlin script. So right
+now let’s focus on how Kotlin <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> features are
+visible as JVM bytecode level, namely from Java and Groovy.
+I will be using Kotlin <code class="highlighter-rouge">1.3.20</code> in that post (and something may change in the future)</p>
+
+<h2 id="object">object</h2>
+
+<p>Let’s create the following code snippet in Kotlin.</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">object</span> <span class="nc">class</span> <span class="n">X</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="n">cool</span><span class="p">()</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>I use <code class="highlighter-rouge">Show Kotlin Bytecode</code> action in IntelliJ IDEA followed by the <code class="highlighter-rouge">Decompile</code> button click
+to analyze the bytecode and to see it as Java decompiled code</p>
+
+<p><img src="https://jonnyzzz.com/images/posts/2019-02-04-show-kotlin-bytecode2.png" alt="java9c task out example image" /></p>
+
+<p>The class <code class="highlighter-rouge">X</code> contains an <code class="highlighter-rouge">INSTANCE</code> field that holds the only
+possible instance of the class <code class="highlighter-rouge">X</code>. The Kotlin compiler will take care and allow
+us calling methods directly in <code class="highlighter-rouge">X</code>. Form the JVM side. We will need to call
+it through the <code class="highlighter-rouge">INSTANCE</code> filed.</p>
+
+<p>One my use <code class="highlighter-rouge">@JvmStatic</code> annotation to have some selected methods be compiled
+as static functions, to make the assess from Java easier.</p>
+
+<h2 id="companion-object">companion object</h2>
+
+<p>Let’s create the following code snippet in Kotlin.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">X</span> <span class="p">{</span>
+  <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="n">cool</span><span class="p">()</span> <span class="p">{}</span>
+  <span class="p">}</span>
+<span class="p">}</span>  
+</code></pre></div></div>
+
+<p>That code will generate <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">X.Companion</code> classes. The <code class="highlighter-rouge">cool</code> function is declared in the <code class="highlighter-rouge">X.Companion</code>
+class. Kotlin compiler will create the static field called <code class="highlighter-rouge">Companion</code> that will hold
+the reference to the only possible instance of the <code class="highlighter-rouge">X.Companion</code> class. 
+Again, in Kotlin, it will be transparent to use as <code class="highlighter-rouge">X.cool()</code>, but from the JVM side,
+one will need to include the <code class="highlighter-rouge">.Companion</code> to access the <code class="highlighter-rouge">companion object</code>.</p>
+
+<p>One my use <code class="highlighter-rouge">@JvmStatic</code> annotation to have some selected methods be compiled
+as static functions, to make the assess from Java easier.</p>
+
+<h2 id="named-companion-object">named companion object</h2>
+
+<p>It is possible in Kotlin to name the companion object, e.g.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">X</span> <span class="p">{</span>
+  <span class="k">companion</span> <span class="k">object</span> <span class="n">QwE</span><span class="p">{</span>
+    <span class="k">fun</span> <span class="n">cool</span><span class="p">()</span> <span class="p">{}</span>
+  <span class="p">}</span>
+<span class="p">}</span>  
+</code></pre></div></div>
+
+<p>For that case, the Kotlin compiler creates the classes <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">X.QwE</code> and the static 
+field in the class <code class="highlighter-rouge">X</code> named <code class="highlighter-rouge">QwE</code> to holds the only possible
+reference to the <code class="highlighter-rouge">X.QwE</code> class instance.</p>
+
+<h2 id="java-and-groovy">Java and Groovy</h2>
+
+<p>It is easy to use both classes from Groovy, Java or any other JVM language. 
+You may consider <code class="highlighter-rouge">@JvmStatic</code> annotation to beauty your Kotlin library for Java or
+JVM users if you like.</p>
+
+<h3 id="names-clash-and-groovy">Names Clash and Groovy</h3>
+
+<p>There is names collision in a <code class="highlighter-rouge">companion object</code>: Kotlin compiler
+generates both the nested static class and the static field with the same name - <code class="highlighter-rouge">Companion</code>.
+It works flawlessly in Java (or javac), and it is a bit tricky for Groovy (in my case,
+it was Gradle/Groovy build script). Let’s consider a standalone Java/Groovy example:</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">X</span> <span class="o">{</span>
+    <span class="kd">static</span> <span class="kd">final</span> <span class="n">Y</span> <span class="n">Y</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Y</span><span class="o">();</span>
+    
+    <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Y</span> <span class="o">{</span>
+        <span class="n">Object</span> <span class="nf">q</span><span class="o">()</span> <span class="o">{</span> <span class="k">return</span> <span class="k">this</span><span class="o">;</span> <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">/// does not work in Groovy</span>
+<span class="c1">/// works in Java</span>
+<span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="na">Y</span><span class="o">.</span><span class="na">q</span><span class="o">()</span>
+</code></pre></div></div>
+<p>I found the following workaround - use <code class="highlighter-rouge">[]</code> to access the field:</p>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">[</span><span class="s2">"Y"</span><span class="o">].</span><span class="na">q</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>The better reply came from by Twitter feed:</p>
+<blockquote class="twitter-tweet" data-cards="hidden" data-lang="en"><p lang="en" dir="ltr">Field vs Nested Object. The battle. Works on <a href="https://twitter.com/hashtag/java?src=hash&amp;ref_src=twsrc%5Etfw">#java</a>, fails in <a href="https://twitter.com/hashtag/groovy?src=hash&amp;ref_src=twsrc%5Etfw">#groovy</a> <a href="https://t.co/HTzNkYkfez">pic.twitter.com/HTzNkYkfez</a></p>&mdash; Eugene Petrenko (@jonnyzzz) <a href="https://twitter.com/jonnyzzz/status/1090980096637308928?ref_src=twsrc%5Etfw">January 31, 2019</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<p>The best way I see so far is <a href="https://twitter.com/CedricChampeau/status/1090987640613158914">that way</a></p>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="nd">@Y.q</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p>Have fun! Write Kotlin!</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/01/28/nodejs-docker/" class="btn" title="Nodejs Builds">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
