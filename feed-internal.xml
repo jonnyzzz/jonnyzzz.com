@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-02-04T11:36:19+00:00</updated>
+  <updated>2019-02-09T18:32:34+00:00</updated>
   <id>/</id>
 
   
@@ -27,24 +27,27 @@
     <content type="html" xml:base="https://jonnyzzz.com/blog/2019/02/04/companion-and-object/">&lt;p&gt;A glance from the JVM bytecode to object and companion object in Kotlin&lt;/p&gt;
 
 &lt;p&gt;There are two ways to declare &lt;del&gt;static&lt;/del&gt; global objects in Kotlin. The first
-one is called &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and creates a singleton for us. The second one, which is
-called &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; declares global &lt;del&gt;static&lt;/del&gt; functions and properties
-within a type, that may have own constructor. You may want to
-to walk through the documentation for quickly:&lt;/p&gt;
+one is called &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and creates a singleton. The second one, which is
+called &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;, declares global &lt;del&gt;static&lt;/del&gt; functions and properties
+within a class, that may have own constructor. You may want to
+to walk through the documentation quickly:&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/reference/object-declarations.html#object-declarations&quot;&gt;object&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://kotlinlang.org/docs/reference/object-declarations.html#companion-objects&quot;&gt;companion object&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Both declarations have nothing directly connected to the &lt;code class=&quot;highlighter-rouge&quot;&gt;static&lt;/code&gt; keyword from Java.
-Still, you may use &lt;code class=&quot;highlighter-rouge&quot;&gt;JvmStatic&lt;/code&gt; to turn them static. You may make your
-&lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; in Kotlin to inherit from a class or interface!&lt;/p&gt;
+&lt;p&gt;Functions from both &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; are not compiled as 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;static&lt;/code&gt; functions in JVM bytecode.
+You may make your
+&lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; in Kotlin to inherit from a class or interface!
+You may use &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to make these functions 
+be &lt;code class=&quot;highlighter-rouge&quot;&gt;static&lt;/code&gt; in JVM bytecode.&lt;/p&gt;
 
 &lt;p&gt;My story for that post was as follows. I was trying to use Kotlin library
 with both &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; declarations from Groovy. I was
-upgrading my Gradle/Groovy script into Gradle/Kotlin script. So right
-now let’s focus on how Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; features are
-visible as JVM bytecode level, namely from Java and Groovy.
+upgrading my Gradle/Groovy script into Gradle/Kotlin script. Let’s focus in that blog
+post on how Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; declarations are
+visible from the JVM bytecode level, namely from Java and Groovy (and other) JVM languages.
 I will be using Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;1.3.20&lt;/code&gt; in that post (and something may change in the future)&lt;/p&gt;
 
 &lt;h2 id=&quot;object&quot;&gt;object&lt;/h2&gt;
@@ -58,21 +61,19 @@ I will be using Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;1.3.20&lt
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;I use &lt;code class=&quot;highlighter-rouge&quot;&gt;Show Kotlin Bytecode&lt;/code&gt; action in IntelliJ IDEA followed by the &lt;code class=&quot;highlighter-rouge&quot;&gt;Decompile&lt;/code&gt; button click
-to analyze the bytecode and to see it as Java decompiled code&lt;/p&gt;
+to analyze JVM bytecode and to see it as Java decompiled code&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2019-02-04-show-kotlin-bytecode2.png&quot; alt=&quot;java9c task out example image&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;The class &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; contains an &lt;code class=&quot;highlighter-rouge&quot;&gt;INSTANCE&lt;/code&gt; field that holds the only
 possible instance of the class &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;. The Kotlin compiler will take care and allow
-us calling methods directly in &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;. Form the JVM side. We will need to call
-it through the &lt;code class=&quot;highlighter-rouge&quot;&gt;INSTANCE&lt;/code&gt; filed.&lt;/p&gt;
-
-&lt;p&gt;In Java:&lt;/p&gt;
+us calling methods directly on &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt;. Form the JVM side, we will need to call
+it through the &lt;code class=&quot;highlighter-rouge&quot;&gt;INSTANCE&lt;/code&gt; filed, e.g. in Java:&lt;/p&gt;
 &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;INSTANCE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;One my use &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to have some selected methods be compiled
-as static functions, to make the assess from Java easier.&lt;/p&gt;
+&lt;p&gt;One may use &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to have the annotated methods compiled
+as static functions, and to make the assess from Java easier.&lt;/p&gt;
 
 &lt;h2 id=&quot;companion-object&quot;&gt;companion object&lt;/h2&gt;
 
@@ -87,17 +88,18 @@ as static functions, to make the assess from Java easier.&lt;/p&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;That code will generate &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;X.Companion&lt;/code&gt; classes. The &lt;code class=&quot;highlighter-rouge&quot;&gt;cool&lt;/code&gt; function is declared in the &lt;code class=&quot;highlighter-rouge&quot;&gt;X.Companion&lt;/code&gt;
+&lt;p&gt;That code will generate &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;X.Companion&lt;/code&gt; classes in JVM bytecode. 
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;cool&lt;/code&gt; function is declared in the &lt;code class=&quot;highlighter-rouge&quot;&gt;X.Companion&lt;/code&gt;
 class. Kotlin compiler will create the static field called &lt;code class=&quot;highlighter-rouge&quot;&gt;Companion&lt;/code&gt; that will hold
 the reference to the only possible instance of the &lt;code class=&quot;highlighter-rouge&quot;&gt;X.Companion&lt;/code&gt; class. 
-Again, in Kotlin, it will be transparent to use as &lt;code class=&quot;highlighter-rouge&quot;&gt;X.cool()&lt;/code&gt;, but from the JVM side,
-one will need to include the &lt;code class=&quot;highlighter-rouge&quot;&gt;.Companion&lt;/code&gt; to access the &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;In Java:&lt;/p&gt;
+Again, in Kotlin, it will be transparent to use as &lt;code class=&quot;highlighter-rouge&quot;&gt;X.cool()&lt;/code&gt;, but at the JVM bytecode
+level these declarations are not &lt;code class=&quot;highlighter-rouge&quot;&gt;static&lt;/code&gt;.
+One will need to include the &lt;code class=&quot;highlighter-rouge&quot;&gt;.Companion&lt;/code&gt; to access the &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;, e.g.
+in Java:&lt;/p&gt;
 &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;Companion&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;cool&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;One my use &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to have some selected methods be compiled
+&lt;p&gt;One may use &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to have the annotated methods compiled
 as static functions, to make the assess from Java easier.&lt;/p&gt;
 
 &lt;h2 id=&quot;named-companion-object&quot;&gt;named companion object&lt;/h2&gt;
@@ -114,7 +116,7 @@ as static functions, to make the assess from Java easier.&lt;/p&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;For that case, the Kotlin compiler creates the classes &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;X.QwE&lt;/code&gt; and the static 
-field in the class &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; named &lt;code class=&quot;highlighter-rouge&quot;&gt;QwE&lt;/code&gt; to holds the only possible
+field in the class &lt;code class=&quot;highlighter-rouge&quot;&gt;X&lt;/code&gt; named &lt;code class=&quot;highlighter-rouge&quot;&gt;QwE&lt;/code&gt; to hold the only possible
 reference to the &lt;code class=&quot;highlighter-rouge&quot;&gt;X.QwE&lt;/code&gt; class instance.&lt;/p&gt;
 
 &lt;p&gt;In Java:&lt;/p&gt;
@@ -125,12 +127,12 @@ reference to the &lt;code class=&quot;highlighter-rouge&quot;&gt;X.QwE&lt;/code&
 
 &lt;p&gt;It is easy to use both classes from Groovy, Java or any other JVM language. 
 You may consider &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation to beauty your Kotlin library for Java or
-JVM users if you like.&lt;/p&gt;
+JVM users, if you like.&lt;/p&gt;
 
 &lt;h3 id=&quot;names-clash-and-groovy&quot;&gt;Names Clash and Groovy&lt;/h3&gt;
 
-&lt;p&gt;There is names collision in a &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;: Kotlin compiler
-generates both the nested static class and the static field with the same name - &lt;code class=&quot;highlighter-rouge&quot;&gt;Companion&lt;/code&gt;.
+&lt;p&gt;There is name collision in a &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;: Kotlin compiler
+generates both the nested static class and the static field with the same name — &lt;code class=&quot;highlighter-rouge&quot;&gt;Companion&lt;/code&gt;.
 It works flawlessly in Java (or javac), and it is a bit tricky for Groovy (in my case,
 it was Gradle/Groovy build script). Let’s consider a standalone Java/Groovy example:&lt;/p&gt;
 
@@ -146,7 +148,7 @@ it was Gradle/Groovy build script). Let’s consider a standalone Java/Groovy ex
 &lt;span class=&quot;c1&quot;&gt;/// works in Java&lt;/span&gt;
 &lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;I found the following workaround - use &lt;code class=&quot;highlighter-rouge&quot;&gt;[]&lt;/code&gt; to access the field:&lt;/p&gt;
+&lt;p&gt;I found the following workaround - use &lt;code class=&quot;highlighter-rouge&quot;&gt;[]&lt;/code&gt; to access the field, with no type information:&lt;/p&gt;
 &lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;Object&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Y&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
@@ -894,7 +896,7 @@ back and forth.&lt;/p&gt;
 
 &lt;p&gt;The most generic approach is to create a Gradle plugin or a custom task. 
 There is the &lt;a href=&quot;https://docs.gradle.org/current/userguide/plugins.html&quot;&gt;documentation&lt;/a&gt; page.
-Set’s see, how to try writing a plugin just in our &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files.&lt;/p&gt;
+Let’s see, how to try writing a plugin just in our &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files.&lt;/p&gt;
 
 &lt;p&gt;I use &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; to navigate to interfaces and javadocs.
 It helps me a lot with code completion and error highlighting

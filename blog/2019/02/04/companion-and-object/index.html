@@ -176,24 +176,27 @@
         <p>A glance from the JVM bytecode to object and companion object in Kotlin</p>
 
 <p>There are two ways to declare <del>static</del> global objects in Kotlin. The first
-one is called <code class="highlighter-rouge">object</code> and creates a singleton for us. The second one, which is
-called <code class="highlighter-rouge">companion object</code> declares global <del>static</del> functions and properties
-within a type, that may have own constructor. You may want to
-to walk through the documentation for quickly:</p>
+one is called <code class="highlighter-rouge">object</code> and creates a singleton. The second one, which is
+called <code class="highlighter-rouge">companion object</code>, declares global <del>static</del> functions and properties
+within a class, that may have own constructor. You may want to
+to walk through the documentation quickly:</p>
 <ul>
   <li><a href="https://kotlinlang.org/docs/reference/object-declarations.html#object-declarations">object</a></li>
   <li><a href="https://kotlinlang.org/docs/reference/object-declarations.html#companion-objects">companion object</a></li>
 </ul>
 
-<p>Both declarations have nothing directly connected to the <code class="highlighter-rouge">static</code> keyword from Java.
-Still, you may use <code class="highlighter-rouge">JvmStatic</code> to turn them static. You may make your
-<code class="highlighter-rouge">object</code> or <code class="highlighter-rouge">companion object</code> in Kotlin to inherit from a class or interface!</p>
+<p>Functions from both <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> are not compiled as 
+<code class="highlighter-rouge">static</code> functions in JVM bytecode.
+You may make your
+<code class="highlighter-rouge">object</code> or <code class="highlighter-rouge">companion object</code> in Kotlin to inherit from a class or interface!
+You may use <code class="highlighter-rouge">@JvmStatic</code> annotation to make these functions 
+be <code class="highlighter-rouge">static</code> in JVM bytecode.</p>
 
 <p>My story for that post was as follows. I was trying to use Kotlin library
 with both <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> declarations from Groovy. I was
-upgrading my Gradle/Groovy script into Gradle/Kotlin script. So right
-now let’s focus on how Kotlin <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> features are
-visible as JVM bytecode level, namely from Java and Groovy.
+upgrading my Gradle/Groovy script into Gradle/Kotlin script. Let’s focus in that blog
+post on how Kotlin <code class="highlighter-rouge">object</code> and <code class="highlighter-rouge">companion object</code> declarations are
+visible from the JVM bytecode level, namely from Java and Groovy (and other) JVM languages.
 I will be using Kotlin <code class="highlighter-rouge">1.3.20</code> in that post (and something may change in the future)</p>
 
 <h2 id="object">object</h2>
@@ -207,21 +210,19 @@ I will be using Kotlin <code class="highlighter-rouge">1.3.20</code> in that pos
 </code></pre></div></div>
 
 <p>I use <code class="highlighter-rouge">Show Kotlin Bytecode</code> action in IntelliJ IDEA followed by the <code class="highlighter-rouge">Decompile</code> button click
-to analyze the bytecode and to see it as Java decompiled code</p>
+to analyze JVM bytecode and to see it as Java decompiled code</p>
 
 <p><img src="https://jonnyzzz.com/images/posts/2019-02-04-show-kotlin-bytecode2.png" alt="java9c task out example image" /></p>
 
 <p>The class <code class="highlighter-rouge">X</code> contains an <code class="highlighter-rouge">INSTANCE</code> field that holds the only
 possible instance of the class <code class="highlighter-rouge">X</code>. The Kotlin compiler will take care and allow
-us calling methods directly in <code class="highlighter-rouge">X</code>. Form the JVM side. We will need to call
-it through the <code class="highlighter-rouge">INSTANCE</code> filed.</p>
-
-<p>In Java:</p>
+us calling methods directly on <code class="highlighter-rouge">X</code>. Form the JVM side, we will need to call
+it through the <code class="highlighter-rouge">INSTANCE</code> filed, e.g. in Java:</p>
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="na">INSTANCE</span><span class="o">.</span><span class="na">cool</span><span class="o">();</span>
 </code></pre></div></div>
 
-<p>One my use <code class="highlighter-rouge">@JvmStatic</code> annotation to have some selected methods be compiled
-as static functions, to make the assess from Java easier.</p>
+<p>One may use <code class="highlighter-rouge">@JvmStatic</code> annotation to have the annotated methods compiled
+as static functions, and to make the assess from Java easier.</p>
 
 <h2 id="companion-object">companion object</h2>
 
@@ -236,17 +237,18 @@ as static functions, to make the assess from Java easier.</p>
 <span class="p">}</span>  
 </code></pre></div></div>
 
-<p>That code will generate <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">X.Companion</code> classes. The <code class="highlighter-rouge">cool</code> function is declared in the <code class="highlighter-rouge">X.Companion</code>
+<p>That code will generate <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">X.Companion</code> classes in JVM bytecode. 
+The <code class="highlighter-rouge">cool</code> function is declared in the <code class="highlighter-rouge">X.Companion</code>
 class. Kotlin compiler will create the static field called <code class="highlighter-rouge">Companion</code> that will hold
 the reference to the only possible instance of the <code class="highlighter-rouge">X.Companion</code> class. 
-Again, in Kotlin, it will be transparent to use as <code class="highlighter-rouge">X.cool()</code>, but from the JVM side,
-one will need to include the <code class="highlighter-rouge">.Companion</code> to access the <code class="highlighter-rouge">companion object</code>.</p>
-
-<p>In Java:</p>
+Again, in Kotlin, it will be transparent to use as <code class="highlighter-rouge">X.cool()</code>, but at the JVM bytecode
+level these declarations are not <code class="highlighter-rouge">static</code>.
+One will need to include the <code class="highlighter-rouge">.Companion</code> to access the <code class="highlighter-rouge">companion object</code>, e.g.
+in Java:</p>
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="na">Companion</span><span class="o">.</span><span class="na">cool</span><span class="o">();</span>
 </code></pre></div></div>
 
-<p>One my use <code class="highlighter-rouge">@JvmStatic</code> annotation to have some selected methods be compiled
+<p>One may use <code class="highlighter-rouge">@JvmStatic</code> annotation to have the annotated methods compiled
 as static functions, to make the assess from Java easier.</p>
 
 <h2 id="named-companion-object">named companion object</h2>
@@ -263,7 +265,7 @@ as static functions, to make the assess from Java easier.</p>
 </code></pre></div></div>
 
 <p>For that case, the Kotlin compiler creates the classes <code class="highlighter-rouge">X</code> and <code class="highlighter-rouge">X.QwE</code> and the static 
-field in the class <code class="highlighter-rouge">X</code> named <code class="highlighter-rouge">QwE</code> to holds the only possible
+field in the class <code class="highlighter-rouge">X</code> named <code class="highlighter-rouge">QwE</code> to hold the only possible
 reference to the <code class="highlighter-rouge">X.QwE</code> class instance.</p>
 
 <p>In Java:</p>
@@ -274,12 +276,12 @@ reference to the <code class="highlighter-rouge">X.QwE</code> class instance.</p
 
 <p>It is easy to use both classes from Groovy, Java or any other JVM language. 
 You may consider <code class="highlighter-rouge">@JvmStatic</code> annotation to beauty your Kotlin library for Java or
-JVM users if you like.</p>
+JVM users, if you like.</p>
 
 <h3 id="names-clash-and-groovy">Names Clash and Groovy</h3>
 
-<p>There is names collision in a <code class="highlighter-rouge">companion object</code>: Kotlin compiler
-generates both the nested static class and the static field with the same name - <code class="highlighter-rouge">Companion</code>.
+<p>There is name collision in a <code class="highlighter-rouge">companion object</code>: Kotlin compiler
+generates both the nested static class and the static field with the same name — <code class="highlighter-rouge">Companion</code>.
 It works flawlessly in Java (or javac), and it is a bit tricky for Groovy (in my case,
 it was Gradle/Groovy build script). Let’s consider a standalone Java/Groovy example:</p>
 
@@ -295,7 +297,7 @@ it was Gradle/Groovy build script). Let’s consider a standalone Java/Groovy ex
 <span class="c1">/// works in Java</span>
 <span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="na">Y</span><span class="o">.</span><span class="na">q</span><span class="o">()</span>
 </code></pre></div></div>
-<p>I found the following workaround - use <code class="highlighter-rouge">[]</code> to access the field:</p>
+<p>I found the following workaround - use <code class="highlighter-rouge">[]</code> to access the field, with no type information:</p>
 <div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Object</span> <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="o">[</span><span class="s2">"Y"</span><span class="o">].</span><span class="na">q</span><span class="o">()</span>
 </code></pre></div></div>
 
