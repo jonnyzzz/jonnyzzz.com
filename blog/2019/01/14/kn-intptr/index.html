@@ -201,7 +201,7 @@ with Kotlin 1.3.11 and IntelliJ IDEA. Yes, it will be enough to work with (!) Ko
 </code></pre></div></div>
 
 <p>The <code class="highlighter-rouge">cinterop</code> tool generates the following Kotlin code interop from it:</p>
-<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="n">function_from_c</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">CValuesRef</span><span class="p">&lt;</span><span class="n">IntVar</span><span class="p">&gt;?):</span> <span class="n">Int</span>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="nf">function_from_c</span><span class="p">(</span><span class="nv">x</span><span class="p">:</span> <span class="nc">CValuesRef</span><span class="p">&lt;</span><span class="nc">IntVar</span><span class="p">&gt;?):</span> <span class="nc">Int</span>
 </code></pre></div></div>
 
 <p>Right here we have a question - how to create an object of <code class="highlighter-rouge">CValuesRef&lt;IntVar&gt;</code> type?</p>
@@ -224,7 +224,7 @@ with Kotlin 1.3.11 and IntelliJ IDEA. Yes, it will be enough to work with (!) Ko
 <span class="k">import</span> <span class="nn">kotlinx.cinterop.ptr</span>
 <span class="k">import</span> <span class="nn">kotlinx.cinterop.value</span>
 
-<span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
   <span class="n">println</span><span class="p">(</span><span class="s">"Hello!"</span><span class="p">)</span>
   <span class="n">memScoped</span> <span class="p">{</span>
     <span class="kd">val</span> <span class="py">q</span><span class="p">:</span> <span class="n">IntVar</span> <span class="p">=</span> <span class="n">alloc</span><span class="p">&lt;</span><span class="n">IntVar</span><span class="p">&gt;()</span>

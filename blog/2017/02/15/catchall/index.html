@@ -221,10 +221,10 @@ it has no overhead at all.</p>
 
 <p>This is the function I use:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">inline</span> <span class="k">fun</span> <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">:</span> <span class="n">Logger</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">inline</span> <span class="k">fun</span> <span class="nf">catchAll</span><span class="p">(</span><span class="nv">LOG</span><span class="p">:</span> <span class="nc">Logger</span><span class="p">,</span> <span class="nv">message</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
   <span class="k">try</span> <span class="p">{</span>
     <span class="n">action</span><span class="p">()</span>
-  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="n">Throwable</span><span class="p">)</span> <span class="p">{</span>
+  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nv">t</span><span class="p">:</span> <span class="nc">Throwable</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">LOG</span><span class="p">.</span><span class="n">warn</span><span class="p">(</span><span class="s">"Failed to $message. ${t.message}"</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
   <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
@@ -246,7 +246,7 @@ it has no overhead at all.</p>
 inlines the action anonymous function <code class="highlighter-rouge">action</code> too. There is no overhead! Let’s consider the following
 example:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
   <span class="n">catchAll</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span> <span class="s">"println"</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">println</span><span class="p">(</span><span class="s">"Test console output"</span><span class="p">)</span>
   <span class="p">}</span>

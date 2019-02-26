@@ -262,7 +262,7 @@ and create our first <code class="highlighter-rouge">curl</code> application in 
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">import</span> <span class="nn">libcurl.*</span>
 <span class="k">import</span> <span class="nn">kotlinx.cinterop.*</span>
 
-<span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
     <span class="kd">val</span> <span class="py">curl</span> <span class="p">=</span> <span class="n">curl_easy_init</span><span class="p">()</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">curl</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
         <span class="n">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="n">CURLOPT_URL</span><span class="p">,</span> <span class="s">"http://jonnyzzz.com"</span><span class="p">)</span>

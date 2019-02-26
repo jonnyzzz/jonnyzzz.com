@@ -6,17 +6,13 @@
 <head>
 <meta charset="utf-8" />
 <title>JVM Bytecode for Kotlin Object and Companion Object &#8211; Eugene Petrenko</title>
-<meta name="description" content="A glance from the JVM bytecode to object and companion object in Kotlin
-
-"/>
+<meta name="description" content="A glance from the JVM bytecode to object and companion object in Kotlin"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, groovy, java, jvm, bytecode" />
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="JVM Bytecode for Kotlin Object and Companion Object -- Eugene Petrenko" />
-<meta name="twitter:description" content="A glance from the JVM bytecode to object and companion object in Kotlin
-
-" />
+<meta name="twitter:description" content="A glance from the JVM bytecode to object and companion object in Kotlin" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -27,9 +23,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="JVM Bytecode for Kotlin Object and Companion Object -- Eugene Petrenko" />
-<meta property="og:description" content="A glance from the JVM bytecode to object and companion object in Kotlin
-
-" />
+<meta property="og:description" content="A glance from the JVM bytecode to object and companion object in Kotlin" />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2019/02/04/companion-and-object/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
@@ -173,9 +167,7 @@
         
       </footer>
       <div class="entry-content">
-        <p>A glance from the JVM bytecode to object and companion object in Kotlin</p>
-
-<p>There are two ways to declare <del>static</del> global objects in Kotlin. The first
+        <p>There are two ways to declare <del>static</del> global objects in Kotlin. The first
 one is called <code class="highlighter-rouge">object</code> and creates a singleton. The second one, which is
 called <code class="highlighter-rouge">companion object</code>, declares global <del>static</del> functions and properties
 within a class, that may have own constructor. You may want to
@@ -203,7 +195,7 @@ I will be using Kotlin <code class="highlighter-rouge">1.3.20</code> in that pos
 
 <p>Let’s create the following code snippet in Kotlin.</p>
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">object</span> <span class="nc">class</span> <span class="n">X</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="n">cool</span><span class="p">():</span> <span class="n">Object</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">cool</span><span class="p">():</span> <span class="nc">Object</span> <span class="p">{</span>
     <span class="k">return</span> <span class="k">this</span>
   <span class="p">}</span>
 <span class="p">}</span>
@@ -212,7 +204,7 @@ I will be using Kotlin <code class="highlighter-rouge">1.3.20</code> in that pos
 <p>I use <code class="highlighter-rouge">Show Kotlin Bytecode</code> action in IntelliJ IDEA followed by the <code class="highlighter-rouge">Decompile</code> button click
 to analyze JVM bytecode and to see it as Java decompiled code</p>
 
-<p><img src="https://jonnyzzz.com/images/posts/2019-02-04-show-kotlin-bytecode2.png" alt="java9c task out example image" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2019-02-04-show-kotlin-bytecode2.png" alt="decompile bytecode image" /></p>
 
 <p>The class <code class="highlighter-rouge">X</code> contains an <code class="highlighter-rouge">INSTANCE</code> field that holds the only
 possible instance of the class <code class="highlighter-rouge">X</code>. The Kotlin compiler will take care and allow
@@ -230,7 +222,7 @@ as static functions, and to make the assess from Java easier.</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">X</span> <span class="p">{</span>
   <span class="k">companion</span> <span class="k">object</span> <span class="p">{</span>
-    <span class="k">fun</span> <span class="n">cool</span><span class="p">():</span> <span class="n">Object</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">cool</span><span class="p">():</span> <span class="nc">Object</span> <span class="p">{</span>
       <span class="k">return</span> <span class="k">this</span>
     <span class="p">}</span>
   <span class="p">}</span>
@@ -257,7 +249,7 @@ as static functions, to make the assess from Java easier.</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">X</span> <span class="p">{</span>
   <span class="k">companion</span> <span class="k">object</span> <span class="n">QwE</span><span class="p">{</span>
-    <span class="k">fun</span> <span class="n">cool</span><span class="p">():</span> <span class="n">Object</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">cool</span><span class="p">():</span> <span class="nc">Object</span> <span class="p">{</span>
       <span class="k">return</span> <span class="k">this</span>
     <span class="p">}</span>
   <span class="p">}</span>

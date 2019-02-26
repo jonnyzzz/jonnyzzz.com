@@ -230,27 +230,27 @@ to my need in <a href="https://www.jetbrains.com/pycharm/">PyCharm</a>.</p>
 <span class="n">theDataMax</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">theData</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 <span class="n">theDataMin</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">theData</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
 
-<span class="c">##</span>
-<span class="c">## normalize the data first</span>
-<span class="c">##</span>
-<span class="n">theData</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">e</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">theDataMax</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="p">)</span> 
+<span class="c1">##
+## normalize the data first
+##
+</span><span class="n">theData</span> <span class="o">=</span> <span class="p">{</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">e</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">theDataMax</span> <span class="o">-</span> <span class="n">theDataMin</span><span class="p">)</span> <span class="p">)</span> 
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">theData</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> 
           <span class="p">}</span>
 
 <span class="k">print</span> <span class="n">theData</span>
 
-<span class="c"># Generate a word cloud image</span>
-<span class="n">wordcloud</span> <span class="o">=</span> <span class="n">WordCloud</span><span class="p">(</span><span class="n">background_color</span><span class="o">=</span><span class="s">"white"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                 <span class="n">ranks_only</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefer_horizontal</span><span class="o">=.</span><span class="mi">7</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="c1"># Generate a word cloud image
+</span><span class="n">wordcloud</span> <span class="o">=</span> <span class="n">WordCloud</span><span class="p">(</span><span class="n">background_color</span><span class="o">=</span><span class="s">"white"</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2200</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">margin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">ranks_only</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">prefer_horizontal</span><span class="o">=</span><span class="mf">.7</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                  <span class="n">color_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_words</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">min_font_size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
                  <span class="n">stopwords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
                  <span class="n">max_font_size</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">font_step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">"RGB"</span><span class="p">,</span>
-                 <span class="n">relative_scaling</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">collocations</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                 <span class="n">relative_scaling</span><span class="o">=</span><span class="mf">.5</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">collocations</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
                  <span class="n">colormap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">normalize_plurals</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>\
     <span class="o">.</span><span class="n">generate_from_frequencies</span><span class="p">(</span><span class="n">theData</span><span class="p">)</span>
 
-<span class="c"># Display the generated image:</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="c1"># Display the generated image:
+</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">wordcloud</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s">"bilinear"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s">"off"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></code></pre></figure>

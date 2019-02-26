@@ -179,7 +179,7 @@ are not solved well enough in the JVM world. Let’s consider a trivial shared s
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="kd">val</span> <span class="py">lock</span> <span class="p">=</span> <span class="n">ReentrantLock</span><span class="p">()</span>
   <span class="k">private</span> <span class="kd">var</span> <span class="py">value</span> <span class="p">=</span> <span class="m">42</span>
   
-  <span class="k">fun</span> <span class="n">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">method</span><span class="p">(</span><span class="n">v</span> <span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="p">{</span>
     <span class="n">lock</span><span class="p">.</span><span class="n">lock</span><span class="p">()</span>
     <span class="k">try</span> <span class="p">{</span>
       <span class="n">updateStateWithNewValue</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>

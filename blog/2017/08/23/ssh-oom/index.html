@@ -311,7 +311,7 @@ to block the sender even in the case send window is unlimited. I simply use a se
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin">  <span class="k">private</span> <span class="kd">val</span> <span class="py">CHANNEL_STDOUT_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
   <span class="k">private</span> <span class="kd">val</span> <span class="py">CHANNEL_STDERR_LOCK</span> <span class="p">=</span> <span class="n">PressureLock</span><span class="p">()</span>
 
-  <span class="k">override</span> <span class="k">fun</span> <span class="n">writePacket</span><span class="p">(</span><span class="n">buffer</span><span class="p">:</span> <span class="n">Buffer</span><span class="p">):</span> <span class="n">IoWriteFuture</span> <span class="p">{</span>
+  <span class="k">override</span> <span class="k">fun</span> <span class="nf">writePacket</span><span class="p">(</span><span class="nv">buffer</span><span class="p">:</span> <span class="nc">Buffer</span><span class="p">):</span> <span class="nc">IoWriteFuture</span> <span class="p">{</span>
     <span class="c1">// The workaround for</span>
     <span class="c1">// https://issues.apache.org/jira/browse/SSHD-754</span>
     <span class="c1">// the trick is to block writer thread once there are more</span>
@@ -340,12 +340,12 @@ I like Apache Mina SSHD library is designed in an extensible way making such wor
   <span class="k">private</span> <span class="kd">val</span> <span class="py">semaphore</span> <span class="p">=</span> <span class="n">Semaphore</span><span class="p">(</span><span class="m">100</span><span class="p">)</span>
 
   <span class="k">private</span> <span class="kd">val</span> <span class="py">listener</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="k">fun</span> <span class="n">operationComplete</span><span class="p">(</span><span class="n">future</span><span class="p">:</span> <span class="n">IoWriteFuture</span><span class="p">?)</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">operationComplete</span><span class="p">(</span><span class="nv">future</span><span class="p">:</span> <span class="nc">IoWriteFuture</span><span class="p">?)</span> <span class="p">{</span>
       <span class="n">semaphore</span><span class="p">.</span><span class="n">release</span><span class="p">()</span>
     <span class="p">}</span>
   <span class="p">}</span>
 
-  <span class="k">fun</span> <span class="n">acquire</span><span class="p">()</span> <span class="p">:</span> <span class="n">SshFutureListener</span><span class="p">&lt;</span><span class="n">IoWriteFuture</span><span class="p">?&gt;</span> <span class="p">{</span>
+  <span class="k">fun</span> <span class="nf">acquire</span><span class="p">()</span> <span class="p">:</span> <span class="nc">SshFutureListener</span><span class="p">&lt;</span><span class="nc">IoWriteFuture</span><span class="err">?</span><span class="p">&gt;</span> <span class="p">{</span>
     <span class="n">semaphore</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">listener</span>
   <span class="p">}</span>

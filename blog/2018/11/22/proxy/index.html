@@ -261,10 +261,10 @@ unexpected places if mixing such languages with <code class="highlighter-rouge">
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">java.lang.reflect.Proxy</span>
 
 <span class="k">internal</span> <span class="kd">interface</span> <span class="nc">Foo</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="n">bar</span><span class="p">()</span>
+  <span class="k">fun</span> <span class="nf">bar</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="k">fun</span> <span class="n">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">Array</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
   <span class="kd">val</span> <span class="py">proxy</span> <span class="p">=</span> <span class="n">Proxy</span><span class="p">.</span><span class="n">newProxyInstance</span><span class="p">(</span>
     <span class="n">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">.</span><span class="n">classLoader</span><span class="p">,</span>
     <span class="n">arrayOf</span><span class="p">&lt;</span><span class="n">Class</span><span class="p">&lt;*&gt;&gt;(</span><span class="n">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>

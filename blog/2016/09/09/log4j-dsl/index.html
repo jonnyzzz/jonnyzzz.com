@@ -261,13 +261,13 @@ code samples.</p>
 
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"> 
 <span class="kd">interface</span> <span class="nc">Log4JBase</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="n">comment</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
-  <span class="k">fun</span> <span class="n">param</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span>
+  <span class="k">fun</span> <span class="nf">comment</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span>
+  <span class="k">fun</span> <span class="nf">param</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="nv">value</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="kd">interface</span> <span class="nc">Log4J</span><span class="p">:</span> <span class="n">Log4JBase</span>
 
-<span class="k">fun</span> <span class="n">log4j</span><span class="p">(</span><span class="n">builder</span><span class="p">:</span> <span class="n">Log4J</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> </code></pre></figure>
+<span class="k">fun</span> <span class="nf">log4j</span><span class="p">(</span><span class="nv">builder</span><span class="p">:</span> <span class="nc">Log4J</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> </code></pre></figure>
 
 <p>Please follow to <a href="https://kotlinlang.org">Kotlin</a> documentation for better understanting 
 of the code above.</p>
@@ -305,7 +305,7 @@ Let’s replace it with an explicit call. For an
 <a href="https://kotlinlang.org/docs/reference/extensions.html">extension property</a> in Kotlin is used</p>
 
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">var</span> <span class="py">Log4J</span><span class="p">.</span><span class="n">rootLogger</span> <span class="p">:</span> <span class="n">String</span>
-  <span class="k">set</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">String</span><span class="p">)</span> <span class="p">=</span> <span class="n">param</span><span class="p">(</span><span class="s">"log4j.rootLogger"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+  <span class="k">set</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">=</span> <span class="n">param</span><span class="p">(</span><span class="s">"log4j.rootLogger"</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
   <span class="k">get</span><span class="p">()</span> <span class="p">=</span> <span class="k">throw</span> <span class="n">Error</span><span class="p">(</span><span class="s">"Read API is not implemented"</span><span class="p">)</span></code></pre></figure>
 
 <p>Now the improved part is</p>
@@ -331,10 +331,10 @@ Let’s avoid constant repeating strings and make those lines more expressive. F
 the following <a href="https://kotlinlang.org/docs/reference/extensions.html">extension methods</a> in the 
 \(DSL Library\).</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="n">Log4J</span><span class="p">.</span><span class="n">appender</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">type</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JAppender</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">fun</span> <span class="nc">Log4J</span><span class="p">.</span><span class="nf">appender</span><span class="p">(</span><span class="n">name</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">type</span> <span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JAppender</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
            
 <span class="kd">interface</span> <span class="nc">Log4JAppender</span> <span class="p">:</span> <span class="n">Log4JBase</span> <span class="p">{</span>
-  <span class="k">fun</span> <span class="n">layout</span><span class="p">(</span><span class="n">type</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLayout</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+  <span class="k">fun</span> <span class="nf">layout</span><span class="p">(</span><span class="nv">type</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLayout</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="kd">interface</span> <span class="nc">Log4JLayout</span> <span class="p">:</span> <span class="n">Log4JBase</span> </code></pre></figure>
@@ -371,9 +371,9 @@ the logger. Let’s normalize values and improve readability by spliting appende
   <span class="kd">var</span> <span class="py">appenders</span> <span class="p">:</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">String</span><span class="p">&gt;</span>
 <span class="p">}</span>
 
-<span class="k">fun</span> <span class="n">Log4J</span><span class="p">.</span><span class="n">logger</span><span class="p">(</span><span class="n">category</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
+<span class="k">fun</span> <span class="nc">Log4J</span><span class="p">.</span><span class="nf">logger</span><span class="p">(</span><span class="nv">category</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span>
 
-<span class="k">fun</span> <span class="n">Log4J</span><span class="p">.</span><span class="n">rootLogger</span><span class="p">(</span><span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span></code></pre></figure>
+<span class="k">fun</span> <span class="nc">Log4J</span><span class="p">.</span><span class="nf">rootLogger</span><span class="p">(</span><span class="n">builder</span> <span class="p">:</span> <span class="n">Log4JLogger</span><span class="p">.()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span></code></pre></figure>
 
 <p>Now the generated code would look like that</p>
 
