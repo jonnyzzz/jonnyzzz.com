@@ -1,0 +1,599 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Migrating to Gradle Kotlin DSL - Basics &#8211; Eugene Petrenko</title>
+<meta name="description" content="First steps of the migration"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, gradle-kotlin, gradle-kts, gradle-groovy, kts, kotlin, groovy, build, refactoring" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Migrating to Gradle Kotlin DSL - Basics -- Eugene Petrenko" />
+<meta name="twitter:description" content="First steps of the migration" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Migrating to Gradle Kotlin DSL - Basics -- Eugene Petrenko" />
+<meta property="og:description" content="First steps of the migration" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="gradle-kotlin" />
+
+<meta property="article:tag" content="gradle-kts" />
+
+<meta property="article:tag" content="gradle-groovy" />
+
+<meta property="article:tag" content="kts" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="groovy" />
+
+<meta property="article:tag" content="build" />
+
+<meta property="article:tag" content="refactoring" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#gradle-kotlin" title="Pages tagged gradle-kotlin">gradle-kotlin</a></li><li><a href="/tags/#gradle-kts" title="Pages tagged gradle-kts">gradle-kts</a></li><li><a href="/tags/#gradle-groovy" title="Pages tagged gradle-groovy">gradle-groovy</a></li><li><a href="/tags/#kts" title="Pages tagged kts">kts</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#groovy" title="Pages tagged groovy">groovy</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li><li><a href="/tags/#refactoring" title="Pages tagged refactoring">refactoring</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Migrating to Gradle Kotlin DSL - Basics</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-03-04T00:00:00+00:00"><i class="fa fa-calendar-o"></i> March 04, 2019</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=gradle,gradle-kotlin,gradle-kts,gradle-groovy,kts,kotlin,groovy,build,refactoring&amp;text=Migrating%20to%20Gradle%20Kotlin%20DSL%20-%20Basics&amp;url=https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <blockquote>
+  <p>The only way to learn a new programming language is by writing programs in it<br />
+   — by <a href="https://en.wikipedia.org/wiki/Dennis_Ritchie">Dennis Ritchie</a></p>
+</blockquote>
+
+<p>Do you use the same principle to learn a new programming language? I do, and
+I often put this quote into my <a href="/talks">talks</a> to encourage people to learn
+<a href="https://kotlinlang.org">Kotlin</a>
+programming language through practice, or by
+<a href="https://kotlinlang.org/docs/tutorials/edu-tools-learner.html">writing programs</a>
+in it. We’re going to look at how to apply the
+same tactic to learning and practicing <a href="https://gradle.org/kotlin">Gradle Kotlin DSL</a>.</p>
+
+<p>“<em>Hello World</em>” projects are not complicated enough for us. Instead, I have decided
+to convert an existing Gradle project from Groovy to Kotlin. 
+The project I found is a server-side JVM application, written in Kotlin. 
+It has 16 Gradle sub-projects and covers enough real-life non-trivial edge cases to make it quite interesting.</p>
+
+<p>While migrating the real-life project’s Gradle build from Groovy to Kotlin,
+I collected some useful recommendations, code snippets, and explanations.
+Throughout the post series, I will share my findings with you. We will together learn how to
+convert to Gradle Kotlin DSL faster and easier.</p>
+
+<h2 id="the-migration-plan">The Migration Plan</h2>
+
+<p>Where do you even start when converting a big Gradle project to Kotlin?
+Well, to start with, I do not recommend converting the whole project in one go.
+The chances are you will get stuck somewhere in the middle with completely broken scripts.
+It may eat away at too much of your time to go in and fix them to complete the migration. It may also be
+too hard for you to learn so many different Gradle Kotlin DSL features so quickly, and you may not be able to test your changes, because of the broken project.</p>
+
+<p>I suggest splitting the conversion into a set of small incremental changes.
+We will have to go through and update all the build script files one-by-one.
+Let’s start with the smallest project files, learn the basic features, and slowly
+proceed to the most complex build script files.</p>
+
+<p>It is essential to test the build script is not broken after any small change.
+You may run any task to execute a Gradle <em>configuration</em> phase, which will
+likely detect errors in your code. I prefer running the <code class="highlighter-rouge">testClasses</code> task 
+on the root project for that.</p>
+
+<p>For bigger Gradle project files it is even recommended to convert them as
+smaller parts. Gradle supports mixtures of Kotlin and Groovy scripts in the same project, so
+the <code class="highlighter-rouge">apply(from="file.gradle")</code> function can include scripts written in
+any of the languages.</p>
+
+<p>It is time to start the migration!</p>
+
+<h2 id="first-steps-of-the-migration">First Steps of the Migration</h2>
+
+<p>Let’s start the migration from the smallest Gradle sub-project. For each
+project, we need to rename
+the <code class="highlighter-rouge">build.gradle</code> project file into the <code class="highlighter-rouge">build.gradle.kts</code>.
+No surprises there, the result will not work. The file will have 
+lots of errors. Let’s fix the most common ones first:</p>
+
+<p>First, we need to replace single quotes with double quotes. Groovy supports both quotes
+for strings, while Kotlin only supports <code class="highlighter-rouge">"</code> for strings. 
+In <a href="https://jetbrains.com/idea">IntelliJ IDEA</a> you can use 
+the <em>Convert long character literal to string</em> quick fix,
+multiple carets, or the standard search and replace dialog</p>
+
+<p><img src="https://jonnyzzz.com/images/posts/2019-03-04-gradle-kotlin-migration-1-quotes2.png" alt="quick fix" /></p>
+
+<p>String templates like <code class="highlighter-rouge">"$foo.bar.baz"</code> work differently in Groovy and Kotlin. 
+In Kotlin, braces are needed after <code class="highlighter-rouge">$</code> to call methods or properties, e.g. <code class="highlighter-rouge">"${foo.bar.baz}"</code>.
+Groovy does not support templates on single quoted strings, so you may need to escape the <code class="highlighter-rouge">$</code> sign as <code class="highlighter-rouge">\$</code> too.</p>
+
+<p>We replace Groovy lists, with the <code class="highlighter-rouge">listOf</code> function, 
+for example <code class="highlighter-rouge">["foo", "bar"]</code> is converted to <code class="highlighter-rouge">listOf("foo", "bar")</code>.</p>
+
+<p>At this point, our build file should contain far fewer errors.
+Let’s have a look at how other Gradle objects are represented in Kotlin.</p>
+
+<h2 id="repositories">Repositories</h2>
+
+<p>The <code class="highlighter-rouge">repositories{..}</code> block in Kotlin DSL has the same functions for well-known repositories, e.g. <code class="highlighter-rouge">mavenCentral()</code>.
+You may need to know how to convert a custom Maven repository definition like this:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">repositories</span> <span class="o">{</span>
+  <span class="n">maven</span> <span class="o">{</span> <span class="n">url</span> <span class="s1">'https://dl.bintray.com/palantir/releases'</span> <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">maven{..}</code> function is defined in Kotlin DSL too. The builder
+has the <code class="highlighter-rouge">url</code> property, but the type of it is <code class="highlighter-rouge">java.net.URI</code> and not <code class="highlighter-rouge">String</code>.
+I do not like to create a <code class="highlighter-rouge">URI</code> class instance in my Gradle scripts manually.
+There is an overloaded function called <code class="highlighter-rouge">maven()</code> that takes a <code class="highlighter-rouge">String</code> parameter with name <code class="highlighter-rouge">url</code>
+for the URL. So the Kotlin code looks like this:</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">repositories</span> <span class="o">{</span>
+  <span class="n">maven</span><span class="o">(</span><span class="n">url</span> <span class="o">=</span> <span class="s2">"https://dl.bintray.com/palantir/releases"</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>Let’s say we have a dependency definition in Groovy, for example:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">dependencies</span> <span class="o">{</span>
+  <span class="n">implementation</span> <span class="s1">'this.library:name:1.0.0'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">dependencies{..}</code> block is different in Kotlin DSL. We need to add extra
+brackets after the configuration name and double quotes for the string:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dependencies</span> <span class="p">{</span>
+  <span class="n">implementation</span><span class="p">(</span><span class="s">"this.library:name:1.0.0"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>I recommend using <a href="https://stackoverflow.com/questions/1262737/intellij-idea-way-of-editing-multiple-lines">multiple cursors</a>
+to fix all the dependencies at the same time in <a href="https://jetbrains.com/idea">IntelliJ IDEA</a>.</p>
+
+<p>Kotlin DSL provides generated helper functions
+for the registered project configuration names including <code class="highlighter-rouge">compile</code>, <code class="highlighter-rouge">testCompile</code>,
+<code class="highlighter-rouge">api</code>, and <code class="highlighter-rouge">testImplementation</code>. 
+There are several cases that I have come across, where you may not have the generated helper functions in your scripts.
+Gradle <a href="https://gradle-community.slack.com/archives/CAD95CR62/p1549363654105200">does not include</a>
+these helper functions to the script files that you include with
+the <code class="highlighter-rouge">apply(from="some-file.gradle.kts")</code> function.
+You 
+<a href="https://gradle-community.slack.com/archives/CAD95CR62/p1549363654105200">cannot add</a>
+these functions into a <a href="https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources">buildSrc</a>
+project either. Fear not, I have several workarounds for this.</p>
+
+<p>The first workaround is to use a configuration name as a<code class="highlighter-rouge">String</code>, e.g.</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dependencies</span> <span class="p">{</span>
+  <span class="s">"implementation"</span><span class="p">(</span><span class="s">"this.library:name:1.0.0"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>A better approach is to refer to the configuration via a delegated property, the following
+declaration solves it:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">implementation</span> <span class="k">by</span> <span class="n">configurations</span>
+<span class="n">dependencies</span> <span class="p">{</span>
+  <span class="n">implementation</span><span class="p">(</span><span class="s">"this.library:name:1.0.0"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The code fails if the configuration does not exist. 
+The last workaround is to declare the <code class="highlighter-rouge">String</code> variable with the same name and value,
+e.g. <code class="highlighter-rouge">val implementation = "implementation"</code>. Now
+the code can be used in a <code class="highlighter-rouge">build.gradle.kts</code> file too.</p>
+
+<h2 id="gradle-plugins">Gradle Plugins</h2>
+
+<p>The <code class="highlighter-rouge">plugins{..}</code> block in Gradle is similar to the one in Kotlin.
+You should add brackets around the plugin ID in the code, e.g.:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="p">{</span>
+  <span class="n">id</span><span class="p">(</span><span class="s">"plugin.id"</span><span class="p">)</span> <span class="n">version</span> <span class="s">"1.2.4"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The Javadoc comment in the <code class="highlighter-rouge">org.gradle.plugin.use.PluginDependenciesSpec</code> class
+from Gradle sources is
+misleading for Kotlin DSL users. It is probably written for the Groovy DSL and has been re-used. 
+You can use the code from the snippet above.</p>
+
+<h2 id="applying-gradle-plugins-to-sub-projects">Applying Gradle Plugins to Sub-Projects</h2>
+
+<p>There are two ways to apply Gradle plugins to sub-projects. The first one is
+to add the <code class="highlighter-rouge">apply(plugin = "plugin.id")</code> call in the build script file. 
+Use the function in the <code class="highlighter-rouge">subprojects{..}</code> block to enable a plugin for sub-projects.</p>
+
+<p>The second syntax to apply a plugin is to use the shorter version of the <code class="highlighter-rouge">plugins{..}</code> block, e.g.:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="p">{</span>
+  <span class="n">id</span><span class="p">(</span><span class="s">"plugin.id"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>This syntax isn’t allowed in a <code class="highlighter-rouge">subprojects{..}</code> or <code class="highlighter-rouge">allproject{..}</code> block.</p>
+
+<p>There is a third option which is to call the <code class="highlighter-rouge">apply&lt;PluginClassName&gt;()</code> function, where the 
+<code class="highlighter-rouge">PluginClassName</code> is the class name of the plugin main class. 
+The <code class="highlighter-rouge">apply&lt;&gt;()</code> function works well for <a href="/blog/2018/08/07/ad-hoc-gradle/">ad-hoc plugins</a>.
+I do not like this approach for external plugins,
+because the plugin class name, which is not same as the plugin ID, is a part of
+the plugin implementation details and it is something that may be changed in the future by
+plugin authors.</p>
+
+<p>I found a strange side-effect which was generated by the
+Gradle Kotlin DSL engine helper functions for the applied plugins.
+Helper declarations may not be visible, depending on the way you apply plugins.</p>
+
+<p>The
+<a href="https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html">Kotlin Multiplatform</a>
+plugin (e.g. <code class="highlighter-rouge">1.3.21</code>) registers the <code class="highlighter-rouge">kotlin{..}</code> function into the project, where it
+is applied. Let’s consider two sub-project definitions, one of which does not work:</p>
+
+<p><em>Project A</em> in the <code class="highlighter-rouge">project-a/build.gradle.kts</code> file:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">apply</span><span class="p">(</span><span class="n">plugin</span> <span class="p">=</span> <span class="s">"org.jetbrains.kotlin.multiplatform"</span><span class="p">)</span>
+
+<span class="n">kotlin</span> <span class="p">{</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>And <em>Project B</em> in the <code class="highlighter-rouge">project-b/build.gradle.kts</code> file:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="p">{</span> 
+  <span class="n">id</span><span class="p">(</span><span class="s">"org.jetbrains.kotlin.multiplatform"</span><span class="p">)</span> 
+<span class="p">}</span>
+
+<span class="n">kotlin</span> <span class="p">{</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>The <em>Project B</em> works and the <code class="highlighter-rouge">kotlin{..}</code> block is resolved, but the <code class="highlighter-rouge">Project A</code> does
+not work because of the unresolved <code class="highlighter-rouge">kotlin</code> function.</p>
+
+<h2 id="configuring-tasks">Configuring Tasks</h2>
+
+<p>A task configuration is easy to do in Groovy for well-known tasks, 
+the task name can be used as the shortcut syntax. The <code class="highlighter-rouge">run</code> task from the 
+<a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application</a>
+Gradle plugin can be configured in Groovy simply as:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">run</span> <span class="o">{</span>
+  <span class="n">args</span> <span class="o">=</span> <span class="s2">"--foo"</span><span class="o">,</span> <span class="err">"</span><span class="n">bar</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>The same does not work in Kotlin. 
+First, we need to find the task from the <code class="highlighter-rouge">tasks</code> container. 
+Then, the explicit task type is required to set task parameters to it.</p>
+
+<p>The are many functions in the <code class="highlighter-rouge">tasks</code> object to define or find a task. 
+I use the
+<a href="https://kotlinlang.org/docs/reference/inline-functions.html#reified-type-parameters">reified generic</a>
+function <code class="highlighter-rouge">tasks.getByName&lt;T&gt;(name: String, action: T.() -&gt; Unit)</code> to find a task
+and to configure it with the same call.</p>
+
+<p>What is the type of task? You can check out the documentation for the plugin, 
+the plugin sources, or you can add a debug line like <code class="highlighter-rouge">println(tasks.task_name)</code>
+to your Groovy script to find this out.</p>
+
+<p>Since the <code class="highlighter-rouge">run</code> task from the Gradle <a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application</a>
+plugin has the type <code class="highlighter-rouge">JavaExec</code>, we can use the following code in Kotlin to set it up:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tasks</span><span class="p">.</span><span class="n">getByName</span><span class="p">&lt;</span><span class="n">JavaExec</span><span class="p">&gt;(</span><span class="s">"run"</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">args</span> <span class="p">=</span> <span class="n">listOf</span><span class="p">(</span><span class="s">"--foo"</span><span class="p">,</span> <span class="s">"bar)
+</span><span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<p>It can be easy to get stuck when working on build scripts. It may be unclear why something
+does not work. There are several useful tricks from me that can be done to overcome the
+complexity.</p>
+
+<p>Try finding the root cause of the problem in your changes. It can be a tiny
+change in one file that yields an error in the other file. Use the version control
+or <a href="https://www.jetbrains.com/help/idea/local-history.html">Local History</a>
+to check the recent changes, try reverting them to see if it helps.</p>
+
+<p>Search the Gradle Documentation for a keyword or task name. There are several links for Gradle Kotlin DSL
+I have often used to find helpful hints to solve my issues:</p>
+<ul>
+  <li><a href="https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/">Migrating Build Logic from Groovy to Kotlin</a></li>
+  <li><a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html">Gradle Kotlin DSL User Guide</a></li>
+  <li><a href="https://github.com/gradle/kotlin-dsl/tree/master/samples">Kotlin DSL Samples</a></li>
+</ul>
+
+<p>Read the source code of Gradle or the third-party plugins that you use.
+Gradle source code is on <a href="https://github.com/gradle/">GitHub</a>.
+Most of the Gradle plugins have their source code published on GitHub or somewhere else.
+I solved some of the problems by checking the source code, I hope it will help
+you too.</p>
+
+<p>Try debugging Gradle. The last and the hardest tip to troubleshot your script issues.
+The old school debugging technique with <code class="highlighter-rouge">println()</code> statements often worked quite well here
+to print type names or task names to something similar to help to navigate to the
+source code and Javadoc comments. Should you need
+too many runs to debug the root cause of the problem?
+A JVM debugger can be a faster option. <a href="https://jetbrains.com/idea">IntelliJ IDEA</a> supports Gradle debugging, 
+click the <em>Debug …</em> action on the task.</p>
+
+<h3 id="gradle-source-code-in-intellij-project">Gradle Source Code in IntelliJ Project</h3>
+
+<p><a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper</a>
+does not download Gradle sources by default.
+You may notice a yellow warning in IntelliJ IDEA suggesting to change that too.
+Make sure you have the <code class="highlighter-rouge">-all.zip</code> suffix in the download URL from the
+<code class="highlighter-rouge">gradle/wrapper/gradle-wrapper.properties</code> file in your project:</p>
+<div class="language-properties highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">distributionUrl</span><span class="p">=</span><span class="s">https</span><span class="se">\:</span><span class="s">//services.gradle.org/distributions/gradle-5.2.1-all.zip</span>
+</code></pre></div></div>
+
+<p>Gradle <code class="highlighter-rouge">wrapper</code> task has an option to prefer the full packages by default. You may
+configure it to make sure you don’t accidentally switch to the default package with the
+next Gradle upgrade. The following Kotlin code sets this up in a root Gradle project:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tasks</span><span class="p">.</span><span class="n">wrapper</span> <span class="p">{</span>
+    <span class="n">distributionType</span> <span class="p">=</span> <span class="n">Wrapper</span><span class="p">.</span><span class="n">DistributionType</span><span class="p">.</span><span class="n">ALL</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p><a href="https://kotlinlang.org">Kotlin</a> as a statically typed programming language
+seems to play well for writing Gradle build scripts.
+Thanks to static types, the Kotlin compiler detects errors earlier and
+shows helpful compilation error messages and warnings.
+Both the IDE and the compiler use the information about types to infer
+available functions and properties in a given scope, even inside a 5th level
+nested lambda with receivers.</p>
+
+<p>In this post, we covered the first steps of migrating to Kotlin. We defined
+the migration strategy and listed the set of recommendations
+to tackle the migration from Groovy to Kotlin quickly.
+I will cover more aspects in the coming posts, stay tuned!</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/02/04/companion-and-object/" class="btn" title="JVM Bytecode for Kotlin Object and Companion Object">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	<a href="https://plus.google.com/+EugenePetrenko_jonnyzzz" title="Eugene Petrenko on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2x"></i></a>
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
