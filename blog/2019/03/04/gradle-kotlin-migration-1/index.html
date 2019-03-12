@@ -378,6 +378,9 @@ is applied. Let’s consider two sub-project definitions, one of which does not 
 <p>The <em>Project B</em> works and the <code class="highlighter-rouge">kotlin{..}</code> block is resolved, but the <code class="highlighter-rouge">Project A</code> does
 not work because of the unresolved <code class="highlighter-rouge">kotlin</code> function.</p>
 
+<p>We should use the <code class="highlighter-rouge">plugins{..}</code> block to have accessors generated in
+<a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html#type-safe-accessors">Gradle</a>.</p>
+
 <h2 id="configuring-tasks">Configuring Tasks</h2>
 
 <p>A task configuration is easy to do in Groovy for well-known tasks, 
@@ -410,6 +413,30 @@ plugin has the type <code class="highlighter-rouge">JavaExec</code>, we can use 
 </span><span class="p">}</span>
 </code></pre></div></div>
 
+<p>We <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html#type-safe-accessors">should</a>
+use the <code class="highlighter-rouge">plugins{..}</code> block syntax to enable a plugin to have all generated accessors
+available. So we may have the following code:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="p">{</span>
+  <span class="n">application</span>
+<span class="p">}</span>
+
+<span class="n">application</span> <span class="p">{</span>
+  <span class="n">mainClassName</span> <span class="p">=</span> <span class="s">"org.jonnyzzz.example.MainKt`
+</span><span class="p">}</span>
+
+<span class="p">(</span><span class="n">tasks</span><span class="p">.</span><span class="n">run</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">args</span> <span class="p">=</span> <span class="n">listOf</span><span class="p">(</span><span class="s">"--foo"</span><span class="p">,</span> <span class="s">"bar)
+</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the example, we have the clash between Kotlin
+<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run.html">run</a>
+function and the generated <code class="highlighter-rouge">run</code> task accessor’s 
+<a href="https://kotlinlang.org/docs/reference/operator-overloading.html#invoke">invoke</a>
+overloaded operator. To solve it, I added brackets. The workaround 
+is not needed for other tasks, where we do not have such a name clash.</p>
+
 <h2 id="troubleshooting">Troubleshooting</h2>
 
 <p>It can be easy to get stuck when working on build scripts. It may be unclear why something
@@ -430,10 +457,12 @@ I have often used to find helpful hints to solve my issues:</p>
 </ul>
 
 <p>Read the source code of Gradle or the third-party plugins that you use.
-Gradle source code is on <a href="https://github.com/gradle/">GitHub</a>.
-Most of the Gradle plugins have their source code published on GitHub or somewhere else.
-I solved some of the problems by checking the source code, I hope it will help
-you too.</p>
+The easiest is to navigate to the problematic declarations from <a href="https://jetbrains.com/idea">IntelliJ IDEA</a>
+and just directly to Gradle or plugin sources. 
+I solved some of the problems by checking the source code. I hope it will help you too.</p>
+
+<p>In addition to that, you may find Gradle source code is on <a href="https://github.com/gradle/">GitHub</a>.
+Most of the Gradle plugins have their source code published on GitHub or somewhere else.</p>
 
 <p>Try debugging Gradle. The last and the hardest tip to troubleshot your script issues.
 The old school debugging technique with <code class="highlighter-rouge">println()</code> statements often worked quite well here
@@ -476,6 +505,7 @@ the migration strategy and listed the set of recommendations
 to tackle the migration from Groovy to Kotlin quickly.
 I will cover more aspects in the coming posts, stay tuned!</p>
 
+<p>Thanks to Hadi, Paul, and David for your help, time and feedback!</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
