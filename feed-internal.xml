@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-03-25T23:10:50+00:00</updated>
+  <updated>2019-03-26T09:53:41+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,166 @@
   
 
   
+  
+  <entry>
+    <title type="html">Security Group for CloudFront</title>
+    <link href="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/" rel="alternate" type="text/html" title="Security Group for CloudFront" />
+    <published>2019-03-26T00:00:00+00:00</published>
+    <updated>2019-03-26T00:00:00+00:00</updated>
+    <id>/blog/2019/03/26/terraform-cloudfront-sg</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/">&lt;p&gt;Have you ever tried to set up a Security Group
+to allow access only from CloudFront IP
+addresses? One Security Group will not be enough.
+We’ll see how to use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt;
+to solve and to automate this task.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-application&quot;&gt;The Application&lt;/h2&gt;
+
+&lt;p&gt;We have a traditional application on &lt;a href=&quot;https://aws.amazon.com&quot;&gt;AWS&lt;/a&gt;, where
+a &lt;a href=&quot;https://aws.amazon.com/cloudfront/&quot;&gt;CloudFront&lt;/a&gt; distribution handles
+the incoming traffic.
+Behind it, we have static pages on
+&lt;a href=&quot;https://aws.amazon.com/s3&quot;&gt;S3&lt;/a&gt; and API endpoints
+behind &lt;a href=&quot;https://aws.amazon.com/elasticloadbalancing/&quot;&gt;Application Load Balancer&lt;/a&gt; (ALB).
+I use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt; to manage
+production and staging environments.&lt;/p&gt;
+
+&lt;p&gt;Let’s say the project is new, and we are not ready to open it to the public.
+We allow access to the project only from specific IP addresses.
+&lt;a href=&quot;https://aws.amazon.com/waf/&quot;&gt;WAF&lt;/a&gt; helps us to limit access
+only for specific IP addresses with CloudFront.
+The last step to set up
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Group&lt;/a&gt;
+for our API endpoint’s ALB to allow connections only from CloudFront IP addresses.&lt;/p&gt;
+
+&lt;h2 id=&quot;security-groups&quot;&gt;Security Groups&lt;/h2&gt;
+
+&lt;p&gt;We use 
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Groups&lt;/a&gt;
+to limit traffic coming to the ALB by IP addresses.
+Right now we need to include CloudFront IP addresses
+to the list.&lt;/p&gt;
+
+&lt;p&gt;AWS Security Group has the
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html&quot;&gt;limit&lt;/a&gt;
+for the number of ingress/egress rules, e.g. IP addresses.
+You may need to create several security groups
+to list all addresses, if you have more than 60 (state 2019-02-09).
+You may guess, that there are more than 60 CloudFront IP addresses.&lt;/p&gt;
+
+&lt;h2 id=&quot;cloudfront-ip-addresses&quot;&gt;CloudFront IP Addresses&lt;/h2&gt;
+
+&lt;p&gt;AWS has the endpoint that
+&lt;a href=&quot;https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html&quot;&gt;lists all IP addresses&lt;/a&gt;
+of their services. Terraform has the command to access the list:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-terrafrom&quot;&gt;data &quot;aws_ip_ranges&quot; &quot;cloudfront&quot; {
+    services = [&quot;cloudfront&quot;]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The only downside — we will need to re-run the deployment to make sure we
+have the correct configuration to make sure a new IP address may not be included
+in the settings, and the service
+may not be accessible for some customers. I have no idea, how frequent the
+list may change, probably not too frequent. Let’s assume we run the deployment
+frequent enough. A &lt;a href=&quot;https://jetbrains.com/teamcity&quot;&gt;CI&lt;/a&gt; can be used to automate it.&lt;/p&gt;
+
+&lt;h2 id=&quot;settings-up-security-groups&quot;&gt;Settings up Security Groups&lt;/h2&gt;
+
+&lt;p&gt;Let’s create several security groups to overcome the
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html&quot;&gt;limit&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Terraform has necessary functions for that. Here we use the &lt;code class=&quot;highlighter-rouge&quot;&gt;chunklist&lt;/code&gt;
+function to split the full list of CloudFront IP addresses into
+a list of lists. We specify the number of elements, e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;30&lt;/code&gt; and the function
+returns us the a list, where every element of it is a list of not more than &lt;code class=&quot;highlighter-rouge&quot;&gt;30&lt;/code&gt;
+elements. Let’s use the following code in Terraform to split IP addresses by
+future security groups:&lt;/p&gt;
+
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;locals&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;chunks_v4&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;chunklist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;aws_ip_ranges&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cloudfront&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cidr_blocks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;creating-security-groups&quot;&gt;Creating Security Groups&lt;/h2&gt;
+
+&lt;p&gt;We need to instruct Terraform to create several
+Security Groups for us to reach the goal. We use &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt;
+&lt;a href=&quot;https://www.terraform.io/docs/configuration/resources.html&quot;&gt;attribute&lt;/a&gt;
+in Terraform to instruct it to create several resources with
+one declaration:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;resource &quot;aws_security_group&quot; &quot;cloudfront&quot; {
+    count = &quot;${length(local.chunks_v4)}&quot;
+    
+    //...
+    
+    ingress {
+        from_port = 443
+        to_port   = 443
+        protocol  = &quot;tcp&quot;
+        cidr_blocks = [&quot;${local.chunks_v4[count.index]}&quot;]
+    }
+
+    egress {
+        from_port = 0
+        to_port   = 0
+        protocol  = &quot;-1&quot;
+        cidr_blocks = [&quot;0.0.0.0/0&quot;]
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Terraform creates &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; resources for us, for every resource,
+the &lt;code class=&quot;highlighter-rouge&quot;&gt;count.index&lt;/code&gt; expression returns the current index (from 0 to &lt;code class=&quot;highlighter-rouge&quot;&gt;count - 1&lt;/code&gt;).
+In &lt;a href=&quot;/blog/2018/07/23/terraform-if/&quot;&gt;the corner case&lt;/a&gt;, when &lt;code class=&quot;highlighter-rouge&quot;&gt;count = 0&lt;/code&gt;, it does not
+create resources at all.&lt;/p&gt;
+
+&lt;p&gt;We need to create &lt;code class=&quot;highlighter-rouge&quot;&gt;count = length(local.chunks_v4)&lt;/code&gt; Security Groups.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;local.chunks_v4[count.index]&lt;/code&gt; selects the next chunk of CloudFront
+IP addresses to fill into the next security group.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;We found an easy way to configure IP addresses filter for an Application Load Balancer
+to allow incoming traffic only from CloudFront IP addresses. We made Terraform to create
+and maintain several Security Groups to overcome the limits.&lt;/p&gt;
+
+&lt;p&gt;You may also want to read my previous post on how to implement
+&lt;a href=&quot;/blog/2018/07/23/terraform-if/&quot;&gt;an If Statement&lt;/a&gt;
+analog in Terraform.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="aws" />
+  
+    <category term="security-group" />
+  
+    <category term="infrastructure" />
+  
+    <category term="terraform" />
+  
+    <category term="devops" />
+  
+    <category term="clouds" />
+  
+    <summary type="html">CloudFront IP addresses in AWS Security Group</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Migrating to Gradle Kotlin DSL - Basics</title>
@@ -1739,67 +1899,6 @@ work.&lt;/p&gt;</content>
     <category term="dsl" />
   
     <summary type="html">A higher order function to simplify Java builders usage</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Terraform Wrapper</title>
-    <link href="https://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/" rel="alternate" type="text/html" title="Terraform Wrapper" />
-    <published>2018-07-05T00:00:00+00:00</published>
-    <updated>2018-07-05T00:00:00+00:00</updated>
-    <id>/blog/2018/07/05/terraform-wrapper</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/07/05/terraform-wrapper/">&lt;p&gt;Use Terraform without install&lt;/p&gt;
-
-&lt;p&gt;It is always a problem to have the right tools installed. Right versions often mean the
-versions specific to a given project or branch. What if you need several at a time?&lt;/p&gt;
-
-&lt;p&gt;I like to zero-configuration approach, where one does not change the global state
-of the machine. And it plays nicely if you have several working machines too!&lt;/p&gt;
-
-&lt;p&gt;Here is what I do to use Terraform in &lt;code class=&quot;highlighter-rouge&quot;&gt;bash&lt;/code&gt;, tested on macOS:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;DIR&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;dirname&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;BASH_SOURCE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[0]&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;TERRAFORM_ROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$DIR&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; .. &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;AWS_ROOT&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; ~/.aws &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;TERRAFORM_VERSION&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0.11.7
-
-docker run &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;--rm&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;-it&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;--dns&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;dig +short &amp;lt;YOUR DNS&amp;gt; | &lt;span class=&quot;nb&quot;&gt;tail&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-1&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;--volume&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TERRAFORM_ROOT&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TERRAFORM_ROOT&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;--volume&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$AWS_ROOT&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;:/root/.aws:ro&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          &lt;span class=&quot;nt&quot;&gt;--workdir&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;  &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-          hashicorp/terraform:&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TERRAFORM_VERSION&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$*&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I code Terraform scripts in 
-&lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; with 
-the amazing plugin done by a friend of mine: 
-&lt;a href=&quot;https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support&quot;&gt;Terraform Support plugin&lt;/a&gt;
-.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="terraform" />
-  
-    <category term="devops" />
-  
-    <category term="aws" />
-  
-    <category term="docker" />
-  
-    <summary type="html">Use Terraform without install</summary>
   
   </entry>
   

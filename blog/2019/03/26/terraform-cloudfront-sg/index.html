@@ -1,0 +1,419 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Security Group for CloudFront &#8211; Eugene Petrenko</title>
+<meta name="description" content="CloudFront IP addresses in AWS Security Group"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, aws, security-group, infrastructure, terraform, devops, clouds" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Security Group for CloudFront -- Eugene Petrenko" />
+<meta name="twitter:description" content="CloudFront IP addresses in AWS Security Group" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Security Group for CloudFront -- Eugene Petrenko" />
+<meta property="og:description" content="CloudFront IP addresses in AWS Security Group" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="aws" />
+
+<meta property="article:tag" content="security-group" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="terraform" />
+
+<meta property="article:tag" content="devops" />
+
+<meta property="article:tag" content="clouds" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#aws" title="Pages tagged aws">aws</a></li><li><a href="/tags/#security-group" title="Pages tagged security-group">security-group</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#terraform" title="Pages tagged terraform">terraform</a></li><li><a href="/tags/#devops" title="Pages tagged devops">devops</a></li><li><a href="/tags/#clouds" title="Pages tagged clouds">clouds</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Security Group for CloudFront</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-03-26T00:00:00+00:00"><i class="fa fa-calendar-o"></i> March 26, 2019</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=aws,security-group,infrastructure,terraform,devops,clouds&amp;text=Security%20Group%20for%20CloudFront&amp;url=https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Have you ever tried to set up a Security Group
+to allow access only from CloudFront IP
+addresses? One Security Group will not be enough.
+We’ll see how to use <a href="https://www.terraform.io/">Terraform</a>
+to solve and to automate this task.</p>
+
+<h2 id="the-application">The Application</h2>
+
+<p>We have a traditional application on <a href="https://aws.amazon.com">AWS</a>, where
+a <a href="https://aws.amazon.com/cloudfront/">CloudFront</a> distribution handles
+the incoming traffic.
+Behind it, we have static pages on
+<a href="https://aws.amazon.com/s3">S3</a> and API endpoints
+behind <a href="https://aws.amazon.com/elasticloadbalancing/">Application Load Balancer</a> (ALB).
+I use <a href="https://www.terraform.io/">Terraform</a> to manage
+production and staging environments.</p>
+
+<p>Let’s say the project is new, and we are not ready to open it to the public.
+We allow access to the project only from specific IP addresses.
+<a href="https://aws.amazon.com/waf/">WAF</a> helps us to limit access
+only for specific IP addresses with CloudFront.
+The last step to set up
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html">Security Group</a>
+for our API endpoint’s ALB to allow connections only from CloudFront IP addresses.</p>
+
+<h2 id="security-groups">Security Groups</h2>
+
+<p>We use 
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html">Security Groups</a>
+to limit traffic coming to the ALB by IP addresses.
+Right now we need to include CloudFront IP addresses
+to the list.</p>
+
+<p>AWS Security Group has the
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html">limit</a>
+for the number of ingress/egress rules, e.g. IP addresses.
+You may need to create several security groups
+to list all addresses, if you have more than 60 (state 2019-02-09).
+You may guess, that there are more than 60 CloudFront IP addresses.</p>
+
+<h2 id="cloudfront-ip-addresses">CloudFront IP Addresses</h2>
+
+<p>AWS has the endpoint that
+<a href="https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html">lists all IP addresses</a>
+of their services. Terraform has the command to access the list:</p>
+
+<pre><code class="language-terrafrom">data "aws_ip_ranges" "cloudfront" {
+    services = ["cloudfront"]
+}
+</code></pre>
+
+<p>The only downside — we will need to re-run the deployment to make sure we
+have the correct configuration to make sure a new IP address may not be included
+in the settings, and the service
+may not be accessible for some customers. I have no idea, how frequent the
+list may change, probably not too frequent. Let’s assume we run the deployment
+frequent enough. A <a href="https://jetbrains.com/teamcity">CI</a> can be used to automate it.</p>
+
+<h2 id="settings-up-security-groups">Settings up Security Groups</h2>
+
+<p>Let’s create several security groups to overcome the
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html">limit</a>.</p>
+
+<p>Terraform has necessary functions for that. Here we use the <code class="highlighter-rouge">chunklist</code>
+function to split the full list of CloudFront IP addresses into
+a list of lists. We specify the number of elements, e.g. <code class="highlighter-rouge">30</code> and the function
+returns us the a list, where every element of it is a list of not more than <code class="highlighter-rouge">30</code>
+elements. Let’s use the following code in Terraform to split IP addresses by
+future security groups:</p>
+
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">locals</span> <span class="p">{</span>
+    <span class="nx">chunks_v4</span> <span class="p">=</span> <span class="p">[</span><span class="s2">"</span><span class="k">${</span><span class="nx">chunklist</span><span class="p">(</span><span class="k">data</span><span class="p">.</span><span class="nx">aws_ip_ranges</span><span class="p">.</span><span class="nx">cloudfront</span><span class="p">.</span><span class="nx">cidr_blocks</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span><span class="k">}</span><span class="s2">"</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="creating-security-groups">Creating Security Groups</h2>
+
+<p>We need to instruct Terraform to create several
+Security Groups for us to reach the goal. We use <code class="highlighter-rouge">count</code>
+<a href="https://www.terraform.io/docs/configuration/resources.html">attribute</a>
+in Terraform to instruct it to create several resources with
+one declaration:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>resource "aws_security_group" "cloudfront" {
+    count = "${length(local.chunks_v4)}"
+    
+    //...
+    
+    ingress {
+        from_port = 443
+        to_port   = 443
+        protocol  = "tcp"
+        cidr_blocks = ["${local.chunks_v4[count.index]}"]
+    }
+
+    egress {
+        from_port = 0
+        to_port   = 0
+        protocol  = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    lifecycle {
+        create_before_destroy = true
+    }
+}
+</code></pre></div></div>
+
+<p>Terraform creates <code class="highlighter-rouge">count</code> resources for us, for every resource,
+the <code class="highlighter-rouge">count.index</code> expression returns the current index (from 0 to <code class="highlighter-rouge">count - 1</code>).
+In <a href="/blog/2018/07/23/terraform-if/">the corner case</a>, when <code class="highlighter-rouge">count = 0</code>, it does not
+create resources at all.</p>
+
+<p>We need to create <code class="highlighter-rouge">count = length(local.chunks_v4)</code> Security Groups.
+The <code class="highlighter-rouge">local.chunks_v4[count.index]</code> selects the next chunk of CloudFront
+IP addresses to fill into the next security group.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>We found an easy way to configure IP addresses filter for an Application Load Balancer
+to allow incoming traffic only from CloudFront IP addresses. We made Terraform to create
+and maintain several Security Groups to overcome the limits.</p>
+
+<p>You may also want to read my previous post on how to implement
+<a href="/blog/2018/07/23/terraform-if/">an If Statement</a>
+analog in Terraform.</p>
+
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/03/04/gradle-kotlin-migration-1/" class="btn" title="Migrating to Gradle Kotlin DSL - Basics">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
