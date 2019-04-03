@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-03-26T09:53:41+00:00</updated>
+  <updated>2019-04-03T21:12:59+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,179 @@
   
 
   
+  
+  <entry>
+    <title type="html">Migrating to Gradle Kotlin DSL - Kotlin</title>
+    <link href="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Kotlin" />
+    <published>2019-04-02T00:00:00+00:00</published>
+    <updated>2019-04-02T00:00:00+00:00</updated>
+    <id>/blog/2019/04/02/gradle-kotlin-migration-2</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/">&lt;p&gt;Do you use Kotlin in your project?
+Let’s use Kotlin DSL to configure builds of our project
+with &lt;a href=&quot;https://gradle.org/kotlin&quot;&gt;Gradle Kotlin DSL&lt;/a&gt;.
+In the post. we cover several configuration tricks that I found
+useful for Kotlin projects done in Gradle.&lt;/p&gt;
+
+&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;previous post&lt;/a&gt;
+for more practical recommendations to migrate from Groovy to Kotlin
+build scripts.&lt;/p&gt;
+
+&lt;h2 id=&quot;enable-kotlin-plugin&quot;&gt;Enable Kotlin Plugin&lt;/h2&gt;
+
+&lt;p&gt;The shortest way to enable Kotlin in your Gradle build is&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+  &lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.3.21&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Gradle adds the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin()&lt;/code&gt; helper function to simplify your build scripts. Kotlin standard
+libraries dependencies can be configured in the same way the help of another &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin&lt;/code&gt; functions&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;stdlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;reflect&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You may not include Kotlin version for dependencies. The Kotlin plugin for Gradle
+configures dependencies resolution so that every Kotlin standard library dependency
+will use the same Kotlin version out of the box.&lt;/p&gt;
+
+&lt;h2 id=&quot;configuring-kotlin-compilation-tasks&quot;&gt;Configuring Kotlin Compilation Tasks&lt;/h2&gt;
+
+&lt;p&gt;You may already configure Kotlin in Gradle scripts in Groovy. It may look like that&lt;/p&gt;
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;compileKotlin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;suppressWarnings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Do you see the downside? Yes, there are &lt;code class=&quot;highlighter-rouge&quot;&gt;compileKotlin&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;compileTestKotlin&lt;/code&gt; tasks,
+and it means the second one is not configured. Let’s fix it in Kotlin script.&lt;/p&gt;
+
+&lt;p&gt;The same code from above will not work in Kotlin Gradle DSL. We need to explicitly refer to
+a task element of &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; property of a &lt;code class=&quot;highlighter-rouge&quot;&gt;project&lt;/code&gt;. Let’s not forget to configure
+all Kotlin tasks of a project.&lt;/p&gt;
+
+&lt;p&gt;Here is what I found to configure all Kotlin tasks in Kotlin DSL with one shot:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.tasks.*&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinCompile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;jvmTarget&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.8&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;freeCompilerArgs&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-progressive&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;asks.withType&amp;lt;T&amp;gt;&lt;/code&gt; function will run the lambda for every existing and newly
+added task of the given type.&lt;/p&gt;
+
+&lt;h2 id=&quot;kotlin-version-in-dependencies&quot;&gt;Kotlin Version in Dependencies&lt;/h2&gt;
+
+&lt;p&gt;With transitive dependencies it may turn out we use older libraries in a project.
+Kotlin &lt;a href=&quot;https://kotlinlang.org/docs/reference/evolution/components-stability.html&quot;&gt;guarantees compatibility&lt;/a&gt;,
+but still, I’d make sure I use the actual libraries when possible.&lt;/p&gt;
+
+&lt;p&gt;Let’s make sure we use the same version of &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and
+other &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-*&lt;/code&gt; libraries, say &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following Gradle script solves it in Kotlin:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.plugin.*&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//https://youtrack.jetbrains.com/issue/KT-19788&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;kotlinVersion&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lazy&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinBasePluginWrapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlinPluginVersion&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;distinct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;single&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;configurations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resolutionStrategy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eachDependency&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;requested&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requested&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startsWith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kotlin-&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;useVersion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlinVersion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You may ask, why do we need the tricky code for the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinVersion&lt;/code&gt; variable.
+The answer is that in Gradle we cannot use variables inside the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
+Thus it is not possible to share the Kotlin version as a variable between the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt;
+block and the rest of the script.&lt;/p&gt;
+
+&lt;p&gt;The ancient &lt;code class=&quot;highlighter-rouge&quot;&gt;buildscript{..}&lt;/code&gt; block allows it. I prefer the shorter and more explicit 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block instead to configure Gradle plugins in builds.&lt;/p&gt;
+
+&lt;p&gt;You may want to vote or PR for
+&lt;a href=&quot;https://youtrack.jetbrains.com/issue/KT-19788&quot;&gt;KT-19788&lt;/a&gt;
+to make Gradle Kotlin plugin declare its version.&lt;/p&gt;
+
+&lt;h2 id=&quot;kotlin-dsl-plugin-and-buildsrc&quot;&gt;Kotlin-Dsl Plugin and buildSrc&lt;/h2&gt;
+
+&lt;p&gt;There is yet another experimental plugin, maintained by Gradle, that helps to
+use Kotlin for build logic development in Gradle.&lt;/p&gt;
+
+&lt;p&gt;The plugin is called &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-dsl&lt;/code&gt;, you may find more details on it
+in the
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The plugin is an excellent choice for a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project. It simplifies the setup,
+configures all dependencies, including &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and Gradle own build script related
+classes. We will discuss &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; projects and my findings at a more detailed level in the next post.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
+seems to play well for writing Gradle build scripts.
+Thanks to static type inference, the Kotlin compiler detects errors earlier and
+shows helpful compilation error messages and warnings.
+Both the IDE and the compiler use the information about types to infer
+available functions and properties in a given scope, even inside a 5th level
+nested lambda with receivers.&lt;/p&gt;
+
+&lt;p&gt;You may remember from the
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;previous post&lt;/a&gt;
+that our example project is written entirely in Kotlin, in that post we 
+learned how to configure Kotlin compilation tasks and dependencies in
+Kotlin.&lt;/p&gt;
+
+&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="gradle-kotlin" />
+  
+    <category term="gradle-kts" />
+  
+    <category term="gradle-groovy" />
+  
+    <category term="kts" />
+  
+    <category term="kotlin" />
+  
+    <category term="groovy" />
+  
+    <category term="build" />
+  
+    <category term="refactoring" />
+  
+    <summary type="html">Kotlin tasks in Gradle Kotlin DSL</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Security Group for CloudFront</title>
@@ -503,7 +676,7 @@ next Gradle upgrade. The following Kotlin code sets this up in a root Gradle pro
 
 &lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
 seems to play well for writing Gradle build scripts.
-Thanks to static types, the Kotlin compiler detects errors earlier and
+Thanks to static type inference, the Kotlin compiler detects errors earlier and
 shows helpful compilation error messages and warnings.
 Both the IDE and the compiler use the information about types to infer
 available functions and properties in a given scope, even inside a 5th level
@@ -1737,168 +1910,6 @@ the fantastic plugin done by a friend of mine:
     <category term="infrastructure" />
   
     <summary type="html">Create an AWS API Gateway resource based on conditions</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Java Builders with Kotlin</title>
-    <link href="https://jonnyzzz.com/blog/2018/07/18/kotlin-builder/" rel="alternate" type="text/html" title="Java Builders with Kotlin" />
-    <published>2018-07-18T00:00:00+00:00</published>
-    <updated>2018-07-18T00:00:00+00:00</updated>
-    <id>/blog/2018/07/18/kotlin-builder</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/07/18/kotlin-builder/">&lt;p&gt;A higher order function to simplify Java builders usage&lt;/p&gt;
-
-&lt;p&gt;I was working with &lt;a href=&quot;https://auth0.com/&quot;&gt;auth0&lt;/a&gt;’s &lt;a href=&quot;https://github.com/auth0/java-jwt&quot;&gt;java library&lt;/a&gt;
-to issue and verify &lt;a href=&quot;https://tools.ietf.org/html/rfc7519&quot;&gt;JWT&lt;/a&gt; tokens. The library
-is &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1016575537257607168&quot;&gt;easy to use and pretty strait-forward&lt;/a&gt;.
-At some point, I had a Kotlin code to issue a JWT token:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;
-       &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-       &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;serviceId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The code is trivial. I create a new JWT token and fill claims with some data.
-I put a claim only if a respective data is not &lt;code class=&quot;highlighter-rouge&quot;&gt;null&lt;/code&gt;. 
-The code above is long and hard to read. Typically, one writes it with a copy-paste
-approach. I’m not an exception here too. I even did a typoe copying 
-things: &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;userId&quot;&lt;/code&gt; is used twice:&lt;/p&gt;
-
-&lt;blockquote class=&quot;twitter-tweet&quot; data-conversation=&quot;none&quot; data-lang=&quot;en&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;And that I had before &lt;a href=&quot;https://t.co/2grxbvpKnP&quot;&gt;pic.twitter.com/2grxbvpKnP&lt;/a&gt;&lt;/p&gt;&amp;mdash; Eugene Petrenko (@jonnyzzz) &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1016602927102820352?ref_src=twsrc%5Etfw&quot;&gt;July 10, 2018&lt;/a&gt;&lt;/blockquote&gt;
-&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
-
-&lt;h1 id=&quot;immutability&quot;&gt;Immutability&lt;/h1&gt;
-
-&lt;p&gt;The best programs, so far, are immutable programs. Let’s make the &lt;code class=&quot;highlighter-rouge&quot;&gt;builder&lt;/code&gt; variable immutable.
-Here is the trick I like in Kotlin. Usually, a builder function returns a builder instance, e.g.&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withSomething&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Something&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;You never know, if a returned &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; is the same as the &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; you call a &lt;code class=&quot;highlighter-rouge&quot;&gt;with*()&lt;/code&gt; 
-method on. As of &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; implementation, it is hard to return a new instance of a
-builder every time. People tend
-to &lt;code class=&quot;highlighter-rouge&quot;&gt;return this&lt;/code&gt; from builder functions, it is just easier and does not require tricks.&lt;/p&gt;
-
-&lt;p&gt;I see the dilemma here. Do we assume the &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; is mutable or not?&lt;/p&gt;
-
-&lt;p&gt;Kotlin &lt;a href=&quot;https://kotlinlang.org/docs/reference/data-classes.html&quot;&gt;data classes&lt;/a&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;copy(...)&lt;/code&gt; function
-makes it easier, no you know it.&lt;/p&gt;
-
-&lt;h2 id=&quot;mutable-builder&quot;&gt;Mutable Builder&lt;/h2&gt;
-
-&lt;p&gt;Let’s assume the &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; returns &lt;code class=&quot;highlighter-rouge&quot;&gt;this&lt;/code&gt; from &lt;code class=&quot;highlighter-rouge&quot;&gt;with*(...)&lt;/code&gt; methods.
-And trivially, we may turn the &lt;code class=&quot;highlighter-rouge&quot;&gt;builder&lt;/code&gt; variable to be immutable 
-and call &lt;code class=&quot;highlighter-rouge&quot;&gt;with*(...)&lt;/code&gt; methods:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I do not like that assumption. A sudden change of the builder 
-implementation will introduce a hard to find a bug in the code.&lt;/p&gt;
-
-&lt;h2 id=&quot;immutable-or-mutable-builder&quot;&gt;Immutable or Mutable Builder&lt;/h2&gt;
-
-&lt;p&gt;Now, let’s assume we have no assumptions on &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; implementation. It is 
-allowed and not forced to return same &lt;code class=&quot;highlighter-rouge&quot;&gt;this&lt;/code&gt; from a &lt;code class=&quot;highlighter-rouge&quot;&gt;with*()&lt;/code&gt; functions. We still need either 
-a mutable variable &lt;code class=&quot;highlighter-rouge&quot;&gt;builder&lt;/code&gt; or a longer expression.&lt;/p&gt;
-
-&lt;h2 id=&quot;expression-and-extension-functions&quot;&gt;Expression and Extension Functions&lt;/h2&gt;
-
-&lt;p&gt;But, here we need a function call that takes &lt;code class=&quot;highlighter-rouge&quot;&gt;Builder&lt;/code&gt; as the receiver, 
-aka &lt;a href=&quot;https://kotlinlang.org/docs/reference/extensions.html&quot;&gt;extension function&lt;/a&gt;,
-and the function should check and call something in the builder.&lt;/p&gt;
-
-&lt;p&gt;I created the following function:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;ƒ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ƒ&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;That one allows me to turn the whole method into:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)}&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I like that one. It is shorted and read better!&lt;/p&gt;
-
-&lt;h2 id=&quot;reflection-and-callable-references&quot;&gt;Reflection and Callable References&lt;/h2&gt;
-
-&lt;p&gt;I got the question from my friend on Twitter&lt;/p&gt;
-&lt;blockquote&gt;
-  &lt;p&gt;Is it possible to get rid of strings, too?&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote class=&quot;twitter-tweet&quot; data-lang=&quot;en&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Is it possible to get rid of strings, too?&lt;/p&gt;&amp;mdash; Eugeny Schepotiev (@zeckson) &lt;a href=&quot;https://twitter.com/zeckson/status/1016965146424426496?ref_src=twsrc%5Etfw&quot;&gt;July 11, 2018&lt;/a&gt;&lt;/blockquote&gt;
-&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;
-
-&lt;p&gt;It is possible, for that, you use
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html#property-references&quot;&gt;property references&lt;/a&gt;
-and &lt;a href=&quot;https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.reflect/-k-property/index.html&quot;&gt;KProperty&lt;/a&gt;
-to grab property name at the runtime:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;KProperty0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;?&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Builder&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;principal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
-        &lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Here I use &lt;code class=&quot;highlighter-rouge&quot;&gt;principal::userId&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;principal::serviceId&lt;/code&gt; to pass both the property name 
-and the function to get the property value. It makes the code shorter.
-We do not have the explicit names anymore.&lt;/p&gt;
-
-&lt;p&gt;One should understand the &lt;em&gt;risk&lt;/em&gt;. A sudden
-refactoring and rename of &lt;code class=&quot;highlighter-rouge&quot;&gt;userId&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;serviceId&lt;/code&gt; properties of the &lt;code class=&quot;highlighter-rouge&quot;&gt;principal&lt;/code&gt; class 
-will change the names we use in the builder. It may
-cause trouble on a production. Several unit 
-tests (or integration tests) will help to preserve the API.&lt;/p&gt;
-
-&lt;p&gt;The same trick with &lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html#callable-references&quot;&gt;callable references&lt;/a&gt;
-works for functions too. You might check the whole documentation page on
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/reflection.html&quot;&gt;reflection in Kotlin&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;I checked, and it is not required (at least with Kotlin/JVM v1.2.51) to have &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt; library to make the example above
-work.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="java" />
-  
-    <category term="builder" />
-  
-    <category term="dsl" />
-  
-    <summary type="html">A higher order function to simplify Java builders usage</summary>
   
   </entry>
   
