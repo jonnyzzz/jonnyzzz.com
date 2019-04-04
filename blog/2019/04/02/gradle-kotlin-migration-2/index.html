@@ -175,27 +175,27 @@
         
       </footer>
       <div class="entry-content">
-        <p>Do you use Kotlin in your project?
-Let’s use Kotlin DSL to configure builds of our project
-with <a href="https://gradle.org/kotlin">Gradle Kotlin DSL</a>.
-In the post. we cover several configuration tricks that I found
-useful for Kotlin projects done in Gradle.</p>
+        <p>Are you using Kotlin in your project?
+Let’s use the Kotlin DSL to configure the builds of our project
+with the <a href="https://gradle.org/kotlin">Gradle Kotlin DSL</a>.
+In the post, we will cover several configuration tricks I found
+very useful for my Kotlin projects in Gradle.</p>
 
 <p>New to Gradle Kotlin DSL? Take a look at the 
 <a href="/blog/2019/03/04/gradle-kotlin-migration-1/">previous post</a>
-for more practical recommendations to migrate from Groovy to Kotlin
+for practical recommendations on migrating from Groovy to Kotlin
 build scripts.</p>
 
 <h2 id="enable-kotlin-plugin">Enable Kotlin Plugin</h2>
 
-<p>The shortest way to enable Kotlin in your Gradle build is</p>
+<p>The quickest way to enable Kotlin in your Gradle build is</p>
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="p">{</span> 
   <span class="n">kotlin</span><span class="p">(</span><span class="s">"jvm"</span><span class="p">)</span> <span class="n">version</span> <span class="s">"1.3.21"</span>
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Gradle adds the <code class="highlighter-rouge">kotlin()</code> helper function to simplify your build scripts. Kotlin standard
-libraries dependencies can be configured in the same way the help of another <code class="highlighter-rouge">kotlin</code> functions</p>
+<p>Gradle adds the <code class="highlighter-rouge">kotlin()</code> helper function to simplify your build scripts. The Kotlin standard
+library dependencies can be configured in the same way with the help of different <code class="highlighter-rouge">kotlin</code> functions</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">repositories</span> <span class="p">{</span>
   <span class="n">mavenCentral</span><span class="p">()</span>
@@ -206,13 +206,13 @@ libraries dependencies can be configured in the same way the help of another <co
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>You may not include Kotlin version for dependencies. The Kotlin plugin for Gradle
-configures dependencies resolution so that every Kotlin standard library dependency
+<p>You don’t need to include the Kotlin version dependencies. The Kotlin plugin for Gradle
+configures the dependencies resolution, so every Kotlin standard library dependency
 will use the same Kotlin version out of the box.</p>
 
 <h2 id="configuring-kotlin-compilation-tasks">Configuring Kotlin Compilation Tasks</h2>
 
-<p>You may already configure Kotlin in Gradle scripts in Groovy. It may look like that</p>
+<p>You can configure Kotlin in the Gradle scripts in Groovy. It will look something like this</p>
 <div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">compileKotlin</span> <span class="o">{</span>
     <span class="n">kotlinOptions</span> <span class="o">{</span>
         <span class="c1">// ...</span>
@@ -221,14 +221,14 @@ will use the same Kotlin version out of the box.</p>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>Do you see the downside? Yes, there are <code class="highlighter-rouge">compileKotlin</code> and <code class="highlighter-rouge">compileTestKotlin</code> tasks,
-and it means the second one is not configured. Let’s fix it in Kotlin script.</p>
+<p>Do you see the downside? Yes, you may have seen there are <code class="highlighter-rouge">compileKotlin</code> and <code class="highlighter-rouge">compileTestKotlin</code> tasks,
+which means the second one is not configured. Let’s fix it in the Kotlin script.</p>
 
-<p>The same code from above will not work in Kotlin Gradle DSL. We need to explicitly refer to
-a task element of <code class="highlighter-rouge">tasks</code> property of a <code class="highlighter-rouge">project</code>. Let’s not forget to configure
-all Kotlin tasks of a project.</p>
+<p>The code from above will unfortunately not work in a Kotlin Gradle DSL. We need to refer explicitly to
+a task element of the <code class="highlighter-rouge">tasks</code> property of a <code class="highlighter-rouge">project</code>. Let’s not forget to configure
+all the Kotlin tasks for the project.</p>
 
-<p>Here is what I found to configure all Kotlin tasks in Kotlin DSL with one shot:</p>
+<p>Here is what I found works for configuring all the Kotlin tasks in a Kotlin DSL in one fell swoop:</p>
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.jetbrains.kotlin.gradle.tasks.*</span>
 
 <span class="n">tasks</span><span class="p">.</span><span class="n">withType</span><span class="p">&lt;</span><span class="n">KotlinCompile</span><span class="p">&gt;</span> <span class="p">{</span>
@@ -244,14 +244,14 @@ added task of the given type.</p>
 
 <h2 id="kotlin-version-in-dependencies">Kotlin Version in Dependencies</h2>
 
-<p>With transitive dependencies it may turn out we use older libraries in a project.
+<p>With transitive dependencies it could turn out that we use are using older libraries in our project.
 Kotlin <a href="https://kotlinlang.org/docs/reference/evolution/components-stability.html">guarantees compatibility</a>,
-but still, I’d make sure I use the actual libraries when possible.</p>
+but still, I’d make sure I am using the actual libraries when possible.</p>
 
-<p>Let’s make sure we use the same version of <code class="highlighter-rouge">kotlin-stdlib</code> and
-other <code class="highlighter-rouge">kotlin-*</code> libraries, say <code class="highlighter-rouge">kotlin-reflect</code>.</p>
+<p>Let’s check to make sure we are using the same version of the <code class="highlighter-rouge">kotlin-stdlib</code> and
+the other <code class="highlighter-rouge">kotlin-*</code> libraries, like for instance, <code class="highlighter-rouge">kotlin-reflect</code>.</p>
 
-<p>The following Gradle script solves it in Kotlin:</p>
+<p>The following Gradle script works for this in Kotlin:</p>
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">org.jetbrains.kotlin.gradle.plugin.*</span>
 <span class="c1">//https://youtrack.jetbrains.com/issue/KT-19788</span>
 <span class="kd">val</span> <span class="py">kotlinVersion</span> <span class="k">by</span> <span class="n">lazy</span> <span class="p">{</span>
@@ -266,39 +266,39 @@ other <code class="highlighter-rouge">kotlin-*</code> libraries, say <code class
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>You may ask, why do we need the tricky code for the <code class="highlighter-rouge">kotlinVersion</code> variable.
-The answer is that in Gradle we cannot use variables inside the <code class="highlighter-rouge">plugins{..}</code> block.
-Thus it is not possible to share the Kotlin version as a variable between the <code class="highlighter-rouge">plugins{..}</code>
+<p>You may be asking yourself, why do we need to use code trickery for the <code class="highlighter-rouge">kotlinVersion</code> variable?
+The simple answer is, in Gradle we cannot use variables inside the <code class="highlighter-rouge">plugins{..}</code> block.
+This means that it’s impossible to share the Kotlin version as a variable between the <code class="highlighter-rouge">plugins{..}</code>
 block and the rest of the script.</p>
 
-<p>The ancient <code class="highlighter-rouge">buildscript{..}</code> block allows it. I prefer the shorter and more explicit 
+<p>The ancient <code class="highlighter-rouge">buildscript{..}</code> block does allow it. I prefer the shorter and more explicit 
 <code class="highlighter-rouge">plugins{..}</code> block instead to configure Gradle plugins in builds.</p>
 
-<p>You may want to vote or PR for
+<p>You may want to vote on this issue
 <a href="https://youtrack.jetbrains.com/issue/KT-19788">KT-19788</a>
-to make Gradle Kotlin plugin declare its version.</p>
+to make the Gradle Kotlin plugin declare its version.</p>
 
 <h2 id="kotlin-dsl-plugin-and-buildsrc">Kotlin-Dsl Plugin and buildSrc</h2>
 
-<p>There is yet another experimental plugin, maintained by Gradle, that helps to
+<p>There is yet another experimental plugin, maintained by Gradle, that helps us to
 use Kotlin for build logic development in Gradle.</p>
 
-<p>The plugin is called <code class="highlighter-rouge">kotlin-dsl</code>, you may find more details on it
+<p>The plugin is called <code class="highlighter-rouge">kotlin-dsl</code>, you can find more details on it
 in the
 <a href="https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin">documentation</a>.</p>
 
 <p>The plugin is an excellent choice for a <code class="highlighter-rouge">buildSrc</code> project. It simplifies the setup,
-configures all dependencies, including <code class="highlighter-rouge">kotlin-stdlib</code> and Gradle own build script related
-classes. We will discuss <code class="highlighter-rouge">buildSrc</code> projects and my findings at a more detailed level in the next post.</p>
+configures all the dependencies, including <code class="highlighter-rouge">kotlin-stdlib</code> and Gradle’s own build script related
+classes. We will discuss <code class="highlighter-rouge">buildSrc</code> projects and my findings in more detail in the next post.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
 <p><a href="https://kotlinlang.org">Kotlin</a> as a statically typed programming language
-seems to play well for writing Gradle build scripts.
-Thanks to static type inference, the Kotlin compiler detects errors earlier and
+seems to play well with writing Gradle build scripts.
+Thanks to the static type inference, the Kotlin compiler detects errors earlier and
 shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use the information about types to infer
-available functions and properties in a given scope, even inside a 5th level
+Both the IDE and the compiler use information about types to infer
+the available functions and properties in a given scope, even inside a 5th level
 nested lambda with receivers.</p>
 
 <p>You may remember from the

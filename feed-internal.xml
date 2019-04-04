@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-04-03T21:12:59+00:00</updated>
+  <updated>2019-04-04T09:36:15+00:00</updated>
   <id>/</id>
 
   
@@ -24,27 +24,27 @@
     <published>2019-04-02T00:00:00+00:00</published>
     <updated>2019-04-02T00:00:00+00:00</updated>
     <id>/blog/2019/04/02/gradle-kotlin-migration-2</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/">&lt;p&gt;Do you use Kotlin in your project?
-Let’s use Kotlin DSL to configure builds of our project
-with &lt;a href=&quot;https://gradle.org/kotlin&quot;&gt;Gradle Kotlin DSL&lt;/a&gt;.
-In the post. we cover several configuration tricks that I found
-useful for Kotlin projects done in Gradle.&lt;/p&gt;
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/">&lt;p&gt;Are you using Kotlin in your project?
+Let’s use the Kotlin DSL to configure the builds of our project
+with the &lt;a href=&quot;https://gradle.org/kotlin&quot;&gt;Gradle Kotlin DSL&lt;/a&gt;.
+In the post, we will cover several configuration tricks I found
+very useful for my Kotlin projects in Gradle.&lt;/p&gt;
 
 &lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
 &lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;previous post&lt;/a&gt;
-for more practical recommendations to migrate from Groovy to Kotlin
+for practical recommendations on migrating from Groovy to Kotlin
 build scripts.&lt;/p&gt;
 
 &lt;h2 id=&quot;enable-kotlin-plugin&quot;&gt;Enable Kotlin Plugin&lt;/h2&gt;
 
-&lt;p&gt;The shortest way to enable Kotlin in your Gradle build is&lt;/p&gt;
+&lt;p&gt;The quickest way to enable Kotlin in your Gradle build is&lt;/p&gt;
 &lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
   &lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.3.21&quot;&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Gradle adds the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin()&lt;/code&gt; helper function to simplify your build scripts. Kotlin standard
-libraries dependencies can be configured in the same way the help of another &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin&lt;/code&gt; functions&lt;/p&gt;
+&lt;p&gt;Gradle adds the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin()&lt;/code&gt; helper function to simplify your build scripts. The Kotlin standard
+library dependencies can be configured in the same way with the help of different &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin&lt;/code&gt; functions&lt;/p&gt;
 
 &lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
   &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -55,13 +55,13 @@ libraries dependencies can be configured in the same way the help of another &lt
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;You may not include Kotlin version for dependencies. The Kotlin plugin for Gradle
-configures dependencies resolution so that every Kotlin standard library dependency
+&lt;p&gt;You don’t need to include the Kotlin version dependencies. The Kotlin plugin for Gradle
+configures the dependencies resolution, so every Kotlin standard library dependency
 will use the same Kotlin version out of the box.&lt;/p&gt;
 
 &lt;h2 id=&quot;configuring-kotlin-compilation-tasks&quot;&gt;Configuring Kotlin Compilation Tasks&lt;/h2&gt;
 
-&lt;p&gt;You may already configure Kotlin in Gradle scripts in Groovy. It may look like that&lt;/p&gt;
+&lt;p&gt;You can configure Kotlin in the Gradle scripts in Groovy. It will look something like this&lt;/p&gt;
 &lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;compileKotlin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
         &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
@@ -70,14 +70,14 @@ will use the same Kotlin version out of the box.&lt;/p&gt;
 &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Do you see the downside? Yes, there are &lt;code class=&quot;highlighter-rouge&quot;&gt;compileKotlin&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;compileTestKotlin&lt;/code&gt; tasks,
-and it means the second one is not configured. Let’s fix it in Kotlin script.&lt;/p&gt;
+&lt;p&gt;Do you see the downside? Yes, you may have seen there are &lt;code class=&quot;highlighter-rouge&quot;&gt;compileKotlin&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;compileTestKotlin&lt;/code&gt; tasks,
+which means the second one is not configured. Let’s fix it in the Kotlin script.&lt;/p&gt;
 
-&lt;p&gt;The same code from above will not work in Kotlin Gradle DSL. We need to explicitly refer to
-a task element of &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; property of a &lt;code class=&quot;highlighter-rouge&quot;&gt;project&lt;/code&gt;. Let’s not forget to configure
-all Kotlin tasks of a project.&lt;/p&gt;
+&lt;p&gt;The code from above will unfortunately not work in a Kotlin Gradle DSL. We need to refer explicitly to
+a task element of the &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; property of a &lt;code class=&quot;highlighter-rouge&quot;&gt;project&lt;/code&gt;. Let’s not forget to configure
+all the Kotlin tasks for the project.&lt;/p&gt;
 
-&lt;p&gt;Here is what I found to configure all Kotlin tasks in Kotlin DSL with one shot:&lt;/p&gt;
+&lt;p&gt;Here is what I found works for configuring all the Kotlin tasks in a Kotlin DSL in one fell swoop:&lt;/p&gt;
 &lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.tasks.*&lt;/span&gt;
 
 &lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinCompile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -93,14 +93,14 @@ added task of the given type.&lt;/p&gt;
 
 &lt;h2 id=&quot;kotlin-version-in-dependencies&quot;&gt;Kotlin Version in Dependencies&lt;/h2&gt;
 
-&lt;p&gt;With transitive dependencies it may turn out we use older libraries in a project.
+&lt;p&gt;With transitive dependencies it could turn out that we use are using older libraries in our project.
 Kotlin &lt;a href=&quot;https://kotlinlang.org/docs/reference/evolution/components-stability.html&quot;&gt;guarantees compatibility&lt;/a&gt;,
-but still, I’d make sure I use the actual libraries when possible.&lt;/p&gt;
+but still, I’d make sure I am using the actual libraries when possible.&lt;/p&gt;
 
-&lt;p&gt;Let’s make sure we use the same version of &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and
-other &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-*&lt;/code&gt; libraries, say &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let’s check to make sure we are using the same version of the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and
+the other &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-*&lt;/code&gt; libraries, like for instance, &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;The following Gradle script solves it in Kotlin:&lt;/p&gt;
+&lt;p&gt;The following Gradle script works for this in Kotlin:&lt;/p&gt;
 &lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.plugin.*&lt;/span&gt;
 &lt;span class=&quot;c1&quot;&gt;//https://youtrack.jetbrains.com/issue/KT-19788&lt;/span&gt;
 &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;kotlinVersion&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lazy&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
@@ -115,39 +115,39 @@ other &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-*&lt;/code&gt; libr
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;You may ask, why do we need the tricky code for the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinVersion&lt;/code&gt; variable.
-The answer is that in Gradle we cannot use variables inside the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
-Thus it is not possible to share the Kotlin version as a variable between the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt;
+&lt;p&gt;You may be asking yourself, why do we need to use code trickery for the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinVersion&lt;/code&gt; variable?
+The simple answer is, in Gradle we cannot use variables inside the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
+This means that it’s impossible to share the Kotlin version as a variable between the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt;
 block and the rest of the script.&lt;/p&gt;
 
-&lt;p&gt;The ancient &lt;code class=&quot;highlighter-rouge&quot;&gt;buildscript{..}&lt;/code&gt; block allows it. I prefer the shorter and more explicit 
+&lt;p&gt;The ancient &lt;code class=&quot;highlighter-rouge&quot;&gt;buildscript{..}&lt;/code&gt; block does allow it. I prefer the shorter and more explicit 
 &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block instead to configure Gradle plugins in builds.&lt;/p&gt;
 
-&lt;p&gt;You may want to vote or PR for
+&lt;p&gt;You may want to vote on this issue
 &lt;a href=&quot;https://youtrack.jetbrains.com/issue/KT-19788&quot;&gt;KT-19788&lt;/a&gt;
-to make Gradle Kotlin plugin declare its version.&lt;/p&gt;
+to make the Gradle Kotlin plugin declare its version.&lt;/p&gt;
 
 &lt;h2 id=&quot;kotlin-dsl-plugin-and-buildsrc&quot;&gt;Kotlin-Dsl Plugin and buildSrc&lt;/h2&gt;
 
-&lt;p&gt;There is yet another experimental plugin, maintained by Gradle, that helps to
+&lt;p&gt;There is yet another experimental plugin, maintained by Gradle, that helps us to
 use Kotlin for build logic development in Gradle.&lt;/p&gt;
 
-&lt;p&gt;The plugin is called &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-dsl&lt;/code&gt;, you may find more details on it
+&lt;p&gt;The plugin is called &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-dsl&lt;/code&gt;, you can find more details on it
 in the
 &lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The plugin is an excellent choice for a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project. It simplifies the setup,
-configures all dependencies, including &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and Gradle own build script related
-classes. We will discuss &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; projects and my findings at a more detailed level in the next post.&lt;/p&gt;
+configures all the dependencies, including &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and Gradle’s own build script related
+classes. We will discuss &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; projects and my findings in more detail in the next post.&lt;/p&gt;
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
-seems to play well for writing Gradle build scripts.
-Thanks to static type inference, the Kotlin compiler detects errors earlier and
+seems to play well with writing Gradle build scripts.
+Thanks to the static type inference, the Kotlin compiler detects errors earlier and
 shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use the information about types to infer
-available functions and properties in a given scope, even inside a 5th level
+Both the IDE and the compiler use information about types to infer
+the available functions and properties in a given scope, even inside a 5th level
 nested lambda with receivers.&lt;/p&gt;
 
 &lt;p&gt;You may remember from the
