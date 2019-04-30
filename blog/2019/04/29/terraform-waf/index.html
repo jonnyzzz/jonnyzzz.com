@@ -1,0 +1,536 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>IP Whitelist for WAF Rules and Security Groups &#8211; Eugene Petrenko</title>
+<meta name="description" content="IP whitelists for AWS Cloud Front WAF and Security Groups with Terraform"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, aws, waf, security-group, infrastructure, terraform, devops, clouds" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="IP Whitelist for WAF Rules and Security Groups -- Eugene Petrenko" />
+<meta name="twitter:description" content="IP whitelists for AWS Cloud Front WAF and Security Groups with Terraform" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="IP Whitelist for WAF Rules and Security Groups -- Eugene Petrenko" />
+<meta property="og:description" content="IP whitelists for AWS Cloud Front WAF and Security Groups with Terraform" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/04/29/terraform-waf/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="aws" />
+
+<meta property="article:tag" content="waf" />
+
+<meta property="article:tag" content="security-group" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="terraform" />
+
+<meta property="article:tag" content="devops" />
+
+<meta property="article:tag" content="clouds" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/04/29/terraform-waf/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#aws" title="Pages tagged aws">aws</a></li><li><a href="/tags/#waf" title="Pages tagged waf">waf</a></li><li><a href="/tags/#security-group" title="Pages tagged security-group">security-group</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#terraform" title="Pages tagged terraform">terraform</a></li><li><a href="/tags/#devops" title="Pages tagged devops">devops</a></li><li><a href="/tags/#clouds" title="Pages tagged clouds">clouds</a></li>
+        </ul>
+        
+          <h1 class="entry-title">IP Whitelist for WAF Rules and Security Groups</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-04-29T00:00:00+00:00"><i class="fa fa-calendar-o"></i> April 29, 2019</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=aws,waf,security-group,infrastructure,terraform,devops,clouds&amp;text=IP%20Whitelist%20for%20WAF%20Rules%20and%20Security%20Groups&amp;url=https://jonnyzzz.com/blog/2019/04/29/terraform-waf/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/04/29/terraform-waf/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Have you ever tried to set up CloudFront WAF rules and Security Groups
+to allow access <em>only</em> from specific IP
+addresses? Having the list of these specific IP addresses coded only once. 
+We’ll see how to use <a href="https://www.terraform.io/">Terraform</a>
+to solve and to automate this task.</p>
+
+<h2 id="the-application">The Application</h2>
+
+<p>We have a traditional application on <a href="https://aws.amazon.com">AWS</a>, where
+a <a href="https://aws.amazon.com/cloudfront/">CloudFront</a> distribution handles
+the incoming traffic.
+Behind it, we have static pages on
+<a href="https://aws.amazon.com/s3">S3</a> and API endpoints
+behind <a href="https://aws.amazon.com/elasticloadbalancing/">Application Load Balancer</a> (ALB).
+We use <a href="https://www.terraform.io/">Terraform</a> to manage
+production and staging environments, <code class="highlighter-rouge">v0.11.11</code> in our case.</p>
+
+<p>The project is new and not yet public.
+We allow access to the project only from specific IP addresses of developers and offices.
+We set up IP filtering at both
+<a href="https://aws.amazon.com/cloudfront/">Cloud Front</a> (WAF rules) and 
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html">Security Groups</a>
+levels, depending on the AWS entities.</p>
+
+<h1 id="ip-whitelist-module">IP Whitelist Module</h1>
+
+<p>Terraform <a href="https://www.terraform.io/docs/modules/index.html">Module</a>
+is the standard way to avoid code duplicates in the infrastructure code. 
+I have the module called <code class="highlighter-rouge">ip-whitelist</code> (in the <code class="highlighter-rouge">ip-whitelist</code> folder) to
+hold and export the list of whitelisted IPv4 addresses. It is used everywhere 
+in the code instead to avoid hard-coded IP addresses (which are subject to change).</p>
+
+<p>Let’s create a module that exports all IP addresses for the white list.
+The following <code class="highlighter-rouge">.tf</code> file in <code class="highlighter-rouge">ip-whitelist</code> folder makes it:</p>
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">output</span> <span class="s2">"cidr"</span> <span class="p">{</span>
+  <span class="nx">value</span> <span class="p">=</span> <span class="p">[</span>
+    <span class="s2">"1.2.3.4/32"</span><span class="p">,</span>
+    <span class="s2">"5.6.7.8/32"</span><span class="p">,</span>
+    <span class="c1">//...</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h1 id="security-groups">Security Groups</h1>
+
+<p>There are many entities, that we create in Terraform. There are
+several places in an infrastructure, where one uses security 
+groups. Let’s follow an easy strategy:</p>
+<ul>
+  <li>create a unique security group per usage</li>
+  <li>do not duplicate code</li>
+</ul>
+
+<p>Both statements of the strategy comes from the programming background.
+The fewer dependencies between modules one has, the easier it will be to update
+or refactor the scripts in the future. We tend to extract common parts of
+our programs to avoid duplicates and improve maintainability of the code.</p>
+
+<p>What is the common part of all of those AWS service? Yes, 
+<a href="https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html">Security Groups</a>.
+There are Security Groups in a <a href="https://aws.amazon.com/vpc/">VPC</a> and without a VPC.
+In both we’d like to reuse the same IP addresses filter list.
+Security Groups are easy to create with the module above, for example with the following code
+The module is easy to call from other places of the project:</p>
+
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">module</span> <span class="s2">"ip-whitelist"</span> <span class="p">{</span>
+  <span class="nx">source</span> <span class="p">=</span> <span class="s2">"&lt;relative path to module&gt;ip-whitelist"</span>
+<span class="p">}</span>
+
+<span class="k">resource</span> <span class="s2">"aws_security_group"</span> <span class="s2">"name"</span> <span class="p">{</span>
+  <span class="nx">ingress</span> <span class="p">{</span>
+    <span class="nx">from_port</span> <span class="p">=</span> <span class="mi">22</span>
+    <span class="nx">to_port</span>   <span class="p">=</span> <span class="mi">22</span>
+    <span class="nx">protocol</span>  <span class="p">=</span> <span class="s2">"tcp"</span>
+    <span class="nx">cidr_blocks</span> <span class="p">=</span> <span class="p">[</span><span class="s2">"</span><span class="k">${module</span><span class="p">.</span><span class="nx">ip-whitelist</span><span class="p">.</span><span class="nx">cidr</span><span class="k">}</span><span class="s2">"</span><span class="p">]</span>
+  <span class="p">}</span>
+  <span class="c1">//...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s switch to the Cloud Front, where WAF rules are used to implement IP whitelists</p>
+
+<h1 id="cloud-front-waf-rules">Cloud Front WAF Rules</h1>
+
+<p><a href="https://aws.amazon.com/cloudfront/">CloudFront</a> distribution uses 
+<a href="https://aws.amazon.com/waf/">Web Application Firewall</a> (WAF)
+to limit the access. 
+The main part of WAF configuration in Terraform uses the
+<a href="https://www.terraform.io/docs/providers/aws/r/waf_ipset.html">aws_waf_ipset</a> resource:</p>
+
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">resource</span> <span class="s2">"aws_waf_ipset"</span> <span class="s2">"ipset"</span> <span class="p">{</span>
+  <span class="nx">name</span> <span class="p">=</span> <span class="s2">"tfIPSet"</span>
+
+  <span class="nx">ip_set_descriptors</span> <span class="p">{</span>
+    <span class="nx">type</span>  <span class="p">=</span> <span class="s2">"IPV4"</span>
+    <span class="nx">value</span> <span class="p">=</span> <span class="s2">"192.0.7.0/24"</span>
+  <span class="p">}</span>
+
+  <span class="nx">ip_set_descriptors</span> <span class="p">{</span>
+    <span class="nx">type</span>  <span class="p">=</span> <span class="s2">"IPV4"</span>
+    <span class="nx">value</span> <span class="p">=</span> <span class="s2">"10.16.16.0/16"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The following few more resources configures Web Application Firewall (WAF) to allow connections
+only from our whitelisted IP addresses:</p>
+
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">resource</span> <span class="s2">"aws_waf_rule"</span> <span class="s2">"wafrule"</span> <span class="p">{</span>
+  <span class="nx">depends_on</span>  <span class="p">=</span> <span class="p">[</span><span class="s2">"aws_waf_ipset.ipset"</span><span class="p">]</span>
+
+  <span class="nx">name</span>        <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="kd">local</span><span class="p">.</span><span class="nx">cf_waf_rule</span><span class="k">}</span><span class="s2">"</span>
+  <span class="nx">metric_name</span> <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="kd">local</span><span class="p">.</span><span class="nx">cf_waf_rule</span><span class="k">}</span><span class="s2">"</span>
+
+  <span class="nx">predicates</span> <span class="p">{</span>
+    <span class="nx">data_id</span> <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="nx">aws_waf_ipset</span><span class="p">.</span><span class="nx">ipset</span><span class="p">.</span><span class="nx">id</span><span class="k">}</span><span class="s2">"</span>
+    <span class="nx">negated</span> <span class="p">=</span> <span class="kc">false</span>
+    <span class="nx">type</span>    <span class="p">=</span> <span class="s2">"IPMatch"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">resource</span> <span class="s2">"aws_waf_web_acl"</span> <span class="s2">"waf_acl"</span> <span class="p">{</span>
+  <span class="nx">depends_on</span>  <span class="p">=</span> <span class="p">[</span><span class="s2">"aws_waf_ipset.ipset"</span><span class="p">,</span> <span class="s2">"aws_waf_rule.wafrule"</span><span class="p">]</span>
+
+  <span class="nx">name</span>        <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="kd">local</span><span class="p">.</span><span class="nx">cf_waf_acl</span><span class="k">}</span><span class="s2">"</span>
+  <span class="nx">metric_name</span> <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="kd">local</span><span class="p">.</span><span class="nx">cf_waf_acl</span><span class="k">}</span><span class="s2">"</span>
+
+  <span class="nx">default_action</span> <span class="p">{</span>
+    <span class="nx">type</span> <span class="p">=</span> <span class="s2">"BLOCK"</span>
+  <span class="p">}</span>
+
+  <span class="nx">rules</span> <span class="p">{</span>
+    <span class="nx">action</span> <span class="p">{</span>
+      <span class="nx">type</span> <span class="p">=</span> <span class="s2">"ALLOW"</span>
+    <span class="p">}</span>
+    
+    <span class="nx">priority</span> <span class="p">=</span> <span class="mi">1</span>
+    <span class="nx">rule_id</span>  <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="nx">aws_waf_rule</span><span class="p">.</span><span class="nx">wafrule</span><span class="p">.</span><span class="nx">id</span><span class="k">}</span><span class="s2">"</span>
+    <span class="nx">type</span>     <span class="p">=</span> <span class="s2">"REGULAR"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>As we see, <code class="highlighter-rouge">ip_set_descriptors</code> parameter has type <code class="highlighter-rouge">list</code>, 
+each element of which is a map with two keys: <code class="highlighter-rouge">type</code> and <code class="highlighter-rouge">value</code>.
+The format is different from one we use in the <code class="highlighter-rouge">ip-whitelist</code> module, 
+Let’s see how we may avoid duplication</p>
+
+<h2 id="list-to-list-of-maps">List to List of Maps</h2>
+<p>First idea - let’s convert the existing list of IP addresses into
+WAF rules in Terraform by turning every entry
+of <code class="highlighter-rouge">cidr</code> list into a map.</p>
+
+<p>Please do not try that way, it does not work, I suppose that the
+<a href="https://github.com/hashicorp/terraform/issues/9814">problem</a> in Terraform <code class="highlighter-rouge">0.11.11</code>
+does not make it work. As far as I see, Terraform loses the fact a list item was a map. 
+An attempt to implement that may fail with an error like that:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Error: module.staging.aws_waf_ipset.name: "ip_set_descriptors.0.type": required field is not set
+Error: module.staging.aws_waf_ipset.name: "ip_set_descriptors.0.value": required field is not set
+</code></pre></div></div>
+
+<h2 id="map-of-lists-to-list">Map of Lists to List</h2>
+
+<p>The second approach it to update the
+format in my <code class="highlighter-rouge">ip-whitelist</code> module. IP addresses are now written in the 
+<code class="highlighter-rouge">aws_waf_ipset</code> format, aka as a list of maps. The only missing part - we need the opposite conversion
+to implement <code class="highlighter-rouge">cidr</code> output value: We need to convert that list of maps back to
+a plain list of CIDR blocks (for Security Groups).</p>
+
+<p>It works! I use the following code:</p>
+<div class="language-terraform highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nx">locals</span> <span class="p">{</span>
+  <span class="nx">wafs</span> <span class="p">=</span> <span class="p">[</span>
+    <span class="p">{</span> <span class="nx">type</span> <span class="p">=</span> <span class="s2">"IPV4"</span><span class="err">,</span> <span class="nx">value</span> <span class="p">=</span> <span class="s2">"1.2.3.4/32"</span><span class="p">},</span>
+    <span class="p">{</span> <span class="nx">type</span> <span class="p">=</span> <span class="s2">"IPV4"</span><span class="err">,</span> <span class="nx">value</span> <span class="p">=</span> <span class="s2">"5.6.7.8/32"</span> <span class="p">},</span>
+    <span class="c1">// ...</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+
+<span class="k">resource</span> <span class="s2">"null_resource"</span> <span class="s2">"ipv4"</span> <span class="p">{</span>
+  <span class="nx">count</span> <span class="p">=</span> <span class="s2">"</span><span class="k">${</span><span class="nx">length</span><span class="p">(</span><span class="kd">local</span><span class="p">.</span><span class="nx">wafs</span><span class="p">)</span><span class="k">}</span><span class="s2">"</span>
+
+  <span class="nx">triggers</span> <span class="p">{</span>
+    <span class="nx">cidr</span> <span class="p">=</span> <span class="s2">"</span><span class="k">${</span>
+    <span class="nx">lookup</span><span class="p">(</span><span class="kd">local</span><span class="p">.</span><span class="nx">wafs</span><span class="p">[</span><span class="nx">count</span><span class="p">.</span><span class="nx">index</span><span class="p">],</span> <span class="s2">"type"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"IPV4"</span>
+    <span class="o">?</span> <span class="nx">lookup</span><span class="p">(</span><span class="kd">local</span><span class="p">.</span><span class="nx">wafs</span><span class="p">[</span><span class="nx">count</span><span class="p">.</span><span class="nx">index</span><span class="p">],</span> <span class="s2">"value"</span><span class="p">)</span>
+    <span class="o">:</span> <span class="s2">""</span>
+    <span class="k">}</span><span class="s2">"</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">output</span> <span class="s2">"cidr"</span> <span class="p">{</span>
+  <span class="nx">value</span> <span class="p">=</span> <span class="p">[</span><span class="s2">"</span><span class="k">${</span><span class="nx">compact</span><span class="p">(</span><span class="nx">null_resource</span><span class="p">.</span><span class="nx">ipv4</span><span class="p">.</span><span class="o">*</span><span class="p">.</span><span class="nx">triggers</span><span class="p">.</span><span class="nx">cidr</span><span class="p">)</span><span class="k">}</span><span class="s2">"</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="k">output</span> <span class="s2">"waf"</span> <span class="p">{</span>
+  <span class="nx">value</span> <span class="p">=</span> <span class="p">[</span><span class="s2">"</span><span class="k">${</span><span class="kd">local</span><span class="p">.</span><span class="nx">wafs</span><span class="k">}</span><span class="s2">"</span><span class="p">]</span>
+<span class="p">}</span>
+
+</code></pre></div></div>
+
+<p>The module exports <code class="highlighter-rouge">waf</code> variable with WAF ipset rules, and the <code class="highlighter-rouge">cidr</code>
+variable with IPv4 security groups. IPv6 list can be added similarly.
+The conversion from <code class="highlighter-rouge">list</code> of <code class="highlighter-rouge">map</code> to <code class="highlighter-rouge">list</code> I do via <code class="highlighter-rouge">null_resource</code> and <code class="highlighter-rouge">count</code>
+<a href="https://www.terraform.io/docs/configuration/resources.html">attribute</a>.
+The <code class="highlighter-rouge">cidr</code> block is only IPv4 elements, we need to filter <code class="highlighter-rouge">waf</code> elements.</p>
+
+<p>Let’s take a look at the expression:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> lookup(local.wafs[count.index], "type") == "IPV4"
+        ? lookup(local.wafs[count.index], "value")
+        : ""
+</code></pre></div></div>
+
+<p>We replace incorrect elements with empty strings. Terraform has the
+<code class="highlighter-rouge">compact</code> function to remove empty strings from a list.</p>
+
+<p>There is no direct loop function in Terraform 0.11.11.
+The <code class="highlighter-rouge">null_resource</code> resource with <code class="highlighter-rouge">count</code> attribute works as the loop.
+The last expression <code class="highlighter-rouge">null_resource.ipv4.*.triggers.cidr</code> selects the addresses
+as a list.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>All sources from the post are available on the <a href="https://github.com/jonnyzzz/terraform-ip-whitelist">GitHub</a>
+repository. You’ll find a live example and templates to use it in your projects
+easily.</p>
+
+<p>We’ve seen how to create and share the list of IP addresses between
+different security groups and WAF rules. It helps to avoid duplicates
+in the deployment code. Should something change in the company infrastructure,
+we could easily change only one file in the deployments code to replicate it.</p>
+
+<p>Do you use WAF? Check out <a href="/blog/2019/03/26/terraform-cloudfront-sg/">the previous post</a>
+to see how to configure a Security Group to allow access only from
+CloudFront IP addresses.
+Sometimes, one needs a <code class="highlighter-rouge">if</code> statement in Terraform. We discuss
+<a href="/blog/2018/07/23/terraform-if/">the workaround</a> in an older post too.</p>
+
+<p>I code Terraform scripts in
+<a href="https://jetbrains.com/idea">IntelliJ IDEA</a> with
+the fantastic plugin done by a friend of mine:
+<a href="https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support">Terraform Support plugin</a>.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/04/02/gradle-kotlin-migration-2/" class="btn" title="Migrating to Gradle Kotlin DSL - Kotlin">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

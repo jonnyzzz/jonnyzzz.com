@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-04-04T09:36:15+00:00</updated>
+  <updated>2019-04-30T15:03:51+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,284 @@
   
 
   
+  
+  <entry>
+    <title type="html">IP Whitelist for WAF Rules and Security Groups</title>
+    <link href="https://jonnyzzz.com/blog/2019/04/29/terraform-waf/" rel="alternate" type="text/html" title="IP Whitelist for WAF Rules and Security Groups" />
+    <published>2019-04-29T00:00:00+00:00</published>
+    <updated>2019-04-29T00:00:00+00:00</updated>
+    <id>/blog/2019/04/29/terraform-waf</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/04/29/terraform-waf/">&lt;p&gt;Have you ever tried to set up CloudFront WAF rules and Security Groups
+to allow access &lt;em&gt;only&lt;/em&gt; from specific IP
+addresses? Having the list of these specific IP addresses coded only once. 
+We’ll see how to use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt;
+to solve and to automate this task.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-application&quot;&gt;The Application&lt;/h2&gt;
+
+&lt;p&gt;We have a traditional application on &lt;a href=&quot;https://aws.amazon.com&quot;&gt;AWS&lt;/a&gt;, where
+a &lt;a href=&quot;https://aws.amazon.com/cloudfront/&quot;&gt;CloudFront&lt;/a&gt; distribution handles
+the incoming traffic.
+Behind it, we have static pages on
+&lt;a href=&quot;https://aws.amazon.com/s3&quot;&gt;S3&lt;/a&gt; and API endpoints
+behind &lt;a href=&quot;https://aws.amazon.com/elasticloadbalancing/&quot;&gt;Application Load Balancer&lt;/a&gt; (ALB).
+We use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt; to manage
+production and staging environments, &lt;code class=&quot;highlighter-rouge&quot;&gt;v0.11.11&lt;/code&gt; in our case.&lt;/p&gt;
+
+&lt;p&gt;The project is new and not yet public.
+We allow access to the project only from specific IP addresses of developers and offices.
+We set up IP filtering at both
+&lt;a href=&quot;https://aws.amazon.com/cloudfront/&quot;&gt;Cloud Front&lt;/a&gt; (WAF rules) and 
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Groups&lt;/a&gt;
+levels, depending on the AWS entities.&lt;/p&gt;
+
+&lt;h1 id=&quot;ip-whitelist-module&quot;&gt;IP Whitelist Module&lt;/h1&gt;
+
+&lt;p&gt;Terraform &lt;a href=&quot;https://www.terraform.io/docs/modules/index.html&quot;&gt;Module&lt;/a&gt;
+is the standard way to avoid code duplicates in the infrastructure code. 
+I have the module called &lt;code class=&quot;highlighter-rouge&quot;&gt;ip-whitelist&lt;/code&gt; (in the &lt;code class=&quot;highlighter-rouge&quot;&gt;ip-whitelist&lt;/code&gt; folder) to
+hold and export the list of whitelisted IPv4 addresses. It is used everywhere 
+in the code instead to avoid hard-coded IP addresses (which are subject to change).&lt;/p&gt;
+
+&lt;p&gt;Let’s create a module that exports all IP addresses for the white list.
+The following &lt;code class=&quot;highlighter-rouge&quot;&gt;.tf&lt;/code&gt; file in &lt;code class=&quot;highlighter-rouge&quot;&gt;ip-whitelist&lt;/code&gt; folder makes it:&lt;/p&gt;
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cidr&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;1.2.3.4/32&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s2&quot;&gt;&quot;5.6.7.8/32&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;//...&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;security-groups&quot;&gt;Security Groups&lt;/h1&gt;
+
+&lt;p&gt;There are many entities, that we create in Terraform. There are
+several places in an infrastructure, where one uses security 
+groups. Let’s follow an easy strategy:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;create a unique security group per usage&lt;/li&gt;
+  &lt;li&gt;do not duplicate code&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Both statements of the strategy comes from the programming background.
+The fewer dependencies between modules one has, the easier it will be to update
+or refactor the scripts in the future. We tend to extract common parts of
+our programs to avoid duplicates and improve maintainability of the code.&lt;/p&gt;
+
+&lt;p&gt;What is the common part of all of those AWS service? Yes, 
+&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Groups&lt;/a&gt;.
+There are Security Groups in a &lt;a href=&quot;https://aws.amazon.com/vpc/&quot;&gt;VPC&lt;/a&gt; and without a VPC.
+In both we’d like to reuse the same IP addresses filter list.
+Security Groups are easy to create with the module above, for example with the following code
+The module is easy to call from other places of the project:&lt;/p&gt;
+
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ip-whitelist&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&amp;lt;relative path to module&amp;gt;ip-whitelist&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;aws_security_group&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;name&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;ingress&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;from_port&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;22&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;to_port&lt;/span&gt;   &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;22&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;protocol&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tcp&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;cidr_blocks&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ip-whitelist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cidr&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;//...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Let’s switch to the Cloud Front, where WAF rules are used to implement IP whitelists&lt;/p&gt;
+
+&lt;h1 id=&quot;cloud-front-waf-rules&quot;&gt;Cloud Front WAF Rules&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://aws.amazon.com/cloudfront/&quot;&gt;CloudFront&lt;/a&gt; distribution uses 
+&lt;a href=&quot;https://aws.amazon.com/waf/&quot;&gt;Web Application Firewall&lt;/a&gt; (WAF)
+to limit the access. 
+The main part of WAF configuration in Terraform uses the
+&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/waf_ipset.html&quot;&gt;aws_waf_ipset&lt;/a&gt; resource:&lt;/p&gt;
+
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_ipset&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ipset&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;tfIPSet&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;ip_set_descriptors&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPV4&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;192.0.7.0/24&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;ip_set_descriptors&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPV4&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;10.16.16.0/16&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The following few more resources configures Web Application Firewall (WAF) to allow connections
+only from our whitelisted IP addresses:&lt;/p&gt;
+
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_rule&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;wafrule&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;depends_on&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_ipset.ipset&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cf_waf_rule&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;metric_name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cf_waf_rule&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;predicates&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;data_id&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;aws_waf_ipset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ipset&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;negated&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;    &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPMatch&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_web_acl&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;waf_acl&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;depends_on&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_ipset.ipset&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;aws_waf_rule.wafrule&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;name&lt;/span&gt;        &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cf_waf_acl&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;metric_name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cf_waf_acl&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;default_action&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;BLOCK&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;rules&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;action&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ALLOW&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;nx&quot;&gt;priority&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;rule_id&lt;/span&gt;  &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;aws_waf_rule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;wafrule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt;     &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;REGULAR&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As we see, &lt;code class=&quot;highlighter-rouge&quot;&gt;ip_set_descriptors&lt;/code&gt; parameter has type &lt;code class=&quot;highlighter-rouge&quot;&gt;list&lt;/code&gt;, 
+each element of which is a map with two keys: &lt;code class=&quot;highlighter-rouge&quot;&gt;type&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;value&lt;/code&gt;.
+The format is different from one we use in the &lt;code class=&quot;highlighter-rouge&quot;&gt;ip-whitelist&lt;/code&gt; module, 
+Let’s see how we may avoid duplication&lt;/p&gt;
+
+&lt;h2 id=&quot;list-to-list-of-maps&quot;&gt;List to List of Maps&lt;/h2&gt;
+&lt;p&gt;First idea - let’s convert the existing list of IP addresses into
+WAF rules in Terraform by turning every entry
+of &lt;code class=&quot;highlighter-rouge&quot;&gt;cidr&lt;/code&gt; list into a map.&lt;/p&gt;
+
+&lt;p&gt;Please do not try that way, it does not work, I suppose that the
+&lt;a href=&quot;https://github.com/hashicorp/terraform/issues/9814&quot;&gt;problem&lt;/a&gt; in Terraform &lt;code class=&quot;highlighter-rouge&quot;&gt;0.11.11&lt;/code&gt;
+does not make it work. As far as I see, Terraform loses the fact a list item was a map. 
+An attempt to implement that may fail with an error like that:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Error: module.staging.aws_waf_ipset.name: &quot;ip_set_descriptors.0.type&quot;: required field is not set
+Error: module.staging.aws_waf_ipset.name: &quot;ip_set_descriptors.0.value&quot;: required field is not set
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;map-of-lists-to-list&quot;&gt;Map of Lists to List&lt;/h2&gt;
+
+&lt;p&gt;The second approach it to update the
+format in my &lt;code class=&quot;highlighter-rouge&quot;&gt;ip-whitelist&lt;/code&gt; module. IP addresses are now written in the 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;aws_waf_ipset&lt;/code&gt; format, aka as a list of maps. The only missing part - we need the opposite conversion
+to implement &lt;code class=&quot;highlighter-rouge&quot;&gt;cidr&lt;/code&gt; output value: We need to convert that list of maps back to
+a plain list of CIDR blocks (for Security Groups).&lt;/p&gt;
+
+&lt;p&gt;It works! I use the following code:&lt;/p&gt;
+&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;nx&quot;&gt;locals&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;wafs&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPV4&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;1.2.3.4/32&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPV4&quot;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;5.6.7.8/32&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;},&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;null_resource&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;ipv4&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;wafs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;nx&quot;&gt;triggers&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;cidr&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;lookup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;wafs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;IPV4&quot;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lookup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;wafs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;value&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;cidr&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;compact&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;null_resource&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ipv4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;triggers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cidr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;output&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;waf&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;local&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;wafs&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The module exports &lt;code class=&quot;highlighter-rouge&quot;&gt;waf&lt;/code&gt; variable with WAF ipset rules, and the &lt;code class=&quot;highlighter-rouge&quot;&gt;cidr&lt;/code&gt;
+variable with IPv4 security groups. IPv6 list can be added similarly.
+The conversion from &lt;code class=&quot;highlighter-rouge&quot;&gt;list&lt;/code&gt; of &lt;code class=&quot;highlighter-rouge&quot;&gt;map&lt;/code&gt; to &lt;code class=&quot;highlighter-rouge&quot;&gt;list&lt;/code&gt; I do via &lt;code class=&quot;highlighter-rouge&quot;&gt;null_resource&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt;
+&lt;a href=&quot;https://www.terraform.io/docs/configuration/resources.html&quot;&gt;attribute&lt;/a&gt;.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;cidr&lt;/code&gt; block is only IPv4 elements, we need to filter &lt;code class=&quot;highlighter-rouge&quot;&gt;waf&lt;/code&gt; elements.&lt;/p&gt;
+
+&lt;p&gt;Let’s take a look at the expression:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt; lookup(local.wafs[count.index], &quot;type&quot;) == &quot;IPV4&quot;
+        ? lookup(local.wafs[count.index], &quot;value&quot;)
+        : &quot;&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We replace incorrect elements with empty strings. Terraform has the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;compact&lt;/code&gt; function to remove empty strings from a list.&lt;/p&gt;
+
+&lt;p&gt;There is no direct loop function in Terraform 0.11.11.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;null_resource&lt;/code&gt; resource with &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; attribute works as the loop.
+The last expression &lt;code class=&quot;highlighter-rouge&quot;&gt;null_resource.ipv4.*.triggers.cidr&lt;/code&gt; selects the addresses
+as a list.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;All sources from the post are available on the &lt;a href=&quot;https://github.com/jonnyzzz/terraform-ip-whitelist&quot;&gt;GitHub&lt;/a&gt;
+repository. You’ll find a live example and templates to use it in your projects
+easily.&lt;/p&gt;
+
+&lt;p&gt;We’ve seen how to create and share the list of IP addresses between
+different security groups and WAF rules. It helps to avoid duplicates
+in the deployment code. Should something change in the company infrastructure,
+we could easily change only one file in the deployments code to replicate it.&lt;/p&gt;
+
+&lt;p&gt;Do you use WAF? Check out &lt;a href=&quot;/blog/2019/03/26/terraform-cloudfront-sg/&quot;&gt;the previous post&lt;/a&gt;
+to see how to configure a Security Group to allow access only from
+CloudFront IP addresses.
+Sometimes, one needs a &lt;code class=&quot;highlighter-rouge&quot;&gt;if&lt;/code&gt; statement in Terraform. We discuss
+&lt;a href=&quot;/blog/2018/07/23/terraform-if/&quot;&gt;the workaround&lt;/a&gt; in an older post too.&lt;/p&gt;
+
+&lt;p&gt;I code Terraform scripts in
+&lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; with
+the fantastic plugin done by a friend of mine:
+&lt;a href=&quot;https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support&quot;&gt;Terraform Support plugin&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="aws" />
+  
+    <category term="waf" />
+  
+    <category term="security-group" />
+  
+    <category term="infrastructure" />
+  
+    <category term="terraform" />
+  
+    <category term="devops" />
+  
+    <category term="clouds" />
+  
+    <summary type="html">IP whitelists for AWS Cloud Front WAF and Security Groups with Terraform</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Migrating to Gradle Kotlin DSL - Kotlin</title>
@@ -1722,194 +2000,6 @@ There is also the official &lt;a href=&quot;https://docs.gradle.org/current&quot
     <category term="dependencies" />
   
     <summary type="html">Gradle code reuse on steroids.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Condition in Terraform and API Gateway</title>
-    <link href="https://jonnyzzz.com/blog/2018/07/23/terraform-if/" rel="alternate" type="text/html" title="Condition in Terraform and API Gateway" />
-    <published>2018-07-23T00:00:00+00:00</published>
-    <updated>2018-07-23T00:00:00+00:00</updated>
-    <id>/blog/2018/07/23/terraform-if</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/07/23/terraform-if/">&lt;p&gt;Create an AWS API Gateway resource based on conditions&lt;/p&gt;
-
-&lt;p&gt;You may know &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt;, the tool to create infrastructure
-as a code. I use it for several &lt;a href=&quot;https://aws.amazon.com/&quot;&gt;AWS&lt;/a&gt; experiments, I do. 
-It is declarative and uses HCL language to declare resources to create. Let’s see how
-one can create resources based on a condition.&lt;/p&gt;
-
-&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
-
-&lt;p&gt;I wrote scripts to create &lt;a href=&quot;https://aws.amazon.com/api-gateway/&quot;&gt;API Gateway&lt;/a&gt; for my project.
-The API Gateway service is tricky, and in Terraform one uses several resources to make it work.&lt;/p&gt;
-
-&lt;p&gt;You start with adding the
-&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_rest_api.html&quot;&gt;aws_api_gateway_api&lt;/a&gt;
-resource, which defines the API Gateway itself. Handler paths are represented 
-as a &lt;a href=&quot;https://en.wikipedia.org/wiki/Tree_(data_structure)&quot;&gt;tree structure&lt;/a&gt;. The root of the 
-tree matches to the empty path. The root node ID is returned from the &lt;code class=&quot;highlighter-rouge&quot;&gt;root_resource_id&lt;/code&gt; output
-parameter of the &lt;code class=&quot;highlighter-rouge&quot;&gt;aws_api_gateway_api&lt;/code&gt; resource.&lt;/p&gt;
-
-&lt;p&gt;I use Terraform &lt;a href=&quot;https://www.terraform.io/docs/modules/usage.html&quot;&gt;Modules&lt;/a&gt; in my scripts
-to reduce complexity. Modules are the same as functions in other programming languages. 
-It helps to reuse code and reduce duplicates.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-need-of-a-condition&quot;&gt;The Need of a Condition&lt;/h2&gt;
-
-&lt;p&gt;I have a module to define API Gateway handlers. That module accepts a handler path and the 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;root_resource_id&lt;/code&gt; parameter. In the module, I have to decide either
-to create new resource 
-&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_resource.html&quot;&gt;aws_api_gateway_resource&lt;/a&gt;,
-for non-empty path, or to use the base &lt;code class=&quot;highlighter-rouge&quot;&gt;root_resource_id&lt;/code&gt; instead, for the empty one.&lt;/p&gt;
-
-&lt;p&gt;In a pseudo-code the problem looks as follows:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;root_path&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;root_resource_id&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
-    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resource&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;aws_api_gateway_resource&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;h2 id=&quot;a-condition-implementation&quot;&gt;A Condition Implementation&lt;/h2&gt;
-
-&lt;p&gt;I head that story from my friend Mikhail Kuzmin several years ago. I have no idea,
-how I recalled that, but still. He told me something about the &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; parameter is helpful
-to implement a condition in Terraform.&lt;/p&gt;
-
-&lt;p&gt;Also, I found that in Terraform we have 
-&lt;a href=&quot;https://www.terraform.io/docs/configuration/interpolation.html#conditionals&quot;&gt;ternary operator expression&lt;/a&gt;,
-aka &lt;code class=&quot;highlighter-rouge&quot;&gt;condition ? foo : bar&lt;/code&gt;, which helps me to extract the right resource ID at the end.&lt;/p&gt;
-
-&lt;p&gt;The overall condition for a resource did not look trivial. I decided to extract it as a dedicated module
-from the very beginning. That is what I created:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;variable &quot;api_gateway_id&quot; {}
-variable &quot;parent_resource_id&quot; {}
-
-variable &quot;path_part&quot; {
-  description = &quot;Resource path or empty string to use parent_resource_id&quot;
-}
-
-resource &quot;aws_api_gateway_resource&quot; &quot;handler&quot; {
-  parent_id   = &quot;${var.parent_resource_id}&quot;
-  rest_api_id = &quot;${var.api_gateway_id}&quot;
-
-  path_part   = &quot;${var.path_part}&quot;
-
-  count       = &quot;${var.path_part == &quot;&quot; ? 0 : 1 }&quot;
-}
-
-output &quot;handler_id&quot; {
-  value = &quot;${
-    var.path_part == &quot;&quot;
-    ? var.parent_resource_id
-    : element(concat(aws_api_gateway_resource.handler.*.id, list(&quot;&quot;)),0)
-  }&quot;
-}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;I do several tricks in that module. The first trick is to set &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; for &lt;code class=&quot;highlighter-rouge&quot;&gt;aws_api_gateway_resource&lt;/code&gt;
-to zero when I need no resource created. Otherwise, I put &lt;code class=&quot;highlighter-rouge&quot;&gt;count = 1&lt;/code&gt;, which is the default.&lt;/p&gt;
-
-&lt;p&gt;The second trick is in the &lt;code class=&quot;highlighter-rouge&quot;&gt;hardler_id&lt;/code&gt; output parameters. I select
-either the created ID or the &lt;code class=&quot;highlighter-rouge&quot;&gt;parent_resource_id&lt;/code&gt; parameter.&lt;/p&gt;
-
-&lt;h2 id=&quot;ternary-expression-and-complexity&quot;&gt;Ternary Expression and Complexity&lt;/h2&gt;
-
-&lt;p&gt;You may want to ask, why is it so complicated, me too. I started with the more 
-trivial variant of the second condition:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;output &quot;handler_id&quot; {
-  value = &quot;${
-    var.path_part == &quot;&quot;
-    ? var.parent_resource_id
-    : element(aws_api_gateway_resource.handler.*.id,0)
-  }&quot;
-}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;And then, I found out that Terraform computes both expressions in the ternary
-expression. It differs from the semantics we got used from C-like languages. And so, 
-I had to have a non-empty list in the second expression. I use the &lt;code class=&quot;highlighter-rouge&quot;&gt;concat&lt;/code&gt; to 
-join two lists, and &lt;code class=&quot;highlighter-rouge&quot;&gt;list(&quot;&quot;)&lt;/code&gt; to create a new list with one element.
-Finally, &lt;code class=&quot;highlighter-rouge&quot;&gt;concat(aws_api_gateway_resource.handler.*.id, list(&quot;&quot;)&lt;/code&gt; does the trick 
-making a list contain at least one element, even if the &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; was equal to &lt;code class=&quot;highlighter-rouge&quot;&gt;0&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;That is how I found the workable condition expression from the full example above.&lt;/p&gt;
-
-&lt;h2 id=&quot;avoiding-ternary-operator&quot;&gt;Avoiding Ternary Operator&lt;/h2&gt;
-
-&lt;p&gt;I was speaking with a colleague on that, and realized, the code can be simplified. 
-Instead of the conditional operator, 
-now I join two lists and pick the first element:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-text&quot; data-lang=&quot;text&quot;&gt;output &quot;handler_id&quot; {
-  value = &quot;${
-    element(concat(aws_api_gateway_resource.handler.*.id, list(root_resource_id)), 0) 
-  }&quot;
-}&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;aws_api_gateway_resource.handler.*.id&lt;/code&gt; gives me an empty list if &lt;code class=&quot;highlighter-rouge&quot;&gt;count = 0&lt;/code&gt;.
-That works the same way, but better and shorter. We have only one real condition in 
-the code now.&lt;/p&gt;
-
-&lt;h2 id=&quot;recursive-creation&quot;&gt;Recursive Creation&lt;/h2&gt;
-
-&lt;p&gt;I got yet another crazy idea. What if I wish to support &lt;code class=&quot;highlighter-rouge&quot;&gt;long/path/to/create&lt;/code&gt; in my module.
-What shall I do? The idea was to call the same module recursively for all needed path parts
-to build the resources tree.&lt;/p&gt;
-
-&lt;p&gt;I failed.&lt;/p&gt;
-
-&lt;p&gt;There are several problems, I came across. The first one. It is not possible to have a
-&lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; parameter on Terraform module usage.&lt;/p&gt;
-
-&lt;p&gt;https://github.com/hashicorp/terraform/issues/953&lt;/p&gt;
-
-&lt;p&gt;I tried to include the same module from itself. It turned out, Terraform does not
-support such inclusion and starts an infinite resolution in &lt;code class=&quot;highlighter-rouge&quot;&gt;terraform init&lt;/code&gt; call.&lt;/p&gt;
-
-&lt;p&gt;What if I fix &lt;code class=&quot;highlighter-rouge&quot;&gt;source&lt;/code&gt; attribute? 
-It is not possible too. One is not allowed to use a non-constant expression for the &lt;code class=&quot;highlighter-rouge&quot;&gt;source&lt;/code&gt; 
-parameter of a module.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;I recalled and implemented the common pattern in Terraform to handle a conditional resources
-creation and applied it for AWS API Gateway resources. It plays well for my project, 
-and I hope it will help you too.&lt;/p&gt;
-
-&lt;p&gt;Note. It cost me hours of endless debugging. One needs to call
-&lt;a href=&quot;https://www.terraform.io/docs/providers/aws/r/api_gateway_deployment.html&quot;&gt;api_gateway_deployment&lt;/a&gt;
-after &lt;em&gt;any&lt;/em&gt; change in the API Gateway configuration is done. 
-That is hard to code all dependencies in Terraform correctly for it. It is even harder
-if you have modules around.&lt;/p&gt;
-
-&lt;p&gt;I code Terraform scripts in 
-&lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; with 
-the fantastic plugin done by a friend of mine: 
-&lt;a href=&quot;https://plugins.jetbrains.com/plugin/7808-hashicorp-terraform--hcl-language-support&quot;&gt;Terraform Support plugin&lt;/a&gt;&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="terraform" />
-  
-    <category term="aws" />
-  
-    <category term="api gateway" />
-  
-    <category term="cloud" />
-  
-    <category term="infrastructure" />
-  
-    <summary type="html">Create an AWS API Gateway resource based on conditions</summary>
   
   </entry>
   
