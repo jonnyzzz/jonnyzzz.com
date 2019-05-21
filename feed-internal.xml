@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-05-17T05:04:01+00:00</updated>
+  <updated>2019-05-21T09:56:04+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,235 @@
   
 
   
+  
+  <entry>
+    <title type="html">Migrating to Gradle Kotlin DSL - Extensions and buildSrc</title>
+    <link href="https://jonnyzzz.com/blog/2019/05/20/gradle-kotlin-migration-3/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Extensions and buildSrc" />
+    <published>2019-05-20T00:00:00+00:00</published>
+    <updated>2019-05-20T00:00:00+00:00</updated>
+    <id>/blog/2019/05/20/gradle-kotlin-migration-3</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/05/20/gradle-kotlin-migration-3/">&lt;p&gt;While migrating the real-life project’s Gradle build from Groovy to Kotlin,
+I collected some useful recommendations, code snippets, and explanations.
+Throughout the post series, we will together learn how to
+convert to Gradle Kotlin DSL faster and easier.&lt;/p&gt;
+
+&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
+for practical recommendations on migrating from Groovy to Kotlin
+build scripts. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
+we cover Kotlin tasks setup on Gradle Kotlin DSL scripts.&lt;/p&gt;
+
+&lt;p&gt;In that post, I’m proud to share my findings for the code
+reuse in Gradle: extensions, plugins,
+and &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; scripts. It will be the next chapter for the
+&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;Ad-hoc Plugins with Gradle&lt;/a&gt;
+post, but we’ll be using Gradle Kotlin DSL.&lt;/p&gt;
+
+&lt;h2 id=&quot;project-extensions&quot;&gt;Project Extensions&lt;/h2&gt;
+
+&lt;p&gt;The real-life project that I converted to Kotlin DSL contains
+several micro-services, each uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;Application&lt;/code&gt; plugin to create an executable, 
+and &lt;code class=&quot;highlighter-rouge&quot;&gt;jib&lt;/code&gt; plugin is used to generate Docker images.
+We reuse the code via a Gradle ad-hoc
+plugin to avoid duplicating scripts. 
+The &lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;pattern&lt;/a&gt;
+helps to reuse the same Gradle (Groovy) code, the usage of which
+for every micro-service is like:&lt;/p&gt;
+
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s1&quot;&gt;'some-service'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'some-class'&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The ad-hoc plugin is applied via a &lt;code class=&quot;highlighter-rouge&quot;&gt;project.subprojects.forEach{..}&lt;/code&gt; call
+in the parent project.
+The only line per micro-service is enough to have a command-line application, docker
+container, logging configuration, several common dependencies,
+test classpath, and tests included for every micro-service project.&lt;/p&gt;
+
+&lt;p&gt;The same code does not work in Kotlin DSL. Instead, 
+in Kotlin DSL one calls a strongly typed version of it via
+the &lt;code class=&quot;highlighter-rouge&quot;&gt;configure&amp;lt;T&amp;gt;{..}&lt;/code&gt; block, where &lt;code class=&quot;highlighter-rouge&quot;&gt;T&lt;/code&gt; is the type of 
+the extension or convention to configure. We need to know the
+extension type to work with it, for example:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In general, we may try the following steps to convert an extension or convention setup
+into Kotlin. Gradle generates accessors for conventions and extensions for plugins that
+are enabled via &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
+If it is not generated (like in my case), we may check the documentation
+or source code to see the type name of the extension. 
+Try a short debugging in Groovy or Kotlin by printing the 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;project.extensions&lt;/code&gt; map entries with a &lt;code class=&quot;highlighter-rouge&quot;&gt;println()&lt;/code&gt; function
+to see the actual project extensions and their types.&lt;/p&gt;
+
+&lt;p&gt;There is yet another way to deal with shared code in Gradle. It is called &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
+I decided to use that approach together with statically typed Kotlin DSL. All declarations
+from the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; path should be visible in every &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files of my project,
+with types information, error highlighting, code navigation, IDE support.
+Let’s see how it works&lt;/p&gt;
+
+&lt;h2 id=&quot;the-buildsrc-project&quot;&gt;The buildSrc Project&lt;/h2&gt;
+
+&lt;p&gt;It is a &lt;a href=&quot;https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources&quot;&gt;good practice&lt;/a&gt;
+in Gradle to move utility classes or functions under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project. 
+&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;Ad Hoc Plugins with Gradle&lt;/a&gt; post
+describes for more ways of reusing code with Gradle.&lt;/p&gt;
+
+&lt;p&gt;By the convention, Gradle checks the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder for build sources project. The runtime classpath
+of that project will be included in every sub-projects &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; build script classpaths, 
+We will be able to use our code, utilities, and classes directly from other build files of the
+root project, both Gradle/Groovy and Gradle/Kotlin.&lt;/p&gt;
+
+&lt;p&gt;The following Gradle/Kotlin script for the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project is enough to start, it is normally
+placed it to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/build.gradle.kts&lt;/code&gt; file under the project root directory:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dsl&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;gradlePluginPortal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;kotlinDslPluginOptions&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;experimentalWarning&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The project is ready to go. You may need to click to refresh your Gradle project in IntelliJ IDEA to continue. 
+Let’s create a helper function as an example. For that, we need to create a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/src/main/kotlin/file-op.kt&lt;/code&gt;
+file with the following contents:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;operator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It is my favorite operator for builds. It defines the &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; 
+&lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html&quot;&gt;overloaded operator&lt;/a&gt;
+for &lt;code class=&quot;highlighter-rouge&quot;&gt;File&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; types. So that we may use &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; to combine paths, e.g., we can write
+the following to create new &lt;code class=&quot;highlighter-rouge&quot;&gt;File&lt;/code&gt; object for a child path:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;buildScript&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;aaa&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;jonnyzzz.txt&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We spoke about the &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; operator with some members of the Gradle team
+back at &lt;a href=&quot;https://kotlinconf.com&quot;&gt;KotlinConf&lt;/a&gt; 2018. In addition to that, I’ve noticed the 
+similar operator somewhere in the
+&lt;a href=&quot;https://github.com/gradle/gradle/blob/5c327a8/buildSrc/subprojects/kotlin-dsl/src/main/kotlin/org/gradle/kotlin/dsl/kotlin-dsl-upstream-candidates.kt#L16&quot;&gt;Gradle sources&lt;/a&gt;
+too :)&lt;/p&gt;
+
+&lt;p&gt;Now it is the time to convert the Groovy Ad-Hoc plugin into Kotlin DSL under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. Let’s rock!&lt;/p&gt;
+
+&lt;h2 id=&quot;ad-hoc-gradle-plugins&quot;&gt;Ad-Hoc Gradle Plugins&lt;/h2&gt;
+
+&lt;p&gt;My scripts were written in a Groovy as an ad-hoc plugin class in a parent project file. 
+For more details on that setup, please see the explanation in the
+&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;ad hoc Gradle plugins&lt;/a&gt; post.
+To start with the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder, we move the plugin code into the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder.
+Several conversions steps needed to turn Groovy script into Kotlin DSL. You may check out the
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; of the series for
+more insights. We’ll have the following Kotlin code for it now:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;theBuildSrcPackage&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;open&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPlugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Plugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;open&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPluginSetup&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;applyMicroPlugin()&lt;/code&gt; is a nice shortcut to simplify the way we deal with the plugin.
+Thanks to the code completion in the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files, it is now easier to apply the
+plugin via the function call, instead of calling the longer &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&amp;lt;&amp;gt;()&lt;/code&gt; variant.&lt;/p&gt;
+
+&lt;p&gt;The usage of the ad-hoc plugin in Kotlin DSL is now look as follows:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;theBuildSrcPackage.*&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It is similar to what we have before. We apply the plugin first and pass the configuration of it
+as the second step. It is a good point to realize that we use a too long API to achieve the
+goal. Let’s try to make the API more expressive and short. Check out my &lt;a href=&quot;/talks#australia2019&quot;&gt;talk&lt;/a&gt;
+on Expressive APIs in Kotlin for more hints. We do not need to repeat the intent to enable a
+Gradle plugin more than once. It means all other types and configuration parameters should be
+included implicitly. Let’s add the following helper function for that:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The code above hides all implementation details from us, so we may apply and configure the
+plugin as easy as:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;applyMicroPlugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Such code us easy to read and understand. It is now clear what we do. It is no longer possible
+to enable the plugin without passing a configuration to it. Hopefully, it will help others from my
+team to deal with Gradle scripting faster.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In the post we’ve seen how to convert an 
+&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;ad-hoc plugin&lt;/a&gt;
+to Gradle/Kotlin. It is easier to re-use Gradle code that way.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
+seems to play well with writing Gradle build scripts.
+Thanks to the static type inference, the Kotlin compiler detects errors earlier and
+shows helpful compilation error messages and warnings.
+Both the IDE and the compiler use information about types to infer
+the available functions and properties in a given scope, even inside a 5th level
+nested lambda with receivers.&lt;/p&gt;
+
+&lt;p&gt;You may remember from the
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
+that our example project is written entirely in Kotlin, in that post we 
+learned how to configure Kotlin compilation tasks and dependencies in
+Kotlin. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
+we cover Kotlin tasks setup on Gradle Kotlin DSL scripts.&lt;/p&gt;
+
+&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
+Check out the&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="gradle/groovy" />
+  
+    <category term="gradle/kotlin" />
+  
+    <category term="kts" />
+  
+    <category term="kotlin" />
+  
+    <category term="groovy" />
+  
+    <category term="build" />
+  
+    <summary type="html">Diving deeper with plugins, extension, buildSrc</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">IP Whitelist for WAF Rules and Security Groups</title>
@@ -434,7 +663,12 @@ that our example project is written entirely in Kotlin, in that post we
 learned how to configure Kotlin compilation tasks and dependencies in
 Kotlin.&lt;/p&gt;
 
-&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!&lt;/p&gt;</content>
+&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
+Check out the:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
+&lt;/ul&gt;</content>
 
   
   
@@ -965,7 +1199,13 @@ the migration strategy and listed the set of recommendations
 to tackle the migration from Groovy to Kotlin quickly.
 I will cover more aspects in the coming posts, stay tuned!&lt;/p&gt;
 
-&lt;p&gt;Thanks to Hadi, Paul, and David for your help, time and feedback!&lt;/p&gt;</content>
+&lt;p&gt;Thanks to Hadi, Paul, and David for your help, time and feedback!&lt;/p&gt;
+
+&lt;p&gt;Check out the&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
+&lt;/ul&gt;</content>
 
   
   
@@ -1789,217 +2029,6 @@ to use MinGW specific build of curl.&lt;/p&gt;</content>
     <category term="kotlin/native" />
   
     <summary type="html">Building libcurl on Windows and using it from Kotlin/Native</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Ad-hoc Plugins with Gradle</title>
-    <link href="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/" rel="alternate" type="text/html" title="Ad-hoc Plugins with Gradle" />
-    <published>2018-08-07T00:00:00+00:00</published>
-    <updated>2018-08-07T00:00:00+00:00</updated>
-    <id>/blog/2018/08/07/ad-hoc-gradle</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/08/07/ad-hoc-gradle/">&lt;p&gt;Gradle code reuse on steroids.&lt;/p&gt;
-
-&lt;p&gt;There are many ways to reuse code in &lt;a href=&quot;https://gradle.org&quot;&gt;Gradle&lt;/a&gt; builds. The 
-major and the most powerful one is
-to write a Gradle plugin either as an independent project or inside &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. 
-You may want to check official documentation
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/plugins.html&quot;&gt;here&lt;/a&gt;.
-All of these approaches require additional efforts from both the development and the infrastructure sides.
-Will you and your team be happy of you doing that?&lt;/p&gt;
-
-&lt;p&gt;I want to share the short-cut to make code reuse without too much work.
-I will consider a
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/multi_project_builds.html&quot;&gt;Multi-Project Gradle builds&lt;/a&gt;.
-It makes less to no sense for a Single Project Gradle builds, there is nothing to reuse, generally.&lt;/p&gt;
-
-&lt;p&gt;What Gradle code to reuse? There are a plenty of places for it. The most trivial is
-dependencies. You’d like to try using the same versions of libraries along the sub-projects.
-Repositories, packaging, testing, plugins, configurations are the places of reuse too. Yet another
-example is Kotlin plugin or Scala plugin configuration.&lt;/p&gt;
-
-&lt;h2 id=&quot;subprojects&quot;&gt;Subprojects&lt;/h2&gt;
-
-&lt;p&gt;The most standard feature in Gradle builds. 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects&lt;/code&gt; is the 
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/multi_project_builds.html#sec:subproject_configuration&quot;&gt;block&lt;/a&gt;
-where you apply the same code snippet to all child (any level)
-projects.&lt;/p&gt;
-
-&lt;p&gt;Projects in Gradle forms a tree structure, it replicates the filesystem. 
-A &lt;em&gt;parent&lt;/em&gt; project in Gradle is the project that is in the parent folder 
-of a child project folder. The &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; is optional and you are not obliged to
-have one. For example,
-the line &lt;code class=&quot;highlighter-rouge&quot;&gt;include ':a:b:c:d'&lt;/code&gt; from a &lt;code class=&quot;highlighter-rouge&quot;&gt;settings.gradle&lt;/code&gt; file 
-defines the following child projects: &lt;code class=&quot;highlighter-rouge&quot;&gt;a&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;b&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;c&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;d&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;I like to use &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects { .... } &lt;/code&gt; block in parent projects to configure 
-common stuff, like dependencies, plugins, repositories. Let’s see the example:&lt;/p&gt;
-
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;jcenter&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
- 
-    &lt;span class=&quot;k&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;org.slf4j:slf4j-api:1.7.25&quot;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;testCompile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;junit:junit:4.12&quot;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;   
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;        
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Here I set up the default maven repositories in all child projects.
-Also, I include the standard dependencies, namely, &lt;a href=&quot;https://www.slf4j.org/&quot;&gt;SLF4J&lt;/a&gt; and
-&lt;a href=&quot;https://junit.org/junit4/&quot;&gt;JUnit4&lt;/a&gt;. The configuration of
-&lt;a href=&quot;https://junit.org/junit5/docs/current/user-guide/&quot;&gt;JUnit5&lt;/a&gt; is yet
-another great example to share Gradle code between projects.&lt;/p&gt;
-
-&lt;p&gt;It is possible that one does not want to configure all child projects,
-but some projects only. It is possible. But, It’d be better to move that
-project somewhere instead. I use the following,
-&lt;code class=&quot;highlighter-rouge&quot;&gt;configure(project(':a'), project('b').subprojects) { .... }&lt;/code&gt; to 
-apply the same settings to several projects only.&lt;/p&gt;
-
-&lt;h2 id=&quot;apply-from-file&quot;&gt;Apply From File&lt;/h2&gt;
-
-&lt;p&gt;The next way to apply common configuration is to use &lt;code class=&quot;highlighter-rouge&quot;&gt;apply: from: file(...foo.gradle)&lt;/code&gt; syntax.
-You move the configuration to a dedicated file somewhere in the project. You
-include the file to every project, where you need it.&lt;/p&gt;
-
-&lt;p&gt;That is the way to re-include the same part of your Gradle script into many
-projects. The only problem here is that the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; and the &lt;code class=&quot;highlighter-rouge&quot;&gt;...foo.gradle&lt;/code&gt; 
-are executed in an isolated environment. It might be hard to pass parameters
-back and forth.&lt;/p&gt;
-
-&lt;h2 id=&quot;a-common-plugin&quot;&gt;A Common Plugin&lt;/h2&gt;
-
-&lt;p&gt;The most generic approach is to create a Gradle plugin or a custom task. 
-There is the &lt;a href=&quot;https://docs.gradle.org/current/userguide/plugins.html&quot;&gt;documentation&lt;/a&gt; page.
-Let’s see, how to try writing a plugin just in our &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files.&lt;/p&gt;
-
-&lt;p&gt;I use &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; to navigate to interfaces and javadocs.
-It helps me a lot with code completion and error highlighting
-directly in &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files, which actually use Groovy.&lt;/p&gt;
-
-&lt;p&gt;Gradle allows declaring classes in &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; files. That is the way to
-create an ad-hoc plugin just in a parent project. You should know, that you 
-will not be able to see the created class outside the &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle&lt;/code&gt; file, where
-you created it. The good part is that you may still use &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects&lt;/code&gt; and write the following:&lt;/p&gt;
-
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;plugin:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyPluginClass&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MyPluginClass&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;implements&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Plugin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
-  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;...&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That is the most trivial way to create you own Gradle plugin and to enable it 
-for all child projects. It does not require one to invest into infrastructure 
-(e.g. deployment of a plugin, build configurations and so on).&lt;/p&gt;
-
-&lt;p&gt;You may use &lt;code class=&quot;highlighter-rouge&quot;&gt;org.gradle.api.plugins.ExtensionContainer#create(...)&lt;/code&gt;
-function to add your own Gradle DSL
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties&quot;&gt;extension&lt;/a&gt;.
-That is the standard way to include parameters from the plugin usages.&lt;/p&gt;
-
-&lt;h2 id=&quot;ext-block&quot;&gt;Ext Block&lt;/h2&gt;
-
-&lt;p&gt;What if I need to apply the ad-hoc plugin only to some selected sub-projects? And I do not
-like to code it in the parent project &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt;. Similarly, I may want to reuse some dependencies
-especially for selected projects.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;ext { .. }&lt;/code&gt; &lt;a href=&quot;https://docs.gradle.org/current/userguide/writing_build_scripts.html#sec:declaring_variables&quot;&gt;block&lt;/a&gt;
-in Gradle is for me. I combine it with the &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects { .. }&lt;/code&gt; block.
-&lt;a href=&quot;http://groovy-lang.org/closures.html&quot;&gt;Closure&lt;/a&gt; (or Lambda) is a possible value of a
-property from &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; block too.
-Let’s combine those features to level-up the code-reuse in our Gradle script. First, in 
-a parent project we add the code:&lt;/p&gt;
-
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;subprojects&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dep_arrow&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-core:0.6.1&quot;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-typeclasses:0.6.1&quot;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;io.arrow-kt:arrow-data:0.6.1&quot;&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Then in a selected child project I simply enable &lt;a href=&quot;https://arrow-kt.io/&quot;&gt;Arrow&lt;/a&gt; library by
-writing the only one line:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dep_arrow&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Theoretically, It should work with an implicitly captured Project in Closures, without &lt;code class=&quot;highlighter-rouge&quot;&gt;Project&lt;/code&gt; parameter, e.g.
-&lt;code class=&quot;highlighter-rouge&quot;&gt;dep_arrow = { dependencies { ... } }&lt;/code&gt;. I was lazy to try that.&lt;/p&gt;
-
-&lt;p&gt;The similar trick helps to enable ad-hoc Gradle plugins too.&lt;/p&gt;
-
-&lt;h1 id=&quot;the-use-case&quot;&gt;The Use Case&lt;/h1&gt;
-
-&lt;p&gt;I work on an project, where we decided to use micro-services. Technically, it
-means, we split the whole code base into the set of small executables. 
-The same language, namely Kotlin/JVM, is used to implement all services. There are common things one need 
-to have for every service, for example, it includes logging configuration, communication
-setup, crashes handling. I need the only way to pack those services too.&lt;/p&gt;
-
-&lt;p&gt;What did I do? At first, I use &lt;a href=&quot;https://docs.gradle.org/current/userguide/application_plugin.html&quot;&gt;Application plugin&lt;/a&gt;
-to implement the executable. It executes the same entry-point class. The entry-point class
-finds the micro-service class to start it. I plan to use the &lt;a href=&quot;https://github.com/GoogleContainerTools/jib&quot;&gt;jib&lt;/a&gt; plugin
-to wrap my services into Docker images.&lt;/p&gt;
-
-&lt;p&gt;From the Gradle side of things. I created scripts for one service manually. Then, I turned that code into an ad-hoc
-Gradle plugin. I enabled the plugin explicitly in the service projects.
-The plugin configures the Application plugin, adds dependencies, adds
-an &lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:mapping_extension_properties_to_task_properties&quot;&gt;extension&lt;/a&gt;
-to get service-specific parameters.&lt;/p&gt;
-
-&lt;p&gt;Right now, the service is created with only a few Gradle lines:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;micro_service&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;micro_service&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;entryClassName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'&amp;lt;THE ENTRY POINT CLASS OF THE SERVICE&amp;gt;'&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Let your builds be simply. Feed free to ask me for details in the comments below. 
-There is also the official &lt;a href=&quot;https://docs.gradle.org/current&quot;&gt;documentation&lt;/a&gt; for Gradle.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="java" />
-  
-    <category term="groovy" />
-  
-    <category term="plugin" />
-  
-    <category term="gradle-plugin" />
-  
-    <category term="build" />
-  
-    <category term="dependencies" />
-  
-    <summary type="html">Gradle code reuse on steroids.</summary>
   
   </entry>
   
