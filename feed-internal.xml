@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2019-06-07T10:20:03+00:00</updated>
+  <updated>2019-06-25T15:38:37+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,230 @@
   
 
   
+  
+  <entry>
+    <title type="html">Migrating to Gradle Kotlin DSL - Groovy Closure</title>
+    <link href="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Groovy Closure" />
+    <published>2019-06-25T00:00:00+00:00</published>
+    <updated>2019-06-25T00:00:00+00:00</updated>
+    <id>/blog/2019/06/25/gradle-kotlin-migration-4</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/">&lt;p&gt;While migrating the real-life project’s Gradle build from Groovy to Kotlin,
+I collected some useful recommendations, code snippets, and explanations.
+Throughout the post series, we will together learn how to
+convert to Gradle Kotlin DSL faster and easier.&lt;/p&gt;
+
+&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
+&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
+for practical recommendations on migrating from Groovy to Kotlin
+build scripts. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
+we cover Kotlin tasks setup on Gradle Kotlin DSL scripts. Few more findings of mine
+towards &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;, plugins and extensions are presented in the 
+&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In that post, I’ll share my findings for the
+migrating a Groovy Closure to Gradle Kotlin DSL. In that post
+you’ll learn how to step-by-step migrate a Gradle script with Groovy
+closure usages into Kotlin DSL.&lt;/p&gt;
+
+&lt;h2 id=&quot;dependencies&quot;&gt;Dependencies&lt;/h2&gt;
+
+&lt;p&gt;I’ve seen many times in different Gradle projects an attempt to
+list all dependencies in some file in the root project and fix versions of all
+used libraries in one place so that only a library name is used in a dependency
+and its version written only once for the whole project. It helps one to avoid an unexpected library
+version clashes in a multi-project Gradle project. For example, how many
+different versions of say &lt;code class=&quot;highlighter-rouge&quot;&gt;OkHttp&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;Jackson&lt;/code&gt; do you have in your project?
+Of course, another version of the same dependency may come from
+transitive dependencies, it is another story, we will not cover it
+in that blog post.&lt;/p&gt;
+
+&lt;p&gt;I’ve implemented a similar pattern to list all dependencies in the root Gradle project.
+Let’s see how I migrated my Groovy solution to Kotlin.&lt;/p&gt;
+
+&lt;h2 id=&quot;groovy-script-dependencies&quot;&gt;Groovy Script Dependencies&lt;/h2&gt;
+
+&lt;p&gt;Let’s assume we need to add a dependency to &lt;code class=&quot;highlighter-rouge&quot;&gt;OkHttp&lt;/code&gt; library in a sub-project. We’d like to
+use common library definition for all sub-projects. I found it elegant to create a Groovy
+closure in the root project for such a definition:&lt;/p&gt;
+&lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'com.squareup.okhttp3:okhttp:3.12.1'&lt;/span&gt;
+     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Do not ask me, why do I have the &lt;code class=&quot;highlighter-rouge&quot;&gt;Project&lt;/code&gt; parameter in that function/closure. Technically, it is not
+needed, but I was lazy to remove it from the code. Now it is time to finally do that (and convert to
+Kotlin DSL)!&lt;/p&gt;
+
+&lt;p&gt;Meanwhile, the usage in Groovy was easy and strait forward:&lt;/p&gt;
+&lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;gradle-kotlin-dsl&quot;&gt;Gradle Kotlin DSL&lt;/h2&gt;
+
+&lt;p&gt;To follow the &lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;one-by-one migration strategy&lt;/a&gt;
+we need the way to call the same code from Kotlin DSL.
+I found the following code for it:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extraProperties&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dependency_okhttp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Closure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;*&amp;gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The code is indeed problematic. When I migrate the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; property
+definition to Kotlin, I will have to fix every usage of it and replace the cast 
+to &lt;code class=&quot;highlighter-rouge&quot;&gt;Closure&amp;lt;*&amp;gt;&lt;/code&gt; with a cast to, say, &lt;code class=&quot;highlighter-rouge&quot;&gt;Function1&amp;lt;Project,*&amp;gt;&lt;/code&gt; or something different&lt;/p&gt;
+
+&lt;h2 id=&quot;moving-ext-to-buildsrc-and-kotlin&quot;&gt;Moving ext to buildSrc and Kotlin&lt;/h2&gt;
+
+&lt;p&gt;The better place for all extensions in Kotlin (also in Groovy) is &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
+We’ve &lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;covered it&lt;/a&gt; in the
+previous post. Let’s move the definition of the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; function into Kotlin code 
+and place the code under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder. For that, I created a Kotlin file and added the
+following function there:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;x.y.z&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DependencyHandlerScope&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;s&quot;&gt;&quot;implementation&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;com.squareup.okhttp3:okhttp:3.12.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we can use the function in Gradle/Kotlin directly in the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{..}&lt;/code&gt; block:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;x.y.z.*&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The usage is now clean and short, which is great. The only price for that is the &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; statement. 
+We need to import the package, where our declaration is to all our &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; project files.
+I wish it were possible to tell Gradle to implicitly import several
+more packages into Kotlin DSL script execution context.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt; type is the receiver type of the lambda behind the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{}&lt;/code&gt; function.
+There is yet another issue — we cannot use &lt;code class=&quot;highlighter-rouge&quot;&gt;implementation&lt;/code&gt; inside &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{}&lt;/code&gt; block
+in the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; code. Instead, we may to use &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;implementation&quot;&lt;/code&gt; string.
+I’m &lt;a href=&quot;https://gradle-community.slack.com/archives/CAD95CR62/p1549364199106400&quot;&gt;looking for the answer&lt;/a&gt;
+to that. It seems the &lt;code class=&quot;highlighter-rouge&quot;&gt;implementation&lt;/code&gt; function is
+generated on the fly by Gradle’s Kotlin scripts runtime, and it is not included into the 
+&lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; evaluation environment.&lt;/p&gt;
+
+&lt;h2 id=&quot;calling-kotlin-buildsrc-from-groovy&quot;&gt;Calling Kotlin buildSrc from Groovy&lt;/h2&gt;
+
+&lt;p&gt;To start with, do not forget to use the &lt;code class=&quot;highlighter-rouge&quot;&gt;new&lt;/code&gt; operator to create objects in Groovy. It is
+so easy to forget after dealing with Kotlin. I paid about a dozen minutes debugging that.&lt;/p&gt;
+
+&lt;p&gt;By that moment, we have all the extension function &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope.dependency_okhttp&lt;/code&gt;
+declared in Kotlin DSL under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. Let’s see how to call the function from
+&lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; files and Groovy. In other words, it is the challenge to re-implement
+the older Groovy &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; closures in all original gradle scripts.&lt;/p&gt;
+
+&lt;p&gt;Our goal is to call the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope.dependency_okhttp&lt;/code&gt; function from Groovy.
+We only need an instance of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt;, which is only used on Kotlin DSL, to make
+the call to our Kotlin extension function.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt; class has the &lt;code class=&quot;highlighter-rouge&quot;&gt;of&lt;/code&gt; factory function in its
+&lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;, but it is not a &lt;em&gt;static&lt;/em&gt; function, it misses the &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation!&lt;/p&gt;
+
+&lt;h2 id=&quot;kotlin-to-jvm-interop&quot;&gt;Kotlin to JVM Interop&lt;/h2&gt;
+
+&lt;p&gt;Global functions (such as &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt;) are compiled by the Kotlin/JVM compiler
+to a &lt;code class=&quot;highlighter-rouge&quot;&gt;FilenameKt&lt;/code&gt; class static member functions. We need to &lt;code class=&quot;highlighter-rouge&quot;&gt;import static&lt;/code&gt; that
+class when calling Kotlin functions from Groovy or Java. The short solution, but
+it took several dozen minutes for me to figure out.&lt;/p&gt;
+
+&lt;p&gt;To simplify, we may just add a global &lt;code class=&quot;highlighter-rouge&quot;&gt;import static &amp;lt;package&amp;gt;.&amp;lt;KotlinFileName&amp;gt;Kt.*;&lt;/code&gt; to our Groovy
+scripts and then call all our Kotlin global functions without a qualifier. That also applies
+to the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp()&lt;/code&gt; function that we have under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;One more thing is that the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp()&lt;/code&gt; function is an &lt;em&gt;extension function&lt;/em&gt;.
+How can we call it from Groovy?&lt;/p&gt;
+
+&lt;p&gt;Kotlin extension functions have the receiver parameter as the very first parameter at the JVM bytecode level.
+We may call extension functions from Groovy or Java as an ordinary method passing the receiver object instance
+as the first parameter.&lt;/p&gt;
+
+&lt;p&gt;Accessing functions from &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; is in general a bit more tricky. 
+Use the following syntax to access Kotlin declarations from Groovy:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation is present — Call as a static function&lt;/li&gt;
+  &lt;li&gt;Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; — use &lt;code class=&quot;highlighter-rouge&quot;&gt;TypeName.INSTANCE.functionName&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; — use &lt;code class=&quot;highlighter-rouge&quot;&gt;TypeName.@Companion.functionName&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;You may find more details in the
+&lt;a href=&quot;/blog/2019/02/04/companion-and-object/&quot;&gt;JVM bytecode for Kotlin Object and Companion Object&lt;/a&gt;
+declarations post. Frankly, I was happy to find the possibility to write &lt;code class=&quot;highlighter-rouge&quot;&gt;@Companion&lt;/code&gt; in Groovy.&lt;/p&gt;
+
+&lt;h2 id=&quot;calling-kotlin-from-groovy&quot;&gt;Calling Kotlin from Groovy&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; function is declared in the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies.kt&lt;/code&gt; file under the
+&lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project in my codebase. It is visible to Groovy as a member of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependenciesKt&lt;/code&gt; class.
+We use the &lt;code class=&quot;highlighter-rouge&quot;&gt;.@Companion.&lt;/code&gt; trick to access the &lt;code class=&quot;highlighter-rouge&quot;&gt;.of&lt;/code&gt; function of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt;
+class from Gradle.
+We have the following Groovy code to call our extension function declared in Kotlin from Groovy:&lt;/p&gt;
+&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;DependenciesKt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.*&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DependencyHandlerScope&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nd&quot;&gt;@Companion.of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That code is stable, and it is unlikely to break if we change something code under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
+The Kotlin version is easy to use from Kotlin DSL, and the Groovy version is only needed
+for the time of the migration from Gradle to Kotlin. We’ve covered the migration plan
+in the very &lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
+of this series.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;In the post we’ve seen how to deal with Groovy closures on Kotlin and
+how to move from &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; properties to Kotlin extension functions declared in &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
+seems to play well with writing Gradle build scripts.
+Thanks to the static type inference, the Kotlin compiler detects errors earlier and
+shows helpful compilation error messages and warnings.
+Both the IDE and the compiler use information about types to infer
+the available functions and properties in a given scope, even inside a 5th level
+nested lambda with receivers.&lt;/p&gt;
+
+&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
+Check out the&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; — First steps of the migration&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; — Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; — a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project with Kotlin, ad-hoc plugins and extensions&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="gradle/groovy" />
+  
+    <category term="gradle/kotlin" />
+  
+    <category term="kts" />
+  
+    <category term="kotlin" />
+  
+    <category term="groovy" />
+  
+    <category term="build" />
+  
+    <summary type="html">Groovy Closures and Gradle Kotlin DSL</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Migrating to Gradle Kotlin DSL - Extensions and buildSrc</title>
@@ -204,18 +428,12 @@ Both the IDE and the compiler use information about types to infer
 the available functions and properties in a given scope, even inside a 5th level
 nested lambda with receivers.&lt;/p&gt;
 
-&lt;p&gt;You may remember from the
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
-that our example project is written entirely in Kotlin, in that post we 
-learned how to configure Kotlin compilation tasks and dependencies in
-Kotlin. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
-we cover Kotlin tasks setup on Gradle Kotlin DSL scripts.&lt;/p&gt;
-
 &lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
 Check out the&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
 &lt;/ul&gt;</content>
 
   
@@ -668,6 +886,7 @@ Check out the:&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
 &lt;/ul&gt;</content>
 
   
@@ -1205,6 +1424,7 @@ I will cover more aspects in the coming posts, stay tuned!&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
 &lt;/ul&gt;</content>
 
   
@@ -1877,158 +2097,6 @@ in the comments if you’d like to learn more, how exactly the
     <category term="kotlin" />
   
     <summary type="html">java.lang.reflect.Proxy and checked exceptions</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">libcurl and Kotlin/Native on Windows</title>
-    <link href="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" rel="alternate" type="text/html" title="libcurl and Kotlin/Native on Windows" />
-    <published>2018-10-29T00:00:00+00:00</published>
-    <updated>2018-10-29T00:00:00+00:00</updated>
-    <id>/blog/2018/10/29/kn-libcurl-windows</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/">&lt;p&gt;Building libcurl on Windows and using it from Kotlin/Native&lt;/p&gt;
-
-&lt;p&gt;Once upon a time, I decided to answer a question on
-&lt;a href=&quot;https://stackoverflow.com/questions/52871078/kotlin-native-libcurl-example-on-windows/52872429?noredirect=1#comment92694725_52872429&quot;&gt;StackOverflow&lt;/a&gt;
-to explain how to use &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; with Kotlin/Native. Now it turned out I will cover a
-more detailed instruction here. How &lt;a href=&quot;https://twitter.com/shanselman&quot;&gt;@shanselman&lt;/a&gt; once told in his talk - if
-a reply is big enough it should go to a documentation of a blog post.&lt;/p&gt;
-
-&lt;h1 id=&quot;building-curl-and-libcurl-on-windows&quot;&gt;Building Curl and Libcurl on Windows&lt;/h1&gt;
-
-&lt;p&gt;The first step is to open the https://curl.haxx.se/libcurl/ page and read it.
-Let’s download sources from https://curl.haxx.se/download.html. In my case,
-I downloaded the &lt;a href=&quot;https://curl.haxx.se/download/curl-7.61.1.zip&quot;&gt;curl-7.61.1.zip&lt;/a&gt;.
-There is also a sources mirror on GitHub: https://github.com/curl/curl.&lt;/p&gt;
-
-&lt;p&gt;Of course, we need a Windows machine or a VM to build it and use it from Windows.&lt;/p&gt;
-
-&lt;p&gt;Let’s extract the downloaded sources. There will be the &lt;code class=&quot;highlighter-rouge&quot;&gt;curl-7.61.1&lt;/code&gt; folder. 
-Let’s assume the extracted &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; sources directory
-is the current working directory.&lt;/p&gt;
-
-&lt;p&gt;I open the &lt;code class=&quot;highlighter-rouge&quot;&gt;VS2015 x64 Native Command Prompt&lt;/code&gt; shell on my machine. That one comes from
-Microsoft Visual Studio 2015. There might be another shortcut to run the shell 
-from a newer or older version of Visual Studio.&lt;/p&gt;
-
-&lt;p&gt;It is a useful file under &lt;a href=&quot;https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt&quot;&gt;winbuild/BUILD.WINDOWS.txt&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;Execute the command&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cd winbuild
-nmake /f Makefile.vc mode=dll
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The command above build &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; for us. The build generates static library 
-that uses some default dependencies from the system to run. For example, it uses
-&lt;a href=&quot;https://docs.microsoft.com/en-us/windows/desktop/secauthn/sspi&quot;&gt;Windows SSPI&lt;/a&gt;
-as the implementation of the SSL and TLS. Check out more options on &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; building in the
-&lt;a href=&quot;https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt&quot;&gt;winbuild/BUILD.WINDOWS.txt&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The compiled binaries are found under the &lt;code class=&quot;highlighter-rouge&quot;&gt;builds&lt;/code&gt; folder. The contest should be as follows:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dir builds
-...
-10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          .
-10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          ..
-10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl
-10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-curl
-10/29/2018  09:48 PM    &amp;lt;DIR&amp;gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-lib
-...
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;We have our dynamic &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; library and include files directory under 
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;builds/libcurl-vc-x64-release-dll-ipv6-sspi-winssl&lt;/code&gt; folder.&lt;/p&gt;
-
-&lt;h1 id=&quot;importing-libcurl-into-kotlinnative&quot;&gt;Importing libcurl into Kotlin/Native&lt;/h1&gt;
-
-&lt;p&gt;Let’s use the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/curl&quot;&gt;curl sample&lt;/a&gt;
-and the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/libcurl&quot;&gt;libcurl sample&lt;/a&gt; 
-from the Kotlin/Native repository and adapt them to work on Windows too.&lt;/p&gt;
-
-&lt;p&gt;The first step is to create the &lt;code class=&quot;highlighter-rouge&quot;&gt;.def&lt;/code&gt; file to import the native &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl&lt;/code&gt; library into Kotlin. 
-More details on that are explained in the 
-&lt;a href=&quot;http://kotlinlang.org/docs/tutorials/native/interop-with-c.html&quot;&gt;Interop with C Libraries&lt;/a&gt;
-tutorial.&lt;/p&gt;
-
-&lt;p&gt;Let’s add the following &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.def&lt;/code&gt; file:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;headers = curl/curl.h
-headerFilter = curl/*
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we may call the &lt;code class=&quot;highlighter-rouge&quot;&gt;cinteop&lt;/code&gt; tool from Kotlin/Native from a parent folder, where we extracted &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; sources:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;cinterop -def libcurl.def -compilerOpts -Icurl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\include -o libcurl
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We assume here that we have Kotlin/Native compiler installed and registered in the system PATH. For more information, 
-please refer to the 
-&lt;a href=&quot;http://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler&quot;&gt;A Basic Kotlin Application&lt;/a&gt;.
-Let’s assume, we have a console, where the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinc-native&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;cinterop&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;klib&lt;/code&gt; commands are available.&lt;/p&gt;
-
-&lt;p&gt;The call to &lt;code class=&quot;highlighter-rouge&quot;&gt;cinterop&lt;/code&gt; generates the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.klib&lt;/code&gt; file for us. Let’s use it from the Kotlin/Native sources!&lt;/p&gt;
-
-&lt;h1 id=&quot;using-libcurl-from-kotlinnative&quot;&gt;Using libcurl from Kotlin/Native&lt;/h1&gt;
-
-&lt;p&gt;It is time to follow the example from the &lt;a href=&quot;https://github.com/JetBrains/kotlin-native/tree/master/samples/curl&quot;&gt;curl sample&lt;/a&gt;
-and create our first &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; application in Windows.&lt;/p&gt;
-
-&lt;p&gt;Let’s create the file &lt;code class=&quot;highlighter-rouge&quot;&gt;curl.kt&lt;/code&gt; with the following contents:&lt;/p&gt;
-
-&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-kotlin&quot; data-lang=&quot;kotlin&quot;&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;libcurl.*&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;kotlinx.cinterop.*&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;curl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_easy_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;curl_easy_setopt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLOPT_URL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;http://jonnyzzz.com&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;curl_easy_setopt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLOPT_FOLLOWLOCATION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;curl_easy_perform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;res&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CURLE_OK&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;curl_easy_cleanup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
-
-&lt;p&gt;Now we call the command to build the executable with Kotlin/Native:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;kotlinc-native curl.kt -l libcurl -linker-options &quot;curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\lib\libcurl.lib&quot;  -o kurl
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The application &lt;code class=&quot;highlighter-rouge&quot;&gt;kurl.exe&lt;/code&gt; is ready to go. The only thing it requires is the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.dll&lt;/code&gt;. The file you may find under the
-&lt;code class=&quot;highlighter-rouge&quot;&gt;curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\bin\libcurl.dll&lt;/code&gt; path. You may try running it.&lt;/p&gt;
-
-&lt;h1 id=&quot;static-linking&quot;&gt;Static Linking&lt;/h1&gt;
-
-&lt;p&gt;It is not too nice to have a requirement to have the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl.dll&lt;/code&gt; included and located near the executable we
-create. Static linking, in theory, allows having only one solid binary, that contains everything.
-One may easily change the &lt;code class=&quot;highlighter-rouge&quot;&gt;curl&lt;/code&gt; build to &lt;code class=&quot;highlighter-rouge&quot;&gt;mode=static&lt;/code&gt;. The result will be the static library &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl_a.lib&lt;/code&gt;.
-Linking it with Kotlin/Native binary turned out to be tricky. To start, Kotlin/Native uses MinGW environment and 
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;libcurl_a.lib&lt;/code&gt; is compiled to use dynamic MSVCRT. Theoretically, it should be possible to make it work, if you
-know the answer - just let me know!&lt;/p&gt;
-
-&lt;p&gt;It is also a good &lt;a href=&quot;https://stackoverflow.com/a/52872980/49811&quot;&gt;comment for the original StackOverflow thread&lt;/a&gt;
-to use MinGW specific build of curl.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="curl" />
-  
-    <category term="libcurl" />
-  
-    <category term="windows" />
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin/native" />
-  
-    <summary type="html">Building libcurl on Windows and using it from Kotlin/Native</summary>
   
   </entry>
   

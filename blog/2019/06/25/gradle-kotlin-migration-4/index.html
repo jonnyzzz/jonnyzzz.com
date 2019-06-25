@@ -1,0 +1,482 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Migrating to Gradle Kotlin DSL - Groovy Closure &#8211; Eugene Petrenko</title>
+<meta name="description" content="Groovy Closures and Gradle Kotlin DSL"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, gradle/groovy, gradle/kotlin, kts, kotlin, groovy, build" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Migrating to Gradle Kotlin DSL - Groovy Closure -- Eugene Petrenko" />
+<meta name="twitter:description" content="Groovy Closures and Gradle Kotlin DSL" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Migrating to Gradle Kotlin DSL - Groovy Closure -- Eugene Petrenko" />
+<meta property="og:description" content="Groovy Closures and Gradle Kotlin DSL" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="gradle/groovy" />
+
+<meta property="article:tag" content="gradle/kotlin" />
+
+<meta property="article:tag" content="kts" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="groovy" />
+
+<meta property="article:tag" content="build" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#gradle/groovy" title="Pages tagged gradle/groovy">gradle/groovy</a></li><li><a href="/tags/#gradle/kotlin" title="Pages tagged gradle/kotlin">gradle/kotlin</a></li><li><a href="/tags/#kts" title="Pages tagged kts">kts</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#groovy" title="Pages tagged groovy">groovy</a></li><li><a href="/tags/#build" title="Pages tagged build">build</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Migrating to Gradle Kotlin DSL - Groovy Closure</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-06-25T00:00:00+00:00"><i class="fa fa-calendar-o"></i> June 25, 2019</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=gradle,gradle/groovy,gradle/kotlin,kts,kotlin,groovy,build&amp;text=Migrating%20to%20Gradle%20Kotlin%20DSL%20-%20Groovy%20Closure&amp;url=https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>While migrating the real-life project’s Gradle build from Groovy to Kotlin,
+I collected some useful recommendations, code snippets, and explanations.
+Throughout the post series, we will together learn how to
+convert to Gradle Kotlin DSL faster and easier.</p>
+
+<p>New to Gradle Kotlin DSL? Take a look at the 
+<a href="/blog/2019/03/04/gradle-kotlin-migration-1/">first post</a>
+for practical recommendations on migrating from Groovy to Kotlin
+build scripts. In the <a href="/blog/2019/04/02/gradle-kotlin-migration-2/">second post</a>,
+we cover Kotlin tasks setup on Gradle Kotlin DSL scripts. Few more findings of mine
+towards <code class="highlighter-rouge">buildSrc</code>, plugins and extensions are presented in the 
+<a href="/blog/2019/05/20/gradle-kotlin-migration-3/">third post</a>.</p>
+
+<p>In that post, I’ll share my findings for the
+migrating a Groovy Closure to Gradle Kotlin DSL. In that post
+you’ll learn how to step-by-step migrate a Gradle script with Groovy
+closure usages into Kotlin DSL.</p>
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>I’ve seen many times in different Gradle projects an attempt to
+list all dependencies in some file in the root project and fix versions of all
+used libraries in one place so that only a library name is used in a dependency
+and its version written only once for the whole project. It helps one to avoid an unexpected library
+version clashes in a multi-project Gradle project. For example, how many
+different versions of say <code class="highlighter-rouge">OkHttp</code> or <code class="highlighter-rouge">Jackson</code> do you have in your project?
+Of course, another version of the same dependency may come from
+transitive dependencies, it is another story, we will not cover it
+in that blog post.</p>
+
+<p>I’ve implemented a similar pattern to list all dependencies in the root Gradle project.
+Let’s see how I migrated my Groovy solution to Kotlin.</p>
+
+<h2 id="groovy-script-dependencies">Groovy Script Dependencies</h2>
+
+<p>Let’s assume we need to add a dependency to <code class="highlighter-rouge">OkHttp</code> library in a sub-project. We’d like to
+use common library definition for all sub-projects. I found it elegant to create a Groovy
+closure in the root project for such a definition:</p>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ext</span> <span class="o">{</span>
+  <span class="n">dependency_okhttp</span> <span class="o">=</span> <span class="o">{</span> <span class="n">Project</span> <span class="n">project</span> <span class="o">-&gt;</span>
+     <span class="n">project</span><span class="o">.</span><span class="na">dependencies</span> <span class="o">{</span> 
+        <span class="n">compile</span> <span class="s1">'com.squareup.okhttp3:okhttp:3.12.1'</span>
+     <span class="o">}</span>  
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Do not ask me, why do I have the <code class="highlighter-rouge">Project</code> parameter in that function/closure. Technically, it is not
+needed, but I was lazy to remove it from the code. Now it is time to finally do that (and convert to
+Kotlin DSL)!</p>
+
+<p>Meanwhile, the usage in Groovy was easy and strait forward:</p>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ext</span><span class="o">.</span><span class="na">dependency_okhttp</span><span class="o">(</span><span class="n">project</span><span class="o">)</span>
+</code></pre></div></div>
+
+<h2 id="gradle-kotlin-dsl">Gradle Kotlin DSL</h2>
+
+<p>To follow the <a href="/blog/2019/03/04/gradle-kotlin-migration-1/">one-by-one migration strategy</a>
+we need the way to call the same code from Kotlin DSL.
+I found the following code for it:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">project</span><span class="p">.</span><span class="n">extensions</span><span class="p">.</span><span class="n">extraProperties</span><span class="p">[</span><span class="s">"dependency_okhttp"</span><span class="p">]</span> <span class="k">as</span> <span class="n">Closure</span><span class="p">&lt;*&gt;).</span><span class="n">call</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The code is indeed problematic. When I migrate the <code class="highlighter-rouge">dependency_okhttp</code> property
+definition to Kotlin, I will have to fix every usage of it and replace the cast 
+to <code class="highlighter-rouge">Closure&lt;*&gt;</code> with a cast to, say, <code class="highlighter-rouge">Function1&lt;Project,*&gt;</code> or something different</p>
+
+<h2 id="moving-ext-to-buildsrc-and-kotlin">Moving ext to buildSrc and Kotlin</h2>
+
+<p>The better place for all extensions in Kotlin (also in Groovy) is <code class="highlighter-rouge">buildSrc</code>.
+We’ve <a href="/blog/2019/05/20/gradle-kotlin-migration-3/">covered it</a> in the
+previous post. Let’s move the definition of the <code class="highlighter-rouge">dependency_okhttp</code> function into Kotlin code 
+and place the code under the <code class="highlighter-rouge">buildSrc</code> folder. For that, I created a Kotlin file and added the
+following function there:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="nn">x.y.z</span>
+<span class="k">fun</span> <span class="nc">DependencyHandlerScope</span><span class="p">.</span><span class="nf">dependency_okhttp</span><span class="p">()</span> <span class="p">{</span>
+  <span class="s">"implementation"</span><span class="p">(</span><span class="s">"com.squareup.okhttp3:okhttp:3.12.1"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now we can use the function in Gradle/Kotlin directly in the <code class="highlighter-rouge">dependencies{..}</code> block:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">x.y.z.*</span>
+<span class="n">dependencies</span> <span class="p">{</span>
+  <span class="n">dependency_okhttp</span><span class="p">()</span>
+<span class="p">}</span>  
+</code></pre></div></div>
+
+<p>The usage is now clean and short, which is great. The only price for that is the <code class="highlighter-rouge">import</code> statement. 
+We need to import the package, where our declaration is to all our <code class="highlighter-rouge">build.gradle.kts</code> project files.
+I wish it were possible to tell Gradle to implicitly import several
+more packages into Kotlin DSL script execution context.</p>
+
+<p>The <code class="highlighter-rouge">DependencyHandlerScope</code> type is the receiver type of the lambda behind the <code class="highlighter-rouge">dependencies{}</code> function.
+There is yet another issue — we cannot use <code class="highlighter-rouge">implementation</code> inside <code class="highlighter-rouge">dependencies{}</code> block
+in the <code class="highlighter-rouge">buildSrc</code> code. Instead, we may to use <code class="highlighter-rouge">"implementation"</code> string.
+I’m <a href="https://gradle-community.slack.com/archives/CAD95CR62/p1549364199106400">looking for the answer</a>
+to that. It seems the <code class="highlighter-rouge">implementation</code> function is
+generated on the fly by Gradle’s Kotlin scripts runtime, and it is not included into the 
+<code class="highlighter-rouge">buildSrc</code> evaluation environment.</p>
+
+<h2 id="calling-kotlin-buildsrc-from-groovy">Calling Kotlin buildSrc from Groovy</h2>
+
+<p>To start with, do not forget to use the <code class="highlighter-rouge">new</code> operator to create objects in Groovy. It is
+so easy to forget after dealing with Kotlin. I paid about a dozen minutes debugging that.</p>
+
+<p>By that moment, we have all the extension function <code class="highlighter-rouge">DependencyHandlerScope.dependency_okhttp</code>
+declared in Kotlin DSL under the <code class="highlighter-rouge">buildSrc</code>. Let’s see how to call the function from
+<code class="highlighter-rouge">build.gradle</code> files and Groovy. In other words, it is the challenge to re-implement
+the older Groovy <code class="highlighter-rouge">ext</code> closures in all original gradle scripts.</p>
+
+<p>Our goal is to call the <code class="highlighter-rouge">DependencyHandlerScope.dependency_okhttp</code> function from Groovy.
+We only need an instance of the <code class="highlighter-rouge">DependencyHandlerScope</code>, which is only used on Kotlin DSL, to make
+the call to our Kotlin extension function.
+The <code class="highlighter-rouge">DependencyHandlerScope</code> class has the <code class="highlighter-rouge">of</code> factory function in its
+<code class="highlighter-rouge">companion object</code>, but it is not a <em>static</em> function, it misses the <code class="highlighter-rouge">@JvmStatic</code> annotation!</p>
+
+<h2 id="kotlin-to-jvm-interop">Kotlin to JVM Interop</h2>
+
+<p>Global functions (such as <code class="highlighter-rouge">dependency_okhttp</code>) are compiled by the Kotlin/JVM compiler
+to a <code class="highlighter-rouge">FilenameKt</code> class static member functions. We need to <code class="highlighter-rouge">import static</code> that
+class when calling Kotlin functions from Groovy or Java. The short solution, but
+it took several dozen minutes for me to figure out.</p>
+
+<p>To simplify, we may just add a global <code class="highlighter-rouge">import static &lt;package&gt;.&lt;KotlinFileName&gt;Kt.*;</code> to our Groovy
+scripts and then call all our Kotlin global functions without a qualifier. That also applies
+to the <code class="highlighter-rouge">dependency_okhttp()</code> function that we have under <code class="highlighter-rouge">buildSrc</code>.</p>
+
+<p>One more thing is that the <code class="highlighter-rouge">dependency_okhttp()</code> function is an <em>extension function</em>.
+How can we call it from Groovy?</p>
+
+<p>Kotlin extension functions have the receiver parameter as the very first parameter at the JVM bytecode level.
+We may call extension functions from Groovy or Java as an ordinary method passing the receiver object instance
+as the first parameter.</p>
+
+<p>Accessing functions from <code class="highlighter-rouge">object</code> or <code class="highlighter-rouge">companion object</code> is in general a bit more tricky. 
+Use the following syntax to access Kotlin declarations from Groovy:</p>
+<ul>
+  <li><code class="highlighter-rouge">@JvmStatic</code> annotation is present — Call as a static function</li>
+  <li>Kotlin <code class="highlighter-rouge">object</code> — use <code class="highlighter-rouge">TypeName.INSTANCE.functionName</code></li>
+  <li>Kotlin <code class="highlighter-rouge">companion object</code> — use <code class="highlighter-rouge">TypeName.@Companion.functionName</code></li>
+</ul>
+
+<p>You may find more details in the
+<a href="/blog/2019/02/04/companion-and-object/">JVM bytecode for Kotlin Object and Companion Object</a>
+declarations post. Frankly, I was happy to find the possibility to write <code class="highlighter-rouge">@Companion</code> in Groovy.</p>
+
+<h2 id="calling-kotlin-from-groovy">Calling Kotlin from Groovy</h2>
+
+<p>The <code class="highlighter-rouge">dependency_okhttp</code> function is declared in the <code class="highlighter-rouge">dependencies.kt</code> file under the
+<code class="highlighter-rouge">buildSrc</code> project in my codebase. It is visible to Groovy as a member of the <code class="highlighter-rouge">DependenciesKt</code> class.
+We use the <code class="highlighter-rouge">.@Companion.</code> trick to access the <code class="highlighter-rouge">.of</code> function of the <code class="highlighter-rouge">DependencyHandlerScope</code>
+class from Gradle.
+We have the following Groovy code to call our extension function declared in Kotlin from Groovy:</p>
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">static</span> <span class="n">x</span><span class="o">.</span><span class="na">y</span><span class="o">.</span><span class="na">z</span><span class="o">.</span><span class="na">DependenciesKt</span><span class="o">.*</span>
+<span class="n">ext</span> <span class="o">{</span>
+  <span class="n">dependency_okhttp</span> <span class="o">=</span> <span class="o">{</span> <span class="kt">Project</span> <span class="n">project</span> <span class="o">-&gt;</span>
+    <span class="n">dependency_okhttp</span><span class="o">(</span><span class="n">DependencyHandlerScope</span><span class="o">.</span><span class="nd">@Companion.of</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">dependencies</span><span class="o">))</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>That code is stable, and it is unlikely to break if we change something code under <code class="highlighter-rouge">buildSrc</code>.
+The Kotlin version is easy to use from Kotlin DSL, and the Groovy version is only needed
+for the time of the migration from Gradle to Kotlin. We’ve covered the migration plan
+in the very <a href="/blog/2019/03/04/gradle-kotlin-migration-1/">first post</a>
+of this series.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In the post we’ve seen how to deal with Groovy closures on Kotlin and
+how to move from <code class="highlighter-rouge">ext</code> properties to Kotlin extension functions declared in <code class="highlighter-rouge">buildSrc</code>.</p>
+
+<p><a href="https://kotlinlang.org">Kotlin</a> as a statically typed programming language
+seems to play well with writing Gradle build scripts.
+Thanks to the static type inference, the Kotlin compiler detects errors earlier and
+shows helpful compilation error messages and warnings.
+Both the IDE and the compiler use information about types to infer
+the available functions and properties in a given scope, even inside a 5th level
+nested lambda with receivers.</p>
+
+<p>I will cover more aspects in the coming posts, stay tuned!
+Check out the</p>
+<ul>
+  <li><a href="/blog/2019/03/04/gradle-kotlin-migration-1/">first post</a> — First steps of the migration</li>
+  <li><a href="/blog/2019/04/02/gradle-kotlin-migration-2/">second post</a> — Kotlin tasks in Gradle Kotlin DSL,</li>
+  <li><a href="/blog/2019/05/20/gradle-kotlin-migration-3/">third post</a> — a <code class="highlighter-rouge">buildSrc</code> project with Kotlin, ad-hoc plugins and extensions</li>
+</ul>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/05/20/gradle-kotlin-migration-3/" class="btn" title="Migrating to Gradle Kotlin DSL - Extensions and buildSrc">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Asynchronous Google Analytics snippet -->
+<script>
+  var _gaq = _gaq || [];
+  var pluginUrl =
+ 'https://www.google-analytics.com/plugins/ga/inpage_linkid.js';
+  _gaq.push(['_require', 'inpage_linkid', pluginUrl]);
+  _gaq.push(['_setAccount', 'UA-70104598-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = 'https://stats.g.doubleclick.net/dc.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+<!-- MathJax -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
