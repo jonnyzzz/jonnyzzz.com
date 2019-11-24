@@ -1,0 +1,276 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Easy Native with Kotlin/Native &#8211; Eugene Petrenko</title>
+<meta name="description" content="Let’s switch to Native with Kotlin/Native. It compiles your Kotlin code for various native platforms, including iOS, Mac, Linux, and Windows. No virtual machine is needed!
+The native world brings native libraries, C static and dynamic libraries, Apple frameworks, Swift and Objective-C dependencies. Kotlin adds multiplatform libraries to share Kotlin code between different platforms. That is the way to share code between Android and iOS, between backend and frontend, between JVM, JavaScript, C, and Swift/Objective-C. You benefit from both platform libraries and multiplatform pure Kotlin libraries.
+Join us to learn about native development new Kotlin/Native, code reuse between platforms and multiplatform development fun
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, " />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Easy Native with Kotlin/Native -- Eugene Petrenko" />
+<meta name="twitter:description" content="Let’s switch to Native with Kotlin/Native. It compiles your Kotlin code for various native platforms, including iOS, Mac, Linux, and Windows. No virtual machine is needed!
+The native world brings native libraries, C static and dynamic libraries, Apple frameworks, Swift and Objective-C dependencies. Kotlin adds multiplatform libraries to share Kotlin code between different platforms. That is the way to share code between Android and iOS, between backend and frontend, between JVM, JavaScript, C, and Swift/Objective-C. You benefit from both platform libraries and multiplatform pure Kotlin libraries.
+Join us to learn about native development new Kotlin/Native, code reuse between platforms and multiplatform development fun
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Easy Native with Kotlin/Native -- Eugene Petrenko" />
+<meta property="og:description" content="Let’s switch to Native with Kotlin/Native. It compiles your Kotlin code for various native platforms, including iOS, Mac, Linux, and Windows. No virtual machine is needed!
+The native world brings native libraries, C static and dynamic libraries, Apple frameworks, Swift and Objective-C dependencies. Kotlin adds multiplatform libraries to share Kotlin code between different platforms. That is the way to share code between Android and iOS, between backend and frontend, between JVM, JavaScript, C, and Swift/Objective-C. You benefit from both platform libraries and multiplatform pure Kotlin libraries.
+Join us to learn about native development new Kotlin/Native, code reuse between platforms and multiplatform development fun
+" />
+<meta property="og:url" content="https://jonnyzzz.com/talks/2019-02-26-ktug-munich-kotlin-native/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/talks/2019-02-26-ktug-munich-kotlin-native/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="page">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+
+<div id="main" role="main">
+  <article class="entry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <div><a href="/talks"><< See All Talks</a></div>
+        <h1 class="entry-title" style="margin-top: 4px">Easy Native with Kotlin/Native</h1>
+        
+        <h4 style="margin-top: 0; margin-bottom: 0">Kotlin User Group Munich</h4>
+        <h4 style="margin-top: 0">26 February 2019, talk</h4>
+      </header>
+      <div class="entry-content">
+
+        <p>Let’s switch to Native with Kotlin/Native. It compiles your Kotlin code for various native platforms, including iOS, Mac, Linux, and Windows. No virtual machine is needed!
+The native world brings native libraries, C static and dynamic libraries, Apple frameworks, Swift and Objective-C dependencies. Kotlin adds multiplatform libraries to share Kotlin code between different platforms. That is the way to share code between Android and iOS, between backend and frontend, between JVM, JavaScript, C, and Swift/Objective-C. You benefit from both platform libraries and multiplatform pure Kotlin libraries.
+Join us to learn about native development new Kotlin/Native, code reuse between platforms and multiplatform development fun</p>
+
+
+
+        
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+
+        
+
+        <br />
+        
+        
+
+        
+        
+        <h4>References:</h4>
+          
+          <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/258699342/"target="_blank">Link</a><br/>
+          
+          <a href="https://docs.google.com/presentation/d/1ygi6Pqc4S7-dhZ3kHYPP3iFyOmiX1Mf1ITWkfB2uEJw/edit?usp=sharing"target="_blank">Slides</a><br/>
+          
+          <a href="https://github.com/jonnyzzz/kotlin-native-clipboard"target="_blank">GitHub</a><br/>
+          
+          <a href="https://www.pscp.tv/w/1OdKrRqdbaYKX"target="_blank">Video</a><br/>
+          
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2019 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-70104598-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<!-- MathJax -->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script async type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script async src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
