@@ -5,19 +5,25 @@
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
 <head>
 <meta charset="utf-8" />
-<title>IntelliJ Demo &#8211; Eugene Petrenko</title>
-<meta name="description" content="I did a 5-minute demo of IntelliJ IDEA Java 9 support features.
-The demo was mostly presenting Java Modules (aka Jigsaw) related features including module-info.java,
-module graph and so on. It was live demo.
+<title>inline fun with Kotlin &#8211; Eugene Petrenko</title>
+<meta name="description" content="We cover how inline fun works, 
+explain reified inline functions.
+We’ve come across the type erasure
+on the JVM and found the elegant way
+to workaround all the problems with
+the power of inline functions in Kotlin.
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, " />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="IntelliJ Demo -- Eugene Petrenko" />
-<meta name="twitter:description" content="I did a 5-minute demo of IntelliJ IDEA Java 9 support features.
-The demo was mostly presenting Java Modules (aka Jigsaw) related features including module-info.java,
-module graph and so on. It was live demo.
+<meta name="twitter:title" content="inline fun with Kotlin -- Eugene Petrenko" />
+<meta name="twitter:description" content="We cover how inline fun works, 
+explain reified inline functions.
+We’ve come across the type erasure
+on the JVM and found the elegant way
+to workaround all the problems with
+the power of inline functions in Kotlin.
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -28,12 +34,15 @@ module graph and so on. It was live demo.
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="IntelliJ Demo -- Eugene Petrenko" />
-<meta property="og:description" content="I did a 5-minute demo of IntelliJ IDEA Java 9 support features.
-The demo was mostly presenting Java Modules (aka Jigsaw) related features including module-info.java,
-module graph and so on. It was live demo.
+<meta property="og:title" content="inline fun with Kotlin -- Eugene Petrenko" />
+<meta property="og:description" content="We cover how inline fun works, 
+explain reified inline functions.
+We’ve come across the type erasure
+on the JVM and found the elegant way
+to workaround all the problems with
+the power of inline functions in Kotlin.
 " />
-<meta property="og:url" content="https://jonnyzzz.com/talks/2017-10-02-javaone/" />
+<meta property="og:url" content="https://jonnyzzz.com/talks/2021-01-28-ktug-munich-inline-fun/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -51,7 +60,7 @@ module graph and so on. It was live demo.
 
 
 
-<link rel="canonical" href="https://jonnyzzz.com/talks/2017-10-02-javaone/" />
+<link rel="canonical" href="https://jonnyzzz.com/talks/2021-01-28-ktug-munich-inline-fun/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -140,16 +149,19 @@ module graph and so on. It was live demo.
     <div class="entry-wrapper">
       <header class="entry-header">
         <div><a href="/talks"><< See All Talks</a></div>
-        <h1 class="entry-title" style="margin-top: 4px">IntelliJ Demo</h1>
+        <h1 class="entry-title" style="margin-top: 4px">inline fun with Kotlin</h1>
         
-        <h4 style="margin-top: 0; margin-bottom: 0">JavaOne</h4>
-        <h4 style="margin-top: 0">02 October 2017, keynote</h4>
+        <h4 style="margin-top: 0; margin-bottom: 0">Kotlin User Group Munich</h4>
+        <h4 style="margin-top: 0">28 January 2021, talk</h4>
       </header>
       <div class="entry-content">
 
-        <p>I did a 5-minute demo of <a href="https://jetbrains.com/idea">IntelliJ IDEA</a> Java 9 support features.
-The demo was mostly presenting Java Modules (aka Jigsaw) related features including <code class="highlighter-rouge">module-info.java</code>,
-module graph and so on. It was live demo.</p>
+        <p>We cover how <code class="highlighter-rouge">inline fun</code> works, 
+explain reified inline functions.
+We’ve come across the type erasure
+on the JVM and found the elegant way
+to workaround all the problems with
+the power of <code class="highlighter-rouge">inline</code> functions in Kotlin.</p>
 
 
         
@@ -157,6 +169,19 @@ module graph and so on. It was live demo.</p>
 
         
         
+          
+          
+          
+        
+          
+          
+          
+        
+          
+          
+          
+        
+          
           
           
              
@@ -164,7 +189,7 @@ module graph and so on. It was live demo.</p>
 
         
           <iframe width="560" height="315"
-                  src="https://www.youtube.com/embed/UNg9lmk60sg?autoplay=0&fs=1&iv_load_policy=3&showinfo=1&rel=0&cc_load_policy=0&start=0&end=0&vq=hd720" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
+                  src="https://www.youtube.com/embed/R5eR9ptA11E?t=2304?autoplay=0&fs=1&iv_load_policy=3&showinfo=1&rel=0&cc_load_policy=0&start=0&end=0&vq=hd720" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen>
           </iframe>
         
 
@@ -178,11 +203,19 @@ module graph and so on. It was live demo.</p>
           <ul>
           
           <li>
-            <a href="https://www.youtube.com/watch?v=UNg9lmk60sg&feature=youtu.be&t=6903"target="_blank" style="text-decoration: underline">YouTube</a><br/>
+            <a href="https://twitter.com/KTUGMunich/status/1353669653038473216?s=20"target="_blank" style="text-decoration: underline">Link</a><br/>
           </li>
           
           <li>
-            <a href="https://photos.app.goo.gl/qQmw63WVvKFPV3U63"target="_blank" style="text-decoration: underline">On Stage</a><br/>
+            <a href="https://www.meetup.com/en-AU/Kotlin-User-Group-Munich/events/275573397/"target="_blank" style="text-decoration: underline">Meetup</a><br/>
+          </li>
+          
+          <li>
+            <a href="https://docs.google.com/presentation/d/13SE0daJaOzoOs76ESgnnu8eEzaXkvYIeSztKDEein_E"target="_blank" style="text-decoration: underline">Slides</a><br/>
+          </li>
+          
+          <li>
+            <a href="https://youtu.be/R5eR9ptA11E?t=2304"target="_blank" style="text-decoration: underline">YouTube</a><br/>
           </li>
           
           </ul>
