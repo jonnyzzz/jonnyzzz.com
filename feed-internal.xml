@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2021-05-18T16:26:18+00:00</updated>
+  <updated>2021-09-01T13:35:43+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,175 @@
   
 
   
+  
+  <entry>
+    <title type="html">X.509 Certificates with AWS KMS</title>
+    <link href="https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/" rel="alternate" type="text/html" title="X.509 Certificates with AWS KMS" />
+    <published>2021-09-01T00:00:00+00:00</published>
+    <updated>2021-09-01T00:00:00+00:00</updated>
+    <id>/blog/2021/09/01/x509-kms-aws</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/">&lt;p&gt;I’ve done a custom &lt;a href=&quot;https://en.wikipedia.org/wiki/Public_key_infrastructure&quot;&gt;PKI&lt;/a&gt;
+structure of &lt;a href=&quot;https://en.wikipedia.org/wiki/X.509&quot;&gt;X509 certificates&lt;/a&gt; 
+to implement a signature service on top of it. Along
+the way, I found how to generate certificates and sign data
+without having private keys in my code.&lt;/p&gt;
+
+&lt;p&gt;Before we go, let me note, it is possible to use
+&lt;a href=&quot;https://aws.amazon.com/certificate-manager/&quot;&gt;Amazon Certificate Manager&lt;/a&gt;
+to &lt;a href=&quot;https://aws.amazon.com/certificate-manager/pricing/?nc=sn&amp;amp;loc=3&quot;&gt;host private certificates&lt;/a&gt;.
+By the time of writing (August 2021), every certificate would cost about $400/month, excluding
+API calls. It is fine to use that for a root certificate, but it looks too much when
+multiplied by &lt;code class=&quot;highlighter-rouge&quot;&gt;N&lt;/code&gt;, as in my case. There is no API for signatures for an ACM managed
+certificate too, so one would have to deal with private keys.&lt;/p&gt;
+
+&lt;h3 id=&quot;hosted-keys&quot;&gt;Hosted Keys&lt;/h3&gt;
+
+&lt;p&gt;Hosted (hardware or HSM) keys or certificates give a nice 
+advantage — we can avoid having direct access to private keys material bytes.
+Instead, we send a request to a service to generate a needed signature.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://aws.amazon.com/cloudhsm/&quot;&gt;AWS CloudHSM&lt;/a&gt; or alike solutions allow ensuring
+no one would ever extract a private key from our service or even AWS.
+In the worst case, someone could get access to the service. 
+One minimizes risks via the &lt;a href=&quot;https://aws.amazon.com/iam&quot;&gt;IAM&lt;/a&gt; setup and audit.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://aws.amazon.com/kms/&quot;&gt;AWS Key Management Service&lt;/a&gt; allows managing
+RSA keys this way, having this in mind, I’ve started researching how to generate
+certificates with keys in the KMS for my solution.&lt;/p&gt;
+
+&lt;h3 id=&quot;openssl&quot;&gt;OpenSSL&lt;/h3&gt;
+
+&lt;p&gt;OpenSSL supports all necessary operations with X509 certificates.
+The &lt;code class=&quot;highlighter-rouge&quot;&gt;openssl&lt;/code&gt; console command could help to
+decode a given certificate, validate, generate or sign. 
+Ping me in the comment or on &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt; and I’ll blog more details.
+I &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1432325398155640834?s=20&quot;&gt;test the generated&lt;/a&gt;
+certificates via &lt;code class=&quot;highlighter-rouge&quot;&gt;openssl&lt;/code&gt; command to make sure it was done correctly.&lt;/p&gt;
+
+&lt;p&gt;Sadly, but the &lt;code class=&quot;highlighter-rouge&quot;&gt;openssl&lt;/code&gt; command does not support KMS or hardware keys out of the box.
+One has to dig deeper into the implementation level, patches, sources, or forks.&lt;/p&gt;
+
+&lt;p&gt;For my further investigation, I’d use JVM and the
+&lt;a href=&quot;https://www.bouncycastle.org/&quot;&gt;Bouncy Castle&lt;/a&gt; library.
+I’ll blog more on how to do X509 certificates with the library soon,
+there are many obsolete or old examples online, and it needs to
+be cleared up. Let me know in the comments or 
+on &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;, so it would happen earlier.&lt;/p&gt;
+
+&lt;h3 id=&quot;bouncy-castle-on-jvm&quot;&gt;Bouncy Castle on JVM&lt;/h3&gt;
+
+&lt;p&gt;One usually generates a child X509 certificate using the &lt;code class=&quot;highlighter-rouge&quot;&gt;JcaX509v3CertificateBuilder&lt;/code&gt;
+from &lt;a href=&quot;https://www.bouncycastle.org/&quot;&gt;Bouncy Castle&lt;/a&gt;.
+It takes the parent certificate and signs a child certificate with the
+parent one.&lt;/p&gt;
+
+&lt;p&gt;Here is a simplified example to generate a signed subordinate certificate:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;parentCa&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X509CertificateHolder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TODO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Load parent certificate&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;builder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;JcaX509v3CertificateBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;parentCa&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;subject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;BigInteger&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;C0 Ff Ee&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Date&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;parentCa&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;notAfter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;rootSubject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;childCaPublicKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//TODO: condifigure the builder to add extensions and params&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;signer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ContentSigner&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;TODO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Implement the Content Signer&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;childCert&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X509CertificateHolder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;builder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;build&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;signer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;//This is the child certificate, use JcaPEMWriter for PEM encoding &lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;childCert&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As we see, it does not require a private key to run. It uses only
+the RSA public key of the child certificate. No secretes so far.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;ContentSigner&lt;/code&gt; interface encapsulates the signature need.
+Usually, we use &lt;code class=&quot;highlighter-rouge&quot;&gt;JcaContentSignerBuilder&lt;/code&gt; to create an instance 
+from a private key of the parent certificate. It is not the case here.&lt;/p&gt;
+
+&lt;h3 id=&quot;contentsigner-implementation-via-kms&quot;&gt;ContentSigner implementation via KMS&lt;/h3&gt;
+
+&lt;p&gt;We implement the &lt;code class=&quot;highlighter-rouge&quot;&gt;ContentSigner&lt;/code&gt; directly, and do a remote
+call to the AWS service for the signature. We do not have
+access to the actual private key bytes. I use the following 
+implementation for that:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;AwsKmsContentSignerSha512WithRSA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;aws&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KmsClient&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;keyId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ContentSigner&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;bytesToSign&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MessageDigest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;SHA-512&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;wrapper&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;DigestOutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;OutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nullOutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bytesToSign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getOutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wrapper&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getAlgorithmIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;AlgorithmIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PKCSObjectIdentifiers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sha512WithRSAEncryption&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getSignature&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ByteArray&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;aws&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sign&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;req&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keyId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SdkBytes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fromByteArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bytesToSign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;digest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;messageType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MessageType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DIGEST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;signingAlgorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SigningAlgorithmSpec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RSASSA_PKCS1_V1_5_SHA_512&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;signature&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;asByteArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As we see, the code computes SHA-512 digest from the actual data,
+that needs to be signed. No matter how big is the certificate, it
+will only send a short message to the AWS.&lt;/p&gt;
+
+&lt;p&gt;This code uses the &lt;a href=&quot;https://aws.amazon.com/sdk-for-java/&quot;&gt;AWS KMS client&lt;/a&gt; and a &lt;code class=&quot;highlighter-rouge&quot;&gt;keyId&lt;/code&gt;. 
+It sends a request to AWS to generate the signature, it does not use the actual private
+key directly in our code. That is enough for the BouncyCastle library
+to sign the new certificate or data for us.&lt;/p&gt;
+
+&lt;p&gt;You may also note, that there are many tricky bound constants in the code snippet:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;SHA-512&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;PKCSObjectIdentifiers.sha512WithRSAEncryption&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Similarly, it could be tuned to use the SHA-256 signature instead. Note, it would require changing
+all three parameters.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;ContentSigner&lt;/code&gt; interface is widely used in the BouncyCastle library, 
+so we could use it at many other places to implement signatures that we
+need, for example, a CMS (S/MIME) one.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;It appeared easy to use BouncyCastle library to implement 
+cryptography on top of the AWS KMS. It opens the way for writing
+safe applications which deal with X509 certificates without direct
+access to private keys.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="pki-tree" />
+  
+    <category term="x509" />
+  
+    <category term="jvm" />
+  
+    <category term="kotlin" />
+  
+    <category term="AWS" />
+  
+    <category term="certificates" />
+  
+    <summary type="html">Issuing X.509 with KMS</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Prefix or Null with Kotlin?</title>
@@ -2014,384 +2183,6 @@ analog in Terraform.&lt;/p&gt;</content>
     <category term="clouds" />
   
     <summary type="html">CloudFront IP addresses in AWS Security Group</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Migrating to Gradle Kotlin DSL - Basics</title>
-    <link href="https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Basics" />
-    <published>2019-03-04T00:00:00+00:00</published>
-    <updated>2019-03-04T00:00:00+00:00</updated>
-    <id>/blog/2019/03/04/gradle-kotlin-migration-1</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/03/04/gradle-kotlin-migration-1/">&lt;blockquote&gt;
-  &lt;p&gt;The only way to learn a new programming language is by writing programs in it&lt;br /&gt;
-   — by &lt;a href=&quot;https://en.wikipedia.org/wiki/Dennis_Ritchie&quot;&gt;Dennis Ritchie&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Do you use the same principle to learn a new programming language? I do, and
-I often put this quote into my &lt;a href=&quot;/talks&quot;&gt;talks&lt;/a&gt; to encourage people to learn
-&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt;
-programming language through practice, or by
-&lt;a href=&quot;https://kotlinlang.org/docs/tutorials/edu-tools-learner.html&quot;&gt;writing programs&lt;/a&gt;
-in it. We’re going to look at how to apply the
-same tactic to learning and practicing &lt;a href=&quot;https://gradle.org/kotlin&quot;&gt;Gradle Kotlin DSL&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;“&lt;em&gt;Hello World&lt;/em&gt;” projects are not complicated enough for us. Instead, I have decided
-to convert an existing Gradle project from Groovy to Kotlin. 
-The project I found is a server-side JVM application, written in Kotlin. 
-It has 16 Gradle sub-projects and covers enough real-life non-trivial edge cases to make it quite interesting.&lt;/p&gt;
-
-&lt;p&gt;While migrating the real-life project’s Gradle build from Groovy to Kotlin,
-I collected some useful recommendations, code snippets, and explanations.
-Throughout the post series, I will share my findings with you. We will together learn how to
-convert to Gradle Kotlin DSL faster and easier.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-migration-plan&quot;&gt;The Migration Plan&lt;/h2&gt;
-
-&lt;p&gt;Where do you even start when converting a big Gradle project to Kotlin?
-Well, to start with, I do not recommend converting the whole project in one go.
-The chances are you will get stuck somewhere in the middle with completely broken scripts.
-It may eat away at too much of your time to go in and fix them to complete the migration. It may also be
-too hard for you to learn so many different Gradle Kotlin DSL features so quickly, and you may not be able to test your changes, because of the broken project.&lt;/p&gt;
-
-&lt;p&gt;I suggest splitting the conversion into a set of small incremental changes.
-We will have to go through and update all the build script files one-by-one.
-Let’s start with the smallest project files, learn the basic features, and slowly
-proceed to the most complex build script files.&lt;/p&gt;
-
-&lt;p&gt;It is essential to test the build script is not broken after any small change.
-You may run any task to execute a Gradle &lt;em&gt;configuration&lt;/em&gt; phase, which will
-likely detect errors in your code. I prefer running the &lt;code class=&quot;highlighter-rouge&quot;&gt;testClasses&lt;/code&gt; task 
-on the root project for that.&lt;/p&gt;
-
-&lt;p&gt;For bigger Gradle project files it is even recommended to convert them as
-smaller parts. Gradle supports mixtures of Kotlin and Groovy scripts in the same project, so
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(from=&quot;file.gradle&quot;)&lt;/code&gt; function can include scripts written in
-any of the languages.&lt;/p&gt;
-
-&lt;p&gt;It is time to start the migration!&lt;/p&gt;
-
-&lt;h2 id=&quot;first-steps-of-the-migration&quot;&gt;First Steps of the Migration&lt;/h2&gt;
-
-&lt;p&gt;Let’s start the migration from the smallest Gradle sub-project. For each
-project, we need to rename
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; project file into the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt;.
-No surprises there, the result will not work. The file will have 
-lots of errors. Let’s fix the most common ones first:&lt;/p&gt;
-
-&lt;p&gt;First, we need to replace single quotes with double quotes. Groovy supports both quotes
-for strings, while Kotlin only supports &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;&lt;/code&gt; for strings. 
-In &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; you can use 
-the &lt;em&gt;Convert long character literal to string&lt;/em&gt; quick fix,
-multiple carets, or the standard search and replace dialog&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2019-03-04-gradle-kotlin-migration-1-quotes2.png&quot; alt=&quot;quick fix&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;String templates like &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;$foo.bar.baz&quot;&lt;/code&gt; work differently in Groovy and Kotlin. 
-In Kotlin, braces are needed after &lt;code class=&quot;highlighter-rouge&quot;&gt;$&lt;/code&gt; to call methods or properties, e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;${foo.bar.baz}&quot;&lt;/code&gt;.
-Groovy does not support templates on single quoted strings, so you may need to escape the &lt;code class=&quot;highlighter-rouge&quot;&gt;$&lt;/code&gt; sign as &lt;code class=&quot;highlighter-rouge&quot;&gt;\$&lt;/code&gt; too.&lt;/p&gt;
-
-&lt;p&gt;We replace Groovy lists, with the &lt;code class=&quot;highlighter-rouge&quot;&gt;listOf&lt;/code&gt; function, 
-for example &lt;code class=&quot;highlighter-rouge&quot;&gt;[&quot;foo&quot;, &quot;bar&quot;]&lt;/code&gt; is converted to &lt;code class=&quot;highlighter-rouge&quot;&gt;listOf(&quot;foo&quot;, &quot;bar&quot;)&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;At this point, our build file should contain far fewer errors.
-Let’s have a look at how other Gradle objects are represented in Kotlin.&lt;/p&gt;
-
-&lt;h2 id=&quot;repositories&quot;&gt;Repositories&lt;/h2&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;repositories{..}&lt;/code&gt; block in Kotlin DSL has the same functions for well-known repositories, e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;mavenCentral()&lt;/code&gt;.
-You may need to know how to convert a custom Maven repository definition like this:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;maven&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'https://dl.bintray.com/palantir/releases'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;maven{..}&lt;/code&gt; function is defined in Kotlin DSL too. The builder
-has the &lt;code class=&quot;highlighter-rouge&quot;&gt;url&lt;/code&gt; property, but the type of it is &lt;code class=&quot;highlighter-rouge&quot;&gt;java.net.URI&lt;/code&gt; and not &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt;.
-I do not like to create a &lt;code class=&quot;highlighter-rouge&quot;&gt;URI&lt;/code&gt; class instance in my Gradle scripts manually.
-There is an overloaded function called &lt;code class=&quot;highlighter-rouge&quot;&gt;maven()&lt;/code&gt; that takes a &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; parameter with name &lt;code class=&quot;highlighter-rouge&quot;&gt;url&lt;/code&gt;
-for the URL. So the Kotlin code looks like this:&lt;/p&gt;
-
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;maven&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;https://dl.bintray.com/palantir/releases&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;dependencies&quot;&gt;Dependencies&lt;/h2&gt;
-
-&lt;p&gt;Let’s say we have a dependency definition in Groovy, for example:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'this.library:name:1.0.0'&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{..}&lt;/code&gt; block is different in Kotlin DSL. We need to add extra
-brackets after the configuration name and double quotes for the string:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;this.library:name:1.0.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;I recommend using &lt;a href=&quot;https://stackoverflow.com/questions/1262737/intellij-idea-way-of-editing-multiple-lines&quot;&gt;multiple cursors&lt;/a&gt;
-to fix all the dependencies at the same time in &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Kotlin DSL provides generated helper functions
-for the registered project configuration names including &lt;code class=&quot;highlighter-rouge&quot;&gt;compile&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;testCompile&lt;/code&gt;,
-&lt;code class=&quot;highlighter-rouge&quot;&gt;api&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;testImplementation&lt;/code&gt;. 
-There are several cases that I have come across, where you may not have the generated helper functions in your scripts.
-Gradle &lt;a href=&quot;https://gradle-community.slack.com/archives/CAD95CR62/p1549363654105200&quot;&gt;does not include&lt;/a&gt;
-these helper functions to the script files that you include with
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(from=&quot;some-file.gradle.kts&quot;)&lt;/code&gt; function.
-You 
-&lt;a href=&quot;https://gradle-community.slack.com/archives/CAD95CR62/p1549363654105200&quot;&gt;cannot add&lt;/a&gt;
-these functions into a &lt;a href=&quot;https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources&quot;&gt;buildSrc&lt;/a&gt;
-project either. Fear not, I have several workarounds for this.&lt;/p&gt;
-
-&lt;p&gt;The first workaround is to use a configuration name as a&lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt;, e.g.&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;&quot;implementation&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;this.library:name:1.0.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;A better approach is to refer to the configuration via a delegated property, the following
-declaration solves it:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;implementation&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configurations&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;this.library:name:1.0.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The code fails if the configuration does not exist. 
-The last workaround is to declare the &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; variable with the same name and value,
-e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;val implementation = &quot;implementation&quot;&lt;/code&gt;. Now
-the code can be used in a &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; file too.&lt;/p&gt;
-
-&lt;h2 id=&quot;gradle-plugins&quot;&gt;Gradle Plugins&lt;/h2&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block in Gradle is similar to the one in Kotlin.
-You should add brackets around the plugin ID in the code, e.g.:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;plugin.id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.2.4&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The Javadoc comment in the &lt;code class=&quot;highlighter-rouge&quot;&gt;org.gradle.plugin.use.PluginDependenciesSpec&lt;/code&gt; class
-from Gradle sources is
-misleading for Kotlin DSL users. It is probably written for the Groovy DSL and has been re-used. 
-You can use the code from the snippet above.&lt;/p&gt;
-
-&lt;h2 id=&quot;applying-gradle-plugins-to-sub-projects&quot;&gt;Applying Gradle Plugins to Sub-Projects&lt;/h2&gt;
-
-&lt;p&gt;There are two ways to apply Gradle plugins to sub-projects. The first one is
-to add the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(plugin = &quot;plugin.id&quot;)&lt;/code&gt; call in the build script file. 
-Use the function in the &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects{..}&lt;/code&gt; block to enable a plugin for sub-projects.&lt;/p&gt;
-
-&lt;p&gt;The second syntax to apply a plugin is to use the shorter version of the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block, e.g.:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;plugin.id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;This syntax isn’t allowed in a &lt;code class=&quot;highlighter-rouge&quot;&gt;subprojects{..}&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;allproject{..}&lt;/code&gt; block.&lt;/p&gt;
-
-&lt;p&gt;There is a third option which is to call the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&amp;lt;PluginClassName&amp;gt;()&lt;/code&gt; function, where the 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;PluginClassName&lt;/code&gt; is the class name of the plugin main class. 
-The &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&amp;lt;&amp;gt;()&lt;/code&gt; function works well for &lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;ad-hoc plugins&lt;/a&gt;.
-I do not like this approach for external plugins,
-because the plugin class name, which is not same as the plugin ID, is a part of
-the plugin implementation details and it is something that may be changed in the future by
-plugin authors.&lt;/p&gt;
-
-&lt;p&gt;I found a strange side-effect which was generated by the
-Gradle Kotlin DSL engine helper functions for the applied plugins.
-Helper declarations may not be visible, depending on the way you apply plugins.&lt;/p&gt;
-
-&lt;p&gt;The
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html&quot;&gt;Kotlin Multiplatform&lt;/a&gt;
-plugin (e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;1.3.21&lt;/code&gt;) registers the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin{..}&lt;/code&gt; function into the project, where it
-is applied. Let’s consider two sub-project definitions, one of which does not work:&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Project A&lt;/em&gt; in the &lt;code class=&quot;highlighter-rouge&quot;&gt;project-a/build.gradle.kts&lt;/code&gt; file:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin.multiplatform&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;And &lt;em&gt;Project B&lt;/em&gt; in the &lt;code class=&quot;highlighter-rouge&quot;&gt;project-b/build.gradle.kts&lt;/code&gt; file:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
-  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin.multiplatform&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; 
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;em&gt;Project B&lt;/em&gt; works and the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin{..}&lt;/code&gt; block is resolved, but the &lt;code class=&quot;highlighter-rouge&quot;&gt;Project A&lt;/code&gt; does
-not work because of the unresolved &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin&lt;/code&gt; function.&lt;/p&gt;
-
-&lt;p&gt;We should use the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block to have accessors generated in
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html#type-safe-accessors&quot;&gt;Gradle&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;configuring-tasks&quot;&gt;Configuring Tasks&lt;/h2&gt;
-
-&lt;p&gt;A task configuration is easy to do in Groovy for well-known tasks, 
-the task name can be used as the shortcut syntax. The &lt;code class=&quot;highlighter-rouge&quot;&gt;run&lt;/code&gt; task from the 
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/application_plugin.html&quot;&gt;Application&lt;/a&gt;
-Gradle plugin can be configured in Groovy simply as:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;--foo&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bar&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The same does not work in Kotlin. 
-First, we need to find the task from the &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; container. 
-Then, the explicit task type is required to set task parameters to it.&lt;/p&gt;
-
-&lt;p&gt;The are many functions in the &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; object to define or find a task. 
-I use the
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/inline-functions.html#reified-type-parameters&quot;&gt;reified generic&lt;/a&gt;
-function &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks.getByName&amp;lt;T&amp;gt;(name: String, action: T.() -&amp;gt; Unit)&lt;/code&gt; to find a task
-and to configure it with the same call.&lt;/p&gt;
-
-&lt;p&gt;What is the type of task? You can check out the documentation for the plugin, 
-the plugin sources, or you can add a debug line like &lt;code class=&quot;highlighter-rouge&quot;&gt;println(tasks.task_name)&lt;/code&gt;
-to your Groovy script to find this out.&lt;/p&gt;
-
-&lt;p&gt;Since the &lt;code class=&quot;highlighter-rouge&quot;&gt;run&lt;/code&gt; task from the Gradle &lt;a href=&quot;https://docs.gradle.org/current/userguide/application_plugin.html&quot;&gt;Application&lt;/a&gt;
-plugin has the type &lt;code class=&quot;highlighter-rouge&quot;&gt;JavaExec&lt;/code&gt;, we can use the following code in Kotlin to set it up:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getByName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;JavaExec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;run&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;bar)
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We &lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html#type-safe-accessors&quot;&gt;should&lt;/a&gt;
-use the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block syntax to enable a plugin to have all generated accessors
-available. So we may have the following code:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;application&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;application&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;mainClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.jonnyzzz.example.MainKt`
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--foo&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;bar)
-&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;In the example, we have the clash between Kotlin
-&lt;a href=&quot;https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/run.html&quot;&gt;run&lt;/a&gt;
-function and the generated &lt;code class=&quot;highlighter-rouge&quot;&gt;run&lt;/code&gt; task accessor’s 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html#invoke&quot;&gt;invoke&lt;/a&gt;
-overloaded operator. To solve it, I added brackets. The workaround 
-is not needed for other tasks, where we do not have such a name clash.&lt;/p&gt;
-
-&lt;h2 id=&quot;troubleshooting&quot;&gt;Troubleshooting&lt;/h2&gt;
-
-&lt;p&gt;It can be easy to get stuck when working on build scripts. It may be unclear why something
-does not work. There are several useful tricks from me that can be done to overcome the
-complexity.&lt;/p&gt;
-
-&lt;p&gt;Try finding the root cause of the problem in your changes. It can be a tiny
-change in one file that yields an error in the other file. Use the version control
-or &lt;a href=&quot;https://www.jetbrains.com/help/idea/local-history.html&quot;&gt;Local History&lt;/a&gt;
-to check the recent changes, try reverting them to see if it helps.&lt;/p&gt;
-
-&lt;p&gt;Search the Gradle Documentation for a keyword or task name. There are several links for Gradle Kotlin DSL
-I have often used to find helpful hints to solve my issues:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/&quot;&gt;Migrating Build Logic from Groovy to Kotlin&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html&quot;&gt;Gradle Kotlin DSL User Guide&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://github.com/gradle/kotlin-dsl/tree/master/samples&quot;&gt;Kotlin DSL Samples&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Read the source code of Gradle or the third-party plugins that you use.
-The easiest is to navigate to the problematic declarations from &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt;
-and just directly to Gradle or plugin sources. 
-I solved some of the problems by checking the source code. I hope it will help you too.&lt;/p&gt;
-
-&lt;p&gt;In addition to that, you may find Gradle source code is on &lt;a href=&quot;https://github.com/gradle/&quot;&gt;GitHub&lt;/a&gt;.
-Most of the Gradle plugins have their source code published on GitHub or somewhere else.&lt;/p&gt;
-
-&lt;p&gt;Try debugging Gradle. The last and the hardest tip to troubleshot your script issues.
-The old school debugging technique with &lt;code class=&quot;highlighter-rouge&quot;&gt;println()&lt;/code&gt; statements often worked quite well here
-to print type names or task names to something similar to help to navigate to the
-source code and Javadoc comments. Should you need
-too many runs to debug the root cause of the problem?
-A JVM debugger can be a faster option. &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt; supports Gradle debugging, 
-click the &lt;em&gt;Debug …&lt;/em&gt; action on the task.&lt;/p&gt;
-
-&lt;h3 id=&quot;gradle-source-code-in-intellij-project&quot;&gt;Gradle Source Code in IntelliJ Project&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://docs.gradle.org/current/userguide/gradle_wrapper.html&quot;&gt;Gradle Wrapper&lt;/a&gt;
-does not download Gradle sources by default.
-You may notice a yellow warning in IntelliJ IDEA suggesting to change that too.
-Make sure you have the &lt;code class=&quot;highlighter-rouge&quot;&gt;-all.zip&lt;/code&gt; suffix in the download URL from the
-&lt;code class=&quot;highlighter-rouge&quot;&gt;gradle/wrapper/gradle-wrapper.properties&lt;/code&gt; file in your project:&lt;/p&gt;
-&lt;div class=&quot;language-properties highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;py&quot;&gt;distributionUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;https&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;//services.gradle.org/distributions/gradle-5.2.1-all.zip&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Gradle &lt;code class=&quot;highlighter-rouge&quot;&gt;wrapper&lt;/code&gt; task has an option to prefer the full packages by default. You may
-configure it to make sure you don’t accidentally switch to the default package with the
-next Gradle upgrade. The following Kotlin code sets this up in a root Gradle project:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;wrapper&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;distributionType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Wrapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DistributionType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ALL&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
-seems to play well for writing Gradle build scripts.
-Thanks to static type inference, the Kotlin compiler detects errors earlier and
-shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use the information about types to infer
-available functions and properties in a given scope, even inside a 5th level
-nested lambda with receivers.&lt;/p&gt;
-
-&lt;p&gt;In this post, we covered the first steps of migrating to Kotlin. We defined
-the migration strategy and listed the set of recommendations
-to tackle the migration from Groovy to Kotlin quickly.
-I will cover more aspects in the coming posts, stay tuned!&lt;/p&gt;
-
-&lt;p&gt;Thanks to Hadi, Paul, and David for your help, time and feedback!&lt;/p&gt;
-
-&lt;p&gt;Check out the&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="gradle-kotlin" />
-  
-    <category term="gradle-kts" />
-  
-    <category term="gradle-groovy" />
-  
-    <category term="kts" />
-  
-    <category term="kotlin" />
-  
-    <category term="groovy" />
-  
-    <category term="build" />
-  
-    <category term="refactoring" />
-  
-    <summary type="html">First steps of the migration</summary>
   
   </entry>
   
