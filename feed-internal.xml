@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2021-12-05T04:12:14+00:00</updated>
+  <updated>2022-05-23T20:18:32+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,286 @@
   
 
   
+  
+  <entry>
+    <title type="html">Gradle Kotlin DSL - Code Reuse</title>
+    <link href="https://jonnyzzz.com/blog/2022/05/23/gradle-kts-reuse/" rel="alternate" type="text/html" title="Gradle Kotlin DSL - Code Reuse" />
+    <published>2022-05-23T00:00:00+00:00</published>
+    <updated>2022-05-23T00:00:00+00:00</updated>
+    <id>/blog/2022/05/23/gradle-kts-reuse</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2022/05/23/gradle-kts-reuse/">&lt;p&gt;Reuse code between &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files, but how?
+Back in the Gradle Groovy days, that was so easy to split &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; files into multiple.
+All we had to do was
+to copy necessary code to a new file and say &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(from: 'path to.build.gradle')&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;With Gradle Kotlin DSL, it does not work that easily.
+I’ve been looking for the 
+solution to this problem in Gradle Kotlin DSL scripts for a long time.
+Now I can share the trick with you.&lt;/p&gt;
+
+&lt;p&gt;In short, there are two tricks that make it possible:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;move &lt;code class=&quot;highlighter-rouge&quot;&gt;some-part.build.gradle.kts&lt;/code&gt; under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; sources (to have accessors generated)&lt;/li&gt;
+  &lt;li&gt;use &lt;code class=&quot;highlighter-rouge&quot;&gt;$id:$id.gradle.plugin&lt;/code&gt; to include your plugins as dependencies in &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Let me explain these tricks in detail.&lt;/p&gt;
+
+&lt;h2 id=&quot;demo-project&quot;&gt;Demo Project&lt;/h2&gt;
+
+&lt;p&gt;As for
+demo, I use a default generated project from &lt;a href=&quot;https://jetbrains.com/idea&quot;&gt;IntelliJ IDEA&lt;/a&gt;
+plugin, which uses &lt;a href=&quot;https://github.com/JetBrains/gradle-intellij-plugin&quot;&gt;org.jetbrains.intellij&lt;/a&gt;.
+In reality,
+a project should be more complex than our demo project.&lt;/p&gt;
+
+&lt;p&gt;Here is the generated script, which we will try to split into several files:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;java&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin.jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.6.20&quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.intellij&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.5.2&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;com.example&quot;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.0-SNAPSHOT&quot;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;intellij&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2021.2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;IC&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// Target IDE Platform&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;cm&quot;&gt;/* Plugin Dependencies */&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;JavaCompile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;sourceCompatibility&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;11&quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;targetCompatibility&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;11&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jetbrains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gradle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinCompile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jvmTarget&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;11&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The demo project sources are &lt;a href=&quot;https://github.com/jonnyzzz/ij-plugin-demo-code-reuse&quot;&gt;on my GitHub&lt;/a&gt;,
+all the steps I show in the blog post are committed to that repo.&lt;/p&gt;
+
+&lt;p&gt;We will move the most of the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gralde.kts&lt;/code&gt; file into a &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin.build.gradle.kts&lt;/code&gt;
+and will make it work without major changes to original Gradle scripts.&lt;/p&gt;
+
+&lt;h2 id=&quot;moving-code&quot;&gt;Moving Code&lt;/h2&gt;
+
+&lt;p&gt;First of, we move the most (with the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins { .. }&lt;/code&gt; block) of the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; to a dedicated
+file: &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin-include.build.gradle.kts&lt;/code&gt; and add the following to the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt;
+(we may actually remove everything else from the file).&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;plugin-include.build.gradle.kts&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That trick could have worked in Groovy, but it will not work with Gradle Kotlin DSL.
+Here is an error you would see:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Unresolved reference: intellij
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Why does Gradle knows &lt;code class=&quot;highlighter-rouge&quot;&gt;intellij&lt;/code&gt; reference in the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; and it is unable
+to resolve it in another file? The reason is “Generated Accessors”.&lt;/p&gt;
+
+&lt;h2 id=&quot;generated-accessors&quot;&gt;Generated Accessors&lt;/h2&gt;
+
+&lt;p&gt;Gradle uses a tricky approach to deal with Kotlin DSL. There is a dedicated phase
+in Gradle which examines the script model and applied plugins to generate a 
+Kotlin code. That generated code is called “Accessors” and it makes
+Gradle Kotlin scripting more pleasure and short.&lt;/p&gt;
+
+&lt;p&gt;For example, it adds &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks.test&lt;/code&gt; if you have one of Java plugins enabled, 
+it adds &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin { .. }&lt;/code&gt; block if you have Kotlin plugin enabled. And so on.&lt;/p&gt;
+
+&lt;p&gt;We may see (e.g. via IntelliJ) how &lt;code class=&quot;highlighter-rouge&quot;&gt;intellij&lt;/code&gt; function is defined in
+the generated by Gradle code after applying the
+&lt;a href=&quot;https://github.com/JetBrains/gradle-intellij-plugin&quot;&gt;IntelliJ SDK Gradle&lt;/a&gt;
+plugin:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;/// from generated kotlin DSL accessors from under ~/.gradle/caches&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ * Configures the [intellij][org.jetbrains.intellij.IntelliJPluginExtension] extension.
+ */&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;gradle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;`intellij`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;jetbrains&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;intellij&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;IntelliJPluginExtension&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;org&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gradle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ExtensionAware&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;intellij&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;How does that help to fix our &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin-include.build.gradle.kts&lt;/code&gt; script?
+Accessors are not included there.
+However, 
+the obvious workaround is to copy (or inline) the generated code to our
+&lt;code class=&quot;highlighter-rouge&quot;&gt;plugin-include.build.gradle.kts&lt;/code&gt; script. &lt;strong&gt;DO NOT DO THAT.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;After years of using Gradle Kotlin DSL, I found a better solution. 
+Gradle includes accessors for &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files which are 
+under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; directory.
+It also turns such files into Gradle plugins, so we should use
+either &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins { &lt;/code&gt;name&lt;code class=&quot;highlighter-rouge&quot;&gt; }&lt;/code&gt; block or &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(plugin = &quot;name&quot;)&lt;/code&gt; syntax
+to enable them.&lt;/p&gt;
+
+&lt;p&gt;Now, let’s create a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project.&lt;/p&gt;
+
+&lt;h2 id=&quot;buildsrc-project&quot;&gt;buildSrc Project&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project is a standard way to re-use build login in Gradle. 
+You may keep common code, tasks, plugins or everything else to re-use
+with all your &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files. The output of the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project
+is included in all other projects classpath.
+For more details, check out the
+&lt;a href=&quot;https://docs.gradle.org/current/userguide/organizing_gradle_projects.html&quot;&gt;organizing gradle projects&lt;/a&gt;
+section from Gradle official documentation.&lt;/p&gt;
+
+&lt;p&gt;Let’s apply the trick and move our &lt;code class=&quot;highlighter-rouge&quot;&gt;plugin-include.build.gradle.kts&lt;/code&gt; script
+to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/src/main/kotlin/&lt;/code&gt; folder. In addition to that, we have to
+follow the rituals and need to create a
+&lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/build.gradle.kts&lt;/code&gt; with the following contents:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dsl&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This is a default &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project that uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-dsl&lt;/code&gt; plugin, which
+configures Kotlin the compatible way to be used in &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; projects and
+for usages from other &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files. This plugin is bundled into Gradle.&lt;/p&gt;
+
+&lt;p&gt;Let’s check if it works now? Now Gradle will complain on the following:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Invalid plugin request [id: ‘org.jetbrains.kotlin.jvm’, version: ‘1.6.20’]. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin ‘org.jetbrains.kotlin.jvm’ is an implementation dependency of project ‘:buildSrc’.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Ok, now we need a way to include a plugin as implementation. How would we?&lt;/p&gt;
+
+&lt;h2 id=&quot;buildsrc-plugin-dependency&quot;&gt;buildSrc Plugin Dependency&lt;/h2&gt;
+
+&lt;p&gt;How would we create the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies&lt;/code&gt; block? We need to know Maven
+coordinates for our plugins. Such coordinates are implementation details of plugins
+and a subject to change in the future. Where should we find these coordinates?
+It is yet another tricky question one has to figure out.&lt;/p&gt;
+
+&lt;p&gt;Of course,
+it’s possible to resolve and hack that. Every Gradle plugin has some libraries
+behind the scenes. &lt;strong&gt;DO NOT DO THAT.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Back from the old days, I remember that Gradle plugins are nothing more, 
+but special case maven libraries, which are in Gradle Plugin Portal maven repository.&lt;/p&gt;
+
+&lt;p&gt;For example, my old &lt;a href=&quot;https://github.com/jonnyzzz/gradle-java9c&quot;&gt;java9c&lt;/a&gt; plugin
+has files under the following maven path:
+&lt;a href=&quot;https://plugins.gradle.org/m2/org/jonnyzzz/java9c/org.jonnyzzz.java9c.gradle.plugin/&quot;&gt;https://plugins.gradle.org/m2/org/jonnyzzz/java9c/org.jonnyzzz.java9c.gradle.plugin/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The trick is as follows: &lt;code class=&quot;highlighter-rouge&quot;&gt;$id:$id.gradle.plugin:$version&lt;/code&gt;. 
+You may create that Maven package manually if you would like to create a Gradle plugin
+manually, without the provided tooling.&lt;/p&gt;
+
+&lt;p&gt;Let’s use the trick to include our plugins to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project dependencies.&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;gradlePluginPortal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pluginDependency&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$id:$id.gradle.plugin:$version&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;n&quot;&gt;pluginDependency&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin.jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.6.20&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;pluginDependency&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.intellij&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.5.2&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;I’ve added the &lt;code class=&quot;highlighter-rouge&quot;&gt;gradlePluginPortal()&lt;/code&gt; repository to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project
+in order to let it resolve a dependency too.&lt;/p&gt;
+
+&lt;p&gt;It is up to you to create a fancy Kotlin DSL to make it look better. I would
+be happy to learn about your DSL, please let me know via &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;@jonnyzzz&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;plugin-versions&quot;&gt;Plugin Versions&lt;/h2&gt;
+
+&lt;p&gt;Adding mentioned plugins to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; dependencies is not enough
+to make Gradle work on our scripts.&lt;/p&gt;
+
+&lt;p&gt;We need to remove plugin versions from all other &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files in our project.
+As long as plugins are included into &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; classpath, they are available
+to every project without a version. Gradle does not allow mixing several versions
+of the same plugin anyway.&lt;/p&gt;
+
+&lt;h2 id=&quot;fix-apply-command&quot;&gt;Fix apply Command&lt;/h2&gt;
+
+&lt;p&gt;The only last move: update the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&lt;/code&gt; in the main &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;plugin-include.build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files from &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; are turned into Gradle plugins, that name of the
+plugin is generated from the original file name by removing &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; suffix.&lt;/p&gt;
+
+&lt;h1 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;I was looking for that for quite a long time. And finally, I’m thrilled to
+share my findings with you. Hope I’ll solve your pain in Gradle scripting
+too. In fact, the trick if quite complex, I’m looking forward to a shorter solution, 
+please &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;let me know&lt;/a&gt; of any.&lt;/p&gt;
+
+&lt;p&gt;I have covered many mode aspects of Gradle Kotlin DSL in the older posts,
+check out:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; — First steps of the migration&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; — Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; — a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project with Kotlin, ad-hoc plugins and extensions&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; — Groovy Closure and Kotlin DSL&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="gradle" />
+  
+    <category term="gradle accessors" />
+  
+    <category term="accessors" />
+  
+    <category term="gradle/groovy" />
+  
+    <category term="gradle/kotlin" />
+  
+    <category term="kts" />
+  
+    <category term="kotlin" />
+  
+    <category term="groovy" />
+  
+    <category term="build" />
+  
+    <summary type="html">How to reuse code between several gradle.kts files with accessors</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">X.509 Certificates with AWS KMS</title>
@@ -2023,166 +2303,6 @@ Check out the:&lt;/p&gt;
     <category term="refactoring" />
   
     <summary type="html">Kotlin tasks in Gradle Kotlin DSL</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Security Group for CloudFront</title>
-    <link href="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/" rel="alternate" type="text/html" title="Security Group for CloudFront" />
-    <published>2019-03-26T00:00:00+00:00</published>
-    <updated>2019-03-26T00:00:00+00:00</updated>
-    <id>/blog/2019/03/26/terraform-cloudfront-sg</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/03/26/terraform-cloudfront-sg/">&lt;p&gt;Have you ever tried to set up a Security Group
-to allow access only from CloudFront IP
-addresses? One Security Group will not be enough.
-We’ll see how to use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt;
-to solve and to automate this task.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-application&quot;&gt;The Application&lt;/h2&gt;
-
-&lt;p&gt;We have a traditional application on &lt;a href=&quot;https://aws.amazon.com&quot;&gt;AWS&lt;/a&gt;, where
-a &lt;a href=&quot;https://aws.amazon.com/cloudfront/&quot;&gt;CloudFront&lt;/a&gt; distribution handles
-the incoming traffic.
-Behind it, we have static pages on
-&lt;a href=&quot;https://aws.amazon.com/s3&quot;&gt;S3&lt;/a&gt; and API endpoints
-behind &lt;a href=&quot;https://aws.amazon.com/elasticloadbalancing/&quot;&gt;Application Load Balancer&lt;/a&gt; (ALB).
-I use &lt;a href=&quot;https://www.terraform.io/&quot;&gt;Terraform&lt;/a&gt; to manage
-production and staging environments.&lt;/p&gt;
-
-&lt;p&gt;Let’s say the project is new, and we are not ready to open it to the public.
-We allow access to the project only from specific IP addresses.
-&lt;a href=&quot;https://aws.amazon.com/waf/&quot;&gt;WAF&lt;/a&gt; helps us to limit access
-only for specific IP addresses with CloudFront.
-The last step to set up
-&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Group&lt;/a&gt;
-for our API endpoint’s ALB to allow connections only from CloudFront IP addresses.&lt;/p&gt;
-
-&lt;h2 id=&quot;security-groups&quot;&gt;Security Groups&lt;/h2&gt;
-
-&lt;p&gt;We use 
-&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html&quot;&gt;Security Groups&lt;/a&gt;
-to limit traffic coming to the ALB by IP addresses.
-Right now we need to include CloudFront IP addresses
-to the list.&lt;/p&gt;
-
-&lt;p&gt;AWS Security Group has the
-&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html&quot;&gt;limit&lt;/a&gt;
-for the number of ingress/egress rules, e.g. IP addresses.
-You may need to create several security groups
-to list all addresses, if you have more than 60 (state 2019-02-09).
-You may guess, that there are more than 60 CloudFront IP addresses.&lt;/p&gt;
-
-&lt;h2 id=&quot;cloudfront-ip-addresses&quot;&gt;CloudFront IP Addresses&lt;/h2&gt;
-
-&lt;p&gt;AWS has the endpoint that
-&lt;a href=&quot;https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html&quot;&gt;lists all IP addresses&lt;/a&gt;
-of their services. Terraform has the command to access the list:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-terrafrom&quot;&gt;data &quot;aws_ip_ranges&quot; &quot;cloudfront&quot; {
-    services = [&quot;cloudfront&quot;]
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The only downside — we will need to re-run the deployment to make sure we
-have the correct configuration to make sure a new IP address may not be included
-in the settings, and the service
-may not be accessible for some customers. I have no idea, how frequent the
-list may change, probably not too frequent. Let’s assume we run the deployment
-frequent enough. A &lt;a href=&quot;https://jetbrains.com/teamcity&quot;&gt;CI&lt;/a&gt; can be used to automate it.&lt;/p&gt;
-
-&lt;h2 id=&quot;settings-up-security-groups&quot;&gt;Settings up Security Groups&lt;/h2&gt;
-
-&lt;p&gt;Let’s create several security groups to overcome the
-&lt;a href=&quot;https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html&quot;&gt;limit&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Terraform has necessary functions for that. Here we use the &lt;code class=&quot;highlighter-rouge&quot;&gt;chunklist&lt;/code&gt;
-function to split the full list of CloudFront IP addresses into
-a list of lists. We specify the number of elements, e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;30&lt;/code&gt; and the function
-returns us the a list, where every element of it is a list of not more than &lt;code class=&quot;highlighter-rouge&quot;&gt;30&lt;/code&gt;
-elements. Let’s use the following code in Terraform to split IP addresses by
-future security groups:&lt;/p&gt;
-
-&lt;div class=&quot;language-terraform highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nx&quot;&gt;locals&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nx&quot;&gt;chunks_v4&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;chunklist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;aws_ip_ranges&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cloudfront&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;cidr_blocks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;30&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;creating-security-groups&quot;&gt;Creating Security Groups&lt;/h2&gt;
-
-&lt;p&gt;We need to instruct Terraform to create several
-Security Groups for us to reach the goal. We use &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt;
-&lt;a href=&quot;https://www.terraform.io/docs/configuration/resources.html&quot;&gt;attribute&lt;/a&gt;
-in Terraform to instruct it to create several resources with
-one declaration:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;resource &quot;aws_security_group&quot; &quot;cloudfront&quot; {
-    count = &quot;${length(local.chunks_v4)}&quot;
-    
-    //...
-    
-    ingress {
-        from_port = 443
-        to_port   = 443
-        protocol  = &quot;tcp&quot;
-        cidr_blocks = [&quot;${local.chunks_v4[count.index]}&quot;]
-    }
-
-    egress {
-        from_port = 0
-        to_port   = 0
-        protocol  = &quot;-1&quot;
-        cidr_blocks = [&quot;0.0.0.0/0&quot;]
-    }
-
-    lifecycle {
-        create_before_destroy = true
-    }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Terraform creates &lt;code class=&quot;highlighter-rouge&quot;&gt;count&lt;/code&gt; resources for us, for every resource,
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;count.index&lt;/code&gt; expression returns the current index (from 0 to &lt;code class=&quot;highlighter-rouge&quot;&gt;count - 1&lt;/code&gt;).
-In &lt;a href=&quot;/blog/2018/07/23/terraform-if/&quot;&gt;the corner case&lt;/a&gt;, when &lt;code class=&quot;highlighter-rouge&quot;&gt;count = 0&lt;/code&gt;, it does not
-create resources at all.&lt;/p&gt;
-
-&lt;p&gt;We need to create &lt;code class=&quot;highlighter-rouge&quot;&gt;count = length(local.chunks_v4)&lt;/code&gt; Security Groups.
-The &lt;code class=&quot;highlighter-rouge&quot;&gt;local.chunks_v4[count.index]&lt;/code&gt; selects the next chunk of CloudFront
-IP addresses to fill into the next security group.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;We found an easy way to configure IP addresses filter for an Application Load Balancer
-to allow incoming traffic only from CloudFront IP addresses. We made Terraform to create
-and maintain several Security Groups to overcome the limits.&lt;/p&gt;
-
-&lt;p&gt;You may also want to read my previous post on how to implement
-&lt;a href=&quot;/blog/2018/07/23/terraform-if/&quot;&gt;an If Statement&lt;/a&gt;
-analog in Terraform.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="aws" />
-  
-    <category term="security-group" />
-  
-    <category term="infrastructure" />
-  
-    <category term="terraform" />
-  
-    <category term="devops" />
-  
-    <category term="clouds" />
-  
-    <summary type="html">CloudFront IP addresses in AWS Security Group</summary>
   
   </entry>
   
