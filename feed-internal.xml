@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2022-05-23T20:18:32+00:00</updated>
+  <updated>2022-05-24T09:28:40+00:00</updated>
   <id>/</id>
 
   
@@ -36,7 +36,7 @@ Now I can share the trick with you.&lt;/p&gt;
 
 &lt;p&gt;In short, there are two tricks that make it possible:&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;move &lt;code class=&quot;highlighter-rouge&quot;&gt;some-part.build.gradle.kts&lt;/code&gt; under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; sources (to have accessors generated)&lt;/li&gt;
+  &lt;li&gt;move &lt;code class=&quot;highlighter-rouge&quot;&gt;some-part.build.gradle.kts&lt;/code&gt; under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; sources (to have accessors generated via &lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:precompiled_plugins&quot;&gt;precompiled plugins&lt;/a&gt;)&lt;/li&gt;
   &lt;li&gt;use &lt;code class=&quot;highlighter-rouge&quot;&gt;$id:$id.gradle.plugin&lt;/code&gt; to include your plugins as dependencies in &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -140,6 +140,8 @@ the obvious workaround is to copy (or inline) the generated code to our
 &lt;p&gt;After years of using Gradle Kotlin DSL, I found a better solution. 
 Gradle includes accessors for &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files which are 
 under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; directory.
+See &lt;a href=&quot;https://docs.gradle.org/current/userguide/custom_plugins.html#sec:precompiled_plugins&quot;&gt;precompiled plugins&lt;/a&gt;
+for more information.
 It also turns such files into Gradle plugins, so we should use
 either &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins { &lt;/code&gt;name&lt;code class=&quot;highlighter-rouge&quot;&gt; }&lt;/code&gt; block or &lt;code class=&quot;highlighter-rouge&quot;&gt;apply(plugin = &quot;name&quot;)&lt;/code&gt; syntax
 to enable them.&lt;/p&gt;
@@ -246,6 +248,14 @@ of the same plugin anyway.&lt;/p&gt;
 &lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;plugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;plugin-include.build&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
+&lt;p&gt;Alternatively, and better, if you only need to include the script to the project, 
+you may just use the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins { ... }&lt;/code&gt; block instead of the &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&lt;/code&gt; function call:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;plugins {
+  id(&quot;plugin-include.build&quot;)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
 &lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; files from &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; are turned into Gradle plugins, that name of the
 plugin is generated from the original file name by removing &lt;code class=&quot;highlighter-rouge&quot;&gt;.gradle.kts&lt;/code&gt; suffix.&lt;/p&gt;
 
@@ -263,7 +273,10 @@ check out:&lt;/p&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; — Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; — a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project with Kotlin, ad-hoc plugins and extensions&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; — Groovy Closure and Kotlin DSL&lt;/li&gt;
-&lt;/ul&gt;</content>
+&lt;/ul&gt;
+
+&lt;p&gt;I’d like to thank &lt;a href=&quot;https://twitter.com/VladimirSitnikv&quot;&gt;Vladimir Sitnikov&lt;/a&gt; for corrections
+and suggestions to that port.&lt;/p&gt;</content>
 
   
   

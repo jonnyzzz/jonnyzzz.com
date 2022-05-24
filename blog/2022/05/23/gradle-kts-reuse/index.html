@@ -187,7 +187,7 @@ Now I can share the trick with you.</p>
 
 <p>In short, there are two tricks that make it possible:</p>
 <ul>
-  <li>move <code class="highlighter-rouge">some-part.build.gradle.kts</code> under <code class="highlighter-rouge">buildSrc</code> sources (to have accessors generated)</li>
+  <li>move <code class="highlighter-rouge">some-part.build.gradle.kts</code> under <code class="highlighter-rouge">buildSrc</code> sources (to have accessors generated via <a href="https://docs.gradle.org/current/userguide/custom_plugins.html#sec:precompiled_plugins">precompiled plugins</a>)</li>
   <li>use <code class="highlighter-rouge">$id:$id.gradle.plugin</code> to include your plugins as dependencies in <code class="highlighter-rouge">buildSrc</code> project</li>
 </ul>
 
@@ -291,6 +291,8 @@ the obvious workaround is to copy (or inline) the generated code to our
 <p>After years of using Gradle Kotlin DSL, I found a better solution. 
 Gradle includes accessors for <code class="highlighter-rouge">.gradle.kts</code> files which are 
 under the <code class="highlighter-rouge">buildSrc</code> directory.
+See <a href="https://docs.gradle.org/current/userguide/custom_plugins.html#sec:precompiled_plugins">precompiled plugins</a>
+for more information.
 It also turns such files into Gradle plugins, so we should use
 either <code class="highlighter-rouge">plugins { </code>name<code class="highlighter-rouge"> }</code> block or <code class="highlighter-rouge">apply(plugin = "name")</code> syntax
 to enable them.</p>
@@ -397,6 +399,14 @@ of the same plugin anyway.</p>
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">apply</span><span class="p">(</span><span class="n">plugin</span> <span class="p">=</span> <span class="s">"plugin-include.build"</span><span class="p">)</span>
 </code></pre></div></div>
 
+<p>Alternatively, and better, if you only need to include the script to the project, 
+you may just use the <code class="highlighter-rouge">plugins { ... }</code> block instead of the <code class="highlighter-rouge">apply</code> function call:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>plugins {
+  id("plugin-include.build")
+}
+</code></pre></div></div>
+
 <p>The <code class="highlighter-rouge">.gradle.kts</code> files from <code class="highlighter-rouge">buildSrc</code> are turned into Gradle plugins, that name of the
 plugin is generated from the original file name by removing <code class="highlighter-rouge">.gradle.kts</code> suffix.</p>
 
@@ -415,6 +425,9 @@ check out:</p>
   <li><a href="/blog/2019/05/20/gradle-kotlin-migration-3/">third post</a> — a <code class="highlighter-rouge">buildSrc</code> project with Kotlin, ad-hoc plugins and extensions</li>
   <li><a href="/blog/2019/06/25/gradle-kotlin-migration-4/">fourth post</a> — Groovy Closure and Kotlin DSL</li>
 </ul>
+
+<p>I’d like to thank <a href="https://twitter.com/VladimirSitnikv">Vladimir Sitnikov</a> for corrections
+and suggestions to that port.</p>
 
         
           <div id="disqus_thread"></div><!-- /#disqus_thread -->
