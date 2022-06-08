@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2022-05-24T09:28:40+00:00</updated>
+  <updated>2022-06-08T20:38:18+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,320 @@
   
 
   
+  
+  <entry>
+    <title type="html">Cross-process Lambdas</title>
+    <link href="https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" rel="alternate" type="text/html" title="Cross-process Lambdas" />
+    <published>2022-06-08T00:00:00+00:00</published>
+    <updated>2022-06-08T00:00:00+00:00</updated>
+    <id>/blog/2022/06/08/cross-process-lambdas</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/">&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+
+&lt;p&gt;I’ve been working to invent a black-box integration test
+framework for our plugin which does the following:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;creates an environment in the first JVM&lt;/li&gt;
+  &lt;li&gt;starts the second JVM process with the plugin&lt;/li&gt;
+  &lt;li&gt;makes some action inside the started JVM&lt;/li&gt;
+  &lt;li&gt;checks the expected effects from outside the application&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Essentially, my problem was — how to create a lambda in one JVM
+and execute it in the other JVM. In the post, I discuss approaches
+to create integration tests like that:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;exampleTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;setupEnvironmentForTestion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;startProcessAndRun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;weDoThatInTheExternalProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;toMakeTestScenario&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;checkExpectations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Ideally, the solution should allow using captured variables
+between processes too.
+For example:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;exampleTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;capturedVariable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;setupEnvironmentForTestion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;startProcessAndRun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;weDoThatInTheExternalProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;capturedVariable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;toMakeTestScenario&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;checkExpectations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In this post, we’ll explore several ways to create a lambda in one JVM
+and execute it in the other JVM processes.&lt;/p&gt;
+
+&lt;h2 id=&quot;whole-class-approach&quot;&gt;Whole Class Approach&lt;/h2&gt;
+
+&lt;p&gt;The very first approach could be to have the whole &lt;code class=&quot;highlighter-rouge&quot;&gt;exampleTest&lt;/code&gt;
+function execute in the second JVM. We may need to replace
+&lt;code class=&quot;highlighter-rouge&quot;&gt;setupEnvironmentForTestion()&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;checkExpectations()&lt;/code&gt; implementations
+on the second JVM with empty stubs for that. It is hard to
+pass data between processes. Finally, a code may look like:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;exampleTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;runInHost&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;setupEnvironmentForTestion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;startProcessAndRun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;weDoThatInTheExternalProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;toMakeTestScenario&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;runInHost&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;checkExpectations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It is a powerful approach from one side, but it is more constrained. 
+It is quite hard to pass parameters between processes, for example.&lt;/p&gt;
+
+&lt;p&gt;So far, that scenario is hard to apply for my use-case.
+Let’s cover more lambda-specific approaches.&lt;/p&gt;
+
+&lt;h2 id=&quot;dealing-with-lambdas&quot;&gt;Dealing with Lambdas&lt;/h2&gt;
+
+&lt;p&gt;I’ve a set of
+&lt;a href=&quot;https://github.com/jonnyzzz/serialized-lambda&quot;&gt;test cases&lt;/a&gt;
+to see how lambdas behave
+in different contexts.
+Each test has two examples just like we’ve had above:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;a lambda with no captured parameters&lt;/li&gt;
+  &lt;li&gt;a lambda with a captured local variable&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This pattern is repeated many times in Java and in Kotlin to
+try different approaches to the lambda:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;lambda implementing &lt;code class=&quot;highlighter-rouge&quot;&gt;Runnable&lt;/code&gt; (Java and Kotlin)&lt;/li&gt;
+  &lt;li&gt;lambda implementing custom interface (Java and Kotlin)&lt;/li&gt;
+  &lt;li&gt;Kotlin lambda for a Kotlin functional type&lt;/li&gt;
+  &lt;li&gt;Kotlin inline functions with inline lambda&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In addition to that, we try wrapping a lambda with a higher order function
+which returns another lambda.&lt;/p&gt;
+
+&lt;p&gt;Grab the &lt;a href=&quot;https://github.com/jonnyzzz/serialized-lambda&quot;&gt;project&lt;/a&gt; from
+GitHub and give it a try. We are getting to analyze the results of it&lt;/p&gt;
+
+&lt;h2 id=&quot;using-lambda-constructors&quot;&gt;Using Lambda Constructors&lt;/h2&gt;
+
+&lt;p&gt;The very first approach is to check if a generated lambda class
+has a default constructor. We could use the constructor to create
+an instance of that lambda in the second JVM process.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2022-06-08-lambda-ctor.png&quot; alt=&quot;Test Run Result: Lambda constructors&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Lambdas in Kotlin and in Java do not have default constructors, 
+that is hot hard to check via an example application. Apparently, there is
+a trick that works well. We can implicitly create a class and an object for
+every lambda via 
+&lt;a href=&quot;https://kotlinlang.org/docs/inline-functions.html&quot;&gt;Kotlin Inline functions&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The following code makes Kotlin compiler generate a default constructor for an inlined lambda:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lambdaToClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;crossinline&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;holder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Runnable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;doSomethingWithTheClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;holder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;javaClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Each call of the function &lt;code class=&quot;highlighter-rouge&quot;&gt;lambdaToClass&lt;/code&gt; is inlined by the compiler, 
+so we will have a dedicated class for each function call site. 
+The lambda, which we pass as a parameter, is inlined into the generated
+anonymous class. We are free to make the anonymous class, extend a
+specific class or implement some interfaces.&lt;/p&gt;
+
+&lt;p&gt;NOTE. This approach is based on the side effects of Kotlin compiler.
+Future versions of Kotlin compiler may behave differently and break
+that solution.&lt;/p&gt;
+
+&lt;p&gt;The generated anonymous class has a default contractor with no parameters,
+when there are no captured variables. The constructor will have more parameters
+for captured variables. So far, that solution works, but it is not
+flexible enough. Let’s see if serialization can be used instead.&lt;/p&gt;
+
+&lt;h2 id=&quot;using-lambda-serialization&quot;&gt;Using Lambda Serialization&lt;/h2&gt;
+
+&lt;p&gt;For this series of experiments, we will be using JDK’s standard
+&lt;code class=&quot;highlighter-rouge&quot;&gt;ObjectInputStream&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;ObjectOutputStream&lt;/code&gt; to serialize a lambda in
+one process and to load the serialized one on the other JVM process.
+The following code is used to save and load the lambda:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;bytes&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ByteArrayOutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;use&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bos&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ObjectOutputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;use&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;bos&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toByteArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;reloaded&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bytes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;use&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bis&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;ObjectInputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bis&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now it’s time to run all the experiments and see the outcomes:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2022-06-08-lambda-serialized.png&quot; alt=&quot;Test Run Result: Lambda constructors&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;We see the following from the &lt;a href=&quot;https://github.com/jonnyzzz/serialized-lambda&quot;&gt;tests&lt;/a&gt;:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Java’s lambdas are serializable when the respective functional interface implements &lt;code class=&quot;highlighter-rouge&quot;&gt;java.io.Serializable&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Kotlin (from 1.5) generates serializable lambdas for Java serializable functional interfaces&lt;/li&gt;
+  &lt;li&gt;Kotlin’s lambdas for Kotlin functional types (e.g. &lt;code class=&quot;highlighter-rouge&quot;&gt;() -&amp;gt; Unit&lt;/code&gt;) are implicitly serializable&lt;/li&gt;
+  &lt;li&gt;Kotlin’s inlined lambdas can be made serializable if we inline them into a serializable object declaration&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;In Java, we can make a lambda be &lt;code class=&quot;highlighter-rouge&quot;&gt;Serializable&lt;/code&gt; by extending a &lt;code class=&quot;highlighter-rouge&quot;&gt;java.io.Serializable&lt;/code&gt; from
+a functional interface that we use. The same works both in Java and in Kotlin:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;interface&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SerializableRunnable&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Serializable&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Runnable&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; 
+
+&lt;span class=&quot;n&quot;&gt;SerializableRunnable&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serializableLambda&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In Kotlin, we can just create a lambda, and it will be serializable:&lt;/p&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;serializableLambda&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In addition to that, we may apply the same trick with inline function as above,
+but we will not be using the anonymous class directly:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lambdaToClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;crossinline&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;holder&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Runnable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Serializable&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;serializeMe&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;holder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;There are several more interesting fasts:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Lambda in Java are implemented via &lt;code class=&quot;highlighter-rouge&quot;&gt;invokedynamic&lt;/code&gt; and
+JDK’s &lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-&quot;&gt;LambdaMetafactory&lt;/a&gt;
+whose class names are like &lt;code class=&quot;highlighter-rouge&quot;&gt;Simple$$Lambda$55/0x0000000800180040&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Deserialized Java lambda may have another type name&lt;/li&gt;
+  &lt;li&gt;Lambdas for Kotlin functional types implicitly implement Serializable and are now complied as ordinary classes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Starting from &lt;a href=&quot;https://kotlinlang.org/docs/whatsnew15.html#sam-adapters-via-invokedynamic&quot;&gt;Kotlin 1.5&lt;/a&gt;,
+the compiler uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;invokedynamic&lt;/code&gt;
+and JDK’s
+&lt;a href=&quot;https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-&quot;&gt;LambdaMetafactory&lt;/a&gt;
+to implement lambdas for Java-declared
+functional interfaces and &lt;code class=&quot;highlighter-rouge&quot;&gt;fun interface&lt;/code&gt; Kotlin declarations.
+Future &lt;a href=&quot;https://youtrack.jetbrains.com/issue/KT-45375/Generate-all-Kotlin-lambdas-via-invokedynamic-LambdaMetafactory-by-default&quot;&gt;versions&lt;/a&gt;
+will use &lt;code class=&quot;highlighter-rouge&quot;&gt;invokedynamic&lt;/code&gt; all lambdas.&lt;/p&gt;
+
+&lt;p&gt;We see from the &lt;a href=&quot;https://github.com/jonnyzzz/serialized-lambda&quot;&gt;experiments&lt;/a&gt; that
+the easiest way to pass a lambda between JVM processes is to use serialization.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-classpath&quot;&gt;The Classpath&lt;/h2&gt;
+
+&lt;p&gt;Running an arbitrary code in the second JVM process is easy if we have
+the same classpath.&lt;/p&gt;
+
+&lt;p&gt;My scenario was different, I was only able to execute a Groovy script
+in the second JVM Process. The classpath was totally unrelated, and
+I had to start with classloading. We generate a Groovy script with
+all necessary parameters inlined. It includes:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;classpath of the first process&lt;/li&gt;
+  &lt;li&gt;serialized lambda as Base64&lt;/li&gt;
+  &lt;li&gt;helper entrypoint classname&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Putting everything together, I’ve got:&lt;/p&gt;
+
+&lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;///INSTERT CLASSPATH HERE&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;/// new File(&quot;&amp;lt;PATH GOES HERE&amp;gt;&quot;).toURI().toURL(),&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;classBase64State&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'&amp;lt;PUT SERIALIZED STATE HERE&amp;gt;'&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;X&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;classLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;clazz&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'OurEntryPointClass'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clazz&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;newInstance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;classBase64State&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We use yet another class named &lt;code class=&quot;highlighter-rouge&quot;&gt;OurEntryPointClass&lt;/code&gt; to move
+as much code as possible from the Groovy script. The classloader,
+which we use to load our classes from the first JVM,
+delegates to the parent loader first, so we have to be
+careful with different versions of the same libraries that we use
+in both processes.&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;OurEntryPointClass&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
+  &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;execute&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;oldLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;javaClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;loadedLambda&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Base64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getDecoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;text&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;let&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ObjectInputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Runnable&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;?:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Failed to load Consumer&amp;lt;Project&amp;gt; from the lambda&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;loadedLambda&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;finally&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;oldLoader&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Passing a lambda between JVM processes is not hard. There are multiple ways
+to solve that goal. Serialization works greatly for that!
+I hope my examples will help you to solve your problem
+in the future. I’d be grateful &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;to know&lt;/a&gt; your
+use-cases too.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="kotlin" />
+  
+    <category term="java" />
+  
+    <category term="jvm" />
+  
+    <category term="lambda" />
+  
+    <category term="serialization" />
+  
+    <category term="bytecode" />
+  
+    <category term="kotlin-bytecode" />
+  
+    <category term="groovy" />
+  
+    <summary type="html">Create a Lambda in one JVM to run it in another JVM</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Gradle Kotlin DSL - Code Reuse</title>
@@ -2137,185 +2451,6 @@ the fantastic plugin done by a friend of mine:
     <category term="clouds" />
   
     <summary type="html">IP whitelists for AWS Cloud Front WAF and Security Groups with Terraform</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Migrating to Gradle Kotlin DSL - Kotlin</title>
-    <link href="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Kotlin" />
-    <published>2019-04-02T00:00:00+00:00</published>
-    <updated>2019-04-02T00:00:00+00:00</updated>
-    <id>/blog/2019/04/02/gradle-kotlin-migration-2</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/04/02/gradle-kotlin-migration-2/">&lt;p&gt;Are you using Kotlin in your project?
-Let’s use the Kotlin DSL to configure the builds of our project
-with the &lt;a href=&quot;https://gradle.org/kotlin&quot;&gt;Gradle Kotlin DSL&lt;/a&gt;.
-In the post, we will cover several configuration tricks I found
-very useful for my Kotlin projects in Gradle.&lt;/p&gt;
-
-&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;previous post&lt;/a&gt;
-for practical recommendations on migrating from Groovy to Kotlin
-build scripts.&lt;/p&gt;
-
-&lt;h2 id=&quot;enable-kotlin-plugin&quot;&gt;Enable Kotlin Plugin&lt;/h2&gt;
-
-&lt;p&gt;The quickest way to enable Kotlin in your Gradle build is&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; 
-  &lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.3.21&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Gradle adds the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin()&lt;/code&gt; helper function to simplify your build scripts. The Kotlin standard
-library dependencies can be configured in the same way with the help of different &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin&lt;/code&gt; functions&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;stdlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;reflect&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;You don’t need to include the Kotlin version dependencies. The Kotlin plugin for Gradle
-configures the dependencies resolution, so every Kotlin standard library dependency
-will use the same Kotlin version out of the box.&lt;/p&gt;
-
-&lt;h2 id=&quot;configuring-kotlin-compilation-tasks&quot;&gt;Configuring Kotlin Compilation Tasks&lt;/h2&gt;
-
-&lt;p&gt;You can configure Kotlin in the Gradle scripts in Groovy. It will look something like this&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;compileKotlin&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;c1&quot;&gt;// ...&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;suppressWarnings&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
-    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Do you see the downside? Yes, you may have seen there are &lt;code class=&quot;highlighter-rouge&quot;&gt;compileKotlin&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;compileTestKotlin&lt;/code&gt; tasks,
-which means the second one is not configured. Let’s fix it in the Kotlin script.&lt;/p&gt;
-
-&lt;p&gt;The code from above will unfortunately not work in a Kotlin Gradle DSL. We need to refer explicitly to
-a task element of the &lt;code class=&quot;highlighter-rouge&quot;&gt;tasks&lt;/code&gt; property of a &lt;code class=&quot;highlighter-rouge&quot;&gt;project&lt;/code&gt;. Let’s not forget to configure
-all the Kotlin tasks for the project.&lt;/p&gt;
-
-&lt;p&gt;Here is what I found works for configuring all the Kotlin tasks in a Kotlin DSL in one fell swoop:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.tasks.*&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinCompile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;kotlinOptions&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;jvmTarget&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.8&quot;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;freeCompilerArgs&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-progressive&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;asks.withType&amp;lt;T&amp;gt;&lt;/code&gt; function will run the lambda for every existing and newly
-added task of the given type.&lt;/p&gt;
-
-&lt;h2 id=&quot;kotlin-version-in-dependencies&quot;&gt;Kotlin Version in Dependencies&lt;/h2&gt;
-
-&lt;p&gt;With transitive dependencies it could turn out that we use are using older libraries in our project.
-Kotlin &lt;a href=&quot;https://kotlinlang.org/docs/reference/evolution/components-stability.html&quot;&gt;guarantees compatibility&lt;/a&gt;,
-but still, I’d make sure I am using the actual libraries when possible.&lt;/p&gt;
-
-&lt;p&gt;Let’s check to make sure we are using the same version of the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and
-the other &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-*&lt;/code&gt; libraries, like for instance, &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;The following Gradle script works for this in Kotlin:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jetbrains.kotlin.gradle.plugin.*&lt;/span&gt;
-&lt;span class=&quot;c1&quot;&gt;//https://youtrack.jetbrains.com/issue/KT-19788&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;kotlinVersion&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lazy&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;withType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KotlinBasePluginWrapper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlinPluginVersion&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;distinct&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;single&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;configurations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resolutionStrategy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;eachDependency&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;requested&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;group&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;requested&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startsWith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kotlin-&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-      &lt;span class=&quot;n&quot;&gt;useVersion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlinVersion&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;You may be asking yourself, why do we need to use code trickery for the &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlinVersion&lt;/code&gt; variable?
-The simple answer is, in Gradle we cannot use variables inside the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
-This means that it’s impossible to share the Kotlin version as a variable between the &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt;
-block and the rest of the script.&lt;/p&gt;
-
-&lt;p&gt;The ancient &lt;code class=&quot;highlighter-rouge&quot;&gt;buildscript{..}&lt;/code&gt; block does allow it. I prefer the shorter and more explicit 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block instead to configure Gradle plugins in builds.&lt;/p&gt;
-
-&lt;p&gt;You may want to vote on this issue
-&lt;a href=&quot;https://youtrack.jetbrains.com/issue/KT-19788&quot;&gt;KT-19788&lt;/a&gt;
-to make the Gradle Kotlin plugin declare its version.&lt;/p&gt;
-
-&lt;h2 id=&quot;kotlin-dsl-plugin-and-buildsrc&quot;&gt;Kotlin-Dsl Plugin and buildSrc&lt;/h2&gt;
-
-&lt;p&gt;There is yet another experimental plugin, maintained by Gradle, that helps us to
-use Kotlin for build logic development in Gradle.&lt;/p&gt;
-
-&lt;p&gt;The plugin is called &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-dsl&lt;/code&gt;, you can find more details on it
-in the
-&lt;a href=&quot;https://docs.gradle.org/current/userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The plugin is an excellent choice for a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project. It simplifies the setup,
-configures all the dependencies, including &lt;code class=&quot;highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; and Gradle’s own build script related
-classes. We will discuss &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; projects and my findings in more detail in the next post.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
-seems to play well with writing Gradle build scripts.
-Thanks to the static type inference, the Kotlin compiler detects errors earlier and
-shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use information about types to infer
-the available functions and properties in a given scope, even inside a 5th level
-nested lambda with receivers.&lt;/p&gt;
-
-&lt;p&gt;You may remember from the
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;previous post&lt;/a&gt;
-that our example project is written entirely in Kotlin, in that post we 
-learned how to configure Kotlin compilation tasks and dependencies in
-Kotlin.&lt;/p&gt;
-
-&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
-Check out the:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; - Diving deeper with plugins, extension, buildSrc&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="gradle-kotlin" />
-  
-    <category term="gradle-kts" />
-  
-    <category term="gradle-groovy" />
-  
-    <category term="kts" />
-  
-    <category term="kotlin" />
-  
-    <category term="groovy" />
-  
-    <category term="build" />
-  
-    <category term="refactoring" />
-  
-    <summary type="html">Kotlin tasks in Gradle Kotlin DSL</summary>
   
   </entry>
   

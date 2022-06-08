@@ -1,0 +1,567 @@
+<!doctype html>
+<!--[if lt IE 7]><html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if (IE 7)&!(IEMobile)]><html class="no-js lt-ie9 lt-ie8" lang="en"><![endif]-->
+<!--[if (IE 8)&!(IEMobile)]><html class="no-js lt-ie9" lang="en"><![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"><!--<![endif]-->
+<head>
+<meta charset="utf-8" />
+<title>Cross-process Lambdas &#8211; Eugene Petrenko</title>
+<meta name="description" content="Create a Lambda in one JVM to run it in another JVM"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, java, jvm, lambda, serialization, bytecode, kotlin-bytecode, groovy" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Cross-process Lambdas -- Eugene Petrenko" />
+<meta name="twitter:description" content="Create a Lambda in one JVM to run it in another JVM" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Cross-process Lambdas -- Eugene Petrenko" />
+<meta property="og:description" content="Create a Lambda in one JVM to run it in another JVM" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="java" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="lambda" />
+
+<meta property="article:tag" content="serialization" />
+
+<meta property="article:tag" content="bytecode" />
+
+<meta property="article:tag" content="kotlin-bytecode" />
+
+<meta property="article:tag" content="groovy" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<!-- Webfonts -->
+<script src="https://use.edgefonts.net/source-sans-pro:n2,i2,n3,i3,n4,i4,n6,i6,n7,i7,n9,i9;source-code-pro:n4,n7;volkhov.js"></script>
+
+<meta http-equiv="cleartype" content="on" />
+
+<!-- HTML5 Shiv and Media Query Support -->
+<!--[if lt IE 9]>
+  <script src="/assets/js/vendor/html5shiv.min.js"></script>
+  <script src="/assets/js/vendor/respond.min.js"></script>
+<![endif]-->
+
+<!-- Modernizr -->
+<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav" class="animated drop">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<!--[if lt IE 9]><div class="upgrade"><strong><a href="http://whatbrowser.org/">Your browser is quite old!</strong> Why not upgrade to a different browser to better enjoy this site?</a></div><![endif]-->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#lambda" title="Pages tagged lambda">lambda</a></li><li><a href="/tags/#serialization" title="Pages tagged serialization">serialization</a></li><li><a href="/tags/#bytecode" title="Pages tagged bytecode">bytecode</a></li><li><a href="/tags/#kotlin-bytecode" title="Pages tagged kotlin-bytecode">kotlin-bytecode</a></li><li><a href="/tags/#groovy" title="Pages tagged groovy">groovy</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Cross-process Lambdas</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2022-06-08T00:00:00+00:00"><i class="fa fa-calendar-o"></i> June 08, 2022</time></span>
+        
+        <span class="entry-comments"><i class="fa fa-comment-o"></i> <a href="#disqus_thread">Comment</a></span>
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,java,jvm,lambda,serialization,bytecode,kotlin-bytecode,groovy&amp;text=Cross-process%20Lambdas&amp;url=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <h2 id="introduction">Introduction</h2>
+
+<p>I’ve been working to invent a black-box integration test
+framework for our plugin which does the following:</p>
+<ul>
+  <li>creates an environment in the first JVM</li>
+  <li>starts the second JVM process with the plugin</li>
+  <li>makes some action inside the started JVM</li>
+  <li>checks the expected effects from outside the application</li>
+</ul>
+
+<p>Essentially, my problem was — how to create a lambda in one JVM
+and execute it in the other JVM. In the post, I discuss approaches
+to create integration tests like that:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="n">startProcessAndRun</span> <span class="p">{</span>
+    <span class="n">weDoThatInTheExternalProcess</span><span class="p">()</span>
+    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="p">}</span>
+  <span class="n">checkExpectations</span><span class="p">()</span>  
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Ideally, the solution should allow using captured variables
+between processes too.
+For example:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">capturedVariable</span> <span class="p">=</span> <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="n">startProcessAndRun</span> <span class="p">{</span>
+    <span class="n">weDoThatInTheExternalProcess</span><span class="p">(</span><span class="n">capturedVariable</span><span class="p">)</span>
+    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="p">}</span>
+  <span class="n">checkExpectations</span><span class="p">()</span>  
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In this post, we’ll explore several ways to create a lambda in one JVM
+and execute it in the other JVM processes.</p>
+
+<h2 id="whole-class-approach">Whole Class Approach</h2>
+
+<p>The very first approach could be to have the whole <code class="highlighter-rouge">exampleTest</code>
+function execute in the second JVM. We may need to replace
+<code class="highlighter-rouge">setupEnvironmentForTestion()</code> and <code class="highlighter-rouge">checkExpectations()</code> implementations
+on the second JVM with empty stubs for that. It is hard to
+pass data between processes. Finally, a code may look like:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">runInHost</span> <span class="p">{</span>
+    <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="p">}</span>
+  <span class="n">startProcessAndRun</span> <span class="p">{</span>
+    <span class="n">weDoThatInTheExternalProcess</span><span class="p">()</span>
+    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="p">}</span>
+  <span class="n">runInHost</span> <span class="p">{</span>
+    <span class="n">checkExpectations</span><span class="p">()</span>
+  <span class="p">}</span>  
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>It is a powerful approach from one side, but it is more constrained. 
+It is quite hard to pass parameters between processes, for example.</p>
+
+<p>So far, that scenario is hard to apply for my use-case.
+Let’s cover more lambda-specific approaches.</p>
+
+<h2 id="dealing-with-lambdas">Dealing with Lambdas</h2>
+
+<p>I’ve a set of
+<a href="https://github.com/jonnyzzz/serialized-lambda">test cases</a>
+to see how lambdas behave
+in different contexts.
+Each test has two examples just like we’ve had above:</p>
+<ul>
+  <li>a lambda with no captured parameters</li>
+  <li>a lambda with a captured local variable</li>
+</ul>
+
+<p>This pattern is repeated many times in Java and in Kotlin to
+try different approaches to the lambda:</p>
+<ul>
+  <li>lambda implementing <code class="highlighter-rouge">Runnable</code> (Java and Kotlin)</li>
+  <li>lambda implementing custom interface (Java and Kotlin)</li>
+  <li>Kotlin lambda for a Kotlin functional type</li>
+  <li>Kotlin inline functions with inline lambda</li>
+</ul>
+
+<p>In addition to that, we try wrapping a lambda with a higher order function
+which returns another lambda.</p>
+
+<p>Grab the <a href="https://github.com/jonnyzzz/serialized-lambda">project</a> from
+GitHub and give it a try. We are getting to analyze the results of it</p>
+
+<h2 id="using-lambda-constructors">Using Lambda Constructors</h2>
+
+<p>The very first approach is to check if a generated lambda class
+has a default constructor. We could use the constructor to create
+an instance of that lambda in the second JVM process.</p>
+
+<p><img src="https://jonnyzzz.com/images/posts/2022-06-08-lambda-ctor.png" alt="Test Run Result: Lambda constructors" /></p>
+
+<p>Lambdas in Kotlin and in Java do not have default constructors, 
+that is hot hard to check via an example application. Apparently, there is
+a trick that works well. We can implicitly create a class and an object for
+every lambda via 
+<a href="https://kotlinlang.org/docs/inline-functions.html">Kotlin Inline functions</a>.</p>
+
+<p>The following code makes Kotlin compiler generate a default constructor for an inlined lambda:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">holder</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">Runnable</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
+      <span class="n">action</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">doSomethingWithTheClass</span><span class="p">(</span><span class="n">holder</span><span class="p">.</span><span class="n">javaClass</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Each call of the function <code class="highlighter-rouge">lambdaToClass</code> is inlined by the compiler, 
+so we will have a dedicated class for each function call site. 
+The lambda, which we pass as a parameter, is inlined into the generated
+anonymous class. We are free to make the anonymous class, extend a
+specific class or implement some interfaces.</p>
+
+<p>NOTE. This approach is based on the side effects of Kotlin compiler.
+Future versions of Kotlin compiler may behave differently and break
+that solution.</p>
+
+<p>The generated anonymous class has a default contractor with no parameters,
+when there are no captured variables. The constructor will have more parameters
+for captured variables. So far, that solution works, but it is not
+flexible enough. Let’s see if serialization can be used instead.</p>
+
+<h2 id="using-lambda-serialization">Using Lambda Serialization</h2>
+
+<p>For this series of experiments, we will be using JDK’s standard
+<code class="highlighter-rouge">ObjectInputStream</code> and <code class="highlighter-rouge">ObjectOutputStream</code> to serialize a lambda in
+one process and to load the serialized one on the other JVM process.
+The following code is used to save and load the lambda:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">bytes</span> <span class="p">=</span> <span class="n">ByteArrayOutputStream</span><span class="p">().</span><span class="n">use</span> <span class="p">{</span> <span class="n">bos</span> <span class="p">-&gt;</span>
+  <span class="n">ObjectOutputStream</span><span class="p">(</span><span class="n">bos</span><span class="p">).</span><span class="n">use</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">writeObject</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">bos</span><span class="p">.</span><span class="n">toByteArray</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="kd">val</span> <span class="py">reloaded</span> <span class="p">=</span> <span class="n">bytes</span><span class="p">.</span><span class="n">inputStream</span><span class="p">().</span><span class="n">use</span> <span class="p">{</span> <span class="n">bis</span> <span class="p">-&gt;</span>
+  <span class="n">ObjectInputStream</span><span class="p">(</span><span class="n">bis</span><span class="p">).</span><span class="n">readObject</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Now it’s time to run all the experiments and see the outcomes:</p>
+
+<p><img src="https://jonnyzzz.com/images/posts/2022-06-08-lambda-serialized.png" alt="Test Run Result: Lambda constructors" /></p>
+
+<p>We see the following from the <a href="https://github.com/jonnyzzz/serialized-lambda">tests</a>:</p>
+<ul>
+  <li>Java’s lambdas are serializable when the respective functional interface implements <code class="highlighter-rouge">java.io.Serializable</code></li>
+  <li>Kotlin (from 1.5) generates serializable lambdas for Java serializable functional interfaces</li>
+  <li>Kotlin’s lambdas for Kotlin functional types (e.g. <code class="highlighter-rouge">() -&gt; Unit</code>) are implicitly serializable</li>
+  <li>Kotlin’s inlined lambdas can be made serializable if we inline them into a serializable object declaration</li>
+</ul>
+
+<p>In Java, we can make a lambda be <code class="highlighter-rouge">Serializable</code> by extending a <code class="highlighter-rouge">java.io.Serializable</code> from
+a functional interface that we use. The same works both in Java and in Kotlin:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">SerializableRunnable</span> <span class="kd">extends</span> <span class="n">Serializable</span><span class="o">,</span> <span class="n">Runnable</span> <span class="o">{</span> <span class="o">}</span> 
+
+<span class="n">SerializableRunnable</span> <span class="n">serializableLambda</span> <span class="o">=</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span> <span class="o">};</span>
+</code></pre></div></div>
+
+<p>In Kotlin, we can just create a lambda, and it will be serializable:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">serializableLambda</span> <span class="p">=</span> <span class="p">{</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>In addition to that, we may apply the same trick with inline function as above,
+but we will not be using the anonymous class directly:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">holder</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">Runnable</span><span class="p">,</span> <span class="n">Serializable</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
+      <span class="n">action</span><span class="p">()</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="n">serializeMe</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>There are several more interesting fasts:</p>
+<ul>
+  <li>Lambda in Java are implemented via <code class="highlighter-rouge">invokedynamic</code> and
+JDK’s <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">LambdaMetafactory</a>
+whose class names are like <code class="highlighter-rouge">Simple$$Lambda$55/0x0000000800180040</code></li>
+  <li>Deserialized Java lambda may have another type name</li>
+  <li>Lambdas for Kotlin functional types implicitly implement Serializable and are now complied as ordinary classes</li>
+</ul>
+
+<p>Starting from <a href="https://kotlinlang.org/docs/whatsnew15.html#sam-adapters-via-invokedynamic">Kotlin 1.5</a>,
+the compiler uses the <code class="highlighter-rouge">invokedynamic</code>
+and JDK’s
+<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">LambdaMetafactory</a>
+to implement lambdas for Java-declared
+functional interfaces and <code class="highlighter-rouge">fun interface</code> Kotlin declarations.
+Future <a href="https://youtrack.jetbrains.com/issue/KT-45375/Generate-all-Kotlin-lambdas-via-invokedynamic-LambdaMetafactory-by-default">versions</a>
+will use <code class="highlighter-rouge">invokedynamic</code> all lambdas.</p>
+
+<p>We see from the <a href="https://github.com/jonnyzzz/serialized-lambda">experiments</a> that
+the easiest way to pass a lambda between JVM processes is to use serialization.</p>
+
+<h2 id="the-classpath">The Classpath</h2>
+
+<p>Running an arbitrary code in the second JVM process is easy if we have
+the same classpath.</p>
+
+<p>My scenario was different, I was only able to execute a Groovy script
+in the second JVM Process. The classpath was totally unrelated, and
+I had to start with classloading. We generate a Groovy script with
+all necessary parameters inlined. It includes:</p>
+<ul>
+  <li>classpath of the first process</li>
+  <li>serialized lambda as Base64</li>
+  <li>helper entrypoint classname</li>
+</ul>
+
+<p>Putting everything together, I’ve got:</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">URL</span><span class="o">[]</span> <span class="n">cp</span> <span class="o">=</span> <span class="o">[</span>
+  <span class="c1">///INSTERT CLASSPATH HERE</span>
+  <span class="c1">/// new File("&lt;PATH GOES HERE&gt;").toURI().toURL(),</span>
+<span class="o">]</span>
+<span class="n">classBase64State</span> <span class="o">=</span> <span class="s1">'&lt;PUT SERIALIZED STATE HERE&gt;'</span>
+<span class="kd">class</span> <span class="nc">X</span><span class="o">{}</span>
+<span class="n">cl</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URLClassLoader</span><span class="o">(</span><span class="n">cp</span><span class="o">,</span> <span class="n">X</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">classLoader</span><span class="o">)</span>
+<span class="n">clazz</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="na">loadClass</span><span class="o">(</span><span class="s1">'OurEntryPointClass'</span><span class="o">)</span>
+<span class="n">loader</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="na">newInstance</span><span class="o">()</span>
+<span class="n">loader</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">classBase64State</span><span class="o">)</span>
+</code></pre></div></div>
+
+<p>We use yet another class named <code class="highlighter-rouge">OurEntryPointClass</code> to move
+as much code as possible from the Groovy script. The classloader,
+which we use to load our classes from the first JVM,
+delegates to the parent loader first, so we have to be
+careful with different versions of the same libraries that we use
+in both processes.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">OurEntryPointClass</span> <span class="p">{</span> 
+  <span class="k">fun</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">oldLoader</span> <span class="p">=</span> <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span>
+    <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">javaClass</span><span class="p">.</span><span class="n">classLoader</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="kd">val</span> <span class="py">loadedLambda</span> <span class="p">=</span> <span class="n">Base64</span><span class="p">.</span><span class="n">getDecoder</span><span class="p">()</span>
+        <span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="n">inputStream</span><span class="p">()</span>
+        <span class="p">.</span><span class="n">let</span><span class="p">(</span><span class="o">::</span><span class="n">ObjectInputStream</span><span class="p">)</span>
+        <span class="p">.</span><span class="n">readObject</span><span class="p">()</span> <span class="k">as</span><span class="p">?</span> <span class="n">Runnable</span>
+        <span class="o">?:</span> <span class="n">error</span><span class="p">(</span><span class="s">"Failed to load Consumer&lt;Project&gt; from the lambda"</span><span class="p">)</span>
+      <span class="n">loadedLambda</span><span class="p">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+      <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">oldLoader</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Passing a lambda between JVM processes is not hard. There are multiple ways
+to solve that goal. Serialization works greatly for that!
+I hope my examples will help you to solve your problem
+in the future. I’d be grateful <a href="https://twitter.com/jonnyzzz">to know</a> your
+use-cases too.</p>
+
+        
+          <div id="disqus_thread"></div><!-- /#disqus_thread -->
+          
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+    var disqus_shortname = 'jonnyzzz'; // required: replace example with your forum shortname
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'https://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function () {
+        var s = document.createElement('script'); s.async = true;
+        s.type = 'text/javascript';
+        s.src = 'https://' + disqus_shortname + '.disqus.com/count.js';
+        (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+    }());
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2022/05/23/gradle-kts-reuse/" class="btn" title="Gradle Kotlin DSL - Code Reuse">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2022 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="/assets/js/scripts.min.js"></script>
+
+
+<!-- Google Analytics -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-70104598-1', 'auto');
+  ga('send', 'pageview');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<!-- MathJax -->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
+</script>
+
+<script async type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
+
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+
+<script async src="/assets/syntax/syntax.js"></script>
+
+<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
