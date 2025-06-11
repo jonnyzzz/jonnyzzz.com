@@ -49,9 +49,6 @@
 <!-- For all browsers -->
 <link rel="stylesheet" href="/assets/css/main.css" />
 
-<!-- Modernizr -->
-<script src="/assets/js/vendor/modernizr-2.7.1.custom.min.js"></script>
-
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
 <link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
@@ -75,7 +72,7 @@
 <body id="post">
 
 <div class="navigation-wrapper">
-	<nav role="navigation" id="site-nav" class="animated drop">
+	<nav role="navigation" id="site-nav">
 	    <ul>
       
 		    
@@ -97,13 +94,11 @@
 	</nav>
 </div><!-- /.navigation-wrapper -->
 
-
-
 <header class="masthead">
 	<div class="wrap">
       
-      <h1 class="site-title animated fadeIn"><a href="/">Eugene Petrenko</a></h1>
-		<h2 class="site-description animated fadeIn" itemprop="description">@jonnyzzz personal page and blog</h2>
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
 	</div>
 </header><!-- /.masthead -->
 
@@ -219,8 +214,14 @@
   var BASE_URL = '';
 </script>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script src="/assets/js/scripts.min.js"></script>
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
 
 
 <!-- Google Analytics (gtag.js) -->
@@ -237,23 +238,12 @@
 
 
 
-<!-- MathJax -->
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
-
-<script type="text/javascript">
-  window.cookieconsent_options = {"message":"This website uses cookies to ensure you get the best experience on our website","dismiss":"Got it!","learnMore":"More info","link":null,"theme":"light-bottom"};
-</script>
-
-<script async type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js"></script>
-
-
 
 <!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
 
-<script async src="/assets/syntax/syntax.js"></script>
-
-<link rel="stylesheet" href="/assets/syntax/syntax.css" />
+<script src="/assets/prismjs/prism.js" ></script>
 
 <!--SYNTAX HIGHLIGHTER ENDS-->
 
