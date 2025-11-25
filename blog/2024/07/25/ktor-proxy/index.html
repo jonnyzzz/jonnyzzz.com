@@ -1,0 +1,463 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Reverse Proxy in Ktor &#8211; Eugene Petrenko</title>
+<meta name="description" content="Building a Streaming HTTP Reverse Proxy with Ktor
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, ktor, reverse proxy, proxy, design, components, dependencies" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Reverse Proxy in Ktor -- Eugene Petrenko" />
+<meta name="twitter:description" content="Building a Streaming HTTP Reverse Proxy with Ktor
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Reverse Proxy in Ktor -- Eugene Petrenko" />
+<meta property="og:description" content="Building a Streaming HTTP Reverse Proxy with Ktor
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="ktor" />
+
+<meta property="article:tag" content="reverse proxy" />
+
+<meta property="article:tag" content="proxy" />
+
+<meta property="article:tag" content="design" />
+
+<meta property="article:tag" content="components" />
+
+<meta property="article:tag" content="dependencies" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#ktor" title="Pages tagged ktor">ktor</a></li><li><a href="/tags/#reverse proxy" title="Pages tagged reverse proxy">reverse proxy</a></li><li><a href="/tags/#proxy" title="Pages tagged proxy">proxy</a></li><li><a href="/tags/#design" title="Pages tagged design">design</a></li><li><a href="/tags/#components" title="Pages tagged components">components</a></li><li><a href="/tags/#dependencies" title="Pages tagged dependencies">dependencies</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Reverse Proxy in Ktor</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2024-07-25T00:00:00+00:00"><i class="fa fa-calendar-o"></i> July 25, 2024</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,ktor,reverseproxy,proxy,design,components,dependencies&amp;text=Reverse%20Proxy%20in%20Ktor&amp;url=https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <h1 id="building-a-streaming-http-reverse-proxy-with-ktor">Building a Streaming HTTP Reverse Proxy with Ktor</h1>
+
+<p>I’ve been looking into Ktor documentation to find something similar to nginx <a href="https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/">proxy_pass</a>
+or Go’s <a href="https://pkg.go.dev/net/http/httputil#ReverseProxy">httputil.NewSingleHostReverseProxy(target)</a>.</p>
+
+<p>Could you please share if we have a similar util in Ktor? Ktor gives you <em>primitives</em> that compose. You build exactly what you need, no more, no less.</p>
+
+<h2 id="the-naive-approach-dont-do-this">The Naive Approach (Don’t Do This)</h2>
+
+<p>A first instinct might be:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">response</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="s">"http://backend$uri"</span><span class="p">)</span>
+<span class="n">call</span><span class="p">.</span><span class="n">respondText</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">bodyAsText</span><span class="p">())</span>
+</code></pre></div></div>
+
+<p>This works for toy examples. It fails spectacularly in production because:</p>
+<ol>
+  <li><strong>It buffers everything</strong> – Say 10-minute Ollama SSE response? All in memory.</li>
+  <li><strong>SSE doesn’t stream</strong> – Events arrive in one big chunk at the end</li>
+  <li><strong>No WebSocket support</strong> – Those upgrade headers? Lost.</li>
+</ol>
+
+<h2 id="the-streaming-solution">The Streaming Solution</h2>
+
+<p>Here’s the insight: Ktor’s HTTP client has <code class="highlighter-rouge">prepareRequest().execute { }</code> for streaming responses. This is like nginx <code class="highlighter-rouge">proxy_pass</code>:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">client</span><span class="p">.</span><span class="n">prepareRequest</span><span class="p">(</span><span class="n">targetUrl</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">method</span> <span class="p">=</span> <span class="n">call</span><span class="p">.</span><span class="n">request</span><span class="p">.</span><span class="n">httpMethod</span>
+    <span class="c1">// Copy headers (excluding hop-by-hop)</span>
+    <span class="n">headers</span> <span class="p">{</span>
+        <span class="n">call</span><span class="p">.</span><span class="n">request</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">forEach</span> <span class="p">{</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span> <span class="p">-&gt;</span>
+            <span class="k">if</span> <span class="p">(!</span><span class="n">isHopByHop</span><span class="p">(</span><span class="n">name</span><span class="p">))</span> <span class="n">appendAll</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">bodyBytes</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="n">setBody</span><span class="p">(</span><span class="n">bodyBytes</span><span class="p">)</span>
+<span class="p">}.</span><span class="n">execute</span> <span class="p">{</span> <span class="n">response</span> <span class="p">-&gt;</span>
+    <span class="c1">// Stream happens HERE, not after</span>
+    <span class="n">call</span><span class="p">.</span><span class="n">respond</span><span class="p">(</span><span class="n">streamingContent</span><span class="p">(</span><span class="n">response</span><span class="p">))</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">execute</code> block receives the response <strong>as it arrives</strong>, not after it completes. This is critical for SSE.</p>
+
+<h2 id="the-streaming-content-challenge">The Streaming Content Challenge</h2>
+
+<p>Now we need to forward that streaming response. Ktor’s <code class="highlighter-rouge">respondBytesWriter</code> seems perfect, but there’s a trap -
+it might buffer internally. The nuclear option is <code class="highlighter-rouge">OutgoingContent.WriteChannelContent()</code>:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">call</span><span class="p">.</span><span class="n">respond</span><span class="p">(</span><span class="kd">object</span> <span class="err">: </span><span class="nc">OutgoingContent</span><span class="p">.</span><span class="n">WriteChannelContent</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">val</span> <span class="py">status</span> <span class="p">=</span> <span class="n">response</span><span class="p">.</span><span class="n">status</span>
+    <span class="k">override</span> <span class="kd">val</span> <span class="py">contentType</span> <span class="p">=</span> <span class="n">response</span><span class="p">.</span><span class="n">contentType</span><span class="p">()</span>
+
+    <span class="k">override</span> <span class="n">suspend</span> <span class="k">fun</span> <span class="nf">writeTo</span><span class="p">(</span><span class="nv">channel</span><span class="p">:</span> <span class="nc">ByteWriteChannel</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">responseBody</span> <span class="p">=</span> <span class="n">response</span><span class="p">.</span><span class="n">bodyAsChannel</span><span class="p">()</span>
+        <span class="kd">val</span> <span class="py">buffer</span> <span class="p">=</span> <span class="n">ByteArray</span><span class="p">(</span><span class="m">256</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="p">(!</span><span class="n">responseBody</span><span class="p">.</span><span class="n">isClosedForRead</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">responseBody</span><span class="p">.</span><span class="n">availableForRead</span> <span class="p">==</span> <span class="m">0</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">if</span> <span class="p">(!</span><span class="n">responseBody</span><span class="p">.</span><span class="n">awaitContent</span><span class="p">())</span> <span class="k">break</span>
+            <span class="p">}</span>
+            <span class="kd">val</span> <span class="py">bytesRead</span> <span class="p">=</span> <span class="n">responseBody</span><span class="p">.</span><span class="n">readAvailable</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">buffer</span><span class="p">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">bytesRead</span> <span class="p">&lt;=</span> <span class="m">0</span><span class="p">)</span> <span class="k">break</span>
+
+            <span class="n">channel</span><span class="p">.</span><span class="n">writeFully</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="n">bytesRead</span><span class="p">)</span>
+            <span class="n">channel</span><span class="p">.</span><span class="n">flush</span><span class="p">()</span> <span class="c1">// CRITICAL to stream SSE and avoid buffers</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+</code></pre></div></div>
+
+<p>That <code class="highlighter-rouge">flush()</code> call? That’s what makes SSE actually stream. Without it, chunks get buffered by Netty.</p>
+
+<p>The small buffer size (256 bytes) is deliberate - lower latency for streaming responses.</p>
+
+<h2 id="websocket-a-different-beast">WebSocket: A Different Beast</h2>
+
+<p>WebSockets can’t use HTTP streaming – they need a bidirectional tunnel:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">webSocket</span><span class="p">(</span><span class="s">"{...}"</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">serverSession</span> <span class="p">=</span> <span class="k">this</span>
+    <span class="n">client</span><span class="p">.</span><span class="n">webSocket</span><span class="p">(</span><span class="n">targetHost</span><span class="p">,</span> <span class="n">targetPort</span><span class="p">,</span> <span class="n">call</span><span class="p">.</span><span class="n">request</span><span class="p">.</span><span class="n">uri</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">clientSession</span> <span class="p">=</span> <span class="k">this</span>
+        <span class="n">coroutineScope</span> <span class="p">{</span>
+            <span class="n">launch</span> <span class="p">{</span> <span class="c1">// client -&gt; target</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">frame</span> <span class="k">in</span> <span class="n">serverSession</span><span class="p">.</span><span class="n">incoming</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">clientSession</span><span class="p">.</span><span class="n">send</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="n">copy</span><span class="p">())</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="n">launch</span> <span class="p">{</span> <span class="c1">// target -&gt; client</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">frame</span> <span class="k">in</span> <span class="n">clientSession</span><span class="p">.</span><span class="n">incoming</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="n">serverSession</span><span class="p">.</span><span class="n">send</span><span class="p">(</span><span class="n">frame</span><span class="p">.</span><span class="n">copy</span><span class="p">())</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Two coroutines, one for each direction. When either side closes, the scope cancels and both connections close. Idiomatic Kotlin structured concurrency.</p>
+
+<h2 id="the-header-dance">The Header Dance</h2>
+
+<p>Don’t blindly copy all headers. RFC 2616 defines “hop-by-hop” headers that must be filtered:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">hopByHopHeaders</span> <span class="p">=</span> <span class="n">setOf</span><span class="p">(</span>
+    <span class="n">HttpHeaders</span><span class="p">.</span><span class="n">Connection</span><span class="p">,</span>
+    <span class="n">HttpHeaders</span><span class="p">.</span><span class="n">TransferEncoding</span><span class="p">,</span>
+    <span class="n">HttpHeaders</span><span class="p">.</span><span class="n">Upgrade</span><span class="p">,</span>
+    <span class="s">"Keep-Alive"</span><span class="p">,</span>
+    <span class="s">"Proxy-Authorization"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>Forwarding these breaks proxying in subtle ways. <code class="highlighter-rouge">Connection: keep-alive</code> tells proxy to keep <em>its</em> connection alive,
+not to forward that instruction.</p>
+
+<h2 id="why-netty-backend-matters">Why Netty Backend Matters</h2>
+
+<p>Use Netty for the server, not CIO:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">embeddedServer</span><span class="p">(</span><span class="n">Netty</span><span class="p">,</span> <span class="n">port</span> <span class="p">=</span> <span class="m">1984</span><span class="p">)</span> <span class="p">{</span> <span class="o">..</span><span class="p">.</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>CIO is great for clients, but Netty handles production traffic better – it’s battle-tested with millions of connections.</p>
+
+<h2 id="testing-streaming-the-hard-part">Testing Streaming (The Hard Part)</h2>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// WRONG - buffers everything</span>
+<span class="kd">val</span> <span class="py">response</span> <span class="p">=</span> <span class="n">client</span><span class="p">.</span><span class="k">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">channel</span> <span class="p">=</span> <span class="n">response</span><span class="p">.</span><span class="n">bodyAsChannel</span><span class="p">()</span>
+
+<span class="c1">// RIGHT - streams as received</span>
+<span class="n">client</span><span class="p">.</span><span class="n">prepareGet</span><span class="p">(</span><span class="n">url</span><span class="p">).</span><span class="n">execute</span> <span class="p">{</span> <span class="n">response</span> <span class="p">-&gt;</span>
+    <span class="kd">val</span> <span class="py">channel</span> <span class="p">=</span> <span class="n">response</span><span class="p">.</span><span class="n">bodyAsChannel</span><span class="p">()</span>
+    <span class="c1">// Read immediately</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We learned this the hard way. Tests showed perfect streaming for WebSockets but buffered SSE –
+because we used <code class="highlighter-rouge">.get()</code> instead of <code class="highlighter-rouge">.prepareGet().execute { }</code>.</p>
+
+<h2 id="the-architecture-pipeline">The Architecture Pipeline</h2>
+
+<p>Proxy request flow:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">intercept(ApplicationCallPipeline.Call)</code> - Catch all HTTP</li>
+  <li><code class="highlighter-rouge">webSocket("{...}")</code> - Catch WebSocket upgrades first</li>
+  <li>Check <code class="highlighter-rouge">Upgrade: websocket</code> header to disambiguate</li>
+  <li>Stream with <code class="highlighter-rouge">prepareRequest().execute { }</code></li>
+  <li>Flush aggressively with <code class="highlighter-rouge">WriteChannelContent</code></li>
+</ol>
+
+<p>This gives us nginx-level proxying with full control and ~200 lines of code.</p>
+
+<h2 id="what-we-actually-get">What We Actually Get</h2>
+
+<p>A reverse proxy that:</p>
+<ul>
+  <li>Streams SSE events as they arrive (critical for Ollama/OpenAI)</li>
+  <li>Proxies WebSocket connections bidirectionally</li>
+  <li>Handles regular HTTP requests</li>
+  <li>Lets us log/modify/inspect anything</li>
+  <li>Uses ~10MB RAM regardless of response size</li>
+  <li>Compiles to a 15MB JAR with no external dependencies</li>
+</ul>
+
+<p>No nginx, no configuration files, no <code class="highlighter-rouge">proxy_pass</code>. Just Kotlin.</p>
+
+<h2 id="the-ktor-philosophy">The Ktor Philosophy</h2>
+
+<p>Ktor doesn’t give us a <code class="highlighter-rouge">proxyRequest()</code> function because proxying is <em>context-dependent</em>. Do we need:</p>
+<ul>
+  <li>Request/response logging?</li>
+  <li>Authentication injection?</li>
+  <li>Response transformation?</li>
+  <li>Connection pooling config?</li>
+  <li>Timeout customization?</li>
+  <li>Header filtering rules?</li>
+</ul>
+
+<p>Instead of one inflexible function, Ktor gives <code class="highlighter-rouge">ByteReadChannel</code>, <code class="highlighter-rouge">ByteWriteChannel</code>, <code class="highlighter-rouge">HttpStatement</code>, 
+and <code class="highlighter-rouge">OutgoingContent</code>. We compose them for our exact needs.</p>
+
+<p>This is harder initially. But when we need to debug why SSE streaming isn’t working,
+we <em>own the code</em>. We’re not fighting someone else’s abstraction.</p>
+
+<h2 id="more-examples">More Examples</h2>
+<p>You may see some examples</p>
+<ul>
+  <li>https://github.com/Shaposhnikov-Alexey/http-proxy/blob/main/src/main/kotlin/main.kt</li>
+  <li>https://github.com/jonnyzzz/devrig.dev/blob/junie-cage/junie-cage/app/src/main/kotlin/ProxyServer.kt#L94</li>
+</ul>
+
+<p>Share your cases and setups</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2022/06/08/cross-process-lambdas/" class="btn" title="Cross-process Lambdas">Previous</a>
+      
+      
+        <a href="/blog/2024/09/17/Eugene-20-years/" class="btn" title="Celebrating 20 Years at JetBrains: A Journey from Junior Developer to Department Lead">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2025 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

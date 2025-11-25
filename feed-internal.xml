@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2025-08-22T21:26:13+00:00</updated>
+  <updated>2025-11-25T17:44:10+00:00</updated>
   <id>/</id>
 
   
@@ -164,6 +164,237 @@ and together we delivered the very first iterations of Toolbox Enterprise to our
     <category term="job" />
   
     <summary type="html">20 Years as JetBrains</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Reverse Proxy in Ktor</title>
+    <link href="https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/" rel="alternate" type="text/html" title="Reverse Proxy in Ktor" />
+    <published>2024-07-25T00:00:00+00:00</published>
+    <updated>2024-07-25T00:00:00+00:00</updated>
+    <id>/blog/2024/07/25/ktor-proxy</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2024/07/25/ktor-proxy/">&lt;h1 id=&quot;building-a-streaming-http-reverse-proxy-with-ktor&quot;&gt;Building a Streaming HTTP Reverse Proxy with Ktor&lt;/h1&gt;
+
+&lt;p&gt;I’ve been looking into Ktor documentation to find something similar to nginx &lt;a href=&quot;https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/&quot;&gt;proxy_pass&lt;/a&gt;
+or Go’s &lt;a href=&quot;https://pkg.go.dev/net/http/httputil#ReverseProxy&quot;&gt;httputil.NewSingleHostReverseProxy(target)&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Could you please share if we have a similar util in Ktor? Ktor gives you &lt;em&gt;primitives&lt;/em&gt; that compose. You build exactly what you need, no more, no less.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-naive-approach-dont-do-this&quot;&gt;The Naive Approach (Don’t Do This)&lt;/h2&gt;
+
+&lt;p&gt;A first instinct might be:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;http://backend$uri&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;respondText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyAsText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This works for toy examples. It fails spectacularly in production because:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;It buffers everything&lt;/strong&gt; – Say 10-minute Ollama SSE response? All in memory.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;SSE doesn’t stream&lt;/strong&gt; – Events arrive in one big chunk at the end&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;No WebSocket support&lt;/strong&gt; – Those upgrade headers? Lost.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;the-streaming-solution&quot;&gt;The Streaming Solution&lt;/h2&gt;
+
+&lt;p&gt;Here’s the insight: Ktor’s HTTP client has &lt;code class=&quot;highlighter-rouge&quot;&gt;prepareRequest().execute { }&lt;/code&gt; for streaming responses. This is like nginx &lt;code class=&quot;highlighter-rouge&quot;&gt;proxy_pass&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;prepareRequest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;method&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;httpMethod&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Copy headers (excluding hop-by-hop)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;headers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isHopByHop&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appendAll&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyBytes&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;setBody&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyBytes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Stream happens HERE, not after&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;respond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;streamingContent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;execute&lt;/code&gt; block receives the response &lt;strong&gt;as it arrives&lt;/strong&gt;, not after it completes. This is critical for SSE.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-streaming-content-challenge&quot;&gt;The Streaming Content Challenge&lt;/h2&gt;
+
+&lt;p&gt;Now we need to forward that streaming response. Ktor’s &lt;code class=&quot;highlighter-rouge&quot;&gt;respondBytesWriter&lt;/code&gt; seems perfect, but there’s a trap -
+it might buffer internally. The nuclear option is &lt;code class=&quot;highlighter-rouge&quot;&gt;OutgoingContent.WriteChannelContent()&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;respond&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kd&quot;&gt;object&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;OutgoingContent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;WriteChannelContent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;status&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;status&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;contentType&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contentType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;suspend&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;writeTo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;channel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ByteWriteChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;responseBody&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyAsChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;buffer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ByteArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;256&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;responseBody&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isClosedForRead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;responseBody&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;availableForRead&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;responseBody&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;awaitContent&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;bytesRead&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;responseBody&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readAvailable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bytesRead&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;
+
+            &lt;span class=&quot;n&quot;&gt;channel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;writeFully&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bytesRead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;channel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flush&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// CRITICAL to stream SSE and avoid buffers&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;})&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That &lt;code class=&quot;highlighter-rouge&quot;&gt;flush()&lt;/code&gt; call? That’s what makes SSE actually stream. Without it, chunks get buffered by Netty.&lt;/p&gt;
+
+&lt;p&gt;The small buffer size (256 bytes) is deliberate - lower latency for streaming responses.&lt;/p&gt;
+
+&lt;h2 id=&quot;websocket-a-different-beast&quot;&gt;WebSocket: A Different Beast&lt;/h2&gt;
+
+&lt;p&gt;WebSockets can’t use HTTP streaming – they need a bidirectional tunnel:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;webSocket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;{...}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;serverSession&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;webSocket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;targetHost&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;targetPort&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uri&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;clientSession&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;coroutineScope&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;launch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// client -&amp;gt; target&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;frame&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serverSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incoming&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;clientSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;frame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;launch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// target -&amp;gt; client&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;frame&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;clientSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;incoming&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;serverSession&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;frame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;copy&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Two coroutines, one for each direction. When either side closes, the scope cancels and both connections close. Idiomatic Kotlin structured concurrency.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-header-dance&quot;&gt;The Header Dance&lt;/h2&gt;
+
+&lt;p&gt;Don’t blindly copy all headers. RFC 2616 defines “hop-by-hop” headers that must be filtered:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;hopByHopHeaders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;setOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;HttpHeaders&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Connection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;HttpHeaders&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;TransferEncoding&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;HttpHeaders&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Upgrade&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Keep-Alive&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;Proxy-Authorization&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Forwarding these breaks proxying in subtle ways. &lt;code class=&quot;highlighter-rouge&quot;&gt;Connection: keep-alive&lt;/code&gt; tells proxy to keep &lt;em&gt;its&lt;/em&gt; connection alive,
+not to forward that instruction.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-netty-backend-matters&quot;&gt;Why Netty Backend Matters&lt;/h2&gt;
+
+&lt;p&gt;Use Netty for the server, not CIO:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;embeddedServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Netty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1984&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;CIO is great for clients, but Netty handles production traffic better – it’s battle-tested with millions of connections.&lt;/p&gt;
+
+&lt;h2 id=&quot;testing-streaming-the-hard-part&quot;&gt;Testing Streaming (The Hard Part)&lt;/h2&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// WRONG - buffers everything&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;channel&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyAsChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// RIGHT - streams as received&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;client&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;prepareGet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;channel&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;response&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bodyAsChannel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Read immediately&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We learned this the hard way. Tests showed perfect streaming for WebSockets but buffered SSE –
+because we used &lt;code class=&quot;highlighter-rouge&quot;&gt;.get()&lt;/code&gt; instead of &lt;code class=&quot;highlighter-rouge&quot;&gt;.prepareGet().execute { }&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-architecture-pipeline&quot;&gt;The Architecture Pipeline&lt;/h2&gt;
+
+&lt;p&gt;Proxy request flow:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;intercept(ApplicationCallPipeline.Call)&lt;/code&gt; - Catch all HTTP&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;webSocket(&quot;{...}&quot;)&lt;/code&gt; - Catch WebSocket upgrades first&lt;/li&gt;
+  &lt;li&gt;Check &lt;code class=&quot;highlighter-rouge&quot;&gt;Upgrade: websocket&lt;/code&gt; header to disambiguate&lt;/li&gt;
+  &lt;li&gt;Stream with &lt;code class=&quot;highlighter-rouge&quot;&gt;prepareRequest().execute { }&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Flush aggressively with &lt;code class=&quot;highlighter-rouge&quot;&gt;WriteChannelContent&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This gives us nginx-level proxying with full control and ~200 lines of code.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-we-actually-get&quot;&gt;What We Actually Get&lt;/h2&gt;
+
+&lt;p&gt;A reverse proxy that:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Streams SSE events as they arrive (critical for Ollama/OpenAI)&lt;/li&gt;
+  &lt;li&gt;Proxies WebSocket connections bidirectionally&lt;/li&gt;
+  &lt;li&gt;Handles regular HTTP requests&lt;/li&gt;
+  &lt;li&gt;Lets us log/modify/inspect anything&lt;/li&gt;
+  &lt;li&gt;Uses ~10MB RAM regardless of response size&lt;/li&gt;
+  &lt;li&gt;Compiles to a 15MB JAR with no external dependencies&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;No nginx, no configuration files, no &lt;code class=&quot;highlighter-rouge&quot;&gt;proxy_pass&lt;/code&gt;. Just Kotlin.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-ktor-philosophy&quot;&gt;The Ktor Philosophy&lt;/h2&gt;
+
+&lt;p&gt;Ktor doesn’t give us a &lt;code class=&quot;highlighter-rouge&quot;&gt;proxyRequest()&lt;/code&gt; function because proxying is &lt;em&gt;context-dependent&lt;/em&gt;. Do we need:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Request/response logging?&lt;/li&gt;
+  &lt;li&gt;Authentication injection?&lt;/li&gt;
+  &lt;li&gt;Response transformation?&lt;/li&gt;
+  &lt;li&gt;Connection pooling config?&lt;/li&gt;
+  &lt;li&gt;Timeout customization?&lt;/li&gt;
+  &lt;li&gt;Header filtering rules?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Instead of one inflexible function, Ktor gives &lt;code class=&quot;highlighter-rouge&quot;&gt;ByteReadChannel&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;ByteWriteChannel&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;HttpStatement&lt;/code&gt;, 
+and &lt;code class=&quot;highlighter-rouge&quot;&gt;OutgoingContent&lt;/code&gt;. We compose them for our exact needs.&lt;/p&gt;
+
+&lt;p&gt;This is harder initially. But when we need to debug why SSE streaming isn’t working,
+we &lt;em&gt;own the code&lt;/em&gt;. We’re not fighting someone else’s abstraction.&lt;/p&gt;
+
+&lt;h2 id=&quot;more-examples&quot;&gt;More Examples&lt;/h2&gt;
+&lt;p&gt;You may see some examples&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;https://github.com/Shaposhnikov-Alexey/http-proxy/blob/main/src/main/kotlin/main.kt&lt;/li&gt;
+  &lt;li&gt;https://github.com/jonnyzzz/devrig.dev/blob/junie-cage/junie-cage/app/src/main/kotlin/ProxyServer.kt#L94&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Share your cases and setups&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="kotlin" />
+  
+    <category term="ktor" />
+  
+    <category term="reverse proxy" />
+  
+    <category term="proxy" />
+  
+    <category term="design" />
+  
+    <category term="components" />
+  
+    <category term="dependencies" />
+  
+    <summary type="html">Building a Streaming HTTP Reverse Proxy with Ktor</summary>
   
   </entry>
   
@@ -2099,229 +2330,6 @@ Check out the&lt;/p&gt;
     <category term="build" />
   
     <summary type="html">Groovy Closures and Gradle Kotlin DSL</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Migrating to Gradle Kotlin DSL - Extensions and buildSrc</title>
-    <link href="https://jonnyzzz.com/blog/2019/05/20/gradle-kotlin-migration-3/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Extensions and buildSrc" />
-    <published>2019-05-20T00:00:00+00:00</published>
-    <updated>2019-05-20T00:00:00+00:00</updated>
-    <id>/blog/2019/05/20/gradle-kotlin-migration-3</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/05/20/gradle-kotlin-migration-3/">&lt;p&gt;While migrating the real-life project’s Gradle build from Groovy to Kotlin,
-I collected some useful recommendations, code snippets, and explanations.
-Throughout the post series, we will together learn how to
-convert to Gradle Kotlin DSL faster and easier.&lt;/p&gt;
-
-&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
-for practical recommendations on migrating from Groovy to Kotlin
-build scripts. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
-we cover Kotlin tasks setup on Gradle Kotlin DSL scripts.&lt;/p&gt;
-
-&lt;p&gt;In that post, I’m proud to share my findings for the code
-reuse in Gradle: extensions, plugins,
-and &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; scripts. It will be the next chapter for the
-&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;Ad-hoc Plugins with Gradle&lt;/a&gt;
-post, but we’ll be using Gradle Kotlin DSL.&lt;/p&gt;
-
-&lt;h2 id=&quot;project-extensions&quot;&gt;Project Extensions&lt;/h2&gt;
-
-&lt;p&gt;The real-life project that I converted to Kotlin DSL contains
-several micro-services, each uses the &lt;code class=&quot;highlighter-rouge&quot;&gt;Application&lt;/code&gt; plugin to create an executable, 
-and &lt;code class=&quot;highlighter-rouge&quot;&gt;jib&lt;/code&gt; plugin is used to generate Docker images.
-We reuse the code via a Gradle ad-hoc
-plugin to avoid duplicating scripts. 
-The &lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;pattern&lt;/a&gt;
-helps to reuse the same Gradle (Groovy) code, the usage of which
-for every micro-service is like:&lt;/p&gt;
-
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;s1&quot;&gt;'some-service'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'some-class'&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The ad-hoc plugin is applied via a &lt;code class=&quot;highlighter-rouge&quot;&gt;project.subprojects.forEach{..}&lt;/code&gt; call
-in the parent project.
-The only line per micro-service is enough to have a command-line application, docker
-container, logging configuration, several common dependencies,
-test classpath, and tests included for every micro-service project.&lt;/p&gt;
-
-&lt;p&gt;The same code does not work in Kotlin DSL. Instead, 
-in Kotlin DSL one calls a strongly typed version of it via
-the &lt;code class=&quot;highlighter-rouge&quot;&gt;configure&amp;lt;T&amp;gt;{..}&lt;/code&gt; block, where &lt;code class=&quot;highlighter-rouge&quot;&gt;T&lt;/code&gt; is the type of 
-the extension or convention to configure. We need to know the
-extension type to work with it, for example:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;In general, we may try the following steps to convert an extension or convention setup
-into Kotlin. Gradle generates accessors for conventions and extensions for plugins that
-are enabled via &lt;code class=&quot;highlighter-rouge&quot;&gt;plugins{..}&lt;/code&gt; block.
-If it is not generated (like in my case), we may check the documentation
-or source code to see the type name of the extension. 
-Try a short debugging in Groovy or Kotlin by printing the 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;project.extensions&lt;/code&gt; map entries with a &lt;code class=&quot;highlighter-rouge&quot;&gt;println()&lt;/code&gt; function
-to see the actual project extensions and their types.&lt;/p&gt;
-
-&lt;p&gt;There is yet another way to deal with shared code in Gradle. It is called &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
-I decided to use that approach together with statically typed Kotlin DSL. All declarations
-from the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; path should be visible in every &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files of my project,
-with types information, error highlighting, code navigation, IDE support.
-Let’s see how it works&lt;/p&gt;
-
-&lt;h2 id=&quot;the-buildsrc-project&quot;&gt;The buildSrc Project&lt;/h2&gt;
-
-&lt;p&gt;It is a &lt;a href=&quot;https://docs.gradle.org/current/userguide/organizing_gradle_projects.html#sec:build_sources&quot;&gt;good practice&lt;/a&gt;
-in Gradle to move utility classes or functions under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project. 
-&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;Ad Hoc Plugins with Gradle&lt;/a&gt; post
-describes for more ways of reusing code with Gradle.&lt;/p&gt;
-
-&lt;p&gt;By the convention, Gradle checks the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder for build sources project. The runtime classpath
-of that project will be included in every sub-projects &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; build script classpaths, 
-We will be able to use our code, utilities, and classes directly from other build files of the
-root project, both Gradle/Groovy and Gradle/Kotlin.&lt;/p&gt;
-
-&lt;p&gt;The following Gradle/Kotlin script for the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project is enough to start, it is normally
-placed it to the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/build.gradle.kts&lt;/code&gt; file under the project root directory:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dsl&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;`&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;gradlePluginPortal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;kotlinDslPluginOptions&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;experimentalWarning&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The project is ready to go. You may need to click to refresh your Gradle project in IntelliJ IDEA to continue. 
-Let’s create a helper function as an example. For that, we need to create a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc/src/main/kotlin/file-op.kt&lt;/code&gt;
-file with the following contents:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;operator&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;File&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It is my favorite operator for builds. It defines the &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; 
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/operator-overloading.html&quot;&gt;overloaded operator&lt;/a&gt;
-for &lt;code class=&quot;highlighter-rouge&quot;&gt;File&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;String&lt;/code&gt; types. So that we may use &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; to combine paths, e.g., we can write
-the following to create new &lt;code class=&quot;highlighter-rouge&quot;&gt;File&lt;/code&gt; object for a child path:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;buildScript&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;aaa&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;jonnyzzz.txt&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We spoke about the &lt;code class=&quot;highlighter-rouge&quot;&gt;/&lt;/code&gt; operator with some members of the Gradle team
-back at &lt;a href=&quot;https://kotlinconf.com&quot;&gt;KotlinConf&lt;/a&gt; 2018. In addition to that, I’ve noticed the 
-similar operator somewhere in the
-&lt;a href=&quot;https://github.com/gradle/gradle/blob/5c327a8/buildSrc/subprojects/kotlin-dsl/src/main/kotlin/org/gradle/kotlin/dsl/kotlin-dsl-upstream-candidates.kt#L16&quot;&gt;Gradle sources&lt;/a&gt;
-too :)&lt;/p&gt;
-
-&lt;p&gt;Now it is the time to convert the Groovy Ad-Hoc plugin into Kotlin DSL under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. Let’s rock!&lt;/p&gt;
-
-&lt;h2 id=&quot;ad-hoc-gradle-plugins&quot;&gt;Ad-Hoc Gradle Plugins&lt;/h2&gt;
-
-&lt;p&gt;My scripts were written in a Groovy as an ad-hoc plugin class in a parent project file. 
-For more details on that setup, please see the explanation in the
-&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;ad hoc Gradle plugins&lt;/a&gt; post.
-To start with the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder, we move the plugin code into the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder.
-Several conversions steps needed to turn Groovy script into Kotlin DSL. You may check out the
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; of the series for
-more insights. We’ll have the following Kotlin code for it now:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;theBuildSrcPackage&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;open&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPlugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Plugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;open&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPluginSetup&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;applyMicroPlugin()&lt;/code&gt; is a nice shortcut to simplify the way we deal with the plugin.
-Thanks to the code completion in the &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; files, it is now easier to apply the
-plugin via the function call, instead of calling the longer &lt;code class=&quot;highlighter-rouge&quot;&gt;apply&amp;lt;&amp;gt;()&lt;/code&gt; variant.&lt;/p&gt;
-
-&lt;p&gt;The usage of the ad-hoc plugin in Kotlin DSL is now look as follows:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;theBuildSrcPackage.*&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It is similar to what we have before. We apply the plugin first and pass the configuration of it
-as the second step. It is a good point to realize that we use a too long API to achieve the
-goal. Let’s try to make the API more expressive and short. Check out my &lt;a href=&quot;/talks#australia2019&quot;&gt;talk&lt;/a&gt;
-on Expressive APIs in Kotlin for more hints. We do not need to repeat the intent to enable a
-Gradle plugin more than once. It means all other types and configuration parameters should be
-included implicitly. Let’s add the following helper function for that:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;applyMicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;configure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MicroPluginSetup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The code above hides all implementation details from us, so we may apply and configure the
-plugin as easy as:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;applyMicroPlugin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;diImplClassName&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;some-class&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Such code us easy to read and understand. It is now clear what we do. It is no longer possible
-to enable the plugin without passing a configuration to it. Hopefully, it will help others from my
-team to deal with Gradle scripting faster.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In the post we’ve seen how to convert an 
-&lt;a href=&quot;/blog/2018/08/07/ad-hoc-gradle/&quot;&gt;ad-hoc plugin&lt;/a&gt;
-to Gradle/Kotlin. It is easier to re-use Gradle code that way.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
-seems to play well with writing Gradle build scripts.
-Thanks to the static type inference, the Kotlin compiler detects errors earlier and
-shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use information about types to infer
-the available functions and properties in a given scope, even inside a 5th level
-nested lambda with receivers.&lt;/p&gt;
-
-&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
-Check out the&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; - First steps of the migration&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; - Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/06/25/gradle-kotlin-migration-4/&quot;&gt;fourth post&lt;/a&gt; - Groovy Closure and Kotlin DSL&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="gradle/groovy" />
-  
-    <category term="gradle/kotlin" />
-  
-    <category term="kts" />
-  
-    <category term="kotlin" />
-  
-    <category term="groovy" />
-  
-    <category term="build" />
-  
-    <summary type="html">Diving deeper with plugins, extension, buildSrc</summary>
   
   </entry>
   
