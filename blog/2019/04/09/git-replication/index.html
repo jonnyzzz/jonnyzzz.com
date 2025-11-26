@@ -1,0 +1,400 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Efficient Git Replication &#8211; Eugene Petrenko</title>
+<meta name="description" content="Deliver the same commits to many Git clones faster"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, git, sync, devops, clouds" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Efficient Git Replication -- Eugene Petrenko" />
+<meta name="twitter:description" content="Deliver the same commits to many Git clones faster" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Efficient Git Replication -- Eugene Petrenko" />
+<meta property="og:description" content="Deliver the same commits to many Git clones faster" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2019/04/09/git-replication/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="git" />
+
+<meta property="article:tag" content="sync" />
+
+<meta property="article:tag" content="devops" />
+
+<meta property="article:tag" content="clouds" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2019/04/09/git-replication/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#sync" title="Pages tagged sync">sync</a></li><li><a href="/tags/#devops" title="Pages tagged devops">devops</a></li><li><a href="/tags/#clouds" title="Pages tagged clouds">clouds</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Efficient Git Replication</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2019-04-09T00:00:00+00:00"><i class="fa fa-calendar-o"></i> April 09, 2019</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=git,sync,devops,clouds&amp;text=Efficient%20Git%20Replication&amp;url=https://jonnyzzz.com/blog/2019/04/09/git-replication/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2019/04/09/git-replication/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>How do we deliver new commits to a bunch of copies of the same
+Git repository on different machines? The naive way is to run <code class="highlighter-rouge">git fetch</code> (or <code class="highlighter-rouge">git pull</code>)
+on every copy. That works, but it repeats the Git protocol negotiation,
+SHA hash computations, delta application, and disk I/O on every CI agent
+and on every developer laptop.</p>
+
+<p>I want the same commits to arrive with less CPU and less waiting.
+Let me describe the replication pattern that works for me.</p>
+
+<p>Why bother?</p>
+<ul>
+  <li>Faster clean checkouts on CI (and for demos).</li>
+  <li>Lower load on the main Git server.</li>
+  <li>Fewer random pauses in IDE Git operations for a whole team.</li>
+  <li>Works with any Git hosting (GitHub, GitLab, bare).</li>
+</ul>
+
+<p>Default: everyone hits Git directly:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>--------                               -----------
+| Git  |  &lt;---------------------  N *  | Clients |
+--------                               -----------
+</code></pre></div></div>
+
+<p>The protocol is efficient, but the server still has to negotiate
+with every client, recompute deltas, and send a unique <code class="highlighter-rouge">.pack</code>
+file per request. Each client then verifies and indexes that pack.</p>
+
+<p>Let’s add a middle-man:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>--------        ---------              -----------
+| Git  |  &lt;---  | Proxy |  &lt;----  N *  | Clients |
+--------        ---------              -----------
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">Git</code> is the main remote (GitHub.com or similar). The <code class="highlighter-rouge">Proxy</code>
+is a bare mirror that lives closer to clients or CI machines.
+We will reuse its pack files and a prebuilt checkout instead of
+asking the main server to stream packs for every request.</p>
+
+<h2 id="setting-up-the-proxy">Setting up the Proxy</h2>
+
+<p>The proxy is just a bare clone:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone --mirror &lt;main-url&gt; proxy.git
+</code></pre></div></div>
+
+<p>Keep it up to date. Two options:</p>
+<ul>
+  <li>Push notifications (webhook) from the main server that runs
+<code class="highlighter-rouge">git fetch --all --prune --keep</code> in <code class="highlighter-rouge">proxy.git</code>.</li>
+  <li>A cron job that runs the same command every few minutes.</li>
+</ul>
+
+<p>In many setups you already have such a clone: a CI server that
+needs the repository, or a code review server. Reuse it.</p>
+
+<p>Avoid running <code class="highlighter-rouge">git gc</code> on every client. 
+Run GC on the proxy first,
+then resync clients from it.</p>
+
+<h2 id="clean-checkout-once-reuse-everywhere">Clean checkout once, reuse everywhere</h2>
+
+<p>A fresh clone is the slowest operation on a CI farm. We generate
+two cached artifacts on the proxy after every fetch:</p>
+<ul>
+  <li>A tarball of <code class="highlighter-rouge">.git/objects/pack</code> (no negotiation required).</li>
+  <li>An optional <code class="highlighter-rouge">git archive</code> of a default branch for the working tree.</li>
+</ul>
+
+<p>Both artifacts can be served over HTTP (a CDN works great).</p>
+
+<p>Client steps for a clean checkout:</p>
+<ol>
+  <li>Download the packed objects tarball and unpack it into <code class="highlighter-rouge">.git/objects/pack</code>.</li>
+  <li>Download the working tree archive (if you care about files), unpack it.</li>
+  <li>Run <code class="highlighter-rouge">git reset --hard &lt;commit&gt;</code> to put the working tree at the exact
+commit you need. If the archive lags behind, do a quick <code class="highlighter-rouge">git fetch</code>
+from the proxy to fix heads; no objects will be downloaded because
+they are already on disk.</li>
+</ol>
+
+<p>Why is it faster? We download static archives instead of asking Git to
+compute and stream a new pack per client. SHA checksums and delta
+resolution were already done once on the proxy.</p>
+
+<h2 id="incremental-updates-without-negotiation">Incremental updates without negotiation</h2>
+
+<p>For regular updates we reuse pack files again. Each client stores a
+<code class="highlighter-rouge">last-sync</code> timestamp. To update:</p>
+<ol>
+  <li>Copy new <code class="highlighter-rouge">.pack</code> and <code class="highlighter-rouge">.idx</code> files from <code class="highlighter-rouge">proxy.git/objects/pack</code>
+that are newer than the timestamp (HTTP, rsync, or a shared disk).</li>
+  <li>Update the timestamp.</li>
+  <li>Fix references:
+    <ul>
+      <li>Simplest: run <code class="highlighter-rouge">git fetch --all --prune --keep proxy</code>. It will be
+a reference-only update because all objects are already present.</li>
+      <li>If you already know the commit (CI build trigger), skip negotiation
+entirely and call <code class="highlighter-rouge">git update-ref</code> for the branch or detached HEAD.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The Git protocol still runs in step 3, but it does not need to send
+a pack file, so the cost is tiny compared to a full fetch.</p>
+
+<h2 id="what-can-go-wrong">What can go wrong?</h2>
+
+<ul>
+  <li>Not distributed. We trade some Git decentralization for speed. If
+the proxy is down, clients can always fall back to the main remote.</li>
+  <li>Garbage collection. A GC on the proxy may drop objects still needed
+by a client. Prefer to rebuild the client from a fresh proxy snapshot
+instead of running GC locally.</li>
+  <li>Thin packs. If a proxy receives a thin pack and we copy only new
+files, a client may miss a base object. Verify with
+<code class="highlighter-rouge">git verify-pack</code> and fall back to copying the full <code class="highlighter-rouge">objects/pack</code>
+directory or to a normal <code class="highlighter-rouge">git fetch</code> when needed.</li>
+  <li>Integrity. Copying files is simple, but still check them. An
+occasional <code class="highlighter-rouge">git fsck</code> on the proxy helps to avoid surprises.</li>
+</ul>
+
+<p>Bitmap indexes? They are nice to speed up proxy repacks
+(<code class="highlighter-rouge">git repack -adb --write-bitmap-index</code>) but are not required
+on the clients.</p>
+
+<h2 id="why-this-works">Why this works</h2>
+
+<p><code class="highlighter-rouge">git fetch</code> normally:</p>
+<ul>
+  <li>Lists local heads and remote heads.</li>
+  <li>Negotiates common commits.</li>
+  <li>Asks the server to build a <code class="highlighter-rouge">.pack</code> with missing objects.</li>
+  <li>Downloads the pack, verifies hashes, writes <code class="highlighter-rouge">.idx</code>, updates refs.</li>
+</ul>
+
+<p>We still rely on Git for the last step (ref updates) but reuse the
+already-built pack files from the proxy. That removes the CPU and disk
+cost of building and indexing a new pack for every client.</p>
+
+<p>This pattern works well for CI farms and for IDEs that keep their own
+hidden clones. It is also a cheap way to host a Git mirror in a local
+network. Give it a try and let me know how it works for you.</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2019/04/02/gradle-kotlin-migration-2/" class="btn" title="Migrating to Gradle Kotlin DSL - Kotlin">Previous</a>
+      
+      
+        <a href="/blog/2019/04/29/terraform-waf/" class="btn" title="IP Whitelist for WAF Rules and Security Groups">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2025 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

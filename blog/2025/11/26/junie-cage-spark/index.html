@@ -1,0 +1,469 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Magic Cable for Nvidia Spark &#8211; Eugene Petrenko</title>
+<meta name="description" content="Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai, ollama, gpt-oss, intellij, hardware, ai agent" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Magic Cable for Nvidia Spark -- Eugene Petrenko" />
+<meta name="twitter:description" content="Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Magic Cable for Nvidia Spark -- Eugene Petrenko" />
+<meta property="og:description" content="Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai" />
+
+<meta property="article:tag" content="ollama" />
+
+<meta property="article:tag" content="gpt-oss" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="hardware" />
+
+<meta property="article:tag" content="ai agent" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai" title="Pages tagged ai">ai</a></li><li><a href="/tags/#ollama" title="Pages tagged ollama">ollama</a></li><li><a href="/tags/#gpt-oss" title="Pages tagged gpt-oss">gpt-oss</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#hardware" title="Pages tagged hardware">hardware</a></li><li><a href="/tags/#ai agent" title="Pages tagged ai agent">ai agent</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Magic Cable for Nvidia Spark</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2025-11-26T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 26, 2025</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=ai,ollama,gpt-oss,intellij,hardware,aiagent&amp;text=Magic%20Cable%20for%20Nvidia%20Spark&amp;url=https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <h1 id="plugging-an-ai-supercomputer-into-intellij-our-dgx-spark-story">Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story</h1>
+
+<p>A small, heavy box arrived at the desk.</p>
+
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7397746344335048704" height="703" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
+<p>Inside: an NVIDIA DGX Spark — a desktop AI box that looks like a PC, and behaves like a tiny datacenter. The obvious question for us was:</p>
+
+<blockquote>
+  <p>How do we make this thing feel <em>invisible</em> from inside IntelliJ?</p>
+</blockquote>
+
+<p>This post is about the path we took to connect DGX Spark and IntelliJ in a way that:</p>
+
+<ul>
+  <li>keeps everything <strong>local</strong> and <strong>offline-friendly</strong>,</li>
+  <li>keeps security teams <strong>relaxed</strong>,</li>
+  <li>and keeps developers in <strong>flow</strong>, not in network manuals.</li>
+</ul>
+
+<p>There is also a tiny hardware trick involved! And the shiny user experience we are fighting for!</p>
+
+<p>I am going to demo the device, the magic cable (JetCable) at <strong>AWS re:Invent</strong>,
+come visit <strong>JetBrains booth</strong> for the real demo!</p>
+
+<h2 id="why-local-ai-matters-for-ide-workflows">Why Local AI Matters for IDE Workflows</h2>
+
+<p>Cloud AI is amazing — until the first security review. And of course, there are many of us 
+who are happy to use the frontier models (e.g. Anthropic, OpenAI, Google, xAI, …).
+There is a way to many regulated businesses, where it’s not yet possible or profitable.</p>
+
+<p>Many teams live under constraints like:</p>
+<ul>
+  <li>strict compliance rules</li>
+  <li>code and data that must never leave the corporate network</li>
+  <li>air-gapped or tightly segmented infrastructure</li>
+  <li>flat usage plans (you own the hardware, you use it 100% of the time)</li>
+</ul>
+
+<p>For those teams, “send code to an external model endpoint” is not an option.<br />
+<a href="https://www.nvidia.com/en-us/products/workstations/dgx-spark/">Nvidia DGX Spark</a> gives a different model:</p>
+<ul>
+  <li>AI hardware is <strong>on the desk</strong> or <strong>on-prem</strong></li>
+  <li>the box can be configured with <strong>no direct internet access</strong></li>
+  <li>all prompts, code, embeddings, and models stay <strong>inside the company perimeter</strong></li>
+</ul>
+
+<p>From the local development perspective, we want:</p>
+<ul>
+  <li>AI assistance and heavy compute for code</li>
+  <li>minimal configuration</li>
+  <li>and strong guarantees that the bits never leave the building</li>
+</ul>
+
+<p>The integration story started from a simple goal:</p>
+
+<blockquote>
+  <p>Treat DGX Spark as a local development tool, not “another cloud”.</p>
+</blockquote>
+
+<h2 id="step-zero-just-put-it-on-the-network">Step Zero: “Just Put It on the Network”</h2>
+
+<p>The first obvious attempt followed the official playbook:</p>
+<ol>
+  <li>Plug DGX Spark into the corporate network (Wi-Fi or Ethernet).</li>
+  <li>Finish OS setup, accounts, security.</li>
+  <li>Connect from dev machines over the LAN.</li>
+  <li>Install agents, tools, and talk to the device via IP.</li>
+</ol>
+
+<p>On paper, this is fine.</p>
+
+<p>In real corporate networks, we hit the usual obstacles:</p>
+
+<ul>
+  <li>VLANs and firewalls.</li>
+  <li>Ports that work in one environment and disappear in another.</li>
+  <li>VPNs that break discovery.</li>
+  <li>“Networking changes” with lead times measured in sprints.</li>
+  <li>Broken flow (instead of trying, you’re configuring and rebuilding for hours)</li>
+</ul>
+
+<p>We want a different experience:</p>
+<ol>
+  <li>We unbox Nvidia DGX Spark.</li>
+  <li>We connect one cable.</li>
+  <li>IntelliJ quietly detects a device and offers to use it for AI and heavy tasks.</li>
+</ol>
+
+<p>No manuals, no “Which IP did DHCP assign this time?”, no ticket to “open port 12345”.
+So we decided to remove the corporate network from the diagram.</p>
+
+<h2 id="attempt-1-usb-gadget-magic">Attempt #1: USB Gadget Magic</h2>
+
+<p>The natural idea for a direct link is USB-C. Modern devices can expose, over USB:</p>
+<ul>
+  <li>a network interface</li>
+  <li>a serial/COM port</li>
+  <li>or a custom vendor protocol</li>
+</ul>
+
+<p>The experiment:</p>
+<ul>
+  <li>make DGX Spark pretend its USB-C is a <strong>network adapter</strong>;</li>
+  <li>let it run a small <strong>DHCP server</strong>, assign an IP to the dev machine;</li>
+  <li>expose a small API / SSH / custom protocol over this private point-to-point link.</li>
+</ul>
+
+<p>On Linux, gadget drivers make this possible. Early tests were promising.
+Then we remembered a detail: this needs to work on <strong>Windows, macOS, and Linux</strong> developer machines.</p>
+
+<p>That implies:</p>
+<ul>
+  <li>custom drivers</li>
+  <li>code signing and OS-specific packaging</li>
+  <li>keeping up with random OS updates</li>
+  <li>debugging strange USB behaviour on a random laptop the night before a release</li>
+</ul>
+
+<p>Technically, possible and feasible. As a product, not something we want to base everything on.
+We stepped back and asked a simpler question:</p>
+
+<blockquote>
+  <p>What is the most boring piece of hardware that all OSes already understand?</p>
+</blockquote>
+
+<p>Answer: <strong>a regular network adapter</strong>.</p>
+
+<h2 id="the-final-trick-two-nics-and-a-tiny-cable">The Final Trick: Two NICs and a Tiny Cable</h2>
+
+<p>The design we ended up with is almost disappointingly simple:</p>
+
+<blockquote>
+  <p>Use two standard Ethernet adapters connected by a short cable, one on the
+Nvidia DGX Spark side, one on the developer machine. Both go into USB-C.</p>
+</blockquote>
+
+<p>Diagram version:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[IntelliJ laptop]
+    |
+    | USB-C
+    |
+    v                 
+[USB-Ethernet #1] == short cable == [USB-Ethernet #2]
+                                           ^
+                                           |
+                                         USB-C
+                                           |
+                                           v
+                                  [NVidia DGX Spark]
+</code></pre></div></div>
+
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7398855051676471296" height="639" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
+<p>And this setup is working greatly! We make the Nvidia DGX Spark run as DHCP and DNS for the network interface,
+so it means it will assign the developer machine the specific IP address. The software (say an IntelliJ plugin)
+will know about the port, or it will even look up it via DNS or either way.</p>
+
+<h2 id="current-state">Current State</h2>
+
+<p>We are running vLLM on the box, JetBrains AI Assistant can connect and use it, 
+we’re experimenting to let JetBrains Junie use the box as the primary model too. 
+So far it’s the demo phase to show what we can do and what’s coming next!</p>
+
+<p>From the product standpoint, we take an assumption that there will be more
+powerful LLM models with open weights and the hardware to run the inference
+as fast as possible. We are experimenting with the “tool” product to make
+software development much more pleasurable and still more productive.</p>
+
+<p>Stay tuned!</p>
+
+<blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;utm_campaign=loading" data-instgrm-version="14" style=" background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"><div style="padding:16px;"> <a href="https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;utm_campaign=loading" style=" background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;" target="_blank"> <div style=" display: flex; flex-direction: row; align-items: center;"> <div style="background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 40px; margin-right: 14px; width: 40px;"></div> <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center;"> <div style=" background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 100px;"></div> <div style=" background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 60px;"></div></div></div><div style="padding: 19% 0;"></div> <div style="display:block; height:50px; margin:0 auto 12px; width:50px;"><svg width="50px" height="50px" viewBox="0 0 60 60" version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g transform="translate(-511.000000, -20.000000)" fill="#000000"><g><path d="M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631"></path></g></g></g></svg></div><div style="padding-top: 8px;"> <div style=" color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px;">View this post on Instagram</div></div><div style="padding: 12.5% 0;"></div> <div style="display: flex; flex-direction: row; margin-bottom: 14px; align-items: center;"><div> <div style="background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(0px) translateY(7px);"></div> <div style="background-color: #F4F4F4; height: 12.5px; transform: rotate(-45deg) translateX(3px) translateY(1px); width: 12.5px; flex-grow: 0; margin-right: 14px; margin-left: 2px;"></div> <div style="background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(9px) translateY(-18px);"></div></div><div style="margin-left: 8px;"> <div style=" background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 20px; width: 20px;"></div> <div style=" width: 0; height: 0; border-top: 2px solid transparent; border-left: 6px solid #f4f4f4; border-bottom: 2px solid transparent; transform: translateX(16px) translateY(-4px) rotate(30deg)"></div></div><div style="margin-left: auto;"> <div style=" width: 0px; border-top: 8px solid #F4F4F4; border-right: 8px solid transparent; transform: translateY(16px);"></div> <div style=" background-color: #F4F4F4; flex-grow: 0; height: 12px; width: 16px; transform: translateY(-4px);"></div> <div style=" width: 0; height: 0; border-top: 8px solid #F4F4F4; border-left: 8px solid transparent; transform: translateY(-4px) translateX(8px);"></div></div></div> <div style="display: flex; flex-direction: column; flex-grow: 1; justify-content: center; margin-bottom: 24px;"> <div style=" background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 224px;"></div> <div style=" background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 144px;"></div></div></a><p style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;"><a href="https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;utm_campaign=loading" style=" color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;" target="_blank">A post shared by Eugene Petrenko (@jonnyzzz)</a></p></div></blockquote>
+<script async="" src="//www.instagram.com/embed.js"></script>
+
+<h2 id="related-work">Related Work</h2>
+
+<p>There are many areas were we definitely need to look in at, for example</p>
+<ul>
+  <li>NVIDIA Sync tool</li>
+  <li>SSH tunneling to connect to the NVIDIA Spark</li>
+  <li>Using JetBrains cloud service to activate the device and let it with offline afterward</li>
+  <li>Automatic configuration and pre-population of the software and AI model images</li>
+  <li>Running AI Assistant, Junie, and JetBrains Mellum on the solution</li>
+  <li>Making the solution distribute licenses</li>
+  <li>Running local RAG’s in the device or near-by</li>
+  <li>Making the cable smarter to support us with all of that</li>
+</ul>
+
+<p>The magic cable itself appears to have much of the potential, I’m looking forward
+to sharing more with you. We are going to post more, stay tuned, or reach
+out in DMs for more details.</p>
+
+<h1 id="new-world--aws-reinvent-2025">New World &amp; AWS re:Invent 2025</h1>
+
+<p>There are so many ideas that we have and found working on this project, stay tuned,
+and let me know (via LinkedIn) what you think or would expect from us. I will update.</p>
+
+<p><strong>I’ll be deming the solution, the JetCable at AWS re:Invent this year,
+stop by at JetBrains booth, and let’s talk about the local AI. See ya!</strong>
+Drop me align via <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://x.com/jonnyzzz">Twitter</a> to stay in touch.</p>
+
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Gearing up for Las Vegas? ✈️<br /><br />I’ll be at AWS re:Invent next week, and I&#39;m looking forward to connecting with you and discussing the future trends. Passionate about Local LLMs, AI, Coding Agents, Developer Experience, and JetBrains&#39; new products?<br /><br />Stop by the JetBrains booth to… <a href="https://t.co/JAPiDcux6m">pic.twitter.com/JAPiDcux6m</a></p>&mdash; Eugene Petrenko (@jonnyzzz) <a href="https://twitter.com/jonnyzzz/status/1993702449450713154?ref_src=twsrc%5Etfw">November 26, 2025</a></blockquote>
+<script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2025/09/13/oauth-bro/" class="btn" title="OAuth2-Bro: Building Authentication with AI Agents">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2025 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

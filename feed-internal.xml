@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2025-11-25T17:56:54+00:00</updated>
+  <updated>2025-11-26T15:36:56+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,444 @@
   
 
   
+  
+  <entry>
+    <title type="html">Magic Cable for Nvidia Spark</title>
+    <link href="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" rel="alternate" type="text/html" title="Magic Cable for Nvidia Spark" />
+    <published>2025-11-26T00:00:00+00:00</published>
+    <updated>2025-11-26T00:00:00+00:00</updated>
+    <id>/blog/2025/11/26/junie-cage-spark</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/">&lt;h1 id=&quot;plugging-an-ai-supercomputer-into-intellij-our-dgx-spark-story&quot;&gt;Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story&lt;/h1&gt;
+
+&lt;p&gt;A small, heavy box arrived at the desk.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7397746344335048704&quot; height=&quot;703&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;Inside: an NVIDIA DGX Spark — a desktop AI box that looks like a PC, and behaves like a tiny datacenter. The obvious question for us was:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;How do we make this thing feel &lt;em&gt;invisible&lt;/em&gt; from inside IntelliJ?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This post is about the path we took to connect DGX Spark and IntelliJ in a way that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;keeps everything &lt;strong&gt;local&lt;/strong&gt; and &lt;strong&gt;offline-friendly&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;keeps security teams &lt;strong&gt;relaxed&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;and keeps developers in &lt;strong&gt;flow&lt;/strong&gt;, not in network manuals.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There is also a tiny hardware trick involved! And the shiny user experience we are fighting for!&lt;/p&gt;
+
+&lt;p&gt;I am going to demo the device, the magic cable (JetCable) at &lt;strong&gt;AWS re:Invent&lt;/strong&gt;,
+come visit &lt;strong&gt;JetBrains booth&lt;/strong&gt; for the real demo!&lt;/p&gt;
+
+&lt;h2 id=&quot;why-local-ai-matters-for-ide-workflows&quot;&gt;Why Local AI Matters for IDE Workflows&lt;/h2&gt;
+
+&lt;p&gt;Cloud AI is amazing — until the first security review. And of course, there are many of us 
+who are happy to use the frontier models (e.g. Anthropic, OpenAI, Google, xAI, …).
+There is a way to many regulated businesses, where it’s not yet possible or profitable.&lt;/p&gt;
+
+&lt;p&gt;Many teams live under constraints like:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;strict compliance rules&lt;/li&gt;
+  &lt;li&gt;code and data that must never leave the corporate network&lt;/li&gt;
+  &lt;li&gt;air-gapped or tightly segmented infrastructure&lt;/li&gt;
+  &lt;li&gt;flat usage plans (you own the hardware, you use it 100% of the time)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For those teams, “send code to an external model endpoint” is not an option.&lt;br /&gt;
+&lt;a href=&quot;https://www.nvidia.com/en-us/products/workstations/dgx-spark/&quot;&gt;Nvidia DGX Spark&lt;/a&gt; gives a different model:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;AI hardware is &lt;strong&gt;on the desk&lt;/strong&gt; or &lt;strong&gt;on-prem&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;the box can be configured with &lt;strong&gt;no direct internet access&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;all prompts, code, embeddings, and models stay &lt;strong&gt;inside the company perimeter&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;From the local development perspective, we want:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;AI assistance and heavy compute for code&lt;/li&gt;
+  &lt;li&gt;minimal configuration&lt;/li&gt;
+  &lt;li&gt;and strong guarantees that the bits never leave the building&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The integration story started from a simple goal:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Treat DGX Spark as a local development tool, not “another cloud”.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;step-zero-just-put-it-on-the-network&quot;&gt;Step Zero: “Just Put It on the Network”&lt;/h2&gt;
+
+&lt;p&gt;The first obvious attempt followed the official playbook:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Plug DGX Spark into the corporate network (Wi-Fi or Ethernet).&lt;/li&gt;
+  &lt;li&gt;Finish OS setup, accounts, security.&lt;/li&gt;
+  &lt;li&gt;Connect from dev machines over the LAN.&lt;/li&gt;
+  &lt;li&gt;Install agents, tools, and talk to the device via IP.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;On paper, this is fine.&lt;/p&gt;
+
+&lt;p&gt;In real corporate networks, we hit the usual obstacles:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;VLANs and firewalls.&lt;/li&gt;
+  &lt;li&gt;Ports that work in one environment and disappear in another.&lt;/li&gt;
+  &lt;li&gt;VPNs that break discovery.&lt;/li&gt;
+  &lt;li&gt;“Networking changes” with lead times measured in sprints.&lt;/li&gt;
+  &lt;li&gt;Broken flow (instead of trying, you’re configuring and rebuilding for hours)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We want a different experience:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;We unbox Nvidia DGX Spark.&lt;/li&gt;
+  &lt;li&gt;We connect one cable.&lt;/li&gt;
+  &lt;li&gt;IntelliJ quietly detects a device and offers to use it for AI and heavy tasks.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;No manuals, no “Which IP did DHCP assign this time?”, no ticket to “open port 12345”.
+So we decided to remove the corporate network from the diagram.&lt;/p&gt;
+
+&lt;h2 id=&quot;attempt-1-usb-gadget-magic&quot;&gt;Attempt #1: USB Gadget Magic&lt;/h2&gt;
+
+&lt;p&gt;The natural idea for a direct link is USB-C. Modern devices can expose, over USB:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;a network interface&lt;/li&gt;
+  &lt;li&gt;a serial/COM port&lt;/li&gt;
+  &lt;li&gt;or a custom vendor protocol&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The experiment:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;make DGX Spark pretend its USB-C is a &lt;strong&gt;network adapter&lt;/strong&gt;;&lt;/li&gt;
+  &lt;li&gt;let it run a small &lt;strong&gt;DHCP server&lt;/strong&gt;, assign an IP to the dev machine;&lt;/li&gt;
+  &lt;li&gt;expose a small API / SSH / custom protocol over this private point-to-point link.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On Linux, gadget drivers make this possible. Early tests were promising.
+Then we remembered a detail: this needs to work on &lt;strong&gt;Windows, macOS, and Linux&lt;/strong&gt; developer machines.&lt;/p&gt;
+
+&lt;p&gt;That implies:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;custom drivers&lt;/li&gt;
+  &lt;li&gt;code signing and OS-specific packaging&lt;/li&gt;
+  &lt;li&gt;keeping up with random OS updates&lt;/li&gt;
+  &lt;li&gt;debugging strange USB behaviour on a random laptop the night before a release&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Technically, possible and feasible. As a product, not something we want to base everything on.
+We stepped back and asked a simpler question:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;What is the most boring piece of hardware that all OSes already understand?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Answer: &lt;strong&gt;a regular network adapter&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-final-trick-two-nics-and-a-tiny-cable&quot;&gt;The Final Trick: Two NICs and a Tiny Cable&lt;/h2&gt;
+
+&lt;p&gt;The design we ended up with is almost disappointingly simple:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Use two standard Ethernet adapters connected by a short cable, one on the
+Nvidia DGX Spark side, one on the developer machine. Both go into USB-C.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Diagram version:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[IntelliJ laptop]
+    |
+    | USB-C
+    |
+    v                 
+[USB-Ethernet #1] == short cable == [USB-Ethernet #2]
+                                           ^
+                                           |
+                                         USB-C
+                                           |
+                                           v
+                                  [NVidia DGX Spark]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7398855051676471296&quot; height=&quot;639&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;And this setup is working greatly! We make the Nvidia DGX Spark run as DHCP and DNS for the network interface,
+so it means it will assign the developer machine the specific IP address. The software (say an IntelliJ plugin)
+will know about the port, or it will even look up it via DNS or either way.&lt;/p&gt;
+
+&lt;h2 id=&quot;current-state&quot;&gt;Current State&lt;/h2&gt;
+
+&lt;p&gt;We are running vLLM on the box, JetBrains AI Assistant can connect and use it, 
+we’re experimenting to let JetBrains Junie use the box as the primary model too. 
+So far it’s the demo phase to show what we can do and what’s coming next!&lt;/p&gt;
+
+&lt;p&gt;From the product standpoint, we take an assumption that there will be more
+powerful LLM models with open weights and the hardware to run the inference
+as fast as possible. We are experimenting with the “tool” product to make
+software development much more pleasurable and still more productive.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned!&lt;/p&gt;
+
+&lt;blockquote class=&quot;instagram-media&quot; data-instgrm-permalink=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; data-instgrm-version=&quot;14&quot; style=&quot; background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);&quot;&gt;&lt;div style=&quot;padding:16px;&quot;&gt; &lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;&quot; target=&quot;_blank&quot;&gt; &lt;div style=&quot; display: flex; flex-direction: row; align-items: center;&quot;&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 40px; margin-right: 14px; width: 40px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 100px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 60px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 19% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display:block; height:50px; margin:0 auto 12px; width:50px;&quot;&gt;&lt;svg width=&quot;50px&quot; height=&quot;50px&quot; viewBox=&quot;0 0 60 60&quot; version=&quot;1.1&quot; xmlns=&quot;https://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;https://www.w3.org/1999/xlink&quot;&gt;&lt;g stroke=&quot;none&quot; stroke-width=&quot;1&quot; fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;&gt;&lt;g transform=&quot;translate(-511.000000, -20.000000)&quot; fill=&quot;#000000&quot;&gt;&lt;g&gt;&lt;path d=&quot;M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631&quot;&gt;&lt;/path&gt;&lt;/g&gt;&lt;/g&gt;&lt;/g&gt;&lt;/svg&gt;&lt;/div&gt;&lt;div style=&quot;padding-top: 8px;&quot;&gt; &lt;div style=&quot; color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px;&quot;&gt;View this post on Instagram&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 12.5% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: row; margin-bottom: 14px; align-items: center;&quot;&gt;&lt;div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(0px) translateY(7px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; height: 12.5px; transform: rotate(-45deg) translateX(3px) translateY(1px); width: 12.5px; flex-grow: 0; margin-right: 14px; margin-left: 2px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(9px) translateY(-18px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: 8px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 20px; width: 20px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 2px solid transparent; border-left: 6px solid #f4f4f4; border-bottom: 2px solid transparent; transform: translateX(16px) translateY(-4px) rotate(30deg)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: auto;&quot;&gt; &lt;div style=&quot; width: 0px; border-top: 8px solid #F4F4F4; border-right: 8px solid transparent; transform: translateY(16px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; flex-grow: 0; height: 12px; width: 16px; transform: translateY(-4px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 8px solid #F4F4F4; border-left: 8px solid transparent; transform: translateY(-4px) translateX(8px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center; margin-bottom: 24px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 224px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 144px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/a&gt;&lt;p style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;&quot;&gt;&lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;&quot; target=&quot;_blank&quot;&gt;A post shared by Eugene Petrenko (@jonnyzzz)&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//www.instagram.com/embed.js&quot;&gt;&lt;/script&gt;
+
+&lt;h2 id=&quot;related-work&quot;&gt;Related Work&lt;/h2&gt;
+
+&lt;p&gt;There are many areas were we definitely need to look in at, for example&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;NVIDIA Sync tool&lt;/li&gt;
+  &lt;li&gt;SSH tunneling to connect to the NVIDIA Spark&lt;/li&gt;
+  &lt;li&gt;Using JetBrains cloud service to activate the device and let it with offline afterward&lt;/li&gt;
+  &lt;li&gt;Automatic configuration and pre-population of the software and AI model images&lt;/li&gt;
+  &lt;li&gt;Running AI Assistant, Junie, and JetBrains Mellum on the solution&lt;/li&gt;
+  &lt;li&gt;Making the solution distribute licenses&lt;/li&gt;
+  &lt;li&gt;Running local RAG’s in the device or near-by&lt;/li&gt;
+  &lt;li&gt;Making the cable smarter to support us with all of that&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The magic cable itself appears to have much of the potential, I’m looking forward
+to sharing more with you. We are going to post more, stay tuned, or reach
+out in DMs for more details.&lt;/p&gt;
+
+&lt;h1 id=&quot;new-world--aws-reinvent-2025&quot;&gt;New World &amp;amp; AWS re:Invent 2025&lt;/h1&gt;
+
+&lt;p&gt;There are so many ideas that we have and found working on this project, stay tuned,
+and let me know (via LinkedIn) what you think or would expect from us. I will update.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;I’ll be deming the solution, the JetCable at AWS re:Invent this year,
+stop by at JetBrains booth, and let’s talk about the local AI. See ya!&lt;/strong&gt;
+Drop me align via &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt; to stay in touch.&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Gearing up for Las Vegas? ✈️&lt;br /&gt;&lt;br /&gt;I’ll be at AWS re:Invent next week, and I&amp;#39;m looking forward to connecting with you and discussing the future trends. Passionate about Local LLMs, AI, Coding Agents, Developer Experience, and JetBrains&amp;#39; new products?&lt;br /&gt;&lt;br /&gt;Stop by the JetBrains booth to… &lt;a href=&quot;https://t.co/JAPiDcux6m&quot;&gt;pic.twitter.com/JAPiDcux6m&lt;/a&gt;&lt;/p&gt;&amp;mdash; Eugene Petrenko (@jonnyzzz) &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1993702449450713154?ref_src=twsrc%5Etfw&quot;&gt;November 26, 2025&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai" />
+  
+    <category term="ollama" />
+  
+    <category term="gpt-oss" />
+  
+    <category term="intellij" />
+  
+    <category term="hardware" />
+  
+    <category term="ai agent" />
+  
+    <summary type="html">Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">OAuth2-Bro: Building Authentication with AI Agents</title>
+    <link href="https://jonnyzzz.com/blog/2025/09/13/oauth-bro/" rel="alternate" type="text/html" title="OAuth2-Bro: Building Authentication with AI Agents" />
+    <published>2025-09-13T00:00:00+00:00</published>
+    <updated>2025-09-13T00:00:00+00:00</updated>
+    <id>/blog/2025/09/13/oauth-bro</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/09/13/oauth-bro/">&lt;p&gt;OAuth2 server with implicit IP-based authentication in Go, with integration tests for JetBrains IDE Services&lt;/p&gt;
+
+&lt;p&gt;A few months ago, I started getting recurring questions from JetBrains IDE Services customers about
+IP-based authentication scenarios. Universities with shared computers, remote development servers, 
+internal microservices behind firewalls – all needed OAuth2 integration without the complexity of managing 
+client credentials. The pattern was clear, but the existing solutions weren’t quite right.&lt;/p&gt;
+
+&lt;p&gt;So I built &lt;a href=&quot;https://github.com/jonnyzzz/oauth2-bro&quot;&gt;OAuth2-bro&lt;/a&gt; – an OAuth2 server that authenticates
+users based on their IP address. No client credentials to manage, no passwords to rotate, just straightforward
+network-based identity. The name? Inspired by Orwell’s Big Brother, but instead of watching you, this
+one just checks your IP address. The Brother knows who you are given your network address at the corporate network.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-problem&quot;&gt;The Problem&lt;/h2&gt;
+
+&lt;p&gt;In JetBrains IDE Services, we help companies manage AI and Developer Tools at
+scale –- AI Enterprise, License Vault, IDE Provisioner, Code With Me Enterprise. A common integration
+challenge kept surfacing: customers needed OAuth2 endpoints for their internal tooling,
+but traditional OAuth2 flows created friction in specific environments, or a customer does not maintain
+a compatible authentication system.&lt;/p&gt;
+
+&lt;p&gt;Think about a university classroom where students rotate through shared workstations.
+Or development servers accessed through a secure VPN where the network itself provides
+authentication. These scenarios don’t map well to traditional OAuth2 patterns. You don’t
+want to provision credentials for every possible client. You don’t want users managing
+API keys for internal services.&lt;/p&gt;
+
+&lt;p&gt;The solution needed to be simple: if you’re on the right network, you’re authenticated.
+OAuth2-bro implements standard OAuth2 flows but derives identity from network location
+rather than client credentials.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-architecture&quot;&gt;The Architecture&lt;/h2&gt;
+
+&lt;p&gt;OAuth2-bro operates in two modes. In &lt;em&gt;Bro Mode&lt;/em&gt;, it runs as a standalone OAuth2 provider
+with standard &lt;code class=&quot;highlighter-rouge&quot;&gt;/login&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;/token&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;/jwks&lt;/code&gt; endpoints. In &lt;em&gt;Proxy Mode&lt;/em&gt;, it acts as a sidecar
+container that intercepts requests and injects JWT tokens automatically.&lt;/p&gt;
+
+&lt;p&gt;The implementation is straightforward Go -– RSA-signed JWTs, CIDR-based IP validation,
+optional HTTPS with separate ports for internal/external access.
+It handles authorization codes, refresh tokens, and access tokens with configurable
+lifetimes. For production deployments across multiple nodes, you bring your own RSA
+keys to keep JWKS stable.&lt;/p&gt;
+
+&lt;p&gt;What makes it useful is what it doesn’t do. No user database, no credential storage,
+no persistent state. Just stateless authentication based on network topology. Deploy
+it as a Docker container or as a Go binary executable, configure your IP ranges, and you’re done.&lt;/p&gt;
+
+&lt;h2 id=&quot;building-with-ai-coding-tools&quot;&gt;Building with AI Coding Tools&lt;/h2&gt;
+
+&lt;p&gt;Here’s where things get interesting. I built OAuth2-bro almost entirely with AI coding agents.
+This wasn’t a toy project – it’s production-ready code with integration tests, unit tests, 
+proper error handling, and comprehensive documentation. The experience taught me a lot about
+how we’ll be building software in the near future. And that future is already here!&lt;/p&gt;
+
+&lt;p&gt;In the experiment I used JetBrains Goland, JetBrains Junie, Claude Code, Aider,
+Cursor, Copilot, AI Assistant, MCPs, and probably a few more tools.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-workflow-and-the-spec&quot;&gt;The Workflow and the Spec&lt;/h3&gt;
+
+&lt;p&gt;My approach was simple but effective: specs first, then AI execution. For every feature, I would:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Write a detailed design document describing the behavior, edge cases, and integration points&lt;/li&gt;
+  &lt;li&gt;Specify the testing requirements – what needs to work, what should fail gracefully&lt;/li&gt;
+  &lt;li&gt;Feed this to an AI coding agent and let it implement&lt;/li&gt;
+  &lt;li&gt;Review the generated code, run tests, iterate&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;I experimented with nearly every major AI coding tool available. Cursor and GitHub Copilot in various IDEs.
+JetBrains’ AI Assistant and the upcoming Junie. Claude Code both in Goland and standalone. VSCode with
+different AI extensions. Each has strengths, and I ended up using all of them at different stages.&lt;/p&gt;
+
+&lt;p&gt;What surprised me was how well this workflow scaled. The project has proper OAuth2 compliance,
+handles edge cases correctly, and includes both HTTP and HTTPS server implementations with comprehensive
+testing. Most of this code was written by AI agents following specifications. Some specifications
+were improved with AI.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-worked&quot;&gt;What Worked&lt;/h3&gt;
+
+&lt;p&gt;The key was being specific in the specs. When I wrote “implement OAuth2 authorization code flow with
+5-second expiration and RSA signature verification,” the AI produced working code. When I said
+“make this work,” it guessed wrong.&lt;/p&gt;
+
+&lt;p&gt;Integration tests were crucial. OAuth2 has well-defined behavior –- authorization codes expire,
+refresh tokens work across sessions, JWKS endpoints return proper public keys. Tests caught the
+places where AI-generated code deviated from the specification.&lt;/p&gt;
+
+&lt;p&gt;Code review remained essential. AI agents are excellent at translating specifications into code,
+but they make subtle mistakes. They might use the wrong cryptographic primitive, mishandle an error
+case, or implement OAuth2 flow slightly wrongly. Having tests helped catch these, but human review was
+the final safeguard.&lt;/p&gt;
+
+&lt;p&gt;The combination worked remarkably well: human judgment on architecture and specifications, AI execution
+on implementation, automated tests for correctness, and human review for subtleties.&lt;/p&gt;
+
+&lt;h3 id=&quot;what-i-learned&quot;&gt;What I Learned&lt;/h3&gt;
+
+&lt;p&gt;Working with AI coding agents reveals patterns about software development itself. Good specifications
+matter more than ever. When you can’t rely on an experienced developer to “know what you mean,” you need
+to be explicit. This discipline improves code quality.&lt;/p&gt;
+
+&lt;p&gt;Testing becomes even more critical. You can’t assume the implementation matches your mental
+model –- you need tests that verify actual behavior. AI-generated code often works for happy paths
+but fails on edge cases unless you specify them.&lt;/p&gt;
+
+&lt;p&gt;The role of the developer shifts. Instead of writing every line, you’re architecting systems, writing
+specifications, designing tests, and reviewing implementations. It’s closer to being a technical lead
+who happens to have a swift team that needs detailed guidance.&lt;/p&gt;
+
+&lt;p&gt;Never let a part of the system or tests be implemented without your control. That is so easy to
+give up reviewing, say on integration tests. And if that happens, it’s much cheaper to ask
+an AI agent to re-write these tests in a more digestible manner, instead of manually refactoring
+that code again. With the current tools, code-generation turns out to be very inexpensive, and the main
+problem is to get the right code written.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-vision-forward&quot;&gt;The Vision Forward&lt;/h2&gt;
+
+&lt;p&gt;OAuth2-bro works today for real production scenarios. You can run it in your Kubernetes cluster,
+configure it for your network topology, and integrate it with your services. The code is
+Apache 2.0 licensed -– fork it, extend it, use it however you need. I will appreciate you letting me know
+or/and pull requests with your improvements.&lt;/p&gt;
+
+&lt;p&gt;But there’s a bigger point here. This project demonstrates a new development workflow. Specifications
+drive implementation. AI agents handle the mechanical work. Tests verify correctness. 
+Humans provide judgment and architecture.&lt;/p&gt;
+
+&lt;p&gt;We’re at an inflection point in software development. The tools are good enough to be genuinely
+useful, but they still require careful guidance. The developers who succeed in this new environment
+will be those who excel at system design, clear communication, and rigorous testing.&lt;/p&gt;
+
+&lt;p&gt;AI coding tools won’t replace developers. They’ll amplify developers who know how to use them
+effectively. The key skills shift from typing code to architecting systems, from implementing
+algorithms to specifying behavior, from debugging line by line to designing comprehensive test suites.&lt;/p&gt;
+
+&lt;h1 id=&quot;an-invitation&quot;&gt;An Invitation&lt;/h1&gt;
+
+&lt;p&gt;I want to make this educational. The OAuth2-bro codebase is publicly available 
+at &lt;a href=&quot;https://github.com/jonnyzzz/oauth2-bro&quot;&gt;github.com/jonnyzzz/oauth2-bro&lt;/a&gt;. Most of it was written 
+with AI assistance. Some of it probably contains subtle bugs that an AI agent introduced because
+my specification wasn’t quite right.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Here’s a challenge&lt;/strong&gt;: dive into the code and find AI-generated bugs. Look for places where the
+OAuth2 spec isn’t quite followed correctly. Find edge cases that aren’t handled. 
+Spot security issues that slipped through.&lt;/p&gt;
+
+&lt;p&gt;Open issues. Submit PRs. Let’s learn together about what AI coding agents get right and where they
+still struggle. This is how we’ll collectively figure out how to build robust software in an AI-assisted world.&lt;/p&gt;
+
+&lt;p&gt;The future of development isn’t about whether to use AI tools. It’s about learning to
+use them well. OAuth2-bro is one experiment in that direction. What patterns will you discover?&lt;/p&gt;
+
+&lt;p&gt;Star the repository, try it in your environment, and share your findings. Together, we’re
+figuring out how to build better software faster.*&lt;/p&gt;
+
+&lt;h1 id=&quot;misc&quot;&gt;Misc&lt;/h1&gt;
+
+&lt;p&gt;OAuth2-bro was created to support customer requests at JetBrains IDE Services, focusing
+on management, security, and governance of AI and Developer Tools at scale. The project
+is not an official JetBrains product.&lt;/p&gt;
+
+&lt;h1 id=&quot;next-steps&quot;&gt;Next Steps&lt;/h1&gt;
+
+&lt;p&gt;I plan to experiment with
+&lt;a href=&quot;https://www.jetbrains.com/help/youtrack/devportal/extension-grants.html#reference-to-standard-extension-grant&quot;&gt;Extension Grants&lt;/a&gt;
+and the idea to chain OAuth2 providers together allowing an admin to use their authentication,
+while letting other regular users follow the IP-based rules logic. Stay tuned, and let’s hack together.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="oauth2" />
+  
+    <category term="authentication" />
+  
+    <category term="ai-coding" />
+  
+    <category term="go" />
+  
+    <category term="ide-services" />
+  
+    <category term="docker" />
+  
+    <category term="kubernetes" />
+  
+    <summary type="html">OAuth2 server with implicit IP-based authentication in Go, with integration tests for JetBrains IDE Services</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Reverse Proxy in Ktor</title>
@@ -1911,425 +2349,6 @@ experiments with &lt;code class=&quot;highlighter-rouge&quot;&gt;inline&lt;/code
     <category term="delegate" />
   
     <summary type="html">A short trick to delegate properties</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">JNI with Kotlin/Native</title>
-    <link href="https://jonnyzzz.com/blog/2019/12/15/jni-kotlin/" rel="alternate" type="text/html" title="JNI with Kotlin/Native" />
-    <published>2019-12-15T00:00:00+00:00</published>
-    <updated>2019-12-15T00:00:00+00:00</updated>
-    <id>/blog/2019/12/15/jni-kotlin</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/12/15/jni-kotlin/">&lt;p&gt;Calling native code from our cosy JVM environment was and is possible. JVM comes with
-the magical JNI APIs layer to make that. In this post we show how to use the JNI
-from a Kotlin/JVM program and how to implement the native
-counter-part with Kotlin/Native.&lt;/p&gt;
-
-&lt;p&gt;The example project contains several parts:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;The JVM part (define a native method, load native library, call the API)&lt;/li&gt;
-  &lt;li&gt;The Native part (build as shared library, register callback in the JVM, have fun)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-jvm-side&quot;&gt;The JVM Side&lt;/h2&gt;
-
-&lt;p&gt;Let’s implement the JVM side in Kotlin. It will be enough to have the following code:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;org.jonnyzzz.jni.java&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;NativeHost&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;external&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;callInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Int&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;external&lt;/code&gt; keyword in Kotlin is the same as the &lt;code class=&quot;highlighter-rouge&quot;&gt;native&lt;/code&gt; keyword in Java. Both mean
-the implementation of the method comes from the native library.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-kotlinnative-shared-library&quot;&gt;The Kotlin/Native Shared Library&lt;/h2&gt;
-
-&lt;p&gt;The experiment was to use the same programming language to implement the native
-part too. We use &lt;a href=&quot;https://kotlinlang.org/docs/reference/native-overview.html&quot;&gt;Kotlin/Native&lt;/a&gt;
-for that.&lt;/p&gt;
-
-&lt;p&gt;The second point to try Kotlin/Native is to use the
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/multiplatform.html&quot;&gt;Kotlin Multiplatform Programming&lt;/a&gt;
-to share some code between Native and JVM worlds. I will omit examples of that
-in the current post.&lt;/p&gt;
-
-&lt;p&gt;JVM looks for specific symbol names to resolve native methods. We may find 
-&lt;a href=&quot;https://docs.oracle.com/en/java/javase/11/docs/specs/jni/design.html#resolving-native-method-names&quot;&gt;the full spec&lt;/a&gt;
-in the documentation. The &lt;code class=&quot;highlighter-rouge&quot;&gt;callInt&lt;/code&gt; function has the following symbol name:&lt;/p&gt;
-
-&lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;jint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Java_org_jonnyzzz_jni_java_NativeHost_callInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;JNIEnv&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-                                                   &lt;span class=&quot;n&quot;&gt;jobject&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
-                                                   &lt;span class=&quot;n&quot;&gt;jint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;The first two parameters are added for all JNI calls. The &lt;code class=&quot;highlighter-rouge&quot;&gt;JNIEnv&lt;/code&gt; allows
-accessing the JVM to say create an object or throw an exception. We do
-not need these parameters for our example, but we have to keep them for
-binary compatibility. The function name in our example is generated
-as follows:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Java_&amp;lt;package name&amp;gt;_&amp;lt;class name&amp;gt;_&amp;lt;method_name&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That encoding does not work for overloaded functions (there is on support for
-overloads in C). The
-&lt;a href=&quot;https://docs.oracle.com/en/java/javase/11/docs/specs/jni/design.html#resolving-native-method-names&quot;&gt;JNI specification&lt;/a&gt;
-defines how to create a longer names with mangling to overcome the limitation.&lt;/p&gt;
-
-&lt;p&gt;The following declaration in Kotlin/Native code
-will implement it:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@CName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Java_org_jonnyzzz_jni_java_NativeHost_callInt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;callInt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;CPointer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;JNIEnvVar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;clazz&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;jclass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;jint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;jint&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;initRuntimeIfNeeded&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;Platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isMemoryLeakCheckerActive&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Native function is executed with: $it&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Here we use the &lt;code class=&quot;highlighter-rouge&quot;&gt;@CName&lt;/code&gt; annotation to instruct
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/native/c_interop.html&quot;&gt;the cinterop&lt;/a&gt;
-to export the function as a symbol of the shared library.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-c-interop-setup&quot;&gt;The C interop Setup&lt;/h2&gt;
-
-&lt;p&gt;The example above requires a project setup to work. 
-We need to import the &lt;code class=&quot;highlighter-rouge&quot;&gt;jni.h&lt;/code&gt; header into Kotlin/Native.
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/native/c_interop.html&quot;&gt;The cinterop&lt;/a&gt;
-tool helps us to generate Kotlin code from a C library definitions.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-project-setup&quot;&gt;The Project Setup&lt;/h2&gt;
-
-&lt;p&gt;Before we jump into the native world, let’s create a project. We’ll use Gradle project,
-written in Kotlin. You may &lt;a href=&quot;https://github.com/jonnyzzz/kotlin-jni-mix&quot;&gt;see the code&lt;/a&gt; from
-my GitHub or create a new one from a scratch. It will the
-&lt;a href=&quot;https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html&quot;&gt;kotlin multiplatform&lt;/a&gt; plugin.&lt;/p&gt;
-
-&lt;p&gt;The initial project setup in a &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; file could look like that:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;multiplatform&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;version&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;1.3.61&quot;&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;repositories&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;mavenCentral&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;jvm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;macosX64&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;native&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// see below&lt;/span&gt;
-
-  &lt;span class=&quot;n&quot;&gt;sourceSets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvmMain&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;stdlib-jdk8&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;macosX64&lt;/code&gt; block defined the macOS shared library target. Rename it to
-&lt;code class=&quot;highlighter-rouge&quot;&gt;mingwX64&lt;/code&gt; for Windows, and &lt;code class=&quot;highlighter-rouge&quot;&gt;linuxX64&lt;/code&gt; for Linux. Find more explanations on that
-&lt;a href=&quot;https://kotlinlang.org/docs/tutorials/native/dynamic-libraries.html&quot;&gt;in the tutorial&lt;/a&gt;
-for Kotlin/Native. We use &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1206242931058892802?s=20&quot;&gt;a script&lt;/a&gt;
-in the example repository to avoid manual configuration need.&lt;/p&gt;
-
-&lt;p&gt;We use the Kotlin/Native’s &lt;code class=&quot;highlighter-rouge&quot;&gt;cinterop&lt;/code&gt; tool to import the &lt;code class=&quot;highlighter-rouge&quot;&gt;jni.h&lt;/code&gt; declarations to Kotlin, 
-e.g  &lt;code class=&quot;highlighter-rouge&quot;&gt;JNIEnv&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;jint&lt;/code&gt; symbols. The whole script looks like that:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  macosX64(&quot;native&quot;) { // use linuxX64 or mingwX64 on other OS
-    binaries {
-      sharedLib()
-    }
-
-    compilations[&quot;main&quot;].cinterops.create(&quot;jni&quot;) {
-      val javaHome = File(System.getProperty(&quot;java.home&quot;)!!)
-      packageName = &quot;org.jonnyzzz.jni&quot;
-      includeDirs(
-              Callable { File(javaHome, &quot;include&quot;) },
-              Callable { File(javaHome, &quot;include/darwin&quot;) },
-              Callable { File(javaHome, &quot;include/linux&quot;) },
-              Callable { File(javaHome, &quot;include/win32&quot;) }
-      )
-    }
-  }
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;src/nativeInterop/cinterop/jni.def&lt;/code&gt; file contains the definitions for the c interop, 
-it should container the only one line to instruct the interop tool what headers to use:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;headers = jni.h
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;putting-all-together&quot;&gt;Putting all Together&lt;/h2&gt;
-
-&lt;p&gt;The example is ready. We use Kotlin/JVM to talk to Kotlin/Native in the same project.
-The project sources are &lt;a href=&quot;https://github.com/jonnyzzz/kotlin-jni-mix&quot;&gt;on my GitHub&lt;/a&gt;, 
-try it, open in IntelliJ and have fun.&lt;/p&gt;
-
-&lt;p&gt;You’ll have the following code in the console:&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;➜  kotlin-jni-mix git:(master) ✗ ./gradlew run
-
-&amp;gt; Configure project :
-Kotlin Multiplatform Projects are an experimental feature.
-
-&amp;gt; Task :linkDebugSharedNative
-Produced library API in libkotlin_jni_mix_api.h
-
-&amp;gt; Task :linkReleaseSharedNative
-Produced library API in libkotlin_jni_mix_api.h
-
-&amp;gt; Task :run
-Native function is executed with: 42
-ret from the native: 43
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="jvm" />
-  
-    <category term="java" />
-  
-    <category term="kotlin" />
-  
-    <category term="kotlin-native" />
-  
-    <category term="jni" />
-  
-    <category term="native" />
-  
-    <summary type="html">Kotlin both sides: Native and JVM</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Migrating to Gradle Kotlin DSL - Groovy Closure</title>
-    <link href="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/" rel="alternate" type="text/html" title="Migrating to Gradle Kotlin DSL - Groovy Closure" />
-    <published>2019-06-25T00:00:00+00:00</published>
-    <updated>2019-06-25T00:00:00+00:00</updated>
-    <id>/blog/2019/06/25/gradle-kotlin-migration-4</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2019/06/25/gradle-kotlin-migration-4/">&lt;p&gt;While migrating the real-life project’s Gradle build from Groovy to Kotlin,
-I collected some useful recommendations, code snippets, and explanations.
-Throughout the post series, we will together learn how to
-convert to Gradle Kotlin DSL faster and easier.&lt;/p&gt;
-
-&lt;p&gt;New to Gradle Kotlin DSL? Take a look at the 
-&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
-for practical recommendations on migrating from Groovy to Kotlin
-build scripts. In the &lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt;,
-we cover Kotlin tasks setup on Gradle Kotlin DSL scripts. Few more findings of mine
-towards &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;, plugins and extensions are presented in the 
-&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;In that post, I’ll share my findings for the
-migrating a Groovy Closure to Gradle Kotlin DSL. In that post
-you’ll learn how to step-by-step migrate a Gradle script with Groovy
-closure usages into Kotlin DSL.&lt;/p&gt;
-
-&lt;h2 id=&quot;dependencies&quot;&gt;Dependencies&lt;/h2&gt;
-
-&lt;p&gt;I’ve seen many times in different Gradle projects an attempt to
-list all dependencies in some file in the root project and fix versions of all
-used libraries in one place so that only a library name is used in a dependency
-and its version written only once for the whole project. It helps one to avoid an unexpected library
-version clashes in a multi-project Gradle project. For example, how many
-different versions of say &lt;code class=&quot;highlighter-rouge&quot;&gt;OkHttp&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;Jackson&lt;/code&gt; do you have in your project?
-Of course, another version of the same dependency may come from
-transitive dependencies, it is another story, we will not cover it
-in that blog post.&lt;/p&gt;
-
-&lt;p&gt;I’ve implemented a similar pattern to list all dependencies in the root Gradle project.
-Let’s see how I migrated my Groovy solution to Kotlin.&lt;/p&gt;
-
-&lt;h2 id=&quot;groovy-script-dependencies&quot;&gt;Groovy Script Dependencies&lt;/h2&gt;
-
-&lt;p&gt;Let’s assume we need to add a dependency to &lt;code class=&quot;highlighter-rouge&quot;&gt;OkHttp&lt;/code&gt; library in a sub-project. We’d like to
-use common library definition for all sub-projects. I found it elegant to create a Groovy
-closure in the root project for such a definition:&lt;/p&gt;
-&lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-     &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
-        &lt;span class=&quot;n&quot;&gt;compile&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'com.squareup.okhttp3:okhttp:3.12.1'&lt;/span&gt;
-     &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;  
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Do not ask me, why do I have the &lt;code class=&quot;highlighter-rouge&quot;&gt;Project&lt;/code&gt; parameter in that function/closure. Technically, it is not
-needed, but I was lazy to remove it from the code. Now it is time to finally do that (and convert to
-Kotlin DSL)!&lt;/p&gt;
-
-&lt;p&gt;Meanwhile, the usage in Groovy was easy and strait forward:&lt;/p&gt;
-&lt;div class=&quot;language-groovy highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;gradle-kotlin-dsl&quot;&gt;Gradle Kotlin DSL&lt;/h2&gt;
-
-&lt;p&gt;To follow the &lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;one-by-one migration strategy&lt;/a&gt;
-we need the way to call the same code from Kotlin DSL.
-I found the following code for it:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extensions&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;extraProperties&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;dependency_okhttp&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Closure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;*&amp;gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The code is indeed problematic. When I migrate the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; property
-definition to Kotlin, I will have to fix every usage of it and replace the cast 
-to &lt;code class=&quot;highlighter-rouge&quot;&gt;Closure&amp;lt;*&amp;gt;&lt;/code&gt; with a cast to, say, &lt;code class=&quot;highlighter-rouge&quot;&gt;Function1&amp;lt;Project,*&amp;gt;&lt;/code&gt; or something different&lt;/p&gt;
-
-&lt;h2 id=&quot;moving-ext-to-buildsrc-and-kotlin&quot;&gt;Moving ext to buildSrc and Kotlin&lt;/h2&gt;
-
-&lt;p&gt;The better place for all extensions in Kotlin (also in Groovy) is &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
-We’ve &lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;covered it&lt;/a&gt; in the
-previous post. Let’s move the definition of the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; function into Kotlin code 
-and place the code under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; folder. For that, I created a Kotlin file and added the
-following function there:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;x.y.z&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DependencyHandlerScope&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;s&quot;&gt;&quot;implementation&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;com.squareup.okhttp3:okhttp:3.12.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we can use the function in Gradle/Kotlin directly in the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{..}&lt;/code&gt; block:&lt;/p&gt;
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;x.y.z.*&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The usage is now clean and short, which is great. The only price for that is the &lt;code class=&quot;highlighter-rouge&quot;&gt;import&lt;/code&gt; statement. 
-We need to import the package, where our declaration is to all our &lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle.kts&lt;/code&gt; project files.
-I wish it were possible to tell Gradle to implicitly import several
-more packages into Kotlin DSL script execution context.&lt;/p&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt; type is the receiver type of the lambda behind the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{}&lt;/code&gt; function.
-There is yet another issue — we cannot use &lt;code class=&quot;highlighter-rouge&quot;&gt;implementation&lt;/code&gt; inside &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies{}&lt;/code&gt; block
-in the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; code. Instead, we may to use &lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;implementation&quot;&lt;/code&gt; string.
-I’m &lt;a href=&quot;https://gradle-community.slack.com/archives/CAD95CR62/p1549364199106400&quot;&gt;looking for the answer&lt;/a&gt;
-to that. It seems the &lt;code class=&quot;highlighter-rouge&quot;&gt;implementation&lt;/code&gt; function is
-generated on the fly by Gradle’s Kotlin scripts runtime, and it is not included into the 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; evaluation environment.&lt;/p&gt;
-
-&lt;h2 id=&quot;calling-kotlin-buildsrc-from-groovy&quot;&gt;Calling Kotlin buildSrc from Groovy&lt;/h2&gt;
-
-&lt;p&gt;To start with, do not forget to use the &lt;code class=&quot;highlighter-rouge&quot;&gt;new&lt;/code&gt; operator to create objects in Groovy. It is
-so easy to forget after dealing with Kotlin. I paid about a dozen minutes debugging that.&lt;/p&gt;
-
-&lt;p&gt;By that moment, we have all the extension function &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope.dependency_okhttp&lt;/code&gt;
-declared in Kotlin DSL under the &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;. Let’s see how to call the function from
-&lt;code class=&quot;highlighter-rouge&quot;&gt;build.gradle&lt;/code&gt; files and Groovy. In other words, it is the challenge to re-implement
-the older Groovy &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; closures in all original gradle scripts.&lt;/p&gt;
-
-&lt;p&gt;Our goal is to call the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope.dependency_okhttp&lt;/code&gt; function from Groovy.
-We only need an instance of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt;, which is only used on Kotlin DSL, to make
-the call to our Kotlin extension function.
-The &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt; class has the &lt;code class=&quot;highlighter-rouge&quot;&gt;of&lt;/code&gt; factory function in its
-&lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt;, but it is not a &lt;em&gt;static&lt;/em&gt; function, it misses the &lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation!&lt;/p&gt;
-
-&lt;h2 id=&quot;kotlin-to-jvm-interop&quot;&gt;Kotlin to JVM Interop&lt;/h2&gt;
-
-&lt;p&gt;Global functions (such as &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt;) are compiled by the Kotlin/JVM compiler
-to a &lt;code class=&quot;highlighter-rouge&quot;&gt;FilenameKt&lt;/code&gt; class static member functions. We need to &lt;code class=&quot;highlighter-rouge&quot;&gt;import static&lt;/code&gt; that
-class when calling Kotlin functions from Groovy or Java. The short solution, but
-it took several dozen minutes for me to figure out.&lt;/p&gt;
-
-&lt;p&gt;To simplify, we may just add a global &lt;code class=&quot;highlighter-rouge&quot;&gt;import static &amp;lt;package&amp;gt;.&amp;lt;KotlinFileName&amp;gt;Kt.*;&lt;/code&gt; to our Groovy
-scripts and then call all our Kotlin global functions without a qualifier. That also applies
-to the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp()&lt;/code&gt; function that we have under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;One more thing is that the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp()&lt;/code&gt; function is an &lt;em&gt;extension function&lt;/em&gt;.
-How can we call it from Groovy?&lt;/p&gt;
-
-&lt;p&gt;Kotlin extension functions have the receiver parameter as the very first parameter at the JVM bytecode level.
-We may call extension functions from Groovy or Java as an ordinary method passing the receiver object instance
-as the first parameter.&lt;/p&gt;
-
-&lt;p&gt;Accessing functions from &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; is in general a bit more tricky. 
-Use the following syntax to access Kotlin declarations from Groovy:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;@JvmStatic&lt;/code&gt; annotation is present — Call as a static function&lt;/li&gt;
-  &lt;li&gt;Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;object&lt;/code&gt; — use &lt;code class=&quot;highlighter-rouge&quot;&gt;TypeName.INSTANCE.functionName&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;Kotlin &lt;code class=&quot;highlighter-rouge&quot;&gt;companion object&lt;/code&gt; — use &lt;code class=&quot;highlighter-rouge&quot;&gt;TypeName.@Companion.functionName&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;You may find more details in the
-&lt;a href=&quot;/blog/2019/02/04/companion-and-object/&quot;&gt;JVM bytecode for Kotlin Object and Companion Object&lt;/a&gt;
-declarations post. Frankly, I was happy to find the possibility to write &lt;code class=&quot;highlighter-rouge&quot;&gt;@Companion&lt;/code&gt; in Groovy.&lt;/p&gt;
-
-&lt;h2 id=&quot;calling-kotlin-from-groovy&quot;&gt;Calling Kotlin from Groovy&lt;/h2&gt;
-
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;dependency_okhttp&lt;/code&gt; function is declared in the &lt;code class=&quot;highlighter-rouge&quot;&gt;dependencies.kt&lt;/code&gt; file under the
-&lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project in my codebase. It is visible to Groovy as a member of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependenciesKt&lt;/code&gt; class.
-We use the &lt;code class=&quot;highlighter-rouge&quot;&gt;.@Companion.&lt;/code&gt; trick to access the &lt;code class=&quot;highlighter-rouge&quot;&gt;.of&lt;/code&gt; function of the &lt;code class=&quot;highlighter-rouge&quot;&gt;DependencyHandlerScope&lt;/code&gt;
-class from Gradle.
-We have the following Groovy code to call our extension function declared in Kotlin from Groovy:&lt;/p&gt;
-&lt;div class=&quot;language-gradle highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;DependenciesKt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.*&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;ext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Project&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;project&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;dependency_okhttp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DependencyHandlerScope&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nd&quot;&gt;@Companion.of&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;dependencies&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That code is stable, and it is unlikely to break if we change something code under &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.
-The Kotlin version is easy to use from Kotlin DSL, and the Groovy version is only needed
-for the time of the migration from Gradle to Kotlin. We’ve covered the migration plan
-in the very &lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt;
-of this series.&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;In the post we’ve seen how to deal with Groovy closures on Kotlin and
-how to move from &lt;code class=&quot;highlighter-rouge&quot;&gt;ext&lt;/code&gt; properties to Kotlin extension functions declared in &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://kotlinlang.org&quot;&gt;Kotlin&lt;/a&gt; as a statically typed programming language
-seems to play well with writing Gradle build scripts.
-Thanks to the static type inference, the Kotlin compiler detects errors earlier and
-shows helpful compilation error messages and warnings.
-Both the IDE and the compiler use information about types to infer
-the available functions and properties in a given scope, even inside a 5th level
-nested lambda with receivers.&lt;/p&gt;
-
-&lt;p&gt;I will cover more aspects in the coming posts, stay tuned!
-Check out the&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/03/04/gradle-kotlin-migration-1/&quot;&gt;first post&lt;/a&gt; — First steps of the migration&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/04/02/gradle-kotlin-migration-2/&quot;&gt;second post&lt;/a&gt; — Kotlin tasks in Gradle Kotlin DSL,&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2019/05/20/gradle-kotlin-migration-3/&quot;&gt;third post&lt;/a&gt; — a &lt;code class=&quot;highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; project with Kotlin, ad-hoc plugins and extensions&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="gradle" />
-  
-    <category term="gradle/groovy" />
-  
-    <category term="gradle/kotlin" />
-  
-    <category term="kts" />
-  
-    <category term="kotlin" />
-  
-    <category term="groovy" />
-  
-    <category term="build" />
-  
-    <summary type="html">Groovy Closures and Gradle Kotlin DSL</summary>
   
   </entry>
   
