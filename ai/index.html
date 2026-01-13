@@ -2,14 +2,14 @@
 <html class="no-js" lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Homepage &#8211; Eugene Petrenko</title>
-<meta name="description" content="Eugene Petrenko Site & Blog"/>
+<title>AI Agent Resources &#8211; Eugene Petrenko</title>
+
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="Homepage -- Eugene Petrenko" />
-<meta name="twitter:description" content="Eugene Petrenko Site & Blog" />
+<meta name="twitter:title" content="AI Agent Resources -- Eugene Petrenko" />
+
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -19,9 +19,9 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="Homepage -- Eugene Petrenko" />
-<meta property="og:description" content="Eugene Petrenko Site & Blog" />
-<meta property="og:url" content="https://jonnyzzz.com/" />
+<meta property="og:title" content="AI Agent Resources -- Eugene Petrenko" />
+
+<meta property="og:url" content="https://jonnyzzz.com/ai/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -39,7 +39,7 @@
 
 
 
-<link rel="canonical" href="https://jonnyzzz.com/" />
+<link rel="canonical" href="https://jonnyzzz.com/ai/" />
 <link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -110,26 +110,94 @@
     
     <div class="entry-wrapper">
       <header class="entry-header">
-        <h1 class="entry-title">Homepage</h1>
+        <h1 class="entry-title">AI Agent Resources</h1>
       </header>
       <div class="entry-content">
-        <ul class="post-list">
-  <li><article><a href="/about/">About me</a></article></li>
-  <li><article><a href="/projects/">My projects</a></article></li>
-  <li><article><a href="/talks/">My Talks</a></article></li>
+        <p>This site provides resources for AI agents to better understand and interact with the content.
+These files follow the <a href="https://llmstxt.org/">llms.txt specification</a> and related patterns
+for AI-readable content.</p>
 
+<h2 id="skill-files">Skill Files</h2>
 
-  <li><article><a href="/blog/2026/01/05/rlm-multi-agent-orchestration/">From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM <span class="entry-date"><time datetime="2026-01-05T00:00:00+00:00">January 05, 2026</time></span></a></article></li>
+<p>The following markdown files provide instructions and patterns for AI agents working with this repository
+or implementing multi-agent orchestration:</p>
 
-  <li><article><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop <span class="entry-date"><time datetime="2026-01-05T00:00:00+00:00">January 05, 2026</time></span></a></article></li>
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="/RLM.md">RLM.md</a></td>
+      <td>Recursive Language Models implementation guide - theoretical foundation for task decomposition and handling inputs beyond context windows</td>
+    </tr>
+    <tr>
+      <td><a href="/MULTI-AGENT.md">MULTI-AGENT.md</a></td>
+      <td>AI agent orchestration patterns - how to coordinate multiple sub-agents for complex tasks</td>
+    </tr>
+    <tr>
+      <td><a href="/CLAUDE-CODE.md">CLAUDE-CODE.md</a></td>
+      <td>Using Claude Code CLI as a sub-agent - full tool access, web search, parallel execution</td>
+    </tr>
+    <tr>
+      <td><a href="/CODEX.md">CODEX.md</a></td>
+      <td>Using Codex CLI as a sub-agent - ideal for image analysis, focused code review, and parallel workloads</td>
+    </tr>
+    <tr>
+      <td><a href="/GEMINI.md">GEMINI.md</a></td>
+      <td>Using Gemini CLI as a sub-agent - provides alternative perspective for cross-validation and long-context tasks</td>
+    </tr>
+  </tbody>
+</table>
 
-  <li><article><a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroids: An IntelliJ MCP Server with Vision <span class="entry-date"><time datetime="2026-01-04T00:00:00+00:00">January 04, 2026</time></span></a></article></li>
+<h2 id="blog-post-markdown">Blog Post Markdown</h2>
 
-  <li><article><a href="/blog/2026/01/03/roomtone-single-room-call/">Roomtone: A Single-Room Call for Home <span class="entry-date"><time datetime="2026-01-03T00:00:00+00:00">January 03, 2026</time></span></a></article></li>
+<p>All blog posts written in markdown are also available in their raw form for AI agents.
+Append <code class="highlighter-rouge">index.md</code> to any blog post URL to get clean markdown without HTML rendering:</p>
 
-  <li><article><a href="/blog/2026/01/02/stevedore-dyndns/">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab <span class="entry-date"><time datetime="2026-01-02T00:00:00+00:00">January 02, 2026</time></span></a></article></li>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/          → HTML page
+https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md  → Clean markdown
+</code></pre></div></div>
 
-  <li><article><a href="/blog/">and more...</a></article></li>
+<p>The <code class="highlighter-rouge">.md</code> files contain no YAML front matter. Metadata is provided as readable text at the top of each file.</p>
+
+<h2 id="how-to-fetch">How to Fetch</h2>
+
+<p>AI agents can fetch these resources using curl or any HTTP client:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Fetch skill files</span>
+curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md
+curl <span class="nt">-s</span> https://jonnyzzz.com/MULTI-AGENT.md
+curl <span class="nt">-s</span> https://jonnyzzz.com/CLAUDE-CODE.md
+curl <span class="nt">-s</span> https://jonnyzzz.com/CODEX.md
+curl <span class="nt">-s</span> https://jonnyzzz.com/GEMINI.md
+
+<span class="c"># Fetch a blog post as markdown</span>
+curl <span class="nt">-s</span> https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md
+
+<span class="c"># Pipe to your context or save to file</span>
+curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md | <span class="nb">head</span> <span class="nt">-100</span>
+curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md <span class="o">&gt;</span> /tmp/rlm-context.md
+</code></pre></div></div>
+
+<p>For AI agents with web fetch capabilities:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>WebFetch: https://jonnyzzz.com/RLM.md
+WebFetch: https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md
+</code></pre></div></div>
+
+<h2 id="usage">Usage</h2>
+
+<p>These resources are designed for:</p>
+
+<ul>
+  <li>AI coding assistants analyzing this codebase</li>
+  <li>Multi-agent systems that need to coordinate sub-tasks</li>
+  <li>LLM-based tools that benefit from structured markdown input</li>
+  <li>Developers implementing similar patterns in their own projects</li>
 </ul>
 
       </div><!-- /.entry-content -->

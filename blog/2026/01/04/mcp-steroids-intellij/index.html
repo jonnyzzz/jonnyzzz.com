@@ -1,0 +1,474 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>MCP Steroids: An IntelliJ MCP Server with Vision &#8211; Eugene Petrenko</title>
+<meta name="description" content="An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, mcp, intellij, ai-coding, developer-experience, kotlin" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="MCP Steroids: An IntelliJ MCP Server with Vision -- Eugene Petrenko" />
+<meta name="twitter:description" content="An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="MCP Steroids: An IntelliJ MCP Server with Vision -- Eugene Petrenko" />
+<meta property="og:description" content="An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="mcp" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="developer-experience" />
+
+<meta property="article:tag" content="kotlin" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#developer-experience" title="Pages tagged developer-experience">developer-experience</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li>
+        </ul>
+        
+          <h1 class="entry-title">MCP Steroids: An IntelliJ MCP Server with Vision</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-01-04T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 04, 2026</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,mcp,intellij,ai-coding,developer-experience,kotlin&amp;text=MCP%20Steroids:%20An%20IntelliJ%20MCP%20Server%20with%20Vision&amp;url=https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built <strong>MCP Steroids</strong>.</p>
+
+<p>The project grew to 253 commits over a month of intense holiday hacking. It started as a simple Kotlin script executor and evolved into a full MCP server with vision, OCR, and human review gates.</p>
+
+<h2 id="series-holiday-sprint-with-ai">Series: Holiday Sprint with AI</h2>
+
+<ul>
+  <li><a href="/blog/2025/01/06/holiday-sprint-with-ai/">290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex</a></li>
+  <li><a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroids: An IntelliJ MCP Server with Vision</a></li>
+  <li><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop</a></li>
+  <li><a href="/blog/2026/01/03/roomtone-single-room-call/">Roomtone: A Single-Room Call for Home</a></li>
+</ul>
+
+<h2 id="the-mcp-server-inside-intellij">The MCP Server Inside IntelliJ</h2>
+
+<p>MCP Steroids runs a Ktor server inside the IDE using.
+I tried the <a href="https://github.com/modelcontextprotocol/kotlin-sdk">Kotlin MCP SDK</a>, but found it
+does not yet support the latest MCP spec version, same as IntelliJ-native MCP Server.
+For the sake of this experiment, I decided to focus on my own implementations.</p>
+
+<p>It binds to <code class="highlighter-rouge">127.0.0.1:63150</code> by default (configurable via registry keys). The core 
+endpoint is <code class="highlighter-rouge">/mcp</code>, with <a href="https://agentskills.io">Agent Skills</a> discovery at <code class="highlighter-rouge">/skill.md</code>.</p>
+
+<p>On startup, the plugin writes discovery markers so tools can connect without guessing:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">~/.&lt;pid&gt;.mcp-steroid</code> in the user home (PID-scoped, cleaned on exit).</li>
+  <li><code class="highlighter-rouge">.idea/mcp-steroids.txt</code> inside each opened project.</li>
+</ul>
+
+<h3 id="connecting-ai-agents">Connecting AI Agents</h3>
+
+<p>The server works with all major AI coding CLIs: Claude Code and Codex.</p>
+
+<h2 id="tool-surface-the-ide-as-a-toolbox">Tool Surface: The IDE as a Toolbox</h2>
+
+<p>The goal is simple: expose the IDE in a way an agent can actually use. The MCP surface includes:</p>
+
+<ul>
+  <li><strong><code class="highlighter-rouge">steroid_execute_code</code></strong> to run Kotlin snippets inside IntelliJ with full IDE APIs.</li>
+  <li><strong>Project and window discovery</strong> (<code class="highlighter-rouge">steroid_list_projects</code>, <code class="highlighter-rouge">steroid_list_windows</code>).</li>
+  <li><strong>Capability and action discovery</strong> (<code class="highlighter-rouge">steroid_capabilities</code>, <code class="highlighter-rouge">steroid_action_discovery</code>).</li>
+  <li><strong>Vision + input</strong> (<code class="highlighter-rouge">steroid_take_screenshot</code>, <code class="highlighter-rouge">steroid_input</code>) to drive the UI.</li>
+  <li><strong>Project lifecycle</strong> (<code class="highlighter-rouge">steroid_open_project</code>).</li>
+</ul>
+
+<p>Each tool is registered via extension points, so the surface can grow without rewriting the server.</p>
+
+<h3 id="why-not-just-lsp">Why Not Just LSP?</h3>
+
+<p>This is similar to what LSP (Language Server Protocol) provides, but IntelliJ’s native APIs go deeper:</p>
+
+<ul>
+  <li><strong>PSI (Program Structure Interface)</strong> — richer code understanding than LSP’s syntax trees.</li>
+  <li><strong>IDE-specific features</strong> — inspections, refactorings, intentions, quick-fixes.</li>
+  <li><strong>Full project model</strong> — module dependencies, source roots, library references.</li>
+  <li><strong>Platform indices</strong> — fast code search across the entire project.</li>
+</ul>
+
+<p>The preference is always IDE APIs over file operations:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Instead of…</th>
+      <th>Use IntelliJ API</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Reading files with <code class="highlighter-rouge">cat</code>/<code class="highlighter-rouge">read</code></td>
+      <td>VFS and PSI APIs</td>
+    </tr>
+    <tr>
+      <td>Searching with <code class="highlighter-rouge">grep</code>/<code class="highlighter-rouge">find</code></td>
+      <td>Find Usages, Structural Search</td>
+    </tr>
+    <tr>
+      <td>Manual text replacement</td>
+      <td>Automated refactorings</td>
+    </tr>
+    <tr>
+      <td>Guessing code structure</td>
+      <td>Query project model directly</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The IDE has indexed everything. It knows the code better than any file search.</p>
+
+<h2 id="execution-pipeline-with-a-safety-valve">Execution Pipeline With a Safety Valve</h2>
+
+<p>Agents submit Kotlin code via <code class="highlighter-rouge">steroid_execute_code</code>. Scripts must call <code class="highlighter-rouge">execute { }</code> to interact with the IDE:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">execute</span> <span class="p">{</span>
+    <span class="n">waitForSmartMode</span><span class="p">()</span>  <span class="c1">// Wait for indexing</span>
+
+    <span class="kd">val</span> <span class="py">psiFile</span> <span class="p">=</span> <span class="n">readAction</span> <span class="p">{</span>
+        <span class="n">PsiManager</span><span class="p">.</span><span class="n">getInstance</span><span class="p">(</span><span class="n">project</span><span class="p">).</span><span class="n">findFile</span><span class="p">(</span><span class="n">virtualFile</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="n">writeAction</span> <span class="p">{</span>
+        <span class="n">document</span><span class="p">.</span><span class="n">setText</span><span class="p">(</span><span class="s">"new content"</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="n">println</span><span class="p">(</span><span class="s">"Done!"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">McpScriptContext</code> provides built-in helpers: <code class="highlighter-rouge">readAction</code>, <code class="highlighter-rouge">writeAction</code>, 
+<code class="highlighter-rouge">smartReadAction</code>, <code class="highlighter-rouge">findFile</code>, <code class="highlighter-rouge">findPsiFile</code>, <code class="highlighter-rouge">progress</code>, and <code class="highlighter-rouge">takeIdeScreenshot</code>. 
+No imports needed for the common operations.</p>
+
+<h3 id="human-review-gate">Human Review Gate</h3>
+
+<p>A review gate sits in the middle. The default mode is <code class="highlighter-rouge">ALWAYS</code>, which opens submitted 
+code in the editor with Approve/Reject buttons. Users can edit the code before 
+approval—the LLM receives the original, the edited version, and a unified diff showing what changed.</p>
+
+<p>Three modes are available:</p>
+<ul>
+  <li><code class="highlighter-rouge">ALWAYS</code>: Every script requires human approval (default)</li>
+  <li><code class="highlighter-rouge">TRUSTED</code>: Auto-approve all (trust MCP callers)</li>
+  <li><code class="highlighter-rouge">NEVER</code>: Auto-execute all (development only)</li>
+</ul>
+
+<h3 id="execution-storage">Execution Storage</h3>
+
+<p>All requests are logged to <code class="highlighter-rouge">.idea/mcp-run/</code> with timestamped directories containing
+the script, parameters, output, and any errors. This append-only log is invaluable
+for debugging agent behavior.</p>
+
+<h2 id="mcp-resources-built-in-examples">MCP Resources: Built-in Examples</h2>
+
+<p>The server exposes pre-built examples through MCP resource APIs. These are runnable 
+Kotlin scripts that agents can load and adapt, avoiding the guesswork of writing IDE code from scratch:</p>
+
+<ul>
+  <li><strong>LSP-like operations</strong>: <code class="highlighter-rouge">intellij://lsp/go-to-definition</code>, <code class="highlighter-rouge">find-references</code>, <code class="highlighter-rouge">rename</code>, <code class="highlighter-rouge">code-action</code>, <code class="highlighter-rouge">signature-help</code>.</li>
+  <li><strong>IDE power operations</strong>: <code class="highlighter-rouge">intellij://ide/extract-method</code>, <code class="highlighter-rouge">introduce-variable</code>, <code class="highlighter-rouge">change-signature</code>, <code class="highlighter-rouge">safe-delete</code>, <code class="highlighter-rouge">optimize-imports</code>, <code class="highlighter-rouge">run-configuration</code>.</li>
+  <li><strong>Project lifecycle</strong>: <code class="highlighter-rouge">intellij://open-project/open-trusted</code>, <code class="highlighter-rouge">open-with-dialogs</code>.</li>
+</ul>
+
+<p>Agents call <code class="highlighter-rouge">list_mcp_resources</code> to discover available resources, then <code class="highlighter-rouge">read_mcp_resource</code> 
+with the URI to fetch the content. These examples are designed to be plugged directly 
+into <code class="highlighter-rouge">steroid_execute_code</code> after configuring file paths and positions.</p>
+
+<h3 id="learning-curve-note">Learning Curve Note</h3>
+
+<p>Writing working code for IntelliJ APIs may require several attempts. This is 
+expected—the API is vast. The server includes <code class="highlighter-rouge">printException()</code> to help debug
+stack traces when errors occur. If the first attempt fails, analyze the error,
+adjust, and try again. The power of direct IDE access is worth the effort.</p>
+
+<h2 id="vision--ocr--context-that-sticks">Vision + OCR = Context That Sticks</h2>
+
+<p>The vision pipeline is more than a screenshot. A single <code class="highlighter-rouge">steroid_take_screenshot</code> call collects:</p>
+
+<ul>
+  <li>The PNG image (returned as base64 in the MCP response).</li>
+  <li>The Swing component tree (<code class="highlighter-rouge">screenshot-tree.md</code>) for programmatic inspection.</li>
+  <li>OCR output when enabled (Tesseract via a bundled helper app).</li>
+  <li>Window metadata including bounds and focus state.</li>
+</ul>
+
+<p>The <code class="highlighter-rouge">steroid_input</code> tool then drives the UI using a small grammar:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>click:Left@120,200
+type:Hello World
+press:ENTER
+stick:ALT, delay:400, press:F4
+</code></pre></div></div>
+
+<p>Coordinates are relative to the screenshot, so agents can click what
+they see. The sequence supports comments (<code class="highlighter-rouge">#</code>) and newline separators for readability.</p>
+
+<h2 id="demos">Demos</h2>
+
+<p>Two short demos show the system in action:</p>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6p6B5sxgXX8" title="MCP Steroids demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroids demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+<h2 id="the-status">The Status</h2>
+
+<p>This is not a polished product. Some rough edges:</p>
+
+<ul>
+  <li>The HTTP transport is JSON-only (SSE requests are rejected as older protocol version).</li>
+  <li>Modal dialogs can cancel script execution unexpectedly.</li>
+  <li>Every tool call is subject to IntelliJ’s threading and modality rules.</li>
+  <li>The vision tools are marked as “heavy endpoints”—prefer <code class="highlighter-rouge">steroid_execute_code</code> for regular automation.</li>
+</ul>
+
+<p>But it is already useful enough to build real workflows. The 
+integration tests cover Claude Code, Codex, and Gemini CLIs 
+end-to-end, including a full execute→feedback→execute cycle.</p>
+
+<h2 id="the-bigger-picture">The Bigger Picture</h2>
+
+<p>MCP Steroids is part of my AI-assisted development setup, running 
+alongside <a href="/blog/2025/12/24/introducing-stevedore/">Stevedore</a> deployments 
+on my homelab infrastructure.</p>
+
+<p>The goal is to make the IDE a first-class tool for AI agents—not just a text editor they talk to, 
+but a full development environment they can see, navigate, and operate. There is still a lot to 
+figure out about trust, safety, and useful abstractions, but this is a start.</p>
+
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:activity:7416797295112839168" height="720" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
+<p>If you are experimenting with agentic tooling inside IDEs, let’s connect and share notes.</p>
+
+<p><strong>Would you like to support the project? Just let me know! via me at jonnyzzz.com</strong></p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/01/03/roomtone-single-room-call/" class="btn" title="Roomtone: A Single-Room Call for Home">Previous</a>
+      
+      
+        <a href="/blog/2026/01/05/intellij-plugin-hot-reload/" class="btn" title="Plugin Hot Reload: A Faster IntelliJ Dev Loop">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

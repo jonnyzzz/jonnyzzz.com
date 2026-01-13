@@ -1,0 +1,320 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Roomtone: A Single-Room Call for Home &#8211; Eugene Petrenko</title>
+<meta name="description" content="A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, roomtone, webrtc, websocket, self-hosting, homelab, typescript" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Roomtone: A Single-Room Call for Home -- Eugene Petrenko" />
+<meta name="twitter:description" content="A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Roomtone: A Single-Room Call for Home -- Eugene Petrenko" />
+<meta property="og:description" content="A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="roomtone" />
+
+<meta property="article:tag" content="webrtc" />
+
+<meta property="article:tag" content="websocket" />
+
+<meta property="article:tag" content="self-hosting" />
+
+<meta property="article:tag" content="homelab" />
+
+<meta property="article:tag" content="typescript" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#roomtone" title="Pages tagged roomtone">roomtone</a></li><li><a href="/tags/#webrtc" title="Pages tagged webrtc">webrtc</a></li><li><a href="/tags/#websocket" title="Pages tagged websocket">websocket</a></li><li><a href="/tags/#self-hosting" title="Pages tagged self-hosting">self-hosting</a></li><li><a href="/tags/#homelab" title="Pages tagged homelab">homelab</a></li><li><a href="/tags/#typescript" title="Pages tagged typescript">typescript</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Roomtone: A Single-Room Call for Home</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-01-03T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 03, 2026</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,roomtone,webrtc,websocket,self-hosting,homelab,typescript&amp;text=Roomtone:%20A%20Single-Room%20Call%20for%20Home&amp;url=https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>I wanted a call link that belongs to my home, not to a calendar. One room, one URL, no meeting sprawl. That turned into <strong>Roomtone</strong>: a single-room call service that I can run on my own hardware.</p>
+
+<p>Roomtone is open source at <a href="https://github.com/jonnyzzz/roomtone">roomtone</a>. It is intentionally small, but the code is real: a tiny Express server, a WebSocket control plane, and a minimal React client.</p>
+
+<h2 id="series-holiday-sprint-with-ai">Series: Holiday Sprint with AI</h2>
+
+<ul>
+  <li><a href="/blog/2025/01/06/holiday-sprint-with-ai/">290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex</a></li>
+  <li><a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroids: An IntelliJ MCP Server with Vision</a></li>
+  <li><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop</a></li>
+  <li><a href="/blog/2026/01/03/roomtone-single-room-call/">Roomtone: A Single-Room Call for Home</a></li>
+</ul>
+
+<h2 id="one-room-one-socket">One Room, One Socket</h2>
+
+<p>The server keeps in-memory room state and speaks WebSocket for join, leave, and signaling. There is no database. The room is literally one map in memory.</p>
+
+<div class="language-ts highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">wss</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">WebSocketServer</span><span class="p">({</span>
+  <span class="nx">server</span><span class="p">,</span>
+  <span class="na">path</span><span class="p">:</span> <span class="s2">"/ws"</span><span class="p">,</span>
+  <span class="na">maxPayload</span><span class="p">:</span> <span class="nx">maxPayloadBytes</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<p>Clients join by name, receive the roster, and then the server drives peer updates. The UI is purposely boring: a join screen, a live status banner, a participant grid, and simple mic/camera toggles.</p>
+
+<h2 id="two-media-paths">Two Media Paths</h2>
+
+<p>Roomtone has two ways to move media:</p>
+
+<ul>
+  <li><strong>WebRTC signaling</strong> with ICE servers and an adjustable transport policy.</li>
+  <li><strong>WebSocket relay</strong> using MediaRecorder and MediaSource, wrapped in a small binary packet format.</li>
+</ul>
+
+<p>This lets me choose between “real-time WebRTC” and a WebSocket relay that works on modern Chromium; Firefox needs WebRTC mode and Safari doesn’t support WebSocket media.</p>
+
+<h2 id="invites-and-access-control">Invites and Access Control</h2>
+
+<p>I wrapped the room with a Telegram bot. The bot issues time-limited, RSA-signed JWT invite links for allowlisted users and chats. The server accepts the token in the query string, an Authorization header, or a cookie. Once in, the bot can poll <code class="highlighter-rouge">/participants</code> and notify a chat when someone joins.</p>
+
+<h2 id="operational-knobs">Operational Knobs</h2>
+
+<p>Roomtone keeps the operational surface small but explicit:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">/health</code> and <code class="highlighter-rouge">/participants</code> for health checks and bot polling.</li>
+  <li><code class="highlighter-rouge">/logs</code> to collect client telemetry and churn signals.</li>
+  <li>Environment-driven ICE server configuration and WebSocket payload limits.</li>
+</ul>
+
+<h2 id="why-this-exists">Why This Exists</h2>
+
+<p>Roomtone is not a general-purpose video platform. It is a single-room call that fits into a homelab mindset: explicit links, explicit ownership, and a clear understanding of what the code actually does.</p>
+
+<p>Roomtone runs as a <a href="/blog/2025/12/24/introducing-stevedore/">Stevedore</a> deployment on my homelab, which handles the GitOps loop and keeps it updated alongside my other services.</p>
+
+<p>If this sounds useful, grab the repo, run it, and let me know what breaks first.</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/01/02/stevedore-dyndns/" class="btn" title="Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab">Previous</a>
+      
+      
+        <a href="/blog/2026/01/04/mcp-steroids-intellij/" class="btn" title="MCP Steroids: An IntelliJ MCP Server with Vision">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

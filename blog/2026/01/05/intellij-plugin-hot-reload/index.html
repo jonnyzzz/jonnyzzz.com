@@ -1,0 +1,321 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Plugin Hot Reload: A Faster IntelliJ Dev Loop &#8211; Eugene Petrenko</title>
+<meta name="description" content="Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, intellij, plugin-development, hot-reload, kotlin, developer-experience" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Plugin Hot Reload: A Faster IntelliJ Dev Loop -- Eugene Petrenko" />
+<meta name="twitter:description" content="Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Plugin Hot Reload: A Faster IntelliJ Dev Loop -- Eugene Petrenko" />
+<meta property="og:description" content="Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="plugin-development" />
+
+<meta property="article:tag" content="hot-reload" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="developer-experience" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#plugin-development" title="Pages tagged plugin-development">plugin-development</a></li><li><a href="/tags/#hot-reload" title="Pages tagged hot-reload">hot-reload</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#developer-experience" title="Pages tagged developer-experience">developer-experience</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Plugin Hot Reload: A Faster IntelliJ Dev Loop</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-01-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 05, 2026</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=intellij,plugin-development,hot-reload,kotlin,developer-experience&amp;text=Plugin%20Hot%20Reload:%20A%20Faster%20IntelliJ%20Dev%20Loop&amp;url=https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Restarting IntelliJ for every plugin tweak is a productivity tax. The wait breaks flow, and by the time the IDE is back up you’ve lost the tiny detail you were trying to test. I wanted a tighter loop, so I built <strong>intellij-plugin-hot-reload</strong>.</p>
+
+<h2 id="series-holiday-sprint-with-ai">Series: Holiday Sprint with AI</h2>
+
+<ul>
+  <li><a href="/blog/2025/01/06/holiday-sprint-with-ai/">290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex</a></li>
+  <li><a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroids: An IntelliJ MCP Server with Vision</a></li>
+  <li><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop</a></li>
+  <li><a href="/blog/2026/01/03/roomtone-single-room-call/">Roomtone: A Single-Room Call for Home</a></li>
+</ul>
+
+<h2 id="the-endpoint">The Endpoint</h2>
+
+<p>The plugin registers a built-in server handler at:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/api/plugin-hot-reload
+</code></pre></div></div>
+
+<ul>
+  <li><code class="highlighter-rouge">GET</code> returns a Markdown README packaged inside the plugin.</li>
+  <li><code class="highlighter-rouge">POST</code> accepts the raw plugin ZIP as the request body.</li>
+</ul>
+
+<p>The handler is strict: it requires <code class="highlighter-rouge">Authorization: Bearer &lt;token&gt;</code> and rejects empty uploads. The token changes each IDE run, which keeps the endpoint local and short-lived.</p>
+
+<h2 id="discovery-and-auth">Discovery and Auth</h2>
+
+<p>On startup, the plugin writes a marker file to the user home directory:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~/.&lt;pid&gt;.hot-reload
+</code></pre></div></div>
+
+<p>It contains the POST URL, the bearer token, a timestamp, and a full IDE “About” block. The file disappears on IDE exit and stale marker files are cleaned up automatically. The Gradle <code class="highlighter-rouge">deployPlugin</code> task scans these markers and pushes new ZIPs to running IDEs.</p>
+
+<h2 id="the-reload-pipeline">The Reload Pipeline</h2>
+
+<p>The reload flow is intentionally explicit:</p>
+
+<ol>
+  <li>Read the plugin ZIP and extract the plugin ID (supports nested JAR layouts).</li>
+  <li>Reject self-reload to avoid unloading the hot-reload plugin itself.</li>
+  <li>Unload the existing plugin via the dynamic plugin API.</li>
+  <li>Replace the plugin directory on disk.</li>
+  <li>Install and load the new plugin descriptor.</li>
+</ol>
+
+<p>If unload fails, the service can capture an HPROF snapshot and returns <code class="highlighter-rouge">restartRequired = true</code>. The endpoint always finishes with a final <code class="highlighter-rouge">SUCCESS</code> or <code class="highlighter-rouge">FAILED</code> line so callers can automate around it.</p>
+
+<h2 id="the-fine-print">The Fine Print</h2>
+
+<p>There are some intentional quirks:</p>
+
+<ul>
+  <li>The response is chunked, but progress is buffered and sent once at the end (no streaming updates).</li>
+  <li>Requests time out after 5 minutes; a timeout still returns <code class="highlighter-rouge">FAILED</code>.</li>
+  <li>A short 5-second delay is added after reload to let background invocables finish.</li>
+</ul>
+
+<p>This is experimental and intentionally tied to IntelliJ internals. It works, but it is not guaranteed to survive major IDE releases without updates.</p>
+
+<p>If you want the code, it is here: <a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload">github.com/jonnyzzz/intellij-plugin-hot-reload</a>.</p>
+
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:activity:7407749413877739520" height="520" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/01/04/mcp-steroids-intellij/" class="btn" title="MCP Steroids: An IntelliJ MCP Server with Vision">Previous</a>
+      
+      
+        <a href="/blog/2026/01/05/rlm-multi-agent-orchestration/" class="btn" title="From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

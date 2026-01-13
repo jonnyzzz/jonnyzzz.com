@@ -1,0 +1,317 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Under the Hood: How Stevedore Works &#8211; Eugene Petrenko</title>
+<meta name="description" content="In my previous post, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, architecture, gitops, docker, sqlite, golang" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Under the Hood: How Stevedore Works -- Eugene Petrenko" />
+<meta name="twitter:description" content="In my previous post, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Under the Hood: How Stevedore Works -- Eugene Petrenko" />
+<meta property="og:description" content="In my previous post, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="architecture" />
+
+<meta property="article:tag" content="gitops" />
+
+<meta property="article:tag" content="docker" />
+
+<meta property="article:tag" content="sqlite" />
+
+<meta property="article:tag" content="golang" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#architecture" title="Pages tagged architecture">architecture</a></li><li><a href="/tags/#gitops" title="Pages tagged gitops">gitops</a></li><li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li><li><a href="/tags/#sqlite" title="Pages tagged sqlite">sqlite</a></li><li><a href="/tags/#golang" title="Pages tagged golang">golang</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Under the Hood: How Stevedore Works</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2025-12-24T00:00:00+00:00"><i class="fa fa-calendar-o"></i> December 24, 2025</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,architecture,gitops,docker,sqlite,golang&amp;text=Under%20the%20Hood:%20How%20Stevedore%20Works&amp;url=https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>In my <a href="/blog/2025/12/24/introducing-stevedore/">previous post</a>, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?</p>
+
+<h2 id="series-stevedore-on-a-raspberry-pi">Series: Stevedore on a Raspberry Pi</h2>
+
+<ul>
+  <li><a href="/blog/2025/12/24/introducing-stevedore/">Stevedore: GitOps for your Raspberry Pi</a></li>
+  <li><a href="/blog/2025/12/24/stevedore-architecture/">Under the Hood: How Stevedore Works</a></li>
+  <li><a href="/blog/2025/12/24/getting-started-with-stevedore/">Tutorial: Deploying Your First App with Stevedore</a></li>
+  <li><a href="/blog/2026/01/01/production-raspberry-pi-deployment/">Production Notes: Deploying Stevedore on a Raspberry Pi</a></li>
+  <li><a href="/blog/2026/01/02/stevedore-dyndns/">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab</a></li>
+</ul>
+
+<h2 id="the-loop">The Loop</h2>
+
+<p>At its heart, Stevedore is a polling loop. It checks your Git repositories on a configurable schedule (per deployment). But we don’t just run <code class="highlighter-rouge">git pull</code> on the host. That’s messy.</p>
+
+<h3 id="worker-containers">Worker Containers</h3>
+
+<p>We follow the “Docker-first” philosophy. The Stevedore daemon itself runs as a single container. When it needs to perform complex state changes or isolated tasks, it spawns a <strong>Worker Container</strong>.</p>
+
+<p>For example, when Stevedore updates itself, it spawns an “Update Worker” that stops the old daemon and starts the new one. It’s like a brain transplant, performed by a robot arm.</p>
+
+<p>There is a git-worker implementation that runs operations in ephemeral <code class="highlighter-rouge">alpine/git</code> containers, but the daemon’s polling loop uses local <code class="highlighter-rouge">git</code> (<code class="highlighter-rouge">GitCheckRemote</code>/<code class="highlighter-rouge">GitSyncClean</code>) rather than routing syncs through the worker container.</p>
+
+<h2 id="state-on-disk">State on Disk</h2>
+
+<p>I am tired of distributed key-value stores. Stevedore runs on <em>one</em> node. We don’t need etcd.</p>
+
+<p>By default, persistent state lives in <code class="highlighter-rouge">/opt/stevedore</code> (shared data is <code class="highlighter-rouge">/opt/stevedore/shared</code>; the query socket defaults to <code class="highlighter-rouge">/var/run/stevedore/query.sock</code>).</p>
+<ul>
+  <li><code class="highlighter-rouge">/deployments</code>: per-deployment repo checkout + SSH keys, parameters/runtime state, plus <code class="highlighter-rouge">data/</code> and <code class="highlighter-rouge">logs/</code> directories.</li>
+  <li><code class="highlighter-rouge">/system</code>: The internal database.</li>
+</ul>
+
+<p>We use <strong>SQLite</strong>. It’s rock solid. But storing secrets (like API keys) in plain text is a bad idea, even on a private server. So we use <strong>SQLCipher</strong>.</p>
+
+<p>When you install Stevedore, it generates a <code class="highlighter-rouge">db.key</code> file. This key encrypts the SQLite database. Your secrets are safe at rest. It’s a simple, pragmatic trade-off. We lose high availability (if the disk dies, we die), but we gain immense simplicity.</p>
+
+<h2 id="docker-compose-as-the-spec">Docker Compose as the Spec</h2>
+
+<p>I didn’t want to create a <code class="highlighter-rouge">stevedore.yaml</code> format. Docker Compose is already the industry standard for defining multi-container applications.</p>
+
+<p>Stevedore looks for <code class="highlighter-rouge">docker-compose.yaml</code>, <code class="highlighter-rouge">docker-compose.yml</code>, <code class="highlighter-rouge">compose.yaml</code>, <code class="highlighter-rouge">compose.yml</code>, or <code class="highlighter-rouge">stevedore.yaml</code> at the repo root. It respects standard features like <code class="highlighter-rouge">healthcheck</code> for status reporting. Automatic rollback on unhealthy containers is planned but not implemented yet.</p>
+
+<p>We inject <code class="highlighter-rouge">STEVEDORE_DEPLOYMENT</code>, <code class="highlighter-rouge">STEVEDORE_DATA</code>, <code class="highlighter-rouge">STEVEDORE_LOGS</code>, and <code class="highlighter-rouge">STEVEDORE_SHARED</code> into the <code class="highlighter-rouge">docker compose</code> environment (along with any DB parameters). These are host paths you can mount in your compose file to make data/logs/shared storage persistent across redeploys.</p>
+
+<h2 id="go--docker-cli-for-now">Go + Docker CLI (for now)</h2>
+
+<p>The code is written in Go. It’s robust, statically typed, and has excellent libraries. For now Stevedore shells out to the Docker CLI (<code class="highlighter-rouge">docker</code>, <code class="highlighter-rouge">docker compose</code>) instead of using the Docker SDK directly. It’s simple and predictable across hosts. If we need tighter control later, we can move to the SDK.</p>
+
+<p>Check out <code class="highlighter-rouge">internal/stevedore/git_worker.go</code> to see how we manage the ephemeral containers. It’s a fun read if you’re into system programming!</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2025/12/24/introducing-stevedore/" class="btn" title="Stevedore: GitOps for your Raspberry Pi">Previous</a>
+      
+      
+        <a href="/blog/2026/01/01/production-raspberry-pi-deployment/" class="btn" title="Production Notes: Deploying Stevedore on a Raspberry Pi">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

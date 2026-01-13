@@ -1,0 +1,344 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Production Notes: Deploying Stevedore on a Raspberry Pi &#8211; Eugene Petrenko</title>
+<meta name="description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
+the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, raspberry-pi, production, systemd, gitops, self-hosting" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Production Notes: Deploying Stevedore on a Raspberry Pi -- Eugene Petrenko" />
+<meta name="twitter:description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
+the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Production Notes: Deploying Stevedore on a Raspberry Pi -- Eugene Petrenko" />
+<meta property="og:description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
+the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="raspberry-pi" />
+
+<meta property="article:tag" content="production" />
+
+<meta property="article:tag" content="systemd" />
+
+<meta property="article:tag" content="gitops" />
+
+<meta property="article:tag" content="self-hosting" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#raspberry-pi" title="Pages tagged raspberry-pi">raspberry-pi</a></li><li><a href="/tags/#production" title="Pages tagged production">production</a></li><li><a href="/tags/#systemd" title="Pages tagged systemd">systemd</a></li><li><a href="/tags/#gitops" title="Pages tagged gitops">gitops</a></li><li><a href="/tags/#self-hosting" title="Pages tagged self-hosting">self-hosting</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Production Notes: Deploying Stevedore on a Raspberry Pi</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-01-01T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 01, 2026</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,raspberry-pi,production,systemd,gitops,self-hosting&amp;text=Production%20Notes:%20Deploying%20Stevedore%20on%20a%20Raspberry%20Pi&amp;url=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (<code class="highlighter-rouge">rp16g</code>). This is
+the real deal: no hacks, no shortcuts, just the supported install path and careful verification.</p>
+
+<p>Stevedore is designed for this exact setup: a single Docker-first control plane, a systemd service
+when available, and a clear separation between the host and the container runtime. The goal is to
+leave the machine in a stable, boring state and make future updates predictable.</p>
+
+<h2 id="series-stevedore-on-a-raspberry-pi">Series: Stevedore on a Raspberry Pi</h2>
+
+<ul>
+  <li><a href="/blog/2025/12/24/introducing-stevedore/">Stevedore: GitOps for your Raspberry Pi</a></li>
+  <li><a href="/blog/2025/12/24/stevedore-architecture/">Under the Hood: How Stevedore Works</a></li>
+  <li><a href="/blog/2025/12/24/getting-started-with-stevedore/">Tutorial: Deploying Your First App with Stevedore</a></li>
+  <li><a href="/blog/2026/01/01/production-raspberry-pi-deployment/">Production Notes: Deploying Stevedore on a Raspberry Pi</a></li>
+  <li><a href="/blog/2026/01/02/stevedore-dyndns/">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab</a></li>
+</ul>
+
+<h2 id="guardrails">Guardrails</h2>
+
+<p>Before touching production, I’m setting a few guardrails:</p>
+
+<ul>
+  <li>Use the official installer (<code class="highlighter-rouge">./stevedore-install.sh</code>), not ad-hoc docker run commands.</li>
+  <li>Keep state under <code class="highlighter-rouge">/opt/stevedore</code> (default layout).</li>
+  <li>Prefer systemd (<code class="highlighter-rouge">stevedore.service</code>) to ensure the container survives reboots.</li>
+  <li>Never paste secrets into this post. Keys stay on the host, paths are fine to mention.</li>
+</ul>
+
+<h2 id="the-success-story-in-short">The Success Story (In Short)</h2>
+
+<p>This deployment did exactly what Stevedore promises. I installed it using the official script,
+bootstrapped the self-managed deployment, and proved the entire lifecycle: keys, sync, self-update,
+and stability over time. The host is now boring in the best way: Stevedore is running under systemd,
+the daemon health checks match, and updates are a controlled, repeatable process.</p>
+
+<h2 id="highlights">Highlights</h2>
+
+<ul>
+  <li>The systemd unit keeps the control plane alive across reboots with zero manual babysitting.</li>
+  <li>The self-deployment syncs via a read-only GitHub deploy key when the repo uses SSH (public HTTPS clones still work without it), and I can rotate it manually.</li>
+  <li>Self-update works end-to-end when I trigger <code class="highlighter-rouge">stevedore self-update</code>: it pulled new commits, built a new image, and swapped cleanly.</li>
+  <li>The five-hour stability check shows the daemon healthy and the control plane steady.</li>
+  <li>Docs and onboarding guidance were improved based on real production friction.</li>
+</ul>
+
+<h2 id="what-i-learned-and-turned-into-improvements">What I Learned (And Turned Into Improvements)</h2>
+
+<ul>
+  <li>GitHub deploy keys are picky: <code class="highlighter-rouge">read_only=true</code> needs <code class="highlighter-rouge">-F</code> in <code class="highlighter-rouge">gh api</code>, so I documented the exact
+command and wired it into the CLI guidance.</li>
+  <li>Self-update builds run in the foreground; once the update worker is spawned, the container swap
+finishes server-side, and the backup image gives a rollback path.</li>
+  <li>The systemd-managed control plane and a self-deployment compose project can collide on container
+naming if the compose file sets <code class="highlighter-rouge">container_name: stevedore</code>. That’s a good reminder that “boring”
+operations need crisp boundaries.</li>
+</ul>
+
+<h2 id="outcome">Outcome</h2>
+
+<p>Stevedore is now running in production on <code class="highlighter-rouge">rp16g</code>, updating itself and staying healthy without
+manual intervention. The deployment is stable, the operational checks are clean, and the process is
+documented end-to-end. This is exactly the boring, reliable, Git-driven workflow I wanted.</p>
+
+<p>Next time, I want to tighten the self-deployment status story (so it reports cleanly even with the
+systemd-managed control plane) and keep iterating on the onboarding docs as more users go through
+this path.</p>
+
+<h2 id="agentic-finale">Agentic Finale</h2>
+
+<p>The funny fact – I created stevedore to simplify my human actions to deploy services. 
+It appeared that Claude Code and Codex are much better in dealing with deployments that I,
+basically, I unstructured them to use deliver the changes over SSH. Both Agents were great
+to figure out how to bind the deploy keys, use stevedore to manage repositories, run updates.</p>
+
+<iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7416481230835245057" height="705" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2025/12/24/stevedore-architecture/" class="btn" title="Under the Hood: How Stevedore Works">Previous</a>
+      
+      
+        <a href="/blog/2026/01/02/stevedore-dyndns/" class="btn" title="Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

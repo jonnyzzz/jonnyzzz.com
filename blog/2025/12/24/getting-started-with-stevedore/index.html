@@ -1,0 +1,381 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Tutorial: Deploying Your First App with Stevedore &#8211; Eugene Petrenko</title>
+<meta name="description" content="Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, tutorial, gitops, raspberry-pi, docker, github" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Tutorial: Deploying Your First App with Stevedore -- Eugene Petrenko" />
+<meta name="twitter:description" content="Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Tutorial: Deploying Your First App with Stevedore -- Eugene Petrenko" />
+<meta property="og:description" content="Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="tutorial" />
+
+<meta property="article:tag" content="gitops" />
+
+<meta property="article:tag" content="raspberry-pi" />
+
+<meta property="article:tag" content="docker" />
+
+<meta property="article:tag" content="github" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#tutorial" title="Pages tagged tutorial">tutorial</a></li><li><a href="/tags/#gitops" title="Pages tagged gitops">gitops</a></li><li><a href="/tags/#raspberry-pi" title="Pages tagged raspberry-pi">raspberry-pi</a></li><li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li><li><a href="/tags/#github" title="Pages tagged github">github</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Tutorial: Deploying Your First App with Stevedore</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2025-12-24T00:00:00+00:00"><i class="fa fa-calendar-o"></i> December 24, 2025</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,tutorial,gitops,raspberry-pi,docker,github&amp;text=Tutorial:%20Deploying%20Your%20First%20App%20with%20Stevedore&amp;url=https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.</p>
+
+<h2 id="series-stevedore-on-a-raspberry-pi">Series: Stevedore on a Raspberry Pi</h2>
+
+<ul>
+  <li><a href="/blog/2025/12/24/introducing-stevedore/">Stevedore: GitOps for your Raspberry Pi</a></li>
+  <li><a href="/blog/2025/12/24/stevedore-architecture/">Under the Hood: How Stevedore Works</a></li>
+  <li><a href="/blog/2025/12/24/getting-started-with-stevedore/">Tutorial: Deploying Your First App with Stevedore</a></li>
+  <li><a href="/blog/2026/01/01/production-raspberry-pi-deployment/">Production Notes: Deploying Stevedore on a Raspberry Pi</a></li>
+  <li><a href="/blog/2026/01/02/stevedore-dyndns/">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab</a></li>
+</ul>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>A Linux host (Ubuntu or Raspberry Pi OS) with sudo access.</li>
+  <li>Docker installed (<code class="highlighter-rouge">curl -fsSL https://get.docker.com | sh</code>).</li>
+  <li>A GitHub account.</li>
+</ul>
+
+<h2 id="step-1-fork-and-install">Step 1: Fork and Install</h2>
+
+<p>First, fork the <a href="https://github.com/jonnyzzz/stevedore">Stevedore repository</a>. This is your personal control plane.</p>
+
+<p>SSH into your server and run:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/&lt;YOUR_USERNAME&gt;/stevedore.git
+<span class="nb">cd </span>stevedore
+./stevedore-install.sh
+</code></pre></div></div>
+
+<p>This script does a few things:</p>
+<ol>
+  <li>Builds the Stevedore image.</li>
+  <li>Sets up the <code class="highlighter-rouge">/opt/stevedore</code> directory.</li>
+  <li>Installs a systemd service (<code class="highlighter-rouge">stevedore.service</code>) when systemd is available; otherwise starts the container with a Docker restart policy.</li>
+  <li>Generates your <code class="highlighter-rouge">admin.key</code> and <code class="highlighter-rouge">db.key</code>.</li>
+</ol>
+
+<p>Verify it’s running:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore doctor
+</code></pre></div></div>
+
+<h2 id="step-2-add-a-repository">Step 2: Add a Repository</h2>
+
+<p>Let’s say you have a repository <code class="highlighter-rouge">my-web-app</code> with a <code class="highlighter-rouge">docker-compose.yaml</code>.</p>
+
+<p>Tell Stevedore to watch it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore repo add my-app git@github.com:&lt;YOUR_USERNAME&gt;/my-web-app.git
+</code></pre></div></div>
+
+<p>If your repo default branch isn’t <code class="highlighter-rouge">main</code>, add <code class="highlighter-rouge">--branch &lt;branch&gt;</code> to the command.</p>
+
+<p>Stevedore will generate a unique SSH Key for this deployment. View it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore repo key my-app
+</code></pre></div></div>
+
+<p>Copy that key. Go to your GitHub repo -&gt; <strong>Settings</strong> -&gt; <strong>Deploy keys</strong> -&gt; <strong>Add deploy key</strong>. Paste it there. This gives Stevedore read-only access to just that repo.</p>
+
+<p>Prefer GitHub CLI? This does the same thing (read-only):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh api <span class="nt">-X</span> POST repos/&lt;YOUR_USERNAME&gt;/my-web-app/keys <span class="se">\</span>
+  <span class="nt">-f</span> <span class="nv">title</span><span class="o">=</span><span class="s2">"stevedore-my-app"</span> <span class="se">\</span>
+  <span class="nt">-f</span> <span class="nv">key</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>stevedore repo key my-app<span class="k">)</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">-F</span> <span class="nv">read_only</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div></div>
+
+<h2 id="step-3-deploy">Step 3: Deploy!</h2>
+
+<p>Now, kick off the first sync:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore deploy <span class="nb">sync </span>my-app
+</code></pre></div></div>
+
+<p>Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use <code class="highlighter-rouge">--no-clean</code> to skip the cleanup). Now, bring it up:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore deploy up my-app
+</code></pre></div></div>
+
+<p>Boom. Your app is running.</p>
+
+<h2 id="step-4-the-magic">Step 4: The Magic</h2>
+
+<p>Here is the best part. Make a change to your <code class="highlighter-rouge">my-web-app</code> on your laptop. Change the HTML title.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-am</span> <span class="s2">"Update title"</span>
+git push
+</code></pre></div></div>
+
+<p>Wait a few minutes (Stevedore polls on its configured interval; default is 5 minutes). Refresh your browser.</p>
+
+<p><strong>It updated automatically.</strong></p>
+
+<p>You can check the status at any time:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore status my-app
+</code></pre></div></div>
+
+<h2 id="managing-secrets">Managing Secrets</h2>
+
+<p>Need to set an API key? Don’t commit it.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore param <span class="nb">set </span>my-app API_KEY <span class="s2">"super-secret-value"</span>
+</code></pre></div></div>
+
+<p>Stevedore stores this in its encrypted database. Stevedore injects parameters as environment variables on deploy (including automatic redeploys).</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>It’s that simple. No Kubernetes manifests. No complex CI/CD pipelines. Just Git, Docker, and Stevedore keeping watch.</p>
+
+<p>Give it a try and let me know what you think!</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2025/11/26/junie-cage-spark/" class="btn" title="Magic Cable for Nvidia Spark">Previous</a>
+      
+      
+        <a href="/blog/2025/12/24/introducing-stevedore/" class="btn" title="Stevedore: GitOps for your Raspberry Pi">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

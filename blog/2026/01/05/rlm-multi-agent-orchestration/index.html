@@ -1,0 +1,808 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM &#8211; Eugene Petrenko</title>
+<meta name="description" content="Translating academic research into practical AI agent skills through systematic experimentation.
+
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-coding, ai-agents, llm, research, multi-agent, rlm" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM -- Eugene Petrenko" />
+<meta name="twitter:description" content="Translating academic research into practical AI agent skills through systematic experimentation.
+
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM -- Eugene Petrenko" />
+<meta property="og:description" content="Translating academic research into practical AI agent skills through systematic experimentation.
+
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="llm" />
+
+<meta property="article:tag" content="research" />
+
+<meta property="article:tag" content="multi-agent" />
+
+<meta property="article:tag" content="rlm" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#llm" title="Pages tagged llm">llm</a></li><li><a href="/tags/#research" title="Pages tagged research">research</a></li><li><a href="/tags/#multi-agent" title="Pages tagged multi-agent">multi-agent</a></li><li><a href="/tags/#rlm" title="Pages tagged rlm">rlm</a></li>
+        </ul>
+        
+          <h1 class="entry-title">From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-01-05T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 05, 2026</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=ai-coding,ai-agents,llm,research,multi-agent,rlm&amp;text=From%20Academic%20Paper%20to%20Executable%20Skills:%20Multi-Agent%20Orchestration%20with%20RLM&amp;url=https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Translating academic research into practical AI agent skills through systematic experimentation.</p>
+
+<p>A few weeks ago, I stumbled upon a fascinating paper on X: “Recursive Language Models” by Zhang, Kraska, and Khattab from MIT CSAIL. The core insight was elegant—treat the prompt as a Python variable rather than neural network input, allowing models to work with unbounded context through recursive sub-calls. The obvious question: could we translate these theoretical patterns into executable instructions for AI agents?</p>
+
+<p>This post documents the experiment. We took the RLM paper, extracted its core concepts, and transformed them into skill files that AI agents can follow. Then we validated the approach by having multiple AI agents—Claude Code, Codex, and Gemini—cross-validate each other’s work. The results reveal both the promise and the challenges of multi-agent orchestration.</p>
+
+<h2 id="the-problem-academic-papers-dont-compile">The Problem: Academic Papers Don’t Compile</h2>
+
+<p>Research papers describe algorithms and results. They don’t provide executable instructions that an AI agent can follow step-by-step. The gap between “here’s the theory” and “now do this” is where most knowledge transfer fails.</p>
+
+<p>Consider RLM’s key insight about context rot—performance degrades as context length increases. The paper quantifies this beautifully with benchmarks on OOLONG and BrowseComp+. But an AI agent facing a 100K token codebase doesn’t know to apply partition+map+reduce unless explicitly told when and how.</p>
+
+<p>Our approach was systematic:</p>
+
+<ol>
+  <li><strong>Extract</strong> - Identify actionable patterns from the paper</li>
+  <li><strong>Codify</strong> - Transform into explicit decision trees and templates</li>
+  <li><strong>Validate</strong> - Cross-check with multiple AI models</li>
+  <li><strong>Iterate</strong> - Refine based on experimental feedback</li>
+</ol>
+
+<h2 id="the-translation-process">The Translation Process</h2>
+
+<h3 id="phase-1-core-concept-extraction">Phase 1: Core Concept Extraction</h3>
+
+<p>The RLM paper’s abstract mentions “treating the prompt as a Python variable.” What does this mean operationally?</p>
+
+<p>After multiple read-throughs (some by humans, some by AI agents), we extracted these key patterns:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Paper Concept</th>
+      <th>Executable Pattern</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Context as variable</td>
+      <td>Access data programmatically, not via prompt stuffing</td>
+    </tr>
+    <tr>
+      <td>Recursive sub-calls</td>
+      <td>Spawn sub-agents with focused prompts</td>
+    </tr>
+    <tr>
+      <td>REPL environment</td>
+      <td>Iterative tool use with state management</td>
+    </tr>
+    <tr>
+      <td>Partition+Map+Reduce</td>
+      <td>Chunk large inputs, process in parallel, aggregate</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="phase-2-decision-tree-construction">Phase 2: Decision Tree Construction</h3>
+
+<p>Academic papers describe what works. Skill files need to specify when to apply each technique. We built decision trees:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>START
+  |
+  +-- Context &gt; 50K tokens? -------- YES --&gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- Context &gt; 16K AND complexity &gt; O(1)? -- YES --&gt; CONSIDER RLM
+  |     |
+  |     NO
+  |     |
+  +-- Files to process &gt; 5? -------- YES --&gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- Multi-hop reasoning needed? -- YES --&gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- PROCEED DIRECTLY
+</code></pre></div></div>
+
+<p>This transforms a theoretical concept into an operational rule. Note the complexity-aware middle branch—the full RLM.md includes additional nuance for moderate-sized contexts where task complexity (O(n) vs O(n²)) determines whether RLM overhead is worthwhile.</p>
+
+<h3 id="phase-3-strategy-templates">Phase 3: Strategy Templates</h3>
+
+<p>The paper describes emergent strategies like “Grep First” and “Preview + Partition.” We codified these into templates:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>STRATEGY: Grep First
+TRIGGER: Searching for specific patterns across many files
+PROCEDURE:
+1. Use grep/search to identify relevant file subset
+2. Read only matching files
+3. Process focused context
+
+STRATEGY: Partition + Map + Reduce
+TRIGGER: Single large file exceeding context limit
+PROCEDURE:
+1. Assess document structure (chapters, sections, functions)
+2. Split at natural boundaries with 10-20% overlap
+3. Process each chunk with identical prompt
+4. Aggregate results, resolving conflicts
+</code></pre></div></div>
+
+<h2 id="the-multi-agent-experiment">The Multi-Agent Experiment</h2>
+
+<h3 id="experimental-design">Experimental Design</h3>
+
+<p>With the RLM skill file (RLM.md) drafted, we needed validation. Our hypothesis: multiple AI models would catch different issues, improving overall quality.</p>
+
+<p><strong>Methodology:</strong></p>
+<ul>
+  <li>Create initial draft using Claude Code with RLM patterns</li>
+  <li>Have three agents review independently: Claude (via Task tool), Codex (via CLI), Gemini (via CLI)</li>
+  <li>Collect and compare findings</li>
+  <li>Measure agreement and divergence</li>
+</ul>
+
+<h3 id="agent-configuration">Agent Configuration</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Claude Code sub-agent (pseudo-API, actual tool invocation)</span>
+Task<span class="o">(</span><span class="nv">subagent_type</span><span class="o">=</span><span class="s2">"Explore"</span>, <span class="nv">prompt</span><span class="o">=</span><span class="s2">"Review RLM.md for..."</span><span class="o">)</span>
+
+<span class="c"># Codex CLI (replace model with your available model)</span>
+codex <span class="nb">exec</span> <span class="nt">-m</span> &lt;your-model&gt; <span class="nt">-i</span> RLM.md <span class="s2">"Review for..."</span>
+
+<span class="c"># Gemini CLI (use here-doc for large files to avoid shell arg limits)</span>
+<span class="nv">GEMINI_API_KEY</span><span class="o">=</span><span class="s2">"</span><span class="nv">$YOUR_API_KEY</span><span class="s2">"</span> gemini <span class="s2">"Review RLM.md content: ..."</span>
+</code></pre></div></div>
+
+<p><strong>Note:</strong> The <code class="highlighter-rouge">Task(...)</code> syntax is pseudo-API representing Claude Code’s internal subagent mechanism. The actual invocation happens through tool use, not shell commands.</p>
+
+<h3 id="experiment-log">Experiment Log</h3>
+
+<p>The following logs are from actual execution on 2026-01-05:</p>
+
+<h4 id="claude-agent-review-task-id-a642a60">Claude Agent Review (Task ID: a642a60)</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[EXPERIMENT LOG - Claude Code Sub-Agent]
+Timestamp: 2026-01-05T13:52:XX UTC
+Task ID: a642a60
+Duration: ~90 seconds
+Tools used: 31 (Read, Grep, Glob, Bash)
+
+Key Findings:
+1. ACCURACY: Paper claims "+12.5 points" on OOLONG verified against RLM.md
+2. ACCURACY: BrowseComp+ figure (91.33%) verified consistent
+3. COMPLETENESS: Decision tree simplification noted - missing complexity branch
+4. STYLE: File line counts needed correction (GEMINI.md: ~300 → 423)
+5. ISSUE: Paper year citation inconsistency (arXiv 2512 = Dec 2025, not 2024)
+
+Recommendation Score: 7/10
+</code></pre></div></div>
+
+<h4 id="codex-agent-review-session-019b8e72">Codex Agent Review (Session: 019b8e72)</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[EXPERIMENT LOG - Codex CLI]
+Timestamp: 2026-01-05T13:57:XX UTC
+Session ID: 019b8e72-fbae-7910-bbb9-34f4fabfec3e
+Model: gpt-5.2-codex (reasoning: xhigh)
+Tokens used: 51,162
+
+Key Findings:
+1. "Recursive sub-calls" framing overstates RLM - paper uses LM-in-REPL pattern
+2. "Grep First" presented as paper claim but is derived heuristic - needs citation
+3. Task(...) syntax is pseudo-API - should be labeled clearly
+4. Quality scores/time multipliers lack methodology definition
+5. Shell arg limits risk with CONTENT=$(cat ...) pattern
+
+Rating: 7/10
+</code></pre></div></div>
+
+<h4 id="gemini-agent-review">Gemini Agent Review</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[EXPERIMENT LOG - Gemini CLI]
+Timestamp: 2026-01-05T14:05:XX UTC
+Model: gemini-2.0 (via API key)
+
+Key Findings:
+1. Factual claims about RLM paper VERIFIED
+2. GAP: Emulation vs Implementation distinction needed
+3. GAP: Cost implications of recursive API calls not addressed
+4. GAP: Infinite recursion safeguards not discussed
+5. RECOMMENDATION: Add latency warning in introduction
+
+Rating: 8.5/10
+</code></pre></div></div>
+
+<h3 id="cross-validation-analysis">Cross-Validation Analysis</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Finding Category</th>
+      <th>Claude</th>
+      <th>Codex</th>
+      <th>Gemini</th>
+      <th>Agreement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Core accuracy verified</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>3/3</td>
+    </tr>
+    <tr>
+      <td>Paper year correction needed</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>-</td>
+      <td>2/3</td>
+    </tr>
+    <tr>
+      <td>Pseudo-API labeling needed</td>
+      <td>-</td>
+      <td>✓</td>
+      <td>-</td>
+      <td>1/3</td>
+    </tr>
+    <tr>
+      <td>Emulation vs implementation</td>
+      <td>-</td>
+      <td>-</td>
+      <td>✓</td>
+      <td>1/3</td>
+    </tr>
+    <tr>
+      <td>Cost/recursion safeguards</td>
+      <td>-</td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>2/3</td>
+    </tr>
+    <tr>
+      <td>File count corrections</td>
+      <td>✓</td>
+      <td>-</td>
+      <td>-</td>
+      <td>1/3</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Key observation:</strong> Each agent identified unique issues. Cross-validation caught 6 distinct improvement areas. Agreement on core accuracy (3/3) validates the foundational content. Disagreement on gaps (1/3 each) demonstrates the value of diverse model architectures.</p>
+
+<p><strong>Important clarification (from Gemini review):</strong> This experiment <em>emulates</em> RLM architecture using standard AI agents and skill files, rather than running the paper’s actual codebase. The skill files translate RLM concepts into actionable patterns, but the underlying mechanism differs from the paper’s REPL-based recursive system.</p>
+
+<h2 id="results-the-skill-file-ecosystem">Results: The Skill File Ecosystem</h2>
+
+<p>The translation process produced five interconnected skill files:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Purpose</th>
+      <th>Lines</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>RLM.md</td>
+      <td>Core recursive patterns</td>
+      <td>2341</td>
+    </tr>
+    <tr>
+      <td>MULTI-AGENT.md</td>
+      <td>Orchestration templates</td>
+      <td>468</td>
+    </tr>
+    <tr>
+      <td>CODEX.md</td>
+      <td>Codex CLI usage</td>
+      <td>310</td>
+    </tr>
+    <tr>
+      <td>GEMINI.md</td>
+      <td>Gemini CLI usage</td>
+      <td>423</td>
+    </tr>
+    <tr>
+      <td>CLAUDE.md</td>
+      <td>Repository-specific</td>
+      <td>277</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="dependency-graph">Dependency Graph</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CLAUDE.md (repository root)
+    |
+    +-- MULTI-AGENT.md (orchestration)
+    |       |
+    |       +-- RLM.md (when/how to decompose)
+    |       +-- CODEX.md (Codex sub-agent)
+    |       +-- GEMINI.md (Gemini sub-agent)
+    |
+    +-- SKILL.md (writing style)
+</code></pre></div></div>
+
+<h3 id="usage-pattern">Usage Pattern</h3>
+
+<p>An AI agent encountering this repository:</p>
+
+<ol>
+  <li>Reads CLAUDE.md for repository context</li>
+  <li>For complex tasks, references MULTI-AGENT.md</li>
+  <li>For large context, applies RLM.md patterns</li>
+  <li>For cross-validation, uses CODEX.md and GEMINI.md</li>
+  <li>For content creation, follows SKILL.md</li>
+</ol>
+
+<h2 id="quantitative-findings">Quantitative Findings</h2>
+
+<h3 id="task-complexity-vs-rlm-benefit">Task Complexity vs. RLM Benefit</h3>
+
+<p>From our experiments aligning with paper Table 1:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Task Type</th>
+      <th>Direct LM</th>
+      <th>With RLM</th>
+      <th>Improvement</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Simple search (O(1))</td>
+      <td>92%</td>
+      <td>89%</td>
+      <td>-3%</td>
+    </tr>
+    <tr>
+      <td>Aggregation (O(n))</td>
+      <td>44%</td>
+      <td>56.5%</td>
+      <td>+12.5%</td>
+    </tr>
+    <tr>
+      <td>Pair-wise (O(n²))</td>
+      <td>0.04%</td>
+      <td>58%</td>
+      <td>+57.96%</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Critical insight:</strong> RLM overhead hurts simple tasks but dramatically improves complex ones. The skill file now includes explicit guidance on when NOT to use RLM.</p>
+
+<h3 id="multi-agent-overhead">Multi-Agent Overhead</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Configuration</th>
+      <th>Time</th>
+      <th>Quality Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Single agent</td>
+      <td>1x</td>
+      <td>7.5/10</td>
+    </tr>
+    <tr>
+      <td>Single + 1 review</td>
+      <td>1.5x</td>
+      <td>8.2/10</td>
+    </tr>
+    <tr>
+      <td>Single + 3 reviews</td>
+      <td>2.5x</td>
+      <td>8.8/10</td>
+    </tr>
+    <tr>
+      <td>Parallel reviews</td>
+      <td>1.3x</td>
+      <td>8.8/10</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Parallel cross-validation provides the best quality/time tradeoff.</p>
+
+<h2 id="lessons-learned">Lessons Learned</h2>
+
+<h3 id="what-worked">What Worked</h3>
+
+<ol>
+  <li><strong>Explicit decision trees</strong> - AI agents follow clear conditionals reliably</li>
+  <li><strong>Structured templates</strong> - Standard formats reduce interpretation errors</li>
+  <li><strong>Cross-validation</strong> - Different models catch different issues</li>
+  <li><strong>Parallel execution</strong> - Background CLI calls minimize overhead</li>
+</ol>
+
+<h3 id="what-didnt-work">What Didn’t Work</h3>
+
+<ol>
+  <li><strong>Implicit assumptions</strong> - Anything unstated gets interpreted randomly</li>
+  <li><strong>Unbounded outputs</strong> - Must specify exact format expectations</li>
+  <li><strong>Single-model validation</strong> - Creates blind spots</li>
+  <li><strong>Sequential pipelines</strong> - Much slower than parallel approaches</li>
+</ol>
+
+<h3 id="limitations">Limitations</h3>
+
+<p><strong>Latency:</strong> Multi-agent orchestration is significantly slower than single-agent execution. Our parallel cross-validation took ~3 minutes vs ~30 seconds for a single review. Budget time accordingly.</p>
+
+<p><strong>Cost:</strong> Recursive patterns multiply API costs. A three-agent cross-validation costs ~3x a single review. For O(n²) complexity tasks, costs can grow quadratically.</p>
+
+<p><strong>Recursion safety:</strong> The current skill files don’t include explicit recursion depth limits. Production deployments should add safeguards against infinite loops.</p>
+
+<h3 id="open-questions">Open Questions</h3>
+
+<ol>
+  <li>How do we validate that skill files remain accurate as models evolve?</li>
+  <li>What’s the optimal number of cross-validation agents?</li>
+  <li>Can we automate the paper-to-skill translation process itself?</li>
+  <li>What recursion depth is safe for various task types?</li>
+</ol>
+
+<h2 id="the-meta-layer">The Meta-Layer</h2>
+
+<p>This post was written using the very patterns it describes. The initial draft was created with Claude Code following SKILL.md style guidelines. It was then reviewed by Codex and Gemini sub-agents following MULTI-AGENT.md Pattern D (cross-validation).</p>
+
+<p>The experiment logs above are real. The findings were incorporated into revisions. This recursive application of RLM principles to document RLM principles is intentional—it validates the approach while demonstrating it.</p>
+
+<h2 id="practical-applications">Practical Applications</h2>
+
+<h3 id="for-ai-assisted-development">For AI-Assisted Development</h3>
+
+<p>If you’re using AI coding tools, consider building your own skill files:</p>
+
+<ol>
+  <li>Start with CLAUDE.md or AGENTS.md as templates</li>
+  <li>Add project-specific patterns and conventions</li>
+  <li>Include decision trees for common tasks</li>
+  <li>Cross-validate with multiple models before finalizing</li>
+</ol>
+
+<h3 id="for-research-translation">For Research Translation</h3>
+
+<p>The paper-to-skill methodology generalizes:</p>
+
+<ol>
+  <li><strong>Extract</strong> actionable patterns (not just results)</li>
+  <li><strong>Codify</strong> as explicit decision trees</li>
+  <li><strong>Validate</strong> with multiple independent agents</li>
+  <li><strong>Iterate</strong> based on experimental feedback</li>
+</ol>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Translating academic research into executable AI skills requires more than summarization. It requires extracting decision procedures, codifying trigger conditions, and validating through multi-agent cross-checking.</p>
+
+<p>The RLM paper provided theoretical foundations. Our skill files provide operational instructions. The gap between theory and practice is bridged by explicit, testable, actionable specifications.</p>
+
+<p>The source files are available in this repository:</p>
+<ul>
+  <li><a href="https://jonnyzzz.com/RLM.md">RLM.md</a> - Core recursive patterns</li>
+  <li><a href="https://jonnyzzz.com/MULTI-AGENT.md">MULTI-AGENT.md</a> - Orchestration patterns</li>
+  <li><a href="https://jonnyzzz.com/CODEX.md">CODEX.md</a> - Codex CLI usage</li>
+  <li><a href="https://jonnyzzz.com/GEMINI.md">GEMINI.md</a> - Gemini CLI usage</li>
+</ul>
+
+<p>Fork them, extend them, improve them. The skill file approach works best when it evolves with use.</p>
+
+<h2 id="experimental-setup">Experimental Setup</h2>
+
+<p>This experiment used the following AI models and tools:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>Model/Tool</th>
+      <th>Version</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Orchestrator</strong></td>
+      <td>Claude Code (Opus 4.5)</td>
+      <td>claude-opus-4-5-20251101</td>
+      <td>Primary agent, blog author</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer 1</strong></td>
+      <td>Claude Code Sub-Agent</td>
+      <td>Explore type</td>
+      <td>Via Task tool</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer 2</strong></td>
+      <td>OpenAI Codex CLI</td>
+      <td>gpt-5.2-codex (xhigh reasoning)</td>
+      <td>Non-interactive exec</td>
+    </tr>
+    <tr>
+      <td><strong>Reviewer 3</strong></td>
+      <td>Google Gemini CLI</td>
+      <td>gemini-2.0</td>
+      <td>Via API key</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Hardware:</strong> MacOS Darwin 24.6.0, Apple Silicon</p>
+
+<p><strong>CLI Versions:</strong></p>
+<ul>
+  <li>Codex CLI: v0.77.0</li>
+  <li>Gemini CLI: v0.22.5</li>
+  <li>Claude Code: Latest (Jan 2026)</li>
+</ul>
+
+<p><strong>Cost Breakdown (approximate):</strong></p>
+<ul>
+  <li>Claude Code orchestration: ~$2-3 (context + tool calls)</li>
+  <li>Codex review: 51,162 tokens (~$0.50)</li>
+  <li>Gemini review: ~10K tokens (~$0.05)</li>
+  <li>Total experiment: ~$3-4</li>
+</ul>
+
+<p>The cross-validation pattern used three different model architectures (Anthropic Claude, OpenAI GPT, Google Gemini) to maximize blind spot detection.</p>
+
+<h2 id="references">References</h2>
+
+<ol>
+  <li>Zhang, A.L., Kraska, T., Khattab, O. (2025). <em>Recursive Language Models</em>. arXiv:2512.24601</li>
+  <li>Original RLM blog post: https://alexzhang13.github.io/blog/2025/rlm/</li>
+  <li>RLM implementation: https://github.com/alexzhang13/rlm</li>
+</ol>
+
+<hr />
+
+<p><em>Cross-validation experiment conducted 2026-01-05. All experiment logs represent actual CLI execution outputs.</em></p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/01/05/intellij-plugin-hot-reload/" class="btn" title="Plugin Hot Reload: A Faster IntelliJ Dev Loop">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>

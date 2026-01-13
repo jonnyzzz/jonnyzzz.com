@@ -1,0 +1,542 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex &#8211; Eugene Petrenko</title>
+<meta name="description" content="Three weeks, nine projects, and 290+ AI-assisted commits. Here's what happens when you spend the holidays pair-programming with AI assistants."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, ai-coding, mcp, developer-experience, infrastructure, claude-code" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex -- Eugene Petrenko" />
+<meta name="twitter:description" content="Three weeks, nine projects, and 290+ AI-assisted commits. Here's what happens when you spend the holidays pair-programming with AI assistants." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex -- Eugene Petrenko" />
+<meta property="og:description" content="Three weeks, nine projects, and 290+ AI-assisted commits. Here's what happens when you spend the holidays pair-programming with AI assistants." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2025/01/06/holiday-sprint-with-ai/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="stevedore" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="mcp" />
+
+<meta property="article:tag" content="developer-experience" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="claude-code" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2025/01/06/holiday-sprint-with-ai/" />
+<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    
+		    <li><a href="/about/" >About</a></li>
+		  
+		    
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+	</div>
+</header><!-- /.masthead -->
+
+<div class="js-menu-screen menu-screen"></div>
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#stevedore" title="Pages tagged stevedore">stevedore</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#developer-experience" title="Pages tagged developer-experience">developer-experience</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#claude-code" title="Pages tagged claude-code">claude-code</a></li>
+        </ul>
+        
+          <h1 class="entry-title">290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2025-01-06T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 06, 2025</time></span>
+        
+        
+        <span class="social-share-twitter">
+  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,ai-coding,mcp,developer-experience,infrastructure,claude-code&amp;text=290%20AI-Assisted%20Commits:%20My%20Holiday%20Sprint%20with%20Claude%20and%20Codex&amp;url=https://jonnyzzz.com/blog/2025/01/06/holiday-sprint-with-ai/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2025/01/06/holiday-sprint-with-ai/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+</span>
+
+<!-- /.social-share -->
+
+        
+      </footer>
+      <div class="entry-content">
+        <p>Three weeks. Nine projects. 290+ commits with AI co-authors.</p>
+
+<p>That’s what happened when I decided to spend the holidays building instead of resting. From December 15th to January 6th, I worked alongside Claude Code and Codex on everything from MCP integrations to a single-room call app. The results surprised even me.</p>
+
+<h2 id="the-numbers-dont-lie">The Numbers Don’t Lie</h2>
+
+<p>Let me start with the raw data. Here’s what the git logs show:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Project</th>
+      <th>AI-Assisted Commits</th>
+      <th>Focus</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>intellij-mcp-steroids</td>
+      <td>134</td>
+      <td>MCP server with OCR, vision</td>
+    </tr>
+    <tr>
+      <td>stevedore</td>
+      <td>48</td>
+      <td>Docker deployment automation</td>
+    </tr>
+    <tr>
+      <td>stevedore-dyndns</td>
+      <td>35</td>
+      <td>Dynamic DNS with Cloudflare</td>
+    </tr>
+    <tr>
+      <td>intellij-plugin-hot-reload</td>
+      <td>25</td>
+      <td>Plugin development workflow</td>
+    </tr>
+    <tr>
+      <td>roomtone</td>
+      <td>22</td>
+      <td>Roomtone single-room calling</td>
+    </tr>
+    <tr>
+      <td>teamcity-mcp-test</td>
+      <td>14</td>
+      <td>MCP debugging infrastructure</td>
+    </tr>
+    <tr>
+      <td>jonnyzzz.com-src</td>
+      <td>8</td>
+      <td>Documentation &amp; blog</td>
+    </tr>
+    <tr>
+      <td>rp16g</td>
+      <td>3</td>
+      <td>Raspberry Pi deployment</td>
+    </tr>
+    <tr>
+      <td>test-ingress-svc</td>
+      <td>2</td>
+      <td>Ingress testing</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Every single one of these commits has <code class="highlighter-rouge">Co-Authored-By: Claude</code> or similar in the message. Not because I blindly accepted AI suggestions—but because we genuinely built these features together.</p>
+
+<h2 id="the-mcp-deep-dive-134-commits-in-three-weeks">The MCP Deep Dive: 134 Commits in Three Weeks</h2>
+
+<p>The <a href="https://modelcontextprotocol.io/">Model Context Protocol (MCP)</a> has been getting a lot of attention. Anthropic released it as a way for AI assistants to interact with external tools. I wanted to see what happens when you take MCP seriously inside an IDE.</p>
+
+<p>The result is <a href="https://github.com/jonnyzzz/intellij-mcp-steroids">intellij-mcp-steroids</a>—an IntelliJ plugin that exposes the IDE’s full power through MCP. Full write-up: <a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroids: An IntelliJ MCP Server with Vision</a>.</p>
+
+<h3 id="what-we-built">What We Built</h3>
+
+<p>The plugin started simple: let Claude read files from the IDE. But it quickly grew into something more ambitious:</p>
+
+<p><strong>OCR Integration</strong></p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Screenshot metadata provider extension point</span>
+<span class="kd">interface</span> <span class="nc">ScreenshotMetadataProvider</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">type</span><span class="p">:</span> <span class="n">String</span>
+    <span class="n">suspend</span> <span class="k">fun</span> <span class="nf">provide</span><span class="p">(</span><span class="nv">context</span><span class="p">:</span> <span class="nc">ScreenCaptureContext</span><span class="p">):</span> <span class="nc">ProviderResult</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We added Tesseract OCR as a ScreenshotMetadataProvider service. Now Claude can “see” dialogs, read error messages from screenshots, and understand the visual state of the IDE. The extension point pattern lets other plugins contribute their own vision capabilities.</p>
+
+<p><strong>Screen Capture with Context</strong></p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">data class</span> <span class="nc">ScreenCaptureContext</span><span class="p">(</span>
+    <span class="kd">val</span> <span class="py">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span>
+    <span class="kd">val</span> <span class="py">component</span><span class="p">:</span> <span class="n">Component</span><span class="p">,</span>
+    <span class="kd">val</span> <span class="py">executionDir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="kd">val</span> <span class="py">collectedMetadata</span><span class="p">:</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">ScreenshotMetadata</span><span class="p">&gt;</span> <span class="p">=</span> <span class="n">emptyList</span><span class="p">()</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>This was the breakthrough. Each capture runs metadata providers that write files like <code class="highlighter-rouge">screenshot-tree.md</code> and <code class="highlighter-rouge">screenshot-ocr.md</code>. Raw screenshots plus a component tree and OCR text give Claude enough context to suggest precise UI actions.</p>
+
+<p><strong>Project-Aware Tools</strong></p>
+
+<p>The plugin exposes <code class="highlighter-rouge">steroid_open_project</code>, <code class="highlighter-rouge">steroid_execute_code</code>, and other tools that let Claude navigate the IDE like a developer would. Open a project, run a command, check the output—all through MCP.</p>
+
+<h3 id="the-journey-what-actually-happened">The Journey: What Actually Happened</h3>
+
+<p>I won’t pretend this was smooth. Here are some challenges we hit:</p>
+
+<p><strong>kotlinx.serialization Conflicts</strong></p>
+
+<p>IntelliJ bundles its own version of kotlinx.serialization. Our plugin wanted a different version. Fixing this took longer than I’d like to admit:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// The fix: use IntelliJ's bundled version, not our own</span>
+<span class="c1">// This single line change took 4 hours to figure out</span>
+<span class="n">compileOnly</span><span class="p">(</span><span class="s">"org.jetbrains.kotlinx:kotlinx-serialization-json"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><strong>Extension Point Discovery</strong></p>
+
+<p>IntelliJ’s extension point system is powerful but under-documented. Claude helped me explore the API surface, but we still had to reverse-engineer some behaviors from the platform source code.</p>
+
+<p><strong>Modality State Madness</strong></p>
+
+<p>Modal dialogs in IntelliJ block certain operations. We added a <code class="highlighter-rouge">ModalityStateMonitor</code> that listens for modal dialogs, captures a screenshot, and returns <code class="highlighter-rouge">ModalDialogInfo</code> when execution gets blocked.</p>
+
+<h2 id="stevedore-infrastructure-that-updates-itself">Stevedore: Infrastructure That Updates Itself</h2>
+
+<p><a href="https://github.com/jonnyzzz/stevedore">Stevedore</a> is my Docker deployment tool. Over the holidays, it learned some new tricks. The deeper story lives in the Stevedore series: <a href="/blog/2025/12/24/introducing-stevedore/">Stevedore: GitOps for your Raspberry Pi</a>, <a href="/blog/2025/12/24/stevedore-architecture/">Under the Hood: How Stevedore Works</a>, <a href="/blog/2025/12/24/getting-started-with-stevedore/">Tutorial: Deploying Your First App with Stevedore</a>, <a href="/blog/2026/01/01/production-raspberry-pi-deployment/">Production Notes</a>, and <a href="/blog/2026/01/02/stevedore-dyndns/">Stevedore DynDNS</a>.</p>
+
+<h3 id="self-update-without-downtime">Self-Update Without Downtime</h3>
+
+<p>The v0.8.0 release added self-update capability. Stevedore can now sync its own repo, build a new image, and restart itself:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore self-update
+<span class="c"># Sync repo, build new image, replace container</span>
+</code></pre></div></div>
+
+<p>This required careful orchestration. The build runs in the foreground, then an update worker container stops/removes the old container and starts the new one. Health checks are still on the roadmap.</p>
+
+<h3 id="cross-deployment-communication">Cross-Deployment Communication</h3>
+
+<p>Each Stevedore daemon exposes a local query socket for status and long-polling:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">mux</span><span class="o">.</span><span class="n">HandleFunc</span><span class="p">(</span><span class="s">"/status/"</span><span class="p">,</span><span class="x"> </span><span class="n">qs</span><span class="o">.</span><span class="n">handleStatus</span><span class="p">)</span><span class="x">
+</span><span class="n">mux</span><span class="o">.</span><span class="n">HandleFunc</span><span class="p">(</span><span class="s">"/poll"</span><span class="p">,</span><span class="x"> </span><span class="n">qs</span><span class="o">.</span><span class="n">handlePoll</span><span class="p">)</span><span class="x">
+</span></code></pre></div></div>
+
+<p>This powers local change notifications: <code class="highlighter-rouge">/poll</code> wakes up when a deployment changes. Typed events are scaffolded but not emitted yet.</p>
+
+<h3 id="dynamic-dns-with-mtls">Dynamic DNS with mTLS</h3>
+
+<p>The stevedore-dyndns companion project got a major upgrade. It now supports Cloudflare proxy mode with Authenticated Origin Pull (mTLS) enforced by Caddy:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stevedore param <span class="nb">set </span>dyndns CLOUDFLARE_PROXY <span class="nb">true</span>
+<span class="c"># Caddy enforces client_auth with /etc/cloudflare/origin-pull-ca.pem</span>
+</code></pre></div></div>
+
+<h2 id="plugin-hot-reload-faster-intellij-development">Plugin Hot Reload: Faster IntelliJ Development</h2>
+
+<p>If you develop IntelliJ plugins, you know the pain: change code, rebuild, restart IDE, wait, test, repeat. The <a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload">intellij-plugin-hot-reload</a> project fixes this. Full write-up: <a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop</a>.</p>
+
+<p>It exposes an HTTP endpoint that accepts plugin ZIPs and hot-reloads them:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># From your build script</span>
+curl <span class="nt">-X</span> POST http://localhost:63342/api/plugin-hot-reload <span class="se">\</span>
+     <span class="nt">-H</span> <span class="s2">"Authorization: Bearer &lt;token&gt;"</span> <span class="se">\</span>
+     <span class="nt">--data-binary</span> @build/distributions/my-plugin.zip
+</code></pre></div></div>
+
+<p>The token and URL live in <code class="highlighter-rouge">~/.&lt;pid&gt;.hot-reload</code> once the IDE starts. The IDE stays running. Reload usually works, and when it doesn’t the endpoint tells you a restart is required. Iteration time drops from minutes to seconds.</p>
+
+<p>The trickiest part was handling plugin unload correctly. IntelliJ’s plugin system wasn’t designed for repeated unload/reload cycles. We had to:</p>
+
+<ol>
+  <li>Resolve the plugin ID and reject self-reload</li>
+  <li>Verify unloadability and call the correct unload API (there are multiple!)</li>
+  <li>Install the new plugin from the ZIP</li>
+  <li>Handle the case where unload or install fails gracefully</li>
+</ol>
+
+<h2 id="roomtone-a-single-room-call">Roomtone: A Single-Room Call</h2>
+
+<p><a href="https://github.com/jonnyzzz/roomtone">Roomtone</a> became the holiday sprint home project. It is a single-room video call service with a tiny Express + WebSocket server: you join by name, get the roster, and the server either forwards MediaRecorder chunks over WebSocket or switches to WebRTC signaling with ICE servers based on config. The UI stays intentionally minimal with a join screen, live status, a participant grid, and simple mute/camera controls. Full write-up: <a href="/blog/2026/01/03/roomtone-single-room-call/">Roomtone: A Single-Room Call for Home</a>.</p>
+
+<p>I wrapped it with a Telegram invite workflow. The bot issues time-limited, RSA-signed JWT links to allowlisted users and chats, and the server validates the token (query/header/cookie) before letting someone in. The bot can also poll <code class="highlighter-rouge">/participants</code> and notify a chat when someone joins.</p>
+
+<p>Concrete bits from the code:</p>
+<ul>
+  <li>WebSocket room protocol for join/welcome, peer join/leave, and signaling.</li>
+  <li>Dual media paths: WebRTC with ICE servers/policy or WebSocket relay with MediaRecorder + MediaSource.</li>
+  <li>Signed invite auth via JWT in query/header/cookie plus secure auth cookies.</li>
+  <li>Telegram bot allowlists, invite links, and participant notifications.</li>
+</ul>
+
+<h2 id="the-documentation-sprint">The Documentation Sprint</h2>
+
+<p>Between building features, I spent time documenting the patterns we discovered.</p>
+
+<h3 id="rlmmd-recursive-language-models">RLM.md: Recursive Language Models</h3>
+
+<p>The <a href="https://arxiv.org/abs/2512.24601">RLM paper</a> describes how to handle context that exceeds model limits. I wrote a practical implementation guide that AI agents can follow:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>PROTOCOL:
+1. ASSESS  --&gt; Peek, don't read everything
+2. DECIDE  --&gt; Match context type + task to strategy
+3. DECOMPOSE --&gt; Partition at natural boundaries
+4. EXECUTE --&gt; Parallel if independent, sequence if not
+5. SYNTHESIZE --&gt; Merge, dedupe, resolve conflicts
+6. VERIFY  --&gt; Check completeness and accuracy
+</code></pre></div></div>
+
+<h3 id="multi-agentmd-orchestration-patterns">MULTI-AGENT.md: Orchestration Patterns</h3>
+
+<p>When one agent isn’t enough, spawn more. The multi-agent guide covers patterns for parallel research, pipelines, cross-validation, and more.</p>
+
+<h2 id="what-i-learned-about-ai-assisted-development">What I Learned About AI-Assisted Development</h2>
+
+<p>After 290+ commits with AI co-authors, some observations:</p>
+
+<h3 id="the-good">The Good</h3>
+
+<p><strong>Speed on Known Patterns</strong></p>
+
+<p>When the task matches something the AI has seen before, the speed is remarkable. Boilerplate code, test scaffolding, documentation—these fly by.</p>
+
+<p><strong>Exploration Partner</strong></p>
+
+<p>“What APIs does IntelliJ have for X?” became a conversation, not a documentation hunt. Claude would suggest approaches, I’d try them, we’d iterate.</p>
+
+<p><strong>Consistency</strong></p>
+
+<p>The code style stayed consistent across sessions. The AI remembered our patterns and applied them.</p>
+
+<h3 id="the-challenges">The Challenges</h3>
+
+<p><strong>Context Window Management</strong></p>
+
+<p>Large projects require careful context management. I learned to keep CLAUDE.md files updated with project-specific instructions.</p>
+
+<p><strong>Novel Architecture</strong></p>
+
+<p>When I needed something the AI hadn’t seen before, progress slowed. The OCR integration required more human guidance than I expected.</p>
+
+<p><strong>Review Still Matters</strong></p>
+
+<p>Every commit got reviewed. AI-generated code can have subtle bugs that only become obvious when you understand the domain deeply.</p>
+
+<h2 id="the-tools-i-used">The Tools I Used</h2>
+
+<p><strong>Claude Code</strong> (Claude Opus 4.5)</p>
+
+<p>Main development partner. Handles complex reasoning well, good at understanding project context.</p>
+
+<p><strong>Codex</strong></p>
+
+<p>Used for focused, non-interactive tasks. Good for processing files, generating boilerplate.</p>
+
+<p><strong>Gemini</strong></p>
+
+<p>Occasionally used for cross-validation—having a different model review code catches different issues.</p>
+
+<p>The workflow: Claude Code for interactive development, with occasional handoffs to Codex for batch operations.</p>
+
+<h2 id="whats-next">What’s Next</h2>
+
+<p>The MCP plugin needs more testing with real users. Stevedore needs documentation for the new features. Roomtone needs time in the wild to shake out real-network edge cases.</p>
+
+<p>But the biggest takeaway isn’t about any specific project. It’s about the workflow.</p>
+
+<p>AI-assisted development isn’t about replacing human judgment. It’s about amplifying human capability. The 290 commits didn’t write themselves—they emerged from a continuous conversation between human intent and machine execution.</p>
+
+<p>Three weeks. Nine projects. One intense holiday sprint.</p>
+
+<p>Want to try these tools yourself?</p>
+
+<ul>
+  <li><a href="https://github.com/jonnyzzz/intellij-mcp-steroids">intellij-mcp-steroids</a> - MCP integration for IntelliJ</li>
+  <li><a href="https://github.com/jonnyzzz/stevedore">stevedore</a> - Docker deployment automation</li>
+  <li><a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload">intellij-plugin-hot-reload</a> - Faster plugin development</li>
+</ul>
+
+<p>Find AI-generated bugs. Open issues. Submit PRs. Let me know via <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://twitter.com/jonnyzzz">Twitter</a> what you think.</p>
+
+<p>And if you spent your holidays building too—I’d love to hear what you made.</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2024/09/17/Eugene-20-years/" class="btn" title="Celebrating 20 Years at JetBrains: A Journey from Junior Developer to Department Lead">Previous</a>
+      
+      
+        <a href="/blog/2025/07/25/ktor-proxy/" class="btn" title="Reverse Proxy in Ktor">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
+	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
+	
+	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
+	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
+	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
+	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
+	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
+	
+  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
+	
+  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script type="text/javascript">
+  var BASE_URL = '';
+</script>
+
+<script>
+  // use links _blank by default
+  Array.from(document.links).forEach(link => {
+    if (link.hostname !== window.location.hostname) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<script type="text/javascript">
+  window.cookieconsent_options = {
+    "message":"This website uses cookies to ensure you get the best experience on our website",
+    "dismiss":"Got it!",
+    "learnMore":"More info",
+    "link":null,
+    "theme":"light-bottom"
+  };
+</script>
+
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<!--SYNTAX HIGHLIGHTER BEGINS-->
+<!-- see https://prismjs.com/ download generator -->
+<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
+
+<script src="/assets/prismjs/prism.js" ></script>
+
+<!--SYNTAX HIGHLIGHTER ENDS-->
+
+
+
+</body>
+</html>
