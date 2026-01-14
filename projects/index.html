@@ -95,11 +95,9 @@
 	<div class="wrap">
       
       <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
-		<h2 class="site-description" itemprop="description">@jonnyzzz personal page and blog</h2>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
 	</div>
 </header><!-- /.masthead -->
-
-<div class="js-menu-screen menu-screen"></div>
 
 
 <div id="main" role="main">
@@ -110,9 +108,69 @@
         <h1 class="entry-title">Projects</h1>
       </header>
       <div class="entry-content">
-        <p>This is what I do in my free time. You may also check for my 
+        <p>This is what I do in my free time. You may also check for my
 <a href="../contrib">contributions to open source</a> or <a href="../talks">talks</a>.
 <a href="https://github.com/jonnyzzz">GitHub</a> profile contains some experiments I work with.</p>
+
+<h2 id="mcp-steroids">MCP Steroids</h2>
+
+<p>An IntelliJ MCP server that lets AI agents run Kotlin code inside the IDE,
+with vision, OCR, and human review gates. The server exposes the full IntelliJ
+platform: PSI for code understanding, refactorings, inspections, and project model queries.</p>
+
+<p>Agents submit Kotlin scripts via <code class="language-plaintext highlighter-rouge">steroid_execute_code</code>, and a review gate
+allows human approval before execution. Vision tools capture screenshots with
+component trees and OCR, enabling agents to click what they see.</p>
+
+<iframe width="280" height="158" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroids demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+<p><a href="https://github.com/jonnyzzz/mcp-steroids" target="_blank">GitHub</a>
+Tags: <a href="/tags/#mcp">mcp</a>, <a href="/tags/#intellij">intellij</a>, <a href="/tags/#ai-coding">ai-coding</a></p>
+
+<h2 id="plugin-hot-reload">Plugin Hot Reload</h2>
+
+<p>Hot reload IntelliJ plugins over HTTP without restarting the IDE. Upload a plugin
+ZIP to a local endpoint, and it unloads the old version, replaces files on disk,
+and loads the new descriptor—all while the IDE keeps running.</p>
+
+<p>The plugin writes a discovery marker with a bearer token on startup. A Gradle task
+scans these markers and pushes new builds to running IDEs automatically, cutting
+the edit-compile-test cycle from minutes to seconds.</p>
+
+<p><a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload" target="_blank">GitHub</a>
+Tags: <a href="/tags/#intellij">intellij</a>, <a href="/tags/#plugin-development">plugin-development</a>, <a href="/tags/#hot-reload">hot-reload</a></p>
+
+<h2 id="roomtone">Roomtone</h2>
+
+<p>A tiny, self-hosted single-room call service with WebSocket control and WebRTC
+signaling. One room, one URL, no meeting sprawl. Designed for homelab use.</p>
+
+<p>The server keeps in-memory room state and speaks WebSocket for join, leave,
+and signaling. A Telegram bot issues time-limited, RSA-signed JWT invite links
+for access control. Two media paths are supported: real-time WebRTC and
+WebSocket relay using MediaRecorder.</p>
+
+<p><a href="https://github.com/jonnyzzz/roomtone" target="_blank">GitHub</a>
+Tags: <a href="/tags/#roomtone">roomtone</a>, <a href="/tags/#webrtc">webrtc</a>, <a href="/tags/#self-hosting">self-hosting</a></p>
+
+<h2 id="stevedore">Stevedore</h2>
+
+<p>A lightweight GitOps-style deployment loop for Docker Compose on a single host.
+Push code to GitHub, and your Raspberry Pi updates itself. No CI pipelines to
+configure, no complex Terraform state to manage.</p>
+
+<p>The daemon polls enabled deployments for changes and runs <code class="language-plaintext highlighter-rouge">docker compose up -d --build</code>.
+It handles failed builds gracefully, manages secrets in an encrypted SQLCipher database,
+and can update itself. Designed for the “fork first” philosophy—your infrastructure,
+your control.</p>
+
+<p><strong>Stevedore DynDNS</strong> is a companion service that keeps DNS, HTTPS, and routing in sync.
+It updates Cloudflare DNS when your IP changes, obtains wildcard certificates via Caddy,
+and routes subdomains to internal services automatically.</p>
+
+<p><a href="https://github.com/jonnyzzz/stevedore" target="_blank">Stevedore GitHub</a> ·
+<a href="https://github.com/jonnyzzz/stevedore-dyndns" target="_blank">DynDNS GitHub</a>
+Tags: <a href="/tags/#stevedore">stevedore</a>, <a href="/tags/#gitops">gitops</a>, <a href="/tags/#raspberry-pi">raspberry-pi</a>, <a href="/tags/#docker">docker</a>, <a href="/tags/#dyndns">dyndns</a></p>
 
 <h2 id="oauth2-bro">OAuth2-bro</h2>
 
