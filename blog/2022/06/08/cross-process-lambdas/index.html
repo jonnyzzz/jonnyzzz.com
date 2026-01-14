@@ -56,7 +56,7 @@
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -91,19 +91,16 @@
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -142,13 +139,12 @@
         <span class="entry-date date published"><time datetime="2022-06-08T00:00:00+00:00"><i class="fa fa-calendar-o"></i> June 08, 2022</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,java,jvm,lambda,serialization,bytecode,kotlin-bytecode,groovy&amp;text=Cross-process%20Lambdas&amp;url=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=kotlin,java,jvm,lambda,serialization,bytecode,kotlin-bytecode,groovy&amp;text=Cross-process%20Lambdas&amp;url=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2022/06/08/cross-process-lambdas/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -171,12 +167,12 @@ to create integration tests like that:</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
 <span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
-  <span class="n">startProcessAndRun</span> <span class="p">{</span>
-    <span class="n">weDoThatInTheExternalProcess</span><span class="p">()</span>
-    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="nf">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="nf">startProcessAndRun</span> <span class="p">{</span>
+    <span class="nf">weDoThatInTheExternalProcess</span><span class="p">()</span>
+    <span class="nf">toMakeTestScenario</span><span class="p">()</span>
   <span class="p">}</span>
-  <span class="n">checkExpectations</span><span class="p">()</span>  
+  <span class="nf">checkExpectations</span><span class="p">()</span>  
 <span class="p">}</span>
 </code></pre></div></div>
 
@@ -186,12 +182,12 @@ For example:</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
 <span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
-  <span class="kd">val</span> <span class="py">capturedVariable</span> <span class="p">=</span> <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
-  <span class="n">startProcessAndRun</span> <span class="p">{</span>
-    <span class="n">weDoThatInTheExternalProcess</span><span class="p">(</span><span class="n">capturedVariable</span><span class="p">)</span>
-    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="kd">val</span> <span class="py">capturedVariable</span> <span class="p">=</span> <span class="nf">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="nf">startProcessAndRun</span> <span class="p">{</span>
+    <span class="nf">weDoThatInTheExternalProcess</span><span class="p">(</span><span class="n">capturedVariable</span><span class="p">)</span>
+    <span class="nf">toMakeTestScenario</span><span class="p">()</span>
   <span class="p">}</span>
-  <span class="n">checkExpectations</span><span class="p">()</span>  
+  <span class="nf">checkExpectations</span><span class="p">()</span>  
 <span class="p">}</span>
 </code></pre></div></div>
 
@@ -200,23 +196,23 @@ and execute it in the other JVM processes.</p>
 
 <h2 id="whole-class-approach">Whole Class Approach</h2>
 
-<p>The very first approach could be to have the whole <code class="highlighter-rouge">exampleTest</code>
+<p>The very first approach could be to have the whole <code class="language-plaintext highlighter-rouge">exampleTest</code>
 function execute in the second JVM. We may need to replace
-<code class="highlighter-rouge">setupEnvironmentForTestion()</code> and <code class="highlighter-rouge">checkExpectations()</code> implementations
+<code class="language-plaintext highlighter-rouge">setupEnvironmentForTestion()</code> and <code class="language-plaintext highlighter-rouge">checkExpectations()</code> implementations
 on the second JVM with empty stubs for that. It is hard to
 pass data between processes. Finally, a code may look like:</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
 <span class="k">fun</span> <span class="nf">exampleTest</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">runInHost</span> <span class="p">{</span>
-    <span class="n">setupEnvironmentForTestion</span><span class="p">()</span>
+  <span class="nf">runInHost</span> <span class="p">{</span>
+    <span class="nf">setupEnvironmentForTestion</span><span class="p">()</span>
   <span class="p">}</span>
-  <span class="n">startProcessAndRun</span> <span class="p">{</span>
-    <span class="n">weDoThatInTheExternalProcess</span><span class="p">()</span>
-    <span class="n">toMakeTestScenario</span><span class="p">()</span>
+  <span class="nf">startProcessAndRun</span> <span class="p">{</span>
+    <span class="nf">weDoThatInTheExternalProcess</span><span class="p">()</span>
+    <span class="nf">toMakeTestScenario</span><span class="p">()</span>
   <span class="p">}</span>
-  <span class="n">runInHost</span> <span class="p">{</span>
-    <span class="n">checkExpectations</span><span class="p">()</span>
+  <span class="nf">runInHost</span> <span class="p">{</span>
+    <span class="nf">checkExpectations</span><span class="p">()</span>
   <span class="p">}</span>  
 <span class="p">}</span>
 </code></pre></div></div>
@@ -242,7 +238,7 @@ Each test has two examples just like we’ve had above:</p>
 <p>This pattern is repeated many times in Java and in Kotlin to
 try different approaches to the lambda:</p>
 <ul>
-  <li>lambda implementing <code class="highlighter-rouge">Runnable</code> (Java and Kotlin)</li>
+  <li>lambda implementing <code class="language-plaintext highlighter-rouge">Runnable</code> (Java and Kotlin)</li>
   <li>lambda implementing custom interface (Java and Kotlin)</li>
   <li>Kotlin lambda for a Kotlin functional type</li>
   <li>Kotlin inline functions with inline lambda</li>
@@ -270,17 +266,17 @@ every lambda via
 
 <p>The following code makes Kotlin compiler generate a default constructor for an inlined lambda:</p>
 
-<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="nc">Unit</span><span class="p">)</span> <span class="p">{</span>
   <span class="kd">val</span> <span class="py">holder</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">Runnable</span> <span class="p">{</span>
     <span class="k">override</span> <span class="k">fun</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
-      <span class="n">action</span><span class="p">()</span>
+      <span class="nf">action</span><span class="p">()</span>
     <span class="p">}</span>
   <span class="p">}</span>
-  <span class="n">doSomethingWithTheClass</span><span class="p">(</span><span class="n">holder</span><span class="p">.</span><span class="n">javaClass</span><span class="p">)</span>
+  <span class="nf">doSomethingWithTheClass</span><span class="p">(</span><span class="n">holder</span><span class="p">.</span><span class="n">javaClass</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>Each call of the function <code class="highlighter-rouge">lambdaToClass</code> is inlined by the compiler, 
+<p>Each call of the function <code class="language-plaintext highlighter-rouge">lambdaToClass</code> is inlined by the compiler, 
 so we will have a dedicated class for each function call site. 
 The lambda, which we pass as a parameter, is inlined into the generated
 anonymous class. We are free to make the anonymous class, extend a
@@ -298,17 +294,17 @@ flexible enough. Let’s see if serialization can be used instead.</p>
 <h2 id="using-lambda-serialization">Using Lambda Serialization</h2>
 
 <p>For this series of experiments, we will be using JDK’s standard
-<code class="highlighter-rouge">ObjectInputStream</code> and <code class="highlighter-rouge">ObjectOutputStream</code> to serialize a lambda in
+<code class="language-plaintext highlighter-rouge">ObjectInputStream</code> and <code class="language-plaintext highlighter-rouge">ObjectOutputStream</code> to serialize a lambda in
 one process and to load the serialized one on the other JVM process.
 The following code is used to save and load the lambda:</p>
 
-<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">bytes</span> <span class="p">=</span> <span class="n">ByteArrayOutputStream</span><span class="p">().</span><span class="n">use</span> <span class="p">{</span> <span class="n">bos</span> <span class="p">-&gt;</span>
-  <span class="n">ObjectOutputStream</span><span class="p">(</span><span class="n">bos</span><span class="p">).</span><span class="n">use</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">writeObject</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="p">}</span>
-  <span class="n">bos</span><span class="p">.</span><span class="n">toByteArray</span><span class="p">()</span>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">bytes</span> <span class="p">=</span> <span class="nc">ByteArrayOutputStream</span><span class="p">().</span><span class="nf">use</span> <span class="p">{</span> <span class="n">bos</span> <span class="p">-&gt;</span>
+  <span class="nc">ObjectOutputStream</span><span class="p">(</span><span class="n">bos</span><span class="p">).</span><span class="nf">use</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="nf">writeObject</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="p">}</span>
+  <span class="n">bos</span><span class="p">.</span><span class="nf">toByteArray</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="kd">val</span> <span class="py">reloaded</span> <span class="p">=</span> <span class="n">bytes</span><span class="p">.</span><span class="n">inputStream</span><span class="p">().</span><span class="n">use</span> <span class="p">{</span> <span class="n">bis</span> <span class="p">-&gt;</span>
-  <span class="n">ObjectInputStream</span><span class="p">(</span><span class="n">bis</span><span class="p">).</span><span class="n">readObject</span><span class="p">()</span>
+<span class="kd">val</span> <span class="py">reloaded</span> <span class="p">=</span> <span class="n">bytes</span><span class="p">.</span><span class="nf">inputStream</span><span class="p">().</span><span class="nf">use</span> <span class="p">{</span> <span class="n">bis</span> <span class="p">-&gt;</span>
+  <span class="nc">ObjectInputStream</span><span class="p">(</span><span class="n">bis</span><span class="p">).</span><span class="nf">readObject</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre></div></div>
 
@@ -318,18 +314,18 @@ The following code is used to save and load the lambda:</p>
 
 <p>We see the following from the <a href="https://github.com/jonnyzzz/serialized-lambda">tests</a>:</p>
 <ul>
-  <li>Java’s lambdas are serializable when the respective functional interface implements <code class="highlighter-rouge">java.io.Serializable</code></li>
+  <li>Java’s lambdas are serializable when the respective functional interface implements <code class="language-plaintext highlighter-rouge">java.io.Serializable</code></li>
   <li>Kotlin (from 1.5) generates serializable lambdas for Java serializable functional interfaces</li>
-  <li>Kotlin’s lambdas for Kotlin functional types (e.g. <code class="highlighter-rouge">() -&gt; Unit</code>) are implicitly serializable</li>
+  <li>Kotlin’s lambdas for Kotlin functional types (e.g. <code class="language-plaintext highlighter-rouge">() -&gt; Unit</code>) are implicitly serializable</li>
   <li>Kotlin’s inlined lambdas can be made serializable if we inline them into a serializable object declaration</li>
 </ul>
 
-<p>In Java, we can make a lambda be <code class="highlighter-rouge">Serializable</code> by extending a <code class="highlighter-rouge">java.io.Serializable</code> from
+<p>In Java, we can make a lambda be <code class="language-plaintext highlighter-rouge">Serializable</code> by extending a <code class="language-plaintext highlighter-rouge">java.io.Serializable</code> from
 a functional interface that we use. The same works both in Java and in Kotlin:</p>
 
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">SerializableRunnable</span> <span class="kd">extends</span> <span class="n">Serializable</span><span class="o">,</span> <span class="n">Runnable</span> <span class="o">{</span> <span class="o">}</span> 
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">SerializableRunnable</span> <span class="kd">extends</span> <span class="nc">Serializable</span><span class="o">,</span> <span class="nc">Runnable</span> <span class="o">{</span> <span class="o">}</span> 
 
-<span class="n">SerializableRunnable</span> <span class="n">serializableLambda</span> <span class="o">=</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span> <span class="o">};</span>
+<span class="nc">SerializableRunnable</span> <span class="n">serializableLambda</span> <span class="o">=</span> <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span> <span class="o">};</span>
 </code></pre></div></div>
 
 <p>In Kotlin, we can just create a lambda, and it will be serializable:</p>
@@ -339,33 +335,33 @@ a functional interface that we use. The same works both in Java and in Kotlin:</
 <p>In addition to that, we may apply the same trick with inline function as above,
 but we will not be using the anonymous class directly:</p>
 
-<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="n">Unit</span><span class="p">)</span> <span class="p">{</span>
-  <span class="kd">val</span> <span class="py">holder</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">Runnable</span><span class="p">,</span> <span class="n">Serializable</span> <span class="p">{</span>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="nf">lambdaToClass</span><span class="p">(</span><span class="k">crossinline</span> <span class="n">action</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="nc">Unit</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">holder</span> <span class="p">=</span> <span class="kd">object</span> <span class="err">: </span><span class="nc">Runnable</span><span class="p">,</span> <span class="nc">Serializable</span> <span class="p">{</span>
     <span class="k">override</span> <span class="k">fun</span> <span class="nf">run</span><span class="p">()</span> <span class="p">{</span>
-      <span class="n">action</span><span class="p">()</span>
+      <span class="nf">action</span><span class="p">()</span>
     <span class="p">}</span>
   <span class="p">}</span>
-  <span class="n">serializeMe</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span>
+  <span class="nf">serializeMe</span><span class="p">(</span><span class="n">holder</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></div></div>
 
 <p>There are several more interesting fasts:</p>
 <ul>
-  <li>Lambda in Java are implemented via <code class="highlighter-rouge">invokedynamic</code> and
+  <li>Lambda in Java are implemented via <code class="language-plaintext highlighter-rouge">invokedynamic</code> and
 JDK’s <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">LambdaMetafactory</a>
-whose class names are like <code class="highlighter-rouge">Simple$$Lambda$55/0x0000000800180040</code></li>
+whose class names are like <code class="language-plaintext highlighter-rouge">Simple$$Lambda$55/0x0000000800180040</code></li>
   <li>Deserialized Java lambda may have another type name</li>
   <li>Lambdas for Kotlin functional types implicitly implement Serializable and are now complied as ordinary classes</li>
 </ul>
 
 <p>Starting from <a href="https://kotlinlang.org/docs/whatsnew15.html#sam-adapters-via-invokedynamic">Kotlin 1.5</a>,
-the compiler uses the <code class="highlighter-rouge">invokedynamic</code>
+the compiler uses the <code class="language-plaintext highlighter-rouge">invokedynamic</code>
 and JDK’s
 <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/invoke/LambdaMetafactory.html#metafactory-java.lang.invoke.MethodHandles.Lookup-java.lang.String-java.lang.invoke.MethodType-java.lang.invoke.MethodType-java.lang.invoke.MethodHandle-java.lang.invoke.MethodType-">LambdaMetafactory</a>
 to implement lambdas for Java-declared
-functional interfaces and <code class="highlighter-rouge">fun interface</code> Kotlin declarations.
+functional interfaces and <code class="language-plaintext highlighter-rouge">fun interface</code> Kotlin declarations.
 Future <a href="https://youtrack.jetbrains.com/issue/KT-45375/Generate-all-Kotlin-lambdas-via-invokedynamic-LambdaMetafactory-by-default">versions</a>
-will use <code class="highlighter-rouge">invokedynamic</code> all lambdas.</p>
+will use <code class="language-plaintext highlighter-rouge">invokedynamic</code> all lambdas.</p>
 
 <p>We see from the <a href="https://github.com/jonnyzzz/serialized-lambda">experiments</a> that
 the easiest way to pass a lambda between JVM processes is to use serialization.</p>
@@ -399,7 +395,7 @@ all necessary parameters inlined. It includes:</p>
 <span class="n">loader</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">classBase64State</span><span class="o">)</span>
 </code></pre></div></div>
 
-<p>We use yet another class named <code class="highlighter-rouge">OurEntryPointClass</code> to move
+<p>We use yet another class named <code class="language-plaintext highlighter-rouge">OurEntryPointClass</code> to move
 as much code as possible from the Groovy script. The classloader,
 which we use to load our classes from the first JVM,
 delegates to the parent loader first, so we have to be
@@ -407,18 +403,18 @@ careful with different versions of the same libraries that we use
 in both processes.</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">OurEntryPointClass</span> <span class="p">{</span> 
-  <span class="k">fun</span> <span class="nf">execute</span><span class="p">(</span><span class="nv">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">val</span> <span class="py">oldLoader</span> <span class="p">=</span> <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span>
-    <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">javaClass</span><span class="p">.</span><span class="n">classLoader</span>
+  <span class="k">fun</span> <span class="nf">execute</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">oldLoader</span> <span class="p">=</span> <span class="nc">Thread</span><span class="p">.</span><span class="nf">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span>
+    <span class="nc">Thread</span><span class="p">.</span><span class="nf">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">javaClass</span><span class="p">.</span><span class="n">classLoader</span>
     <span class="k">try</span> <span class="p">{</span>
-      <span class="kd">val</span> <span class="py">loadedLambda</span> <span class="p">=</span> <span class="n">Base64</span><span class="p">.</span><span class="n">getDecoder</span><span class="p">()</span>
-        <span class="p">.</span><span class="n">decode</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="n">inputStream</span><span class="p">()</span>
-        <span class="p">.</span><span class="n">let</span><span class="p">(</span><span class="o">::</span><span class="n">ObjectInputStream</span><span class="p">)</span>
-        <span class="p">.</span><span class="n">readObject</span><span class="p">()</span> <span class="k">as</span><span class="p">?</span> <span class="n">Runnable</span>
-        <span class="o">?:</span> <span class="n">error</span><span class="p">(</span><span class="s">"Failed to load Consumer&lt;Project&gt; from the lambda"</span><span class="p">)</span>
-      <span class="n">loadedLambda</span><span class="p">.</span><span class="n">run</span><span class="p">()</span>
+      <span class="kd">val</span> <span class="py">loadedLambda</span> <span class="p">=</span> <span class="nc">Base64</span><span class="p">.</span><span class="nf">getDecoder</span><span class="p">()</span>
+        <span class="p">.</span><span class="nf">decode</span><span class="p">(</span><span class="n">text</span><span class="p">).</span><span class="nf">inputStream</span><span class="p">()</span>
+        <span class="p">.</span><span class="nf">let</span><span class="p">(</span><span class="o">::</span><span class="nc">ObjectInputStream</span><span class="p">)</span>
+        <span class="p">.</span><span class="nf">readObject</span><span class="p">()</span> <span class="k">as</span><span class="p">?</span> <span class="nc">Runnable</span>
+        <span class="o">?:</span> <span class="nf">error</span><span class="p">(</span><span class="s">"Failed to load Consumer&lt;Project&gt; from the lambda"</span><span class="p">)</span>
+      <span class="n">loadedLambda</span><span class="p">.</span><span class="nf">run</span><span class="p">()</span>
     <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
-      <span class="n">Thread</span><span class="p">.</span><span class="n">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">oldLoader</span>
+      <span class="nc">Thread</span><span class="p">.</span><span class="nf">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">oldLoader</span>
     <span class="p">}</span>
   <span class="p">}</span>
 </code></pre></div></div>
@@ -459,31 +455,28 @@ use-cases too.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -513,26 +506,49 @@ use-cases too.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

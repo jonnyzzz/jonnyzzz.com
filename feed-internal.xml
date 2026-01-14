@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-01-13T21:13:05+00:00</updated>
+  <updated>2026-01-14T07:57:22+00:00</updated>
   <id>/</id>
 
   
@@ -84,7 +84,7 @@
 
 &lt;p&gt;Academic papers describe what works. Skill files need to specify when to apply each technique. We built decision trees:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;START
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;START
   |
   +-- Context &amp;gt; 50K tokens? -------- YES --&amp;gt; ACTIVATE RLM
   |     |
@@ -111,7 +111,7 @@
 
 &lt;p&gt;The paper describes emergent strategies like “Grep First” and “Preview + Partition.” We codified these into templates:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;STRATEGY: Grep First
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;STRATEGY: Grep First
 TRIGGER: Searching for specific patterns across many files
 PROCEDURE:
 1. Use grep/search to identify relevant file subset
@@ -153,7 +153,7 @@ codex &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt
 &lt;span class=&quot;nv&quot;&gt;GEMINI_API_KEY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$YOUR_API_KEY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; gemini &lt;span class=&quot;s2&quot;&gt;&quot;Review RLM.md content: ...&quot;&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The &lt;code class=&quot;highlighter-rouge&quot;&gt;Task(...)&lt;/code&gt; syntax is pseudo-API representing Claude Code’s internal subagent mechanism. The actual invocation happens through tool use, not shell commands.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task(...)&lt;/code&gt; syntax is pseudo-API representing Claude Code’s internal subagent mechanism. The actual invocation happens through tool use, not shell commands.&lt;/p&gt;
 
 &lt;h3 id=&quot;experiment-log&quot;&gt;Experiment Log&lt;/h3&gt;
 
@@ -161,7 +161,7 @@ codex &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt
 
 &lt;h4 id=&quot;claude-agent-review-task-id-a642a60&quot;&gt;Claude Agent Review (Task ID: a642a60)&lt;/h4&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Claude Code Sub-Agent]
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Claude Code Sub-Agent]
 Timestamp: 2026-01-05T13:52:XX UTC
 Task ID: a642a60
 Duration: ~90 seconds
@@ -179,7 +179,7 @@ Recommendation Score: 7/10
 
 &lt;h4 id=&quot;codex-agent-review-session-019b8e72&quot;&gt;Codex Agent Review (Session: 019b8e72)&lt;/h4&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Codex CLI]
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Codex CLI]
 Timestamp: 2026-01-05T13:57:XX UTC
 Session ID: 019b8e72-fbae-7910-bbb9-34f4fabfec3e
 Model: gpt-5.2-codex (reasoning: xhigh)
@@ -197,7 +197,7 @@ Rating: 7/10
 
 &lt;h4 id=&quot;gemini-agent-review&quot;&gt;Gemini Agent Review&lt;/h4&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Gemini CLI]
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Gemini CLI]
 Timestamp: 2026-01-05T14:05:XX UTC
 Model: gemini-2.0 (via API key)
 
@@ -316,7 +316,7 @@ Rating: 8.5/10
 
 &lt;h3 id=&quot;dependency-graph&quot;&gt;Dependency Graph&lt;/h3&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CLAUDE.md (repository root)
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CLAUDE.md (repository root)
     |
     +-- MULTI-AGENT.md (orchestration)
     |       |
@@ -617,24 +617,24 @@ Rating: 8.5/10
 
 &lt;p&gt;The plugin registers a built-in server handler at:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/api/plugin-hot-reload
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/api/plugin-hot-reload
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET&lt;/code&gt; returns a Markdown README packaged inside the plugin.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST&lt;/code&gt; accepts the raw plugin ZIP as the request body.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET&lt;/code&gt; returns a Markdown README packaged inside the plugin.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST&lt;/code&gt; accepts the raw plugin ZIP as the request body.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;The handler is strict: it requires &lt;code class=&quot;highlighter-rouge&quot;&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt; and rejects empty uploads. The token changes each IDE run, which keeps the endpoint local and short-lived.&lt;/p&gt;
+&lt;p&gt;The handler is strict: it requires &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt; and rejects empty uploads. The token changes each IDE run, which keeps the endpoint local and short-lived.&lt;/p&gt;
 
 &lt;h2 id=&quot;discovery-and-auth&quot;&gt;Discovery and Auth&lt;/h2&gt;
 
 &lt;p&gt;On startup, the plugin writes a marker file to the user home directory:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/.&amp;lt;pid&amp;gt;.hot-reload
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/.&amp;lt;pid&amp;gt;.hot-reload
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;It contains the POST URL, the bearer token, a timestamp, and a full IDE “About” block. The file disappears on IDE exit and stale marker files are cleaned up automatically. The Gradle &lt;code class=&quot;highlighter-rouge&quot;&gt;deployPlugin&lt;/code&gt; task scans these markers and pushes new ZIPs to running IDEs.&lt;/p&gt;
+&lt;p&gt;It contains the POST URL, the bearer token, a timestamp, and a full IDE “About” block. The file disappears on IDE exit and stale marker files are cleaned up automatically. The Gradle &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;deployPlugin&lt;/code&gt; task scans these markers and pushes new ZIPs to running IDEs.&lt;/p&gt;
 
 &lt;h2 id=&quot;the-reload-pipeline&quot;&gt;The Reload Pipeline&lt;/h2&gt;
 
@@ -648,7 +648,7 @@ Rating: 8.5/10
   &lt;li&gt;Install and load the new plugin descriptor.&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;If unload fails, the service can capture an HPROF snapshot and returns &lt;code class=&quot;highlighter-rouge&quot;&gt;restartRequired = true&lt;/code&gt;. The endpoint always finishes with a final &lt;code class=&quot;highlighter-rouge&quot;&gt;SUCCESS&lt;/code&gt; or &lt;code class=&quot;highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; line so callers can automate around it.&lt;/p&gt;
+&lt;p&gt;If unload fails, the service can capture an HPROF snapshot and returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;restartRequired = true&lt;/code&gt;. The endpoint always finishes with a final &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUCCESS&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; line so callers can automate around it.&lt;/p&gt;
 
 &lt;h2 id=&quot;the-fine-print&quot;&gt;The Fine Print&lt;/h2&gt;
 
@@ -656,7 +656,7 @@ Rating: 8.5/10
 
 &lt;ul&gt;
   &lt;li&gt;The response is chunked, but progress is buffered and sent once at the end (no streaming updates).&lt;/li&gt;
-  &lt;li&gt;Requests time out after 5 minutes; a timeout still returns &lt;code class=&quot;highlighter-rouge&quot;&gt;FAILED&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Requests time out after 5 minutes; a timeout still returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt;.&lt;/li&gt;
   &lt;li&gt;A short 5-second delay is added after reload to let background invocables finish.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -717,14 +717,14 @@ I tried the &lt;a href=&quot;https://github.com/modelcontextprotocol/kotlin-sdk&
 does not yet support the latest MCP spec version, same as IntelliJ-native MCP Server.
 For the sake of this experiment, I decided to focus on my own implementations.&lt;/p&gt;
 
-&lt;p&gt;It binds to &lt;code class=&quot;highlighter-rouge&quot;&gt;127.0.0.1:63150&lt;/code&gt; by default (configurable via registry keys). The core 
-endpoint is &lt;code class=&quot;highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, with &lt;a href=&quot;https://agentskills.io&quot;&gt;Agent Skills&lt;/a&gt; discovery at &lt;code class=&quot;highlighter-rouge&quot;&gt;/skill.md&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It binds to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;127.0.0.1:63150&lt;/code&gt; by default (configurable via registry keys). The core 
+endpoint is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, with &lt;a href=&quot;https://agentskills.io&quot;&gt;Agent Skills&lt;/a&gt; discovery at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/skill.md&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;On startup, the plugin writes discovery markers so tools can connect without guessing:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;~/.&amp;lt;pid&amp;gt;.mcp-steroid&lt;/code&gt; in the user home (PID-scoped, cleaned on exit).&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;.idea/mcp-steroids.txt&lt;/code&gt; inside each opened project.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.&amp;lt;pid&amp;gt;.mcp-steroid&lt;/code&gt; in the user home (PID-scoped, cleaned on exit).&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroids.txt&lt;/code&gt; inside each opened project.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;connecting-ai-agents&quot;&gt;Connecting AI Agents&lt;/h3&gt;
@@ -736,11 +736,11 @@ endpoint is &lt;code class=&quot;highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, w
 &lt;p&gt;The goal is simple: expose the IDE in a way an agent can actually use. The MCP surface includes:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;&lt;/strong&gt; to run Kotlin snippets inside IntelliJ with full IDE APIs.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project and window discovery&lt;/strong&gt; (&lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Capability and action discovery&lt;/strong&gt; (&lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_capabilities&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_action_discovery&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Vision + input&lt;/strong&gt; (&lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt;) to drive the UI.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt; (&lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;&lt;/strong&gt; to run Kotlin snippets inside IntelliJ with full IDE APIs.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project and window discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Capability and action discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_capabilities&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_action_discovery&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Vision + input&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt;) to drive the UI.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt;).&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;Each tool is registered via extension points, so the surface can grow without rewriting the server.&lt;/p&gt;
@@ -767,11 +767,11 @@ endpoint is &lt;code class=&quot;highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, w
   &lt;/thead&gt;
   &lt;tbody&gt;
     &lt;tr&gt;
-      &lt;td&gt;Reading files with &lt;code class=&quot;highlighter-rouge&quot;&gt;cat&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;read&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Reading files with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cat&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read&lt;/code&gt;&lt;/td&gt;
       &lt;td&gt;VFS and PSI APIs&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
-      &lt;td&gt;Searching with &lt;code class=&quot;highlighter-rouge&quot;&gt;grep&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;find&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Searching with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find&lt;/code&gt;&lt;/td&gt;
       &lt;td&gt;Find Usages, Structural Search&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
@@ -789,43 +789,43 @@ endpoint is &lt;code class=&quot;highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, w
 
 &lt;h2 id=&quot;execution-pipeline-with-a-safety-valve&quot;&gt;Execution Pipeline With a Safety Valve&lt;/h2&gt;
 
-&lt;p&gt;Agents submit Kotlin code via &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. Scripts must call &lt;code class=&quot;highlighter-rouge&quot;&gt;execute { }&lt;/code&gt; to interact with the IDE:&lt;/p&gt;
+&lt;p&gt;Agents submit Kotlin code via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. Scripts must call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;execute { }&lt;/code&gt; to interact with the IDE:&lt;/p&gt;
 
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;waitForSmartMode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Wait for indexing&lt;/span&gt;
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;waitForSmartMode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Wait for indexing&lt;/span&gt;
 
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;psiFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;readAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;PsiManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;findFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;virtualFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;psiFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;readAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;PsiManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;findFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;virtualFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
-    &lt;span class=&quot;n&quot;&gt;writeAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;setText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;new content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;writeAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;new content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 
-    &lt;span class=&quot;n&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Done!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Done!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;McpScriptContext&lt;/code&gt; provides built-in helpers: &lt;code class=&quot;highlighter-rouge&quot;&gt;readAction&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;writeAction&lt;/code&gt;, 
-&lt;code class=&quot;highlighter-rouge&quot;&gt;smartReadAction&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;findFile&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;findPsiFile&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;progress&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;takeIdeScreenshot&lt;/code&gt;. 
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;McpScriptContext&lt;/code&gt; provides built-in helpers: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;readAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;writeAction&lt;/code&gt;, 
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smartReadAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findPsiFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;progress&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;takeIdeScreenshot&lt;/code&gt;. 
 No imports needed for the common operations.&lt;/p&gt;
 
 &lt;h3 id=&quot;human-review-gate&quot;&gt;Human Review Gate&lt;/h3&gt;
 
-&lt;p&gt;A review gate sits in the middle. The default mode is &lt;code class=&quot;highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;, which opens submitted 
+&lt;p&gt;A review gate sits in the middle. The default mode is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;, which opens submitted 
 code in the editor with Approve/Reject buttons. Users can edit the code before 
 approval—the LLM receives the original, the edited version, and a unified diff showing what changed.&lt;/p&gt;
 
 &lt;p&gt;Three modes are available:&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;: Every script requires human approval (default)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;TRUSTED&lt;/code&gt;: Auto-approve all (trust MCP callers)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;NEVER&lt;/code&gt;: Auto-execute all (development only)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;: Every script requires human approval (default)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TRUSTED&lt;/code&gt;: Auto-approve all (trust MCP callers)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NEVER&lt;/code&gt;: Auto-execute all (development only)&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h3 id=&quot;execution-storage&quot;&gt;Execution Storage&lt;/h3&gt;
 
-&lt;p&gt;All requests are logged to &lt;code class=&quot;highlighter-rouge&quot;&gt;.idea/mcp-run/&lt;/code&gt; with timestamped directories containing
+&lt;p&gt;All requests are logged to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-run/&lt;/code&gt; with timestamped directories containing
 the script, parameters, output, and any errors. This append-only log is invaluable
 for debugging agent behavior.&lt;/p&gt;
 
@@ -835,43 +835,43 @@ for debugging agent behavior.&lt;/p&gt;
 Kotlin scripts that agents can load and adapt, avoiding the guesswork of writing IDE code from scratch:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;LSP-like operations&lt;/strong&gt;: &lt;code class=&quot;highlighter-rouge&quot;&gt;intellij://lsp/go-to-definition&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;find-references&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;rename&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;code-action&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;signature-help&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;IDE power operations&lt;/strong&gt;: &lt;code class=&quot;highlighter-rouge&quot;&gt;intellij://ide/extract-method&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;introduce-variable&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;change-signature&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;safe-delete&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;optimize-imports&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;run-configuration&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt;: &lt;code class=&quot;highlighter-rouge&quot;&gt;intellij://open-project/open-trusted&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;open-with-dialogs&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;LSP-like operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://lsp/go-to-definition&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find-references&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rename&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;code-action&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;signature-help&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;IDE power operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://ide/extract-method&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;introduce-variable&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;change-signature&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;safe-delete&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;optimize-imports&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-configuration&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://open-project/open-trusted&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;open-with-dialogs&lt;/code&gt;.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;Agents call &lt;code class=&quot;highlighter-rouge&quot;&gt;list_mcp_resources&lt;/code&gt; to discover available resources, then &lt;code class=&quot;highlighter-rouge&quot;&gt;read_mcp_resource&lt;/code&gt; 
+&lt;p&gt;Agents call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;list_mcp_resources&lt;/code&gt; to discover available resources, then &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_mcp_resource&lt;/code&gt; 
 with the URI to fetch the content. These examples are designed to be plugged directly 
-into &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; after configuring file paths and positions.&lt;/p&gt;
+into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; after configuring file paths and positions.&lt;/p&gt;
 
 &lt;h3 id=&quot;learning-curve-note&quot;&gt;Learning Curve Note&lt;/h3&gt;
 
 &lt;p&gt;Writing working code for IntelliJ APIs may require several attempts. This is 
-expected—the API is vast. The server includes &lt;code class=&quot;highlighter-rouge&quot;&gt;printException()&lt;/code&gt; to help debug
+expected—the API is vast. The server includes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;printException()&lt;/code&gt; to help debug
 stack traces when errors occur. If the first attempt fails, analyze the error,
 adjust, and try again. The power of direct IDE access is worth the effort.&lt;/p&gt;
 
 &lt;h2 id=&quot;vision--ocr--context-that-sticks&quot;&gt;Vision + OCR = Context That Sticks&lt;/h2&gt;
 
-&lt;p&gt;The vision pipeline is more than a screenshot. A single &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt; call collects:&lt;/p&gt;
+&lt;p&gt;The vision pipeline is more than a screenshot. A single &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt; call collects:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;The PNG image (returned as base64 in the MCP response).&lt;/li&gt;
-  &lt;li&gt;The Swing component tree (&lt;code class=&quot;highlighter-rouge&quot;&gt;screenshot-tree.md&lt;/code&gt;) for programmatic inspection.&lt;/li&gt;
+  &lt;li&gt;The Swing component tree (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;screenshot-tree.md&lt;/code&gt;) for programmatic inspection.&lt;/li&gt;
   &lt;li&gt;OCR output when enabled (Tesseract via a bundled helper app).&lt;/li&gt;
   &lt;li&gt;Window metadata including bounds and focus state.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;The &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt; tool then drives the UI using a small grammar:&lt;/p&gt;
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt; tool then drives the UI using a small grammar:&lt;/p&gt;
 
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;click:Left@120,200
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;click:Left@120,200
 type:Hello World
 press:ENTER
 stick:ALT, delay:400, press:F4
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;Coordinates are relative to the screenshot, so agents can click what
-they see. The sequence supports comments (&lt;code class=&quot;highlighter-rouge&quot;&gt;#&lt;/code&gt;) and newline separators for readability.&lt;/p&gt;
+they see. The sequence supports comments (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;#&lt;/code&gt;) and newline separators for readability.&lt;/p&gt;
 
 &lt;h2 id=&quot;demos&quot;&gt;Demos&lt;/h2&gt;
 
@@ -889,7 +889,7 @@ they see. The sequence supports comments (&lt;code class=&quot;highlighter-rouge
   &lt;li&gt;The HTTP transport is JSON-only (SSE requests are rejected as older protocol version).&lt;/li&gt;
   &lt;li&gt;Modal dialogs can cancel script execution unexpectedly.&lt;/li&gt;
   &lt;li&gt;Every tool call is subject to IntelliJ’s threading and modality rules.&lt;/li&gt;
-  &lt;li&gt;The vision tools are marked as “heavy endpoints”—prefer &lt;code class=&quot;highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; for regular automation.&lt;/li&gt;
+  &lt;li&gt;The vision tools are marked as “heavy endpoints”—prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; for regular automation.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;But it is already useful enough to build real workflows. The 
@@ -962,9 +962,9 @@ figure out about trust, safety, and useful abstractions, but this is a start.&lt
 
 &lt;p&gt;The server keeps in-memory room state and speaks WebSocket for join, leave, and signaling. There is no database. The room is literally one map in memory.&lt;/p&gt;
 
-&lt;div class=&quot;language-ts highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;wss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;WebSocketServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+&lt;div class=&quot;language-ts highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;wss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WebSocketServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
   &lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/ws&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/ws&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
   &lt;span class=&quot;na&quot;&gt;maxPayload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;maxPayloadBytes&lt;/span&gt;
 &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -984,15 +984,15 @@ figure out about trust, safety, and useful abstractions, but this is a start.&lt
 
 &lt;h2 id=&quot;invites-and-access-control&quot;&gt;Invites and Access Control&lt;/h2&gt;
 
-&lt;p&gt;I wrapped the room with a Telegram bot. The bot issues time-limited, RSA-signed JWT invite links for allowlisted users and chats. The server accepts the token in the query string, an Authorization header, or a cookie. Once in, the bot can poll &lt;code class=&quot;highlighter-rouge&quot;&gt;/participants&lt;/code&gt; and notify a chat when someone joins.&lt;/p&gt;
+&lt;p&gt;I wrapped the room with a Telegram bot. The bot issues time-limited, RSA-signed JWT invite links for allowlisted users and chats. The server accepts the token in the query string, an Authorization header, or a cookie. Once in, the bot can poll &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; and notify a chat when someone joins.&lt;/p&gt;
 
 &lt;h2 id=&quot;operational-knobs&quot;&gt;Operational Knobs&lt;/h2&gt;
 
 &lt;p&gt;Roomtone keeps the operational surface small but explicit:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/health&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;/participants&lt;/code&gt; for health checks and bot polling.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/logs&lt;/code&gt; to collect client telemetry and churn signals.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/health&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; for health checks and bot polling.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/logs&lt;/code&gt; to collect client telemetry and churn signals.&lt;/li&gt;
   &lt;li&gt;Environment-driven ICE server configuration and WebSocket payload limits.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -1064,11 +1064,11 @@ services.&lt;/p&gt;
 &lt;ul&gt;
   &lt;li&gt;&lt;strong&gt;Dynamic DNS&lt;/strong&gt;: In direct mode it updates root + wildcard A/AAAA records when your public IP changes; in proxy mode it maintains per-service A records for active subdomains (no AAAA).&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;HTTPS termination&lt;/strong&gt;: Caddy obtains and renews wildcard certificates via DNS-01.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Reverse proxy&lt;/strong&gt;: Subdomains route to internal services automatically (from Stevedore ingress or &lt;code class=&quot;highlighter-rouge&quot;&gt;mappings.yaml&lt;/code&gt;; discovered services must publish ports to the host).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Reverse proxy&lt;/strong&gt;: Subdomains route to internal services automatically (from Stevedore ingress or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mappings.yaml&lt;/code&gt;; discovered services must publish ports to the host).&lt;/li&gt;
   &lt;li&gt;&lt;strong&gt;Service discovery&lt;/strong&gt;: Stevedore provides a token so dyndns can query ingress-enabled services (labels or ingress config).&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;The result is simple: &lt;code class=&quot;highlighter-rouge&quot;&gt;https://myapp.example.com&lt;/code&gt; keeps working even if your ISP
+&lt;p&gt;The result is simple: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://myapp.example.com&lt;/code&gt; keeps working even if your ISP
 changes your IP overnight.&lt;/p&gt;
 
 &lt;blockquote&gt;
@@ -1090,10 +1090,10 @@ to your host, and Caddy handles TLS.&lt;/p&gt;
 &lt;p&gt;That keeps the origin IP hidden and adds mTLS between Cloudflare and Caddy; dyndns
 tries to set SSL mode to Full and enable Authenticated Origin Pull, but your API
 token needs zone settings permissions (otherwise enable it manually), and Caddy
-trusts &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/cloudflare/origin-pull-ca.pem&lt;/code&gt;.
+trusts &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/cloudflare/origin-pull-ca.pem&lt;/code&gt;.
 It is still free-tier friendly, which was one of my constraints.&lt;/p&gt;
 
-&lt;p&gt;Note: &lt;code class=&quot;highlighter-rouge&quot;&gt;SUBDOMAIN_PREFIX&lt;/code&gt; changes hostnames to &lt;code class=&quot;highlighter-rouge&quot;&gt;app-zone.example.com&lt;/code&gt; and is only needed when your &lt;code class=&quot;highlighter-rouge&quot;&gt;DOMAIN&lt;/code&gt; is itself a subdomain (Cloudflare Universal SSL limitation).&lt;/p&gt;
+&lt;p&gt;Note: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUBDOMAIN_PREFIX&lt;/code&gt; changes hostnames to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;app-zone.example.com&lt;/code&gt; and is only needed when your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DOMAIN&lt;/code&gt; is itself a subdomain (Cloudflare Universal SSL limitation).&lt;/p&gt;
 
 &lt;h2 id=&quot;quick-setup&quot;&gt;Quick setup&lt;/h2&gt;
 
@@ -1150,7 +1150,7 @@ predictable and easy to reason about.&lt;/p&gt;
     <published>2026-01-01T00:00:00+00:00</published>
     <updated>2026-01-01T00:00:00+00:00</updated>
     <id>/blog/2026/01/01/production-raspberry-pi-deployment</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/">&lt;p&gt;Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (&lt;code class=&quot;highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;). This is
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/">&lt;p&gt;Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;). This is
 the real deal: no hacks, no shortcuts, just the supported install path and careful verification.&lt;/p&gt;
 
 &lt;p&gt;Stevedore is designed for this exact setup: a single Docker-first control plane, a systemd service
@@ -1172,9 +1172,9 @@ leave the machine in a stable, boring state and make future updates predictable.
 &lt;p&gt;Before touching production, I’m setting a few guardrails:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;Use the official installer (&lt;code class=&quot;highlighter-rouge&quot;&gt;./stevedore-install.sh&lt;/code&gt;), not ad-hoc docker run commands.&lt;/li&gt;
-  &lt;li&gt;Keep state under &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (default layout).&lt;/li&gt;
-  &lt;li&gt;Prefer systemd (&lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) to ensure the container survives reboots.&lt;/li&gt;
+  &lt;li&gt;Use the official installer (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./stevedore-install.sh&lt;/code&gt;), not ad-hoc docker run commands.&lt;/li&gt;
+  &lt;li&gt;Keep state under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (default layout).&lt;/li&gt;
+  &lt;li&gt;Prefer systemd (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) to ensure the container survives reboots.&lt;/li&gt;
   &lt;li&gt;Never paste secrets into this post. Keys stay on the host, paths are fine to mention.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -1190,7 +1190,7 @@ the daemon health checks match, and updates are a controlled, repeatable process
 &lt;ul&gt;
   &lt;li&gt;The systemd unit keeps the control plane alive across reboots with zero manual babysitting.&lt;/li&gt;
   &lt;li&gt;The self-deployment syncs via a read-only GitHub deploy key when the repo uses SSH (public HTTPS clones still work without it), and I can rotate it manually.&lt;/li&gt;
-  &lt;li&gt;Self-update works end-to-end when I trigger &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;: it pulled new commits, built a new image, and swapped cleanly.&lt;/li&gt;
+  &lt;li&gt;Self-update works end-to-end when I trigger &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;: it pulled new commits, built a new image, and swapped cleanly.&lt;/li&gt;
   &lt;li&gt;The five-hour stability check shows the daemon healthy and the control plane steady.&lt;/li&gt;
   &lt;li&gt;Docs and onboarding guidance were improved based on real production friction.&lt;/li&gt;
 &lt;/ul&gt;
@@ -1198,18 +1198,18 @@ the daemon health checks match, and updates are a controlled, repeatable process
 &lt;h2 id=&quot;what-i-learned-and-turned-into-improvements&quot;&gt;What I Learned (And Turned Into Improvements)&lt;/h2&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;GitHub deploy keys are picky: &lt;code class=&quot;highlighter-rouge&quot;&gt;read_only=true&lt;/code&gt; needs &lt;code class=&quot;highlighter-rouge&quot;&gt;-F&lt;/code&gt; in &lt;code class=&quot;highlighter-rouge&quot;&gt;gh api&lt;/code&gt;, so I documented the exact
+  &lt;li&gt;GitHub deploy keys are picky: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_only=true&lt;/code&gt; needs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-F&lt;/code&gt; in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh api&lt;/code&gt;, so I documented the exact
 command and wired it into the CLI guidance.&lt;/li&gt;
   &lt;li&gt;Self-update builds run in the foreground; once the update worker is spawned, the container swap
 finishes server-side, and the backup image gives a rollback path.&lt;/li&gt;
   &lt;li&gt;The systemd-managed control plane and a self-deployment compose project can collide on container
-naming if the compose file sets &lt;code class=&quot;highlighter-rouge&quot;&gt;container_name: stevedore&lt;/code&gt;. That’s a good reminder that “boring”
+naming if the compose file sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;container_name: stevedore&lt;/code&gt;. That’s a good reminder that “boring”
 operations need crisp boundaries.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;h2 id=&quot;outcome&quot;&gt;Outcome&lt;/h2&gt;
 
-&lt;p&gt;Stevedore is now running in production on &lt;code class=&quot;highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;, updating itself and staying healthy without
+&lt;p&gt;Stevedore is now running in production on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;, updating itself and staying healthy without
 manual intervention. The deployment is stable, the operational checks are clean, and the process is
 documented end-to-end. This is exactly the boring, reliable, Git-driven workflow I wanted.&lt;/p&gt;
 
@@ -1273,7 +1273,7 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;h2 id=&quot;the-loop&quot;&gt;The Loop&lt;/h2&gt;
 
-&lt;p&gt;At its heart, Stevedore is a polling loop. It checks your Git repositories on a configurable schedule (per deployment). But we don’t just run &lt;code class=&quot;highlighter-rouge&quot;&gt;git pull&lt;/code&gt; on the host. That’s messy.&lt;/p&gt;
+&lt;p&gt;At its heart, Stevedore is a polling loop. It checks your Git repositories on a configurable schedule (per deployment). But we don’t just run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git pull&lt;/code&gt; on the host. That’s messy.&lt;/p&gt;
 
 &lt;h3 id=&quot;worker-containers&quot;&gt;Worker Containers&lt;/h3&gt;
 
@@ -1281,35 +1281,35 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;p&gt;For example, when Stevedore updates itself, it spawns an “Update Worker” that stops the old daemon and starts the new one. It’s like a brain transplant, performed by a robot arm.&lt;/p&gt;
 
-&lt;p&gt;There is a git-worker implementation that runs operations in ephemeral &lt;code class=&quot;highlighter-rouge&quot;&gt;alpine/git&lt;/code&gt; containers, but the daemon’s polling loop uses local &lt;code class=&quot;highlighter-rouge&quot;&gt;git&lt;/code&gt; (&lt;code class=&quot;highlighter-rouge&quot;&gt;GitCheckRemote&lt;/code&gt;/&lt;code class=&quot;highlighter-rouge&quot;&gt;GitSyncClean&lt;/code&gt;) rather than routing syncs through the worker container.&lt;/p&gt;
+&lt;p&gt;There is a git-worker implementation that runs operations in ephemeral &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alpine/git&lt;/code&gt; containers, but the daemon’s polling loop uses local &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git&lt;/code&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GitCheckRemote&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GitSyncClean&lt;/code&gt;) rather than routing syncs through the worker container.&lt;/p&gt;
 
 &lt;h2 id=&quot;state-on-disk&quot;&gt;State on Disk&lt;/h2&gt;
 
 &lt;p&gt;I am tired of distributed key-value stores. Stevedore runs on &lt;em&gt;one&lt;/em&gt; node. We don’t need etcd.&lt;/p&gt;
 
-&lt;p&gt;By default, persistent state lives in &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (shared data is &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/stevedore/shared&lt;/code&gt;; the query socket defaults to &lt;code class=&quot;highlighter-rouge&quot;&gt;/var/run/stevedore/query.sock&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;By default, persistent state lives in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (shared data is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore/shared&lt;/code&gt;; the query socket defaults to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/var/run/stevedore/query.sock&lt;/code&gt;).&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/deployments&lt;/code&gt;: per-deployment repo checkout + SSH keys, parameters/runtime state, plus &lt;code class=&quot;highlighter-rouge&quot;&gt;data/&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;logs/&lt;/code&gt; directories.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/system&lt;/code&gt;: The internal database.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/deployments&lt;/code&gt;: per-deployment repo checkout + SSH keys, parameters/runtime state, plus &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data/&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;logs/&lt;/code&gt; directories.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/system&lt;/code&gt;: The internal database.&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;p&gt;We use &lt;strong&gt;SQLite&lt;/strong&gt;. It’s rock solid. But storing secrets (like API keys) in plain text is a bad idea, even on a private server. So we use &lt;strong&gt;SQLCipher&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;p&gt;When you install Stevedore, it generates a &lt;code class=&quot;highlighter-rouge&quot;&gt;db.key&lt;/code&gt; file. This key encrypts the SQLite database. Your secrets are safe at rest. It’s a simple, pragmatic trade-off. We lose high availability (if the disk dies, we die), but we gain immense simplicity.&lt;/p&gt;
+&lt;p&gt;When you install Stevedore, it generates a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt; file. This key encrypts the SQLite database. Your secrets are safe at rest. It’s a simple, pragmatic trade-off. We lose high availability (if the disk dies, we die), but we gain immense simplicity.&lt;/p&gt;
 
 &lt;h2 id=&quot;docker-compose-as-the-spec&quot;&gt;Docker Compose as the Spec&lt;/h2&gt;
 
-&lt;p&gt;I didn’t want to create a &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; format. Docker Compose is already the industry standard for defining multi-container applications.&lt;/p&gt;
+&lt;p&gt;I didn’t want to create a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; format. Docker Compose is already the industry standard for defining multi-container applications.&lt;/p&gt;
 
-&lt;p&gt;Stevedore looks for &lt;code class=&quot;highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;docker-compose.yml&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;compose.yaml&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;compose.yml&lt;/code&gt;, or &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; at the repo root. It respects standard features like &lt;code class=&quot;highlighter-rouge&quot;&gt;healthcheck&lt;/code&gt; for status reporting. Automatic rollback on unhealthy containers is planned but not implemented yet.&lt;/p&gt;
+&lt;p&gt;Stevedore looks for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compose.yaml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compose.yml&lt;/code&gt;, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; at the repo root. It respects standard features like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;healthcheck&lt;/code&gt; for status reporting. Automatic rollback on unhealthy containers is planned but not implemented yet.&lt;/p&gt;
 
-&lt;p&gt;We inject &lt;code class=&quot;highlighter-rouge&quot;&gt;STEVEDORE_DEPLOYMENT&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;STEVEDORE_DATA&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;STEVEDORE_LOGS&lt;/code&gt;, and &lt;code class=&quot;highlighter-rouge&quot;&gt;STEVEDORE_SHARED&lt;/code&gt; into the &lt;code class=&quot;highlighter-rouge&quot;&gt;docker compose&lt;/code&gt; environment (along with any DB parameters). These are host paths you can mount in your compose file to make data/logs/shared storage persistent across redeploys.&lt;/p&gt;
+&lt;p&gt;We inject &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_DEPLOYMENT&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_DATA&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_LOGS&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_SHARED&lt;/code&gt; into the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose&lt;/code&gt; environment (along with any DB parameters). These are host paths you can mount in your compose file to make data/logs/shared storage persistent across redeploys.&lt;/p&gt;
 
 &lt;h2 id=&quot;go--docker-cli-for-now&quot;&gt;Go + Docker CLI (for now)&lt;/h2&gt;
 
-&lt;p&gt;The code is written in Go. It’s robust, statically typed, and has excellent libraries. For now Stevedore shells out to the Docker CLI (&lt;code class=&quot;highlighter-rouge&quot;&gt;docker&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;docker compose&lt;/code&gt;) instead of using the Docker SDK directly. It’s simple and predictable across hosts. If we need tighter control later, we can move to the SDK.&lt;/p&gt;
+&lt;p&gt;The code is written in Go. It’s robust, statically typed, and has excellent libraries. For now Stevedore shells out to the Docker CLI (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose&lt;/code&gt;) instead of using the Docker SDK directly. It’s simple and predictable across hosts. If we need tighter control later, we can move to the SDK.&lt;/p&gt;
 
-&lt;p&gt;Check out &lt;code class=&quot;highlighter-rouge&quot;&gt;internal/stevedore/git_worker.go&lt;/code&gt; to see how we manage the ephemeral containers. It’s a fun read if you’re into system programming!&lt;/p&gt;</content>
+&lt;p&gt;Check out &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal/stevedore/git_worker.go&lt;/code&gt; to see how we manage the ephemeral containers. It’s a fun read if you’re into system programming!&lt;/p&gt;</content>
 
   
   
@@ -1356,8 +1356,8 @@ o manage. Just a simple loop:&lt;/p&gt;
 
 &lt;ol&gt;
   &lt;li&gt;Is there new code?&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;git fetch&lt;/code&gt; + reset (sync)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;docker compose up -d --build&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git fetch&lt;/code&gt; + reset (sync)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose up -d --build&lt;/code&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;So I built &lt;strong&gt;Stevedore&lt;/strong&gt;. Heavily with the help of AI.&lt;/p&gt;
@@ -1379,8 +1379,8 @@ on a single host. By default, the installer runs the control plane as a single D
 container on Linux. It may spawn a short-lived update worker container for 
 self-update; git sync runs via the local git binary by default. You register repos, 
 and the daemon polls enabled deployments for changes and deploys them. 
-The &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore&lt;/code&gt; deployment is tracked too, but applying updates
-is a manual &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;.&lt;/p&gt;
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore&lt;/code&gt; deployment is tracked too, but applying updates
+is a manual &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;It’s designed to be:&lt;/p&gt;
 &lt;ul&gt;
@@ -1391,11 +1391,11 @@ is a manual &lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore self-updat
 
 &lt;h2 id=&quot;why-not-just-a-cron-job&quot;&gt;Why not just a cron job?&lt;/h2&gt;
 
-&lt;p&gt;You could write a bash script that does &lt;code class=&quot;highlighter-rouge&quot;&gt;git pull &amp;amp;&amp;amp; docker compose up&lt;/code&gt;. I did that for years. 
+&lt;p&gt;You could write a bash script that does &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git pull &amp;amp;&amp;amp; docker compose up&lt;/code&gt;. I did that for years. 
 But then you hit edge cases:&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;What if &lt;code class=&quot;highlighter-rouge&quot;&gt;docker compose build&lt;/code&gt; fails? You don’t want to take down the running app.&lt;/li&gt;
-  &lt;li&gt;How do you manage secrets without committing &lt;code class=&quot;highlighter-rouge&quot;&gt;.env&lt;/code&gt; files?&lt;/li&gt;
+  &lt;li&gt;What if &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose build&lt;/code&gt; fails? You don’t want to take down the running app.&lt;/li&gt;
+  &lt;li&gt;How do you manage secrets without committing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.env&lt;/code&gt; files?&lt;/li&gt;
   &lt;li&gt;How do you update the script itself?&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -1407,7 +1407,7 @@ when installed in self-bootstrap mode.&lt;/p&gt;
 
 &lt;p&gt;Stevedore is open source, but it’s designed to be &lt;em&gt;your&lt;/em&gt; infrastructure. The installation 
 process encourages you to fork the repository first. This gives you control. If I break 
-something in the upstream &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt;, your house doesn’t burn down. You pull updates when 
+something in the upstream &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, your house doesn’t burn down. You pull updates when 
 you are ready.&lt;/p&gt;
 
 &lt;h2 id=&quot;coming-next&quot;&gt;Coming Next&lt;/h2&gt;
@@ -1477,7 +1477,7 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;ul&gt;
   &lt;li&gt;A Linux host (Ubuntu or Raspberry Pi OS) with sudo access.&lt;/li&gt;
-  &lt;li&gt;Docker installed (&lt;code class=&quot;highlighter-rouge&quot;&gt;curl -fsSL https://get.docker.com | sh&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;Docker installed (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl -fsSL https://get.docker.com | sh&lt;/code&gt;).&lt;/li&gt;
   &lt;li&gt;A GitHub account.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -1495,9 +1495,9 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 &lt;p&gt;This script does a few things:&lt;/p&gt;
 &lt;ol&gt;
   &lt;li&gt;Builds the Stevedore image.&lt;/li&gt;
-  &lt;li&gt;Sets up the &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; directory.&lt;/li&gt;
-  &lt;li&gt;Installs a systemd service (&lt;code class=&quot;highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) when systemd is available; otherwise starts the container with a Docker restart policy.&lt;/li&gt;
-  &lt;li&gt;Generates your &lt;code class=&quot;highlighter-rouge&quot;&gt;admin.key&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;db.key&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Sets up the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; directory.&lt;/li&gt;
+  &lt;li&gt;Installs a systemd service (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) when systemd is available; otherwise starts the container with a Docker restart policy.&lt;/li&gt;
+  &lt;li&gt;Generates your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;admin.key&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 
 &lt;p&gt;Verify it’s running:&lt;/p&gt;
@@ -1507,14 +1507,14 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;h2 id=&quot;step-2-add-a-repository&quot;&gt;Step 2: Add a Repository&lt;/h2&gt;
 
-&lt;p&gt;Let’s say you have a repository &lt;code class=&quot;highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; with a &lt;code class=&quot;highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Let’s say you have a repository &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;Tell Stevedore to watch it:&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo add my-app git@github.com:&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app.git
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;If your repo default branch isn’t &lt;code class=&quot;highlighter-rouge&quot;&gt;main&lt;/code&gt;, add &lt;code class=&quot;highlighter-rouge&quot;&gt;--branch &amp;lt;branch&amp;gt;&lt;/code&gt; to the command.&lt;/p&gt;
+&lt;p&gt;If your repo default branch isn’t &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--branch &amp;lt;branch&amp;gt;&lt;/code&gt; to the command.&lt;/p&gt;
 
 &lt;p&gt;Stevedore will generate a unique SSH Key for this deployment. View it:&lt;/p&gt;
 
@@ -1527,7 +1527,7 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gh api &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST repos/&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app/keys &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;stevedore-my-app&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$(&lt;/span&gt;stevedore repo key my-app&lt;span class=&quot;k&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;stevedore repo key my-app&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
   &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;read_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
@@ -1538,7 +1538,7 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;my-app
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use &lt;code class=&quot;highlighter-rouge&quot;&gt;--no-clean&lt;/code&gt; to skip the cleanup). Now, bring it up:&lt;/p&gt;
+&lt;p&gt;Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-clean&lt;/code&gt; to skip the cleanup). Now, bring it up:&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy up my-app
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -1547,7 +1547,7 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 &lt;h2 id=&quot;step-4-the-magic&quot;&gt;Step 4: The Magic&lt;/h2&gt;
 
-&lt;p&gt;Here is the best part. Make a change to your &lt;code class=&quot;highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; on your laptop. Change the HTML title.&lt;/p&gt;
+&lt;p&gt;Here is the best part. Make a change to your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; on your laptop. Change the HTML title.&lt;/p&gt;
 
 &lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git commit &lt;span class=&quot;nt&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Update title&quot;&lt;/span&gt;
 git push

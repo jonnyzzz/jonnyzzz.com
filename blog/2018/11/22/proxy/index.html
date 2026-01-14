@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <title>Proxy and Checked Exceptions in Java &#8211; Eugene Petrenko</title>
 <meta name="description" content="java.lang.reflect.Proxy and checked exceptions
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, java, jvm, kotlin" />
 
@@ -12,7 +11,6 @@
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="Proxy and Checked Exceptions in Java -- Eugene Petrenko" />
 <meta name="twitter:description" content="java.lang.reflect.Proxy and checked exceptions
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -25,7 +23,6 @@
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="Proxy and Checked Exceptions in Java -- Eugene Petrenko" />
 <meta property="og:description" content="java.lang.reflect.Proxy and checked exceptions
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2018/11/22/proxy/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -52,7 +49,7 @@
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2018/11/22/proxy/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -87,19 +84,16 @@
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -138,13 +132,12 @@
         <span class="entry-date date published"><time datetime="2018-11-22T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 22, 2018</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=java,jvm,kotlin&amp;text=Proxy%20and%20Checked%20Exceptions%20in%20Java&amp;url=https://jonnyzzz.com/blog/2018/11/22/proxy/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=java,jvm,kotlin&amp;text=Proxy%20and%20Checked%20Exceptions%20in%20Java&amp;url=https://jonnyzzz.com/blog/2018/11/22/proxy/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/11/22/proxy/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/11/22/proxy/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -153,17 +146,17 @@
         <p>java.lang.reflect.Proxy and checked exceptions</p>
 
 <h2 id="on-the-fly-proxy">On-the-Fly Proxy</h2>
-<p>Say on have an interface <code class="highlighter-rouge">Foo</code> with several (hundreds) methods. Is it possible to implement an
+<p>Say on have an interface <code class="language-plaintext highlighter-rouge">Foo</code> with several (hundreds) methods. Is it possible to implement an
 interface on-the-fly? Without having an implementation code? Yes. It is possible. 
 The standard possibility is
 <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/Proxy.html">java.lang.reflect.Proxy</a>.
-The <code class="highlighter-rouge">newProxyInstance</code> method helps to create an on-the-fly implementation. One provides
+The <code class="language-plaintext highlighter-rouge">newProxyInstance</code> method helps to create an on-the-fly implementation. One provides
 an interceptor object that is called for every method invocation on the interface implementation instance.</p>
 
 <p>Besides the standard Proxy API, there are libraries, that do the same thing, for example,
 <a href="https://bytebuddy.net/">Byte Buddy</a> or <a href="https://github.com/cglib/cglib">CGLIB</a>.</p>
 
-<p>In this post, we will use the standard JRE API - <code class="highlighter-rouge">java.lang.reflect.Proxy</code></p>
+<p>In this post, we will use the standard JRE API - <code class="language-plaintext highlighter-rouge">java.lang.reflect.Proxy</code></p>
 
 <h2 id="proxy-and-checked-exceptions">Proxy and Checked Exceptions</h2>
 <p>Let’s consider the following code in Java:</p>
@@ -176,10 +169,10 @@ an interceptor object that is called for every method invocation on the interfac
   <span class="kt">void</span> <span class="nf">bar</span><span class="o">();</span>
 <span class="o">}</span>
 
-<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
-  <span class="kd">final</span> <span class="n">Foo</span> <span class="n">proxy</span> <span class="o">=</span> <span class="o">(</span><span class="n">Foo</span><span class="o">)</span><span class="n">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getClassLoader</span><span class="o">(),</span> <span class="k">new</span> <span class="n">Class</span><span class="o">[]{</span><span class="n">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="k">new</span> <span class="n">InvocationHandler</span><span class="o">()</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kd">final</span> <span class="nc">Foo</span> <span class="n">proxy</span> <span class="o">=</span> <span class="o">(</span><span class="nc">Foo</span><span class="o">)</span><span class="nc">Proxy</span><span class="o">.</span><span class="na">newProxyInstance</span><span class="o">(</span><span class="nc">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">getClassLoader</span><span class="o">(),</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[]{</span><span class="nc">Foo</span><span class="o">.</span><span class="na">class</span><span class="o">},</span> <span class="k">new</span> <span class="nc">InvocationHandler</span><span class="o">()</span> <span class="o">{</span>
     <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">Object</span> <span class="nf">invoke</span><span class="o">(</span><span class="n">Object</span> <span class="n">proxy</span><span class="o">,</span> <span class="n">Method</span> <span class="n">method</span><span class="o">,</span> <span class="n">Object</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Throwable</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">Object</span> <span class="nf">invoke</span><span class="o">(</span><span class="nc">Object</span> <span class="n">proxy</span><span class="o">,</span> <span class="nc">Method</span> <span class="n">method</span><span class="o">,</span> <span class="nc">Object</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Throwable</span> <span class="o">{</span>
       <span class="k">throw</span> <span class="k">new</span> <span class="nf">Exception</span><span class="o">(</span><span class="s">"fail"</span><span class="o">);</span>
     <span class="o">}</span>
   <span class="o">});</span>
@@ -188,9 +181,9 @@ an interceptor object that is called for every method invocation on the interfac
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>The code is trivial. We have the interface <code class="highlighter-rouge">Foo</code>, and we implement it via <code class="highlighter-rouge">Proxy#newProxyInstance</code>. 
-The implementation of the Proxy instance throws an exception of type <code class="highlighter-rouge">Exception</code>.
-Will we have the exception of type <code class="highlighter-rouge">Exception</code> as a result?</p>
+<p>The code is trivial. We have the interface <code class="language-plaintext highlighter-rouge">Foo</code>, and we implement it via <code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code>. 
+The implementation of the Proxy instance throws an exception of type <code class="language-plaintext highlighter-rouge">Exception</code>.
+Will we have the exception of type <code class="language-plaintext highlighter-rouge">Exception</code> as a result?</p>
 
 <h2 id="running-the-example">Running the Example</h2>
 <p>Let’s execute the example and see what we have:</p>
@@ -203,18 +196,18 @@ Caused by: java.lang.Exception: fail
 	... 2 more
 </code></pre></div></div>
 
-<p>The answer is <strong>NO</strong>. We have <code class="highlighter-rouge">java.lang.reflect.UndeclaredThrowableException</code> exception.</p>
+<p>The answer is <strong>NO</strong>. We have <code class="language-plaintext highlighter-rouge">java.lang.reflect.UndeclaredThrowableException</code> exception.</p>
 
 <h2 id="checked-exceptions-in-java">Checked Exceptions in Java</h2>
 <p>As we all know, Java has checked exceptions. It means one declares what exceptions are
 possibly thrown from a method. The main class of all exceptions is 
 <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Throwable.html">java.lang.Throwable</a>.</p>
 
-<p>In Java language, we use <code class="highlighter-rouge">throws</code> to indicate that a method may throw an exception. For example,
-<code class="highlighter-rouge">throws IOException</code>.</p>
+<p>In Java language, we use <code class="language-plaintext highlighter-rouge">throws</code> to indicate that a method may throw an exception. For example,
+<code class="language-plaintext highlighter-rouge">throws IOException</code>.</p>
 
-<p>There are two specific sub-classes of <code class="highlighter-rouge">Throwable</code>, which does not require to be declared
-by the <code class="highlighter-rouge">throws</code> keyword - <code class="highlighter-rouge">java.lang.Error</code> and <code class="highlighter-rouge">java.lang.RuntimeException</code>. All sub-classes
+<p>There are two specific sub-classes of <code class="language-plaintext highlighter-rouge">Throwable</code>, which does not require to be declared
+by the <code class="language-plaintext highlighter-rouge">throws</code> keyword - <code class="language-plaintext highlighter-rouge">java.lang.Error</code> and <code class="language-plaintext highlighter-rouge">java.lang.RuntimeException</code>. All sub-classes
 of those two types are free to throw without declaration.</p>
 
 <h2 id="proxy-and-undeclaredthrowableexception">Proxy and UndeclaredThrowableException</h2>
@@ -222,7 +215,7 @@ of those two types are free to throw without declaration.</p>
 is the specific exception type that is used in the create a proxy implementation of an interface
 to preserve checked exceptions in Java. 
 As we see from the Javadoc, the exception is used to wrap any checked exceptions that are not 
-declared with the <code class="highlighter-rouge">throws</code> block in the interface declaration.</p>
+declared with the <code class="language-plaintext highlighter-rouge">throws</code> block in the interface declaration.</p>
 
 <h2 id="proxy-and-jvm-languages">Proxy and JVM Languages</h2>
 <p>JVM ecosystem is huge. There are many languages for the JVM, including 
@@ -234,8 +227,8 @@ and so on, that does not have checked exceptions.</p>
 <p>Checked exceptions are checked by the compiler, on the JVM bytecode level, 
 there is no difference between exceptions at all.</p>
 
-<p>It is quite easy to get <code class="highlighter-rouge">UndeclaredThrowableException</code> at some 
-unexpected places if mixing such languages with <code class="highlighter-rouge">java.lang.reflect.Proxy</code>!</p>
+<p>It is quite easy to get <code class="language-plaintext highlighter-rouge">UndeclaredThrowableException</code> at some 
+unexpected places if mixing such languages with <code class="language-plaintext highlighter-rouge">java.lang.reflect.Proxy</code>!</p>
 
 <p>For example, in Kotlin:</p>
 
@@ -245,21 +238,21 @@ unexpected places if mixing such languages with <code class="highlighter-rouge">
   <span class="k">fun</span> <span class="nf">bar</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
-  <span class="kd">val</span> <span class="py">proxy</span> <span class="p">=</span> <span class="n">Proxy</span><span class="p">.</span><span class="n">newProxyInstance</span><span class="p">(</span>
-    <span class="n">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">.</span><span class="n">classLoader</span><span class="p">,</span>
-    <span class="n">arrayOf</span><span class="p">&lt;</span><span class="n">Class</span><span class="p">&lt;*&gt;&gt;(</span><span class="n">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">proxy</span> <span class="p">=</span> <span class="nc">Proxy</span><span class="p">.</span><span class="nf">newProxyInstance</span><span class="p">(</span>
+    <span class="nc">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">.</span><span class="n">classLoader</span><span class="p">,</span>
+    <span class="n">arrayOf</span><span class="p">&lt;</span><span class="nc">Class</span><span class="p">&lt;</span><span class="err">*</span><span class="p">&gt;&gt;(</span><span class="nc">Foo</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
   <span class="p">)</span> <span class="p">{</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="p">-&gt;</span>
-    <span class="k">throw</span> <span class="n">Exception</span><span class="p">(</span><span class="s">"fail"</span><span class="p">)</span>
-  <span class="p">}</span> <span class="k">as</span> <span class="n">Foo</span>
+    <span class="k">throw</span> <span class="nc">Exception</span><span class="p">(</span><span class="s">"fail"</span><span class="p">)</span>
+  <span class="p">}</span> <span class="k">as</span> <span class="nc">Foo</span>
 
-  <span class="n">proxy</span><span class="p">.</span><span class="n">bar</span><span class="p">()</span>
+  <span class="n">proxy</span><span class="p">.</span><span class="nf">bar</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>The same code reads correctly but does not work. It is allowed in Kotlin to throw <code class="highlighter-rouge">Exception</code> from
+<p>The same code reads correctly but does not work. It is allowed in Kotlin to throw <code class="language-plaintext highlighter-rouge">Exception</code> from
 a method (because exceptions are not checked), but it will <strong>not</strong> work via the
-<code class="highlighter-rouge">java.lang.reflect.Proxy</code>. We will have the following execution result</p>
+<code class="language-plaintext highlighter-rouge">java.lang.reflect.Proxy</code>. We will have the following execution result</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Exception <span class="k">in </span>thread <span class="s2">"main"</span> java.lang.reflect.UndeclaredThrowableException
 	at com.sun.proxy.<span class="nv">$Proxy0</span>.bar<span class="o">(</span>Unknown Source<span class="o">)</span>
@@ -272,24 +265,24 @@ Caused by: java.lang.Exception: fail
 </code></pre></div></div>
 
 <h2 id="fixing-the-undeclaredthrowableexception">Fixing the UndeclaredThrowableException</h2>
-<p>To avoid the <code class="highlighter-rouge">UndeclaredThrowableException</code> one need to declare the exceptions
-explicitly with <code class="highlighter-rouge">throws</code> block. That solves the problem in Java example above.
+<p>To avoid the <code class="language-plaintext highlighter-rouge">UndeclaredThrowableException</code> one need to declare the exceptions
+explicitly with <code class="language-plaintext highlighter-rouge">throws</code> block. That solves the problem in Java example above.
 Similarly, it solves the problem in the Kotlin snippet too: we add the 
-<code class="highlighter-rouge">@Throws(Exception::class)</code> annotation on the <code class="highlighter-rouge">bar</code> function.</p>
+<code class="language-plaintext highlighter-rouge">@Throws(Exception::class)</code> annotation on the <code class="language-plaintext highlighter-rouge">bar</code> function.</p>
 
-<p>One may have a look at the implementation of the <code class="highlighter-rouge">Proxy#newProxyInstance</code>
+<p>One may have a look at the implementation of the <code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code>
 in the sources of JVM. It turns out it is not possible to disable that
 logic in the implementation. One is not allowed to breach Java’s checked 
-exceptions with <code class="highlighter-rouge">Proxy#newProxyInstance</code>.</p>
+exceptions with <code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code>.</p>
 
-<p>There are two ways. One is to declare <code class="highlighter-rouge">throws</code> for all interfaces 
-that are used with <code class="highlighter-rouge">Proxy#newProxyInstance</code>. Of course, it is too easy to
+<p>There are two ways. One is to declare <code class="language-plaintext highlighter-rouge">throws</code> for all interfaces 
+that are used with <code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code>. Of course, it is too easy to
 forget doing in languages without checked exceptions. Tests may help.</p>
 
 <p>An alternative could be to implement or use another variant of the
-<code class="highlighter-rouge">Proxy#newProxyInstance</code>, that does not do the check. Let me know
+<code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code>, that does not do the check. Let me know
 in the comments if you’d like to learn more, how exactly the 
-<code class="highlighter-rouge">Proxy#newProxyInstance</code> or similar proxies are implemented.</p>
+<code class="language-plaintext highlighter-rouge">Proxy#newProxyInstance</code> or similar proxies are implemented.</p>
 
         
       </div><!-- /.entry-content -->
@@ -319,31 +312,28 @@ in the comments if you’d like to learn more, how exactly the
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -373,26 +363,49 @@ in the comments if you’d like to learn more, how exactly the
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

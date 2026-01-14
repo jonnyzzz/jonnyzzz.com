@@ -6,7 +6,6 @@
 <meta name="description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
 a continuous integration build easily.
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, gradle, kotlin, dsl, teamcity2dsl, the dsl way" />
 
@@ -16,7 +15,6 @@ a continuous integration build easily.
 <meta name="twitter:description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
 a continuous integration build easily.
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -31,7 +29,6 @@ a continuous integration build easily.
 <meta property="og:description" content="Easy to use. This is one of a main tasks to solve then new tool is created. For the world of DSL this
 mostly mean it should be easy to a end-user to use the tool and to be able to run the tool within 
 a continuous integration build easily.
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -62,7 +59,7 @@ a continuous integration build easily.
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -97,19 +94,16 @@ a continuous integration build easily.
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -148,13 +142,12 @@ a continuous integration build easily.
         <span class="entry-date date published"><time datetime="2016-03-08T00:00:00+00:00"><i class="fa fa-calendar-o"></i> March 08, 2016</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=gradle,kotlin,dsl,teamcity2dsl,thedslway&amp;text=A%20DSL%20Workbench%20with%20Gradle%20and%20Kotlin&amp;url=https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=gradle,kotlin,dsl,teamcity2dsl,thedslway&amp;text=A%20DSL%20Workbench%20with%20Gradle%20and%20Kotlin&amp;url=https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2016/03/08/gradle-for-dsl/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -196,14 +189,14 @@ All we need to know about TeamCity2DSL here are</p>
 <ul>
   <li>it setups project repositories and dependencies</li>
   <li>setups dependency on Kotlin runtime and compiler</li>
-  <li>declares <code class="highlighter-rouge">dsl2xml</code> and <code class="highlighter-rouge">xml2dsl</code> tasks</li>
+  <li>declares <code class="language-plaintext highlighter-rouge">dsl2xml</code> and <code class="language-plaintext highlighter-rouge">xml2dsl</code> tasks</li>
   <li>adds DSL generation output folder as Kotlin sources</li>
-  <li>introduces a dependency on compilation from <code class="highlighter-rouge">dsl2xml</code> task</li>
+  <li>introduces a dependency on compilation from <code class="language-plaintext highlighter-rouge">dsl2xml</code> task</li>
 </ul>
 
 <h2 id="a-gradle-plugin-usage-example">A Gradle Plugin Usage Example</h2>
 
-<p>This is <code class="highlighter-rouge">build.gradle</code> script that is only required to have both TeamCity2DSL tasks (<code class="highlighter-rouge">dsl2xml</code> and <code class="highlighter-rouge">xml2dsl</code>) supported</p>
+<p>This is <code class="language-plaintext highlighter-rouge">build.gradle</code> script that is only required to have both TeamCity2DSL tasks (<code class="language-plaintext highlighter-rouge">dsl2xml</code> and <code class="language-plaintext highlighter-rouge">xml2dsl</code>) supported</p>
 
 <figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">buildscript</span> <span class="o">{</span>
   <span class="n">repositories</span> <span class="o">{</span>
@@ -219,11 +212,11 @@ All we need to know about TeamCity2DSL here are</p>
 
 <span class="n">apply</span> <span class="nl">plugin:</span> <span class="s1">'org.jonnyzzz.teamcity.dsl'</span></code></pre></figure>
 
-<p><em>NOTE</em>. Replace <code class="highlighter-rouge">&lt;PLUGIN VERSION&gt;</code> with the latest version 
+<p><em>NOTE</em>. Replace <code class="language-plaintext highlighter-rouge">&lt;PLUGIN VERSION&gt;</code> with the latest version 
 from the <a href="https://bintray.com/jonnyzzz/maven/teamcity2dsl/view">maven repository</a><br />
 <em>NOTE2</em>. We also assume 
 <a href="https://confluence.jetbrains.com/display/TCD10/Storing+Project+Settings+in+Version+Control">TeamCity project settings XML files</a> 
-are located in a <code class="highlighter-rouge">.teamcity</code> folder.</p>
+are located in a <code class="language-plaintext highlighter-rouge">.teamcity</code> folder.</p>
 
 <h2 id="ide-usages">IDE Usages</h2>
 
@@ -245,13 +238,13 @@ explicit configuration for Kotlin.</p>
   <span class="n">config</span><span class="o">.</span><span class="na">plugin</span><span class="o">(</span><span class="s2">"kotlin"</span><span class="o">)</span>
 <span class="o">}</span></code></pre></figure>
 
-<p>The plugin includes DSL dependencies to itself into <code class="highlighter-rouge">compile</code> configuration. Those jars are predefined and 
+<p>The plugin includes DSL dependencies to itself into <code class="language-plaintext highlighter-rouge">compile</code> configuration. Those jars are predefined and 
 we make Gradle download them from Maven repository.</p>
 
 <figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">val</span> <span class="n">dsl2xml</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s2">"dsl2xml"</span><span class="o">,</span> <span class="nl">Dsl2Xml:</span><span class="o">:</span><span class="kd">class</span><span class="err">.</span><span class="nc">java</span><span class="o">)</span>
 <span class="n">dsl2xml</span><span class="o">.</span><span class="na">dependsOn</span><span class="o">(</span><span class="n">project</span><span class="o">.</span><span class="na">tasks</span><span class="o">.</span><span class="na">getByName</span><span class="o">(</span><span class="s2">"classes"</span><span class="o">))</span></code></pre></figure>
 
-<p>Next, we include all <code class="highlighter-rouge">buildScript</code> block repositories into code repositories. This helps to avoid 
+<p>Next, we include all <code class="language-plaintext highlighter-rouge">buildScript</code> block repositories into code repositories. This helps to avoid 
 duplicates in repositories declaration.</p>
 
 <figure class="highlight"><pre><code class="language-groovy" data-lang="groovy"><span class="n">project</span><span class="o">.</span><span class="na">buildscript</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">forEach</span> <span class="o">{</span> <span class="n">project</span><span class="o">.</span><span class="na">repositories</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">it</span><span class="o">)</span> <span class="o">}</span></code></pre></figure>
@@ -267,7 +260,7 @@ duplicates in repositories declaration.</p>
 <p>We know Kotlin plugin checks Java output path for kotlin sources too. So we depend here only on Java plugin,
 not on a private API of the Kotlin plugin.</p>
 
-<p>The task implementation uses a custom classloader (with <code class="highlighter-rouge">null</code> parent) to avoid bothering Gradle’s tasks 
+<p>The task implementation uses a custom classloader (with <code class="language-plaintext highlighter-rouge">null</code> parent) to avoid bothering Gradle’s tasks 
 execution classpath. This is too complicated, from the other hand, to synchronize dependencies 
 of TeamCity2DSL and Gradle. In the future we may consider running an external processes for better stability.</p>
 
@@ -310,31 +303,28 @@ leading to easy-to-use and easy-to-adopt solution.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -364,26 +354,49 @@ leading to easy-to-use and easy-to-adopt solution.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

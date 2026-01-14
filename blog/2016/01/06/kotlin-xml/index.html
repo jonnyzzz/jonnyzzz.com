@@ -5,7 +5,6 @@
 <title>Kotlin XML Binding &#8211; Eugene Petrenko</title>
 <meta name="description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
 XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, xml, kotlin.xml.bind, jdom, dsl, gradle, teamcity2dsl, the dsl way" />
 
@@ -14,7 +13,6 @@ XML data binding. Of course there are so many other libraries for JVM that imple
 <meta name="twitter:title" content="Kotlin XML Binding -- Eugene Petrenko" />
 <meta name="twitter:description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
 XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -28,7 +26,6 @@ XML data binding. Of course there are so many other libraries for JVM that imple
 <meta property="og:title" content="Kotlin XML Binding -- Eugene Petrenko" />
 <meta property="og:description" content="I like creating DSLs in Kotlin. It was fun to try creating a DSL for
 XML data binding. Of course there are so many other libraries for JVM that implements it in the other way.
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -65,7 +62,7 @@ XML data binding. Of course there are so many other libraries for JVM that imple
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -100,19 +97,16 @@ XML data binding. Of course there are so many other libraries for JVM that imple
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -151,13 +145,12 @@ XML data binding. Of course there are so many other libraries for JVM that imple
         <span class="entry-date date published"><time datetime="2016-01-06T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 06, 2016</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,xml,kotlin.xml.bind,jdom,dsl,gradle,teamcity2dsl,thedslway&amp;text=Kotlin%20XML%20Binding&amp;url=https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=kotlin,xml,kotlin.xml.bind,jdom,dsl,gradle,teamcity2dsl,thedslway&amp;text=Kotlin%20XML%20Binding&amp;url=https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2016/01/06/kotlin-xml/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -190,17 +183,17 @@ to achieve better readability, avoid explicit type names for serialization/deser
 parse it with the following DSL in Kotlin:</p>
 
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="kd">class</span> <span class="nc">Project</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="py">type</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XAttribute</span><span class="p">(</span><span class="s">"type"</span><span class="p">)</span>
-  <span class="kd">var</span> <span class="py">name</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"name"</span> <span class="p">/</span> <span class="n">XText</span>
-  <span class="kd">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"keys"</span> <span class="p">/</span> <span class="n">XElements</span><span class="p">(</span><span class="s">"key"</span><span class="p">)</span> <span class="p">/</span> <span class="n">XText</span>
-  <span class="kd">var</span> <span class="py">any</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="s">"parameters"</span> <span class="p">/</span> <span class="n">XAnyElements</span> <span class="p">/</span> <span class="n">XSub</span><span class="p">(</span><span class="n">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
-  <span class="kd">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="n">JXML</span> <span class="p">/</span> <span class="n">XUnknown</span>
+  <span class="kd">var</span> <span class="py">type</span> <span class="k">by</span> <span class="nc">JXML</span> <span class="p">/</span> <span class="nc">XAttribute</span><span class="p">(</span><span class="s">"type"</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="py">name</span> <span class="k">by</span> <span class="nc">JXML</span> <span class="p">/</span> <span class="s">"name"</span> <span class="p">/</span> <span class="nc">XText</span>
+  <span class="kd">var</span> <span class="py">keys</span> <span class="k">by</span> <span class="nc">JXML</span> <span class="p">/</span> <span class="s">"keys"</span> <span class="p">/</span> <span class="nc">XElements</span><span class="p">(</span><span class="s">"key"</span><span class="p">)</span> <span class="p">/</span> <span class="nc">XText</span>
+  <span class="kd">var</span> <span class="py">any</span> <span class="k">by</span> <span class="nc">JXML</span> <span class="p">/</span> <span class="s">"parameters"</span> <span class="p">/</span> <span class="nc">XAnyElements</span> <span class="p">/</span> <span class="nc">XSub</span><span class="p">(</span><span class="nc">Sub</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="py">unknownElements</span> <span class="k">by</span> <span class="nc">JXML</span> <span class="p">/</span> <span class="nc">XUnknown</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Kotlin compiler infers types for properties, so one should not write types at all. 
-In the example above <code class="highlighter-rouge">type</code> and <code class="highlighter-rouge">name</code> properties are <code class="highlighter-rouge">String?</code>, 
-<code class="highlighter-rouge">keys</code> is <code class="highlighter-rouge">List&lt;String&gt;?</code>. <code class="highlighter-rouge">XAnyElements</code> means result will be as collection, <code class="highlighter-rouge">XSub</code> 
-parses sub-elements as <code class="highlighter-rouge">XSub</code> objects.</p>
+In the example above <code class="language-plaintext highlighter-rouge">type</code> and <code class="language-plaintext highlighter-rouge">name</code> properties are <code class="language-plaintext highlighter-rouge">String?</code>, 
+<code class="language-plaintext highlighter-rouge">keys</code> is <code class="language-plaintext highlighter-rouge">List&lt;String&gt;?</code>. <code class="language-plaintext highlighter-rouge">XAnyElements</code> means result will be as collection, <code class="language-plaintext highlighter-rouge">XSub</code> 
+parses sub-elements as <code class="language-plaintext highlighter-rouge">XSub</code> objects.</p>
 
 <p><a href="https://github.com/jonnyzzz/kotlin.xml.bind">kotlin.xml.bind</a> provides serialization and deserialization.</p>
 
@@ -215,12 +208,12 @@ parses sub-elements as <code class="highlighter-rouge">XSub</code> objects.</p>
 <p>You may find API declarations <a href="https://github.com/jonnyzzz/kotlin.xml.bind/blob/master/api/src/main/kotlin/org/jonnyzzz/kotlin/xml/bind/XBind.API.kt">here</a>. 
 For every DSL <a href="https://en.wikipedia.org/wiki/Terminal_and_nonterminal_symbols">grammar rule</a> of the DSL I created an interface in Kotlin.</p>
 
-<p>The main trick is that expressions like <code class="highlighter-rouge">JXML / "keys" / XElements("key") / XText</code> returns an object
+<p>The main trick is that expressions like <code class="language-plaintext highlighter-rouge">JXML / "keys" / XElements("key") / XText</code> returns an object
 that implements requirements of
 <a href="https://kotlinlang.org/docs/reference/delegated-properties.html">Delegated Properties</a>
 .</p>
 
-<p>The library adds a tiny overhead on every object creation. So now to create an object (e.g. <code class="highlighter-rouge">Project</code> class above)
+<p>The library adds a tiny overhead on every object creation. So now to create an object (e.g. <code class="language-plaintext highlighter-rouge">Project</code> class above)
 it has to create a number of objects from the DSL that are used behind delegated properties. Reflections 
 are still in use to scan available object properties too on serialization/deserialization.</p>
 
@@ -290,31 +283,28 @@ Have more fun!</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -344,26 +334,49 @@ Have more fun!</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

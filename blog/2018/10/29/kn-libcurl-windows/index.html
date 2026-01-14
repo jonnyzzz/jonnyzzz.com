@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <title>libcurl and Kotlin/Native on Windows &#8211; Eugene Petrenko</title>
 <meta name="description" content="Building libcurl on Windows and using it from Kotlin/Native
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, curl, libcurl, windows, kotlin, kotlin/native" />
 
@@ -12,7 +11,6 @@
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="libcurl and Kotlin/Native on Windows -- Eugene Petrenko" />
 <meta name="twitter:description" content="Building libcurl on Windows and using it from Kotlin/Native
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -25,7 +23,6 @@
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="libcurl and Kotlin/Native on Windows -- Eugene Petrenko" />
 <meta property="og:description" content="Building libcurl on Windows and using it from Kotlin/Native
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -56,7 +53,7 @@
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -91,19 +88,16 @@
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -142,13 +136,12 @@
         <span class="entry-date date published"><time datetime="2018-10-29T00:00:00+00:00"><i class="fa fa-calendar-o"></i> October 29, 2018</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=curl,libcurl,windows,kotlin,kotlin/native&amp;text=libcurl%20and%20Kotlin/Native%20on%20Windows&amp;url=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=curl,libcurl,windows,kotlin,kotlin/native&amp;text=libcurl%20and%20Kotlin/Native%20on%20Windows&amp;url=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2018/10/29/kn-libcurl-windows/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -158,7 +151,7 @@
 
 <p>Once upon a time, I decided to answer a question on
 <a href="https://stackoverflow.com/questions/52871078/kotlin-native-libcurl-example-on-windows/52872429?noredirect=1#comment92694725_52872429">StackOverflow</a>
-to explain how to use <code class="highlighter-rouge">libcurl</code> with Kotlin/Native. Now it turned out I will cover a
+to explain how to use <code class="language-plaintext highlighter-rouge">libcurl</code> with Kotlin/Native. Now it turned out I will cover a
 more detailed instruction here. How <a href="https://twitter.com/shanselman">@shanselman</a> once told in his talk - if
 a reply is big enough it should go to a documentation of a blog post.</p>
 
@@ -171,11 +164,11 @@ There is also a sources mirror on GitHub: https://github.com/curl/curl.</p>
 
 <p>Of course, we need a Windows machine or a VM to build it and use it from Windows.</p>
 
-<p>Let’s extract the downloaded sources. There will be the <code class="highlighter-rouge">curl-7.61.1</code> folder. 
-Let’s assume the extracted <code class="highlighter-rouge">curl</code> sources directory
+<p>Let’s extract the downloaded sources. There will be the <code class="language-plaintext highlighter-rouge">curl-7.61.1</code> folder. 
+Let’s assume the extracted <code class="language-plaintext highlighter-rouge">curl</code> sources directory
 is the current working directory.</p>
 
-<p>I open the <code class="highlighter-rouge">VS2015 x64 Native Command Prompt</code> shell on my machine. That one comes from
+<p>I open the <code class="language-plaintext highlighter-rouge">VS2015 x64 Native Command Prompt</code> shell on my machine. That one comes from
 Microsoft Visual Studio 2015. There might be another shortcut to run the shell 
 from a newer or older version of Visual Studio.</p>
 
@@ -183,18 +176,18 @@ from a newer or older version of Visual Studio.</p>
 
 <p>Execute the command</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd winbuild
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd winbuild
 nmake /f Makefile.vc mode=dll
 </code></pre></div></div>
 
-<p>The command above build <code class="highlighter-rouge">curl</code> and <code class="highlighter-rouge">libcurl</code> for us. The build generates static library 
+<p>The command above build <code class="language-plaintext highlighter-rouge">curl</code> and <code class="language-plaintext highlighter-rouge">libcurl</code> for us. The build generates static library 
 that uses some default dependencies from the system to run. For example, it uses
 <a href="https://docs.microsoft.com/en-us/windows/desktop/secauthn/sspi">Windows SSPI</a>
-as the implementation of the SSL and TLS. Check out more options on <code class="highlighter-rouge">curl</code> building in the
+as the implementation of the SSL and TLS. Check out more options on <code class="language-plaintext highlighter-rouge">curl</code> building in the
 <a href="https://github.com/curl/curl/blob/master/winbuild/BUILD.WINDOWS.txt">winbuild/BUILD.WINDOWS.txt</a>.</p>
 
-<p>The compiled binaries are found under the <code class="highlighter-rouge">builds</code> folder. The contest should be as follows:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dir builds
+<p>The compiled binaries are found under the <code class="language-plaintext highlighter-rouge">builds</code> folder. The contest should be as follows:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dir builds
 ...
 10/29/2018  09:48 PM    &lt;DIR&gt;          .
 10/29/2018  09:48 PM    &lt;DIR&gt;          ..
@@ -203,8 +196,8 @@ as the implementation of the SSL and TLS. Check out more options on <code class=
 10/29/2018  09:48 PM    &lt;DIR&gt;          libcurl-vc-x64-release-dll-ipv6-sspi-winssl-obj-lib
 ...
 </code></pre></div></div>
-<p>We have our dynamic <code class="highlighter-rouge">curl</code> library and include files directory under 
-the <code class="highlighter-rouge">builds/libcurl-vc-x64-release-dll-ipv6-sspi-winssl</code> folder.</p>
+<p>We have our dynamic <code class="language-plaintext highlighter-rouge">curl</code> library and include files directory under 
+the <code class="language-plaintext highlighter-rouge">builds/libcurl-vc-x64-release-dll-ipv6-sspi-winssl</code> folder.</p>
 
 <h1 id="importing-libcurl-into-kotlinnative">Importing libcurl into Kotlin/Native</h1>
 
@@ -212,64 +205,64 @@ the <code class="highlighter-rouge">builds/libcurl-vc-x64-release-dll-ipv6-sspi-
 and the <a href="https://github.com/JetBrains/kotlin-native/tree/master/samples/libcurl">libcurl sample</a> 
 from the Kotlin/Native repository and adapt them to work on Windows too.</p>
 
-<p>The first step is to create the <code class="highlighter-rouge">.def</code> file to import the native <code class="highlighter-rouge">libcurl</code> library into Kotlin. 
+<p>The first step is to create the <code class="language-plaintext highlighter-rouge">.def</code> file to import the native <code class="language-plaintext highlighter-rouge">libcurl</code> library into Kotlin. 
 More details on that are explained in the 
 <a href="http://kotlinlang.org/docs/tutorials/native/interop-with-c.html">Interop with C Libraries</a>
 tutorial.</p>
 
-<p>Let’s add the following <code class="highlighter-rouge">libcurl.def</code> file:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>headers = curl/curl.h
+<p>Let’s add the following <code class="language-plaintext highlighter-rouge">libcurl.def</code> file:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>headers = curl/curl.h
 headerFilter = curl/*
 </code></pre></div></div>
 
-<p>Now we may call the <code class="highlighter-rouge">cinteop</code> tool from Kotlin/Native from a parent folder, where we extracted <code class="highlighter-rouge">curl</code> sources:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cinterop -def libcurl.def -compilerOpts -Icurl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\include -o libcurl
+<p>Now we may call the <code class="language-plaintext highlighter-rouge">cinteop</code> tool from Kotlin/Native from a parent folder, where we extracted <code class="language-plaintext highlighter-rouge">curl</code> sources:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cinterop -def libcurl.def -compilerOpts -Icurl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\include -o libcurl
 </code></pre></div></div>
 
 <p>We assume here that we have Kotlin/Native compiler installed and registered in the system PATH. For more information, 
 please refer to the 
 <a href="http://kotlinlang.org/docs/tutorials/native/basic-kotlin-native-app.html#obtaining-the-compiler">A Basic Kotlin Application</a>.
-Let’s assume, we have a console, where the <code class="highlighter-rouge">kotlinc-native</code>, <code class="highlighter-rouge">cinterop</code>, and <code class="highlighter-rouge">klib</code> commands are available.</p>
+Let’s assume, we have a console, where the <code class="language-plaintext highlighter-rouge">kotlinc-native</code>, <code class="language-plaintext highlighter-rouge">cinterop</code>, and <code class="language-plaintext highlighter-rouge">klib</code> commands are available.</p>
 
-<p>The call to <code class="highlighter-rouge">cinterop</code> generates the <code class="highlighter-rouge">libcurl.klib</code> file for us. Let’s use it from the Kotlin/Native sources!</p>
+<p>The call to <code class="language-plaintext highlighter-rouge">cinterop</code> generates the <code class="language-plaintext highlighter-rouge">libcurl.klib</code> file for us. Let’s use it from the Kotlin/Native sources!</p>
 
 <h1 id="using-libcurl-from-kotlinnative">Using libcurl from Kotlin/Native</h1>
 
 <p>It is time to follow the example from the <a href="https://github.com/JetBrains/kotlin-native/tree/master/samples/curl">curl sample</a>
-and create our first <code class="highlighter-rouge">curl</code> application in Windows.</p>
+and create our first <code class="language-plaintext highlighter-rouge">curl</code> application in Windows.</p>
 
-<p>Let’s create the file <code class="highlighter-rouge">curl.kt</code> with the following contents:</p>
+<p>Let’s create the file <code class="language-plaintext highlighter-rouge">curl.kt</code> with the following contents:</p>
 
 <figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">import</span> <span class="nn">libcurl.*</span>
 <span class="k">import</span> <span class="nn">kotlinx.cinterop.*</span>
 
-<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="nv">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
-    <span class="kd">val</span> <span class="py">curl</span> <span class="p">=</span> <span class="n">curl_easy_init</span><span class="p">()</span>
+<span class="k">fun</span> <span class="nf">main</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="nc">Array</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">curl</span> <span class="p">=</span> <span class="nf">curl_easy_init</span><span class="p">()</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">curl</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="n">CURLOPT_URL</span><span class="p">,</span> <span class="s">"http://jonnyzzz.com"</span><span class="p">)</span>
-        <span class="n">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="n">CURLOPT_FOLLOWLOCATION</span><span class="p">,</span> <span class="m">1L</span><span class="p">)</span>
-        <span class="kd">val</span> <span class="py">res</span> <span class="p">=</span> <span class="n">curl_easy_perform</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="p">!=</span> <span class="n">CURLE_OK</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">println</span><span class="p">(</span><span class="s">"curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}"</span><span class="p">)</span>
+        <span class="nf">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="nc">CURLOPT_URL</span><span class="p">,</span> <span class="s">"http://jonnyzzz.com"</span><span class="p">)</span>
+        <span class="nf">curl_easy_setopt</span><span class="p">(</span><span class="n">curl</span><span class="p">,</span> <span class="nc">CURLOPT_FOLLOWLOCATION</span><span class="p">,</span> <span class="mi">1L</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">res</span> <span class="p">=</span> <span class="nf">curl_easy_perform</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">res</span> <span class="p">!=</span> <span class="nc">CURLE_OK</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nf">println</span><span class="p">(</span><span class="s">"curl_easy_perform() failed ${curl_easy_strerror(res)?.toKString()}"</span><span class="p">)</span>
         <span class="p">}</span>
-        <span class="n">curl_easy_cleanup</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
+        <span class="nf">curl_easy_cleanup</span><span class="p">(</span><span class="n">curl</span><span class="p">)</span>
     <span class="p">}</span>
 <span class="p">}</span></code></pre></figure>
 
 <p>Now we call the command to build the executable with Kotlin/Native:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kotlinc-native curl.kt -l libcurl -linker-options "curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\lib\libcurl.lib"  -o kurl
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kotlinc-native curl.kt -l libcurl -linker-options "curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\lib\libcurl.lib"  -o kurl
 </code></pre></div></div>
 
-<p>The application <code class="highlighter-rouge">kurl.exe</code> is ready to go. The only thing it requires is the <code class="highlighter-rouge">libcurl.dll</code>. The file you may find under the
-<code class="highlighter-rouge">curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\bin\libcurl.dll</code> path. You may try running it.</p>
+<p>The application <code class="language-plaintext highlighter-rouge">kurl.exe</code> is ready to go. The only thing it requires is the <code class="language-plaintext highlighter-rouge">libcurl.dll</code>. The file you may find under the
+<code class="language-plaintext highlighter-rouge">curl-7.61.1\builds\libcurl-vc-x64-release-dll-ipv6-sspi-winssl\bin\libcurl.dll</code> path. You may try running it.</p>
 
 <h1 id="static-linking">Static Linking</h1>
 
-<p>It is not too nice to have a requirement to have the <code class="highlighter-rouge">libcurl.dll</code> included and located near the executable we
+<p>It is not too nice to have a requirement to have the <code class="language-plaintext highlighter-rouge">libcurl.dll</code> included and located near the executable we
 create. Static linking, in theory, allows having only one solid binary, that contains everything.
-One may easily change the <code class="highlighter-rouge">curl</code> build to <code class="highlighter-rouge">mode=static</code>. The result will be the static library <code class="highlighter-rouge">libcurl_a.lib</code>.
+One may easily change the <code class="language-plaintext highlighter-rouge">curl</code> build to <code class="language-plaintext highlighter-rouge">mode=static</code>. The result will be the static library <code class="language-plaintext highlighter-rouge">libcurl_a.lib</code>.
 Linking it with Kotlin/Native binary turned out to be tricky. To start, Kotlin/Native uses MinGW environment and 
-the <code class="highlighter-rouge">libcurl_a.lib</code> is compiled to use dynamic MSVCRT. Theoretically, it should be possible to make it work, if you
+the <code class="language-plaintext highlighter-rouge">libcurl_a.lib</code> is compiled to use dynamic MSVCRT. Theoretically, it should be possible to make it work, if you
 know the answer - just let me know!</p>
 
 <p>It is also a good <a href="https://stackoverflow.com/a/52872980/49811">comment for the original StackOverflow thread</a>
@@ -304,31 +297,28 @@ to use MinGW specific build of curl.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -358,26 +348,49 @@ to use MinGW specific build of curl.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

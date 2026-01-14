@@ -9,7 +9,6 @@ Some uses it to run tests inside.
 Today I gonna cover my case, where I implement a command that runs inside a Docker container 
 and call it thousands of times during CI 
 integration tests build.
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, docker, git, integration tests, ci" />
 
@@ -22,7 +21,6 @@ Some uses it to run tests inside.
 Today I gonna cover my case, where I implement a command that runs inside a Docker container 
 and call it thousands of times during CI 
 integration tests build.
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -40,7 +38,6 @@ Some uses it to run tests inside.
 Today I gonna cover my case, where I implement a command that runs inside a Docker container 
 and call it thousands of times during CI 
 integration tests build.
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2015/11/24/DockerGit/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -69,7 +66,7 @@ integration tests build.
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2015/11/24/DockerGit/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -104,19 +101,16 @@ integration tests build.
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -155,13 +149,12 @@ integration tests build.
         <span class="entry-date date published"><time datetime="2015-11-24T00:00:00+00:00"><i class="fa fa-calendar-o"></i> November 24, 2015</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=docker,git,integrationtests,ci&amp;text=Git%20in%20Docker&amp;url=https://jonnyzzz.com/blog/2015/11/24/DockerGit/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=docker,git,integrationtests,ci&amp;text=Git%20in%20Docker&amp;url=https://jonnyzzz.com/blog/2015/11/24/DockerGit/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2015/11/24/DockerGit/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2015/11/24/DockerGit/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -210,7 +203,7 @@ echo</span> <span class="s1">'#!/bin/bash'</span> <span class="o">&gt;</span> <s
 <span class="nb">echo</span> <span class="s2">"GIT_EXEC_PATH=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span><span class="s2">/libexec/git-core PATH=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span><span class="s2">/bin:</span><span class="se">\$</span><span class="s2">PATH GITPERLLIB=</span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span><span class="s2">/perl/blib/lib </span><span class="k">${</span><span class="nv">git_bin</span><span class="k">}</span><span class="s2">/bin/git </span><span class="se">\"\$</span><span class="s2">@</span><span class="se">\"</span><span class="s2">"</span> <span class="o">&gt;</span> <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span>
 <span class="nb">chmod </span>a+rx <span class="k">${</span><span class="nv">git_sh</span><span class="k">}</span></code></pre></figure>
 
-<p>The code above generates a starter script for Git client (e.g. <code class="highlighter-rouge">/git-1.7.2.sh</code>)</p>
+<p>The code above generates a starter script for Git client (e.g. <code class="language-plaintext highlighter-rouge">/git-1.7.2.sh</code>)</p>
 
 <p>Git build also requires a set of packages to be installed on the OS (for my case on CentOS)</p>
 
@@ -231,7 +224,7 @@ yum clean all</code></pre></figure>
   <li>requires
     <ul>
       <li>OS package install permissions  <br />
-=&gt; (aka <code class="highlighter-rouge">root</code> access to build machine),  <br />
+=&gt; (aka <code class="language-plaintext highlighter-rouge">root</code> access to build machine),  <br />
 or</li>
       <li>pre-configured CI build machines <br />
 =&gt; (aka eternal pain to update machine packages)</li>
@@ -260,9 +253,9 @@ activities?</p>
   <li>binaries re-use via Docker image</li>
 </ul>
 
-<p>I created a <code class="highlighter-rouge">Dockerfile</code> where I compile selected versions of Git client 
+<p>I created a <code class="language-plaintext highlighter-rouge">Dockerfile</code> where I compile selected versions of Git client 
 from sources and prepare bootstrap scripts (as shown above). All building 
-tasks were put in one <code class="highlighter-rouge">RUN</code> command to avoid too many 
+tasks were put in one <code class="language-plaintext highlighter-rouge">RUN</code> command to avoid too many 
 <a href="https://github.com/docker/docker/issues/1171">layers</a>.</p>
 
 <p>The Docker image I build is only updated to include new version of Git client.
@@ -277,20 +270,20 @@ is complicated…<br />
 and there are some packages were (not yet) installed in the container…</p>
 
 <h2 id="calling-docker-container-from-a-script">Calling Docker Container from a Script</h2>
-<p>The only requirement from integration tests is to have <code class="highlighter-rouge">git</code> command of given version in <code class="highlighter-rouge">PATH</code>.
+<p>The only requirement from integration tests is to have <code class="language-plaintext highlighter-rouge">git</code> command of given version in <code class="language-plaintext highlighter-rouge">PATH</code>.
 Let’s wrap Docker container call into a bash script than!</p>
 
 <p>First of I created a script like that (see <a href="https://docs.docker.com/engine/reference/run/">docker run docs</a>)</p>
 
 <figure class="highlight"><pre><code class="language-bash" data-lang="bash">docker run GIT_CLIENT_IMAGES <span class="nv">$@</span></code></pre></figure>
 
-<p>Well, it did not work, so I added volume with current directory: <code class="highlighter-rouge">-v $(pwd):/$(pwd)</code> and switched working 
-directory in Docker to it via <code class="highlighter-rouge">-w /$(pwd)</code>.<br />
-NOTE. This will not work if our <code class="highlighter-rouge">git</code> command is executed from non repository checkout root.</p>
+<p>Well, it did not work, so I added volume with current directory: <code class="language-plaintext highlighter-rouge">-v $(pwd):/$(pwd)</code> and switched working 
+directory in Docker to it via <code class="language-plaintext highlighter-rouge">-w /$(pwd)</code>.<br />
+NOTE. This will not work if our <code class="language-plaintext highlighter-rouge">git</code> command is executed from non repository checkout root.</p>
 
-<p>Included <code class="highlighter-rouge">--rm</code> to avoid garbage from finished containers.</p>
+<p>Included <code class="language-plaintext highlighter-rouge">--rm</code> to avoid garbage from finished containers.</p>
 
-<p>Added <code class="highlighter-rouge">-i</code> to have the command run interactively.</p>
+<p>Added <code class="language-plaintext highlighter-rouge">-i</code> to have the command run interactively.</p>
 
 <p>The only issue now was that all files changed or created in container were owned by root
 (because in Docker container I was running it under root and owners and permissions are transparent here)</p>
@@ -298,38 +291,38 @@ NOTE. This will not work if our <code class="highlighter-rouge">git</code> comma
 <p>There are two solutions for that</p>
 
 <ul>
-  <li>run <code class="highlighter-rouge">chown</code> after each call</li>
+  <li>run <code class="language-plaintext highlighter-rouge">chown</code> after each call</li>
   <li>use same user in container</li>
 </ul>
 
-<p>Running <code class="highlighter-rouge">chown</code> is at least starting another process, dealing with exit codes and errors. I preferred 
+<p>Running <code class="language-plaintext highlighter-rouge">chown</code> is at least starting another process, dealing with exit codes and errors. I preferred 
 the second option. The <em>same user</em> means a user that has same <a href="https://en.wikipedia.org/wiki/User_identifier">UID</a> 
 and <a href="https://en.wikipedia.org/wiki/Group_identifier">GID</a>. 
-I added <code class="highlighter-rouge">-u $(id -u):$(id -g)</code> arguments.</p>
+I added <code class="language-plaintext highlighter-rouge">-u $(id -u):$(id -g)</code> arguments.</p>
 
 <p>Finally, I implemented version selector as environment variable. There are also a number 
 of <a href="https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables">Git specific environment variables</a>
-that are to be sent to the container. This is done via <code class="highlighter-rouge">--env</code> arguments of Docker run command.</p>
+that are to be sent to the container. This is done via <code class="language-plaintext highlighter-rouge">--env</code> arguments of Docker run command.</p>
 
 <p>Now I have</p>
 
 <ul>
   <li>a pre-built Docker image with all Git clients</li>
-  <li>a script that pretends to be <code class="highlighter-rouge">git</code> command and delegates calls into a Docker container</li>
+  <li>a script that pretends to be <code class="language-plaintext highlighter-rouge">git</code> command and delegates calls into a Docker container</li>
 </ul>
 
 <p>Having one dependency is better that having two. Let’s put it all together…</p>
 
 <h2 id="putting-all-together">Putting all together</h2>
 <p>It’s clear the start script depends on container. I put the script inside container. 
-Default container command prints the <code class="highlighter-rouge">git</code> script to STDOUT.</p>
+Default container command prints the <code class="language-plaintext highlighter-rouge">git</code> script to STDOUT.</p>
 
 <p>The Git client setup bash script turned to be as follows:</p>
 
 <figure class="highlight"><pre><code class="language-bash" data-lang="bash">docker pull GIT_CLIENT_IMAGE
 docker run <span class="nt">--rm</span> GIT_CLIENT_IMAGE 2&gt;/dev/null <span class="o">&gt;</span>git
 <span class="nb">chmod</span> +x git
-<span class="nv">PATH</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>/git:<span class="nv">$PATH</span>
+<span class="nv">PATH</span><span class="o">=</span><span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span>/git:<span class="nv">$PATH</span>
 <span class="nb">export </span>PATH
 
 <span class="nv">GIT_VERSION</span><span class="o">=</span>&lt;a version of Git client to use&gt;
@@ -348,12 +341,12 @@ docker run <span class="nt">--rm</span> GIT_CLIENT_IMAGE 2&gt;/dev/null <span cl
   <li>Constant time Git client switch</li>
 </ul>
 
-<p>How it finally works. Custom <code class="highlighter-rouge">git</code> script is added to <code class="highlighter-rouge">PATH</code>. 
+<p>How it finally works. Custom <code class="language-plaintext highlighter-rouge">git</code> script is added to <code class="language-plaintext highlighter-rouge">PATH</code>. 
 For every call the script starts a fresh Docker container to perform
 the call. Git client of specified version is executed in it.
 STD streams and signals are bound transparently.
 Container is terminated and disposed at the end. 
-Integration tests calls <code class="highlighter-rouge">git</code> command hundreds times.</p>
+Integration tests calls <code class="language-plaintext highlighter-rouge">git</code> command hundreds times.</p>
 
 <h2 id="real-life">Real Life</h2>
 <p>I implemented the following infrastructure for my project. I use in-house 
@@ -397,31 +390,28 @@ Frankly, I have not yet tried to optimize performance of my scripts.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -451,26 +441,49 @@ Frankly, I have not yet tried to optimize performance of my scripts.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

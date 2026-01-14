@@ -5,7 +5,6 @@
 <title>Production Notes: Deploying Stevedore on a Raspberry Pi &#8211; Eugene Petrenko</title>
 <meta name="description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
 the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, stevedore, raspberry-pi, production, systemd, gitops, self-hosting" />
 
@@ -14,7 +13,6 @@ the real deal: no hacks, no shortcuts, just the supported install path and caref
 <meta name="twitter:title" content="Production Notes: Deploying Stevedore on a Raspberry Pi -- Eugene Petrenko" />
 <meta name="twitter:description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
 the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -28,7 +26,6 @@ the real deal: no hacks, no shortcuts, just the supported install path and caref
 <meta property="og:title" content="Production Notes: Deploying Stevedore on a Raspberry Pi -- Eugene Petrenko" />
 <meta property="og:description" content="Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is
 the real deal: no hacks, no shortcuts, just the supported install path and careful verification.
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -61,7 +58,7 @@ the real deal: no hacks, no shortcuts, just the supported install path and caref
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -96,19 +93,16 @@ the real deal: no hacks, no shortcuts, just the supported install path and caref
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -147,19 +141,18 @@ the real deal: no hacks, no shortcuts, just the supported install path and caref
         <span class="entry-date date published"><time datetime="2026-01-01T00:00:00+00:00"><i class="fa fa-calendar-o"></i> January 01, 2026</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=stevedore,raspberry-pi,production,systemd,gitops,self-hosting&amp;text=Production%20Notes:%20Deploying%20Stevedore%20on%20a%20Raspberry%20Pi&amp;url=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=stevedore,raspberry-pi,production,systemd,gitops,self-hosting&amp;text=Production%20Notes:%20Deploying%20Stevedore%20on%20a%20Raspberry%20Pi&amp;url=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
       </footer>
       <div class="entry-content">
-        <p>Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (<code class="highlighter-rouge">rp16g</code>). This is
+        <p>Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (<code class="language-plaintext highlighter-rouge">rp16g</code>). This is
 the real deal: no hacks, no shortcuts, just the supported install path and careful verification.</p>
 
 <p>Stevedore is designed for this exact setup: a single Docker-first control plane, a systemd service
@@ -181,9 +174,9 @@ leave the machine in a stable, boring state and make future updates predictable.
 <p>Before touching production, I’m setting a few guardrails:</p>
 
 <ul>
-  <li>Use the official installer (<code class="highlighter-rouge">./stevedore-install.sh</code>), not ad-hoc docker run commands.</li>
-  <li>Keep state under <code class="highlighter-rouge">/opt/stevedore</code> (default layout).</li>
-  <li>Prefer systemd (<code class="highlighter-rouge">stevedore.service</code>) to ensure the container survives reboots.</li>
+  <li>Use the official installer (<code class="language-plaintext highlighter-rouge">./stevedore-install.sh</code>), not ad-hoc docker run commands.</li>
+  <li>Keep state under <code class="language-plaintext highlighter-rouge">/opt/stevedore</code> (default layout).</li>
+  <li>Prefer systemd (<code class="language-plaintext highlighter-rouge">stevedore.service</code>) to ensure the container survives reboots.</li>
   <li>Never paste secrets into this post. Keys stay on the host, paths are fine to mention.</li>
 </ul>
 
@@ -199,7 +192,7 @@ the daemon health checks match, and updates are a controlled, repeatable process
 <ul>
   <li>The systemd unit keeps the control plane alive across reboots with zero manual babysitting.</li>
   <li>The self-deployment syncs via a read-only GitHub deploy key when the repo uses SSH (public HTTPS clones still work without it), and I can rotate it manually.</li>
-  <li>Self-update works end-to-end when I trigger <code class="highlighter-rouge">stevedore self-update</code>: it pulled new commits, built a new image, and swapped cleanly.</li>
+  <li>Self-update works end-to-end when I trigger <code class="language-plaintext highlighter-rouge">stevedore self-update</code>: it pulled new commits, built a new image, and swapped cleanly.</li>
   <li>The five-hour stability check shows the daemon healthy and the control plane steady.</li>
   <li>Docs and onboarding guidance were improved based on real production friction.</li>
 </ul>
@@ -207,18 +200,18 @@ the daemon health checks match, and updates are a controlled, repeatable process
 <h2 id="what-i-learned-and-turned-into-improvements">What I Learned (And Turned Into Improvements)</h2>
 
 <ul>
-  <li>GitHub deploy keys are picky: <code class="highlighter-rouge">read_only=true</code> needs <code class="highlighter-rouge">-F</code> in <code class="highlighter-rouge">gh api</code>, so I documented the exact
+  <li>GitHub deploy keys are picky: <code class="language-plaintext highlighter-rouge">read_only=true</code> needs <code class="language-plaintext highlighter-rouge">-F</code> in <code class="language-plaintext highlighter-rouge">gh api</code>, so I documented the exact
 command and wired it into the CLI guidance.</li>
   <li>Self-update builds run in the foreground; once the update worker is spawned, the container swap
 finishes server-side, and the backup image gives a rollback path.</li>
   <li>The systemd-managed control plane and a self-deployment compose project can collide on container
-naming if the compose file sets <code class="highlighter-rouge">container_name: stevedore</code>. That’s a good reminder that “boring”
+naming if the compose file sets <code class="language-plaintext highlighter-rouge">container_name: stevedore</code>. That’s a good reminder that “boring”
 operations need crisp boundaries.</li>
 </ul>
 
 <h2 id="outcome">Outcome</h2>
 
-<p>Stevedore is now running in production on <code class="highlighter-rouge">rp16g</code>, updating itself and staying healthy without
+<p>Stevedore is now running in production on <code class="language-plaintext highlighter-rouge">rp16g</code>, updating itself and staying healthy without
 manual intervention. The deployment is stable, the operational checks are clean, and the process is
 documented end-to-end. This is exactly the boring, reliable, Git-driven workflow I wanted.</p>
 
@@ -263,31 +256,28 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -317,26 +307,49 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <title>Bytecode behind coroutines in Kotlin &#8211; Eugene Petrenko</title>
 <meta name="description" content="A simple suspend function, and its bytecode.
-
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, kotlin, coroutine, kotlin-bytecode, jvm, tip" />
 
@@ -12,7 +11,6 @@
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="Bytecode behind coroutines in Kotlin -- Eugene Petrenko" />
 <meta name="twitter:description" content="A simple suspend function, and its bytecode.
-
 " />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -25,7 +23,6 @@
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="Bytecode behind coroutines in Kotlin -- Eugene Petrenko" />
 <meta property="og:description" content="A simple suspend function, and its bytecode.
-
 " />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -56,7 +53,7 @@
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -91,19 +88,16 @@
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -142,13 +136,12 @@
         <span class="entry-date date published"><time datetime="2017-04-26T00:00:00+00:00"><i class="fa fa-calendar-o"></i> April 26, 2017</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=kotlin,coroutine,kotlin-bytecode,jvm,tip&amp;text=Bytecode%20behind%20coroutines%20in%20Kotlin&amp;url=https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=kotlin,coroutine,kotlin-bytecode,jvm,tip&amp;text=Bytecode%20behind%20coroutines%20in%20Kotlin&amp;url=https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2017/04/26/corotines-or-state-machine/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -157,7 +150,7 @@
         <p>A simple suspend function, and its bytecode.</p>
 
 <p>The new thing in Kotlin 1.1 is <a href="http://kotlinlang.org/docs/reference/coroutines.html">coroutines</a>. As we know
-from the documentation, it is the <code class="highlighter-rouge">suspend</code> keyword that was added to the language. The rest is implemented 
+from the documentation, it is the <code class="language-plaintext highlighter-rouge">suspend</code> keyword that was added to the language. The rest is implemented 
 as libraries.</p>
 
 <p>Let’s take a look at the bytecode side of this feature.</p>
@@ -166,10 +159,10 @@ as libraries.</p>
 
 <p>I have the following code snippet:</p>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">suspend</span> <span class="k">fun</span> <span class="nf">b</span><span class="p">()</span> <span class="p">{}</span></code></pre></figure>
 
 <p>Let’s take a look to the bytecode from this method. For the experiment, I use Kotlin 1.1.1 with IntelliJ IDEA 2017.1.
-Results may depend on version. I use <code class="highlighter-rouge">javap -c</code> to generate those dumps</p>
+Results may depend on version. I use <code class="language-plaintext highlighter-rouge">javap -c</code> to generate those dumps</p>
 
 <figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
@@ -179,17 +172,17 @@ Results may depend on version. I use <code class="highlighter-rouge">javap -c</c
        6: getstatic     #25                 // Field kotlin/Unit.INSTANCE:Lkotlin/Unit;
        9: areturn</code></pre></figure>
 
-<p>The interface <code class="highlighter-rouge">Continuation</code> is declared in the Kotlin standard library, see <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/">documentation</a>.
-It contains <code class="highlighter-rouge">context</code> and methods to complete continuation: <code class="highlighter-rouge">resume</code> and <code class="highlighter-rouge">resumeWithException</code>.</p>
+<p>The interface <code class="language-plaintext highlighter-rouge">Continuation</code> is declared in the Kotlin standard library, see <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.coroutines.experimental/">documentation</a>.
+It contains <code class="language-plaintext highlighter-rouge">context</code> and methods to complete continuation: <code class="language-plaintext highlighter-rouge">resume</code> and <code class="language-plaintext highlighter-rouge">resumeWithException</code>.</p>
 
 <h1 id="a-trivial-suspend-function">A Trivial Suspend function</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b2</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">a</span><span class="p">()</span>
-  <span class="n">c</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">suspend</span> <span class="k">fun</span> <span class="nf">b2</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nf">a</span><span class="p">()</span>
+  <span class="nf">c</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>Here <code class="highlighter-rouge">a()</code> and <code class="highlighter-rouge">c()</code> are calls to ordinary Java methods, which were declared in Kotlin without the <code class="highlighter-rouge">suspend</code> keyword.</p>
+<p>Here <code class="language-plaintext highlighter-rouge">a()</code> and <code class="language-plaintext highlighter-rouge">c()</code> are calls to ordinary Java methods, which were declared in Kotlin without the <code class="language-plaintext highlighter-rouge">suspend</code> keyword.</p>
 
 <figure class="highlight"><pre><code class="language-text" data-lang="text"> public static final java.lang.Object b2(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     Code:
@@ -205,14 +198,14 @@ It contains <code class="highlighter-rouge">context</code> and methods to comple
 
 <h1 id="a-suspend-function-with-a-suspend-call">A suspend function with a suspend call</h1>
 
-<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="n">suspend</span> <span class="k">fun</span> <span class="nf">b3</span><span class="p">()</span> <span class="p">{</span>
-  <span class="n">a</span><span class="p">()</span>
-  <span class="n">b3</span><span class="p">()</span>
-  <span class="n">c</span><span class="p">()</span>
+<figure class="highlight"><pre><code class="language-kotlin" data-lang="kotlin"><span class="k">suspend</span> <span class="k">fun</span> <span class="nf">b3</span><span class="p">()</span> <span class="p">{</span>
+  <span class="nf">a</span><span class="p">()</span>
+  <span class="nf">b3</span><span class="p">()</span>
+  <span class="nf">c</span><span class="p">()</span>
 <span class="p">}</span></code></pre></figure>
 
-<p>In this example, we call <code class="highlighter-rouge">b3()</code> suspend function from itself. Here <code class="highlighter-rouge">a()</code> and <code class="highlighter-rouge">c()</code> are calls to ordinary Java 
-methods, which were declared in Kotlin without <code class="highlighter-rouge">suspend</code> keyword. The generated code now looks way different.</p>
+<p>In this example, we call <code class="language-plaintext highlighter-rouge">b3()</code> suspend function from itself. Here <code class="language-plaintext highlighter-rouge">a()</code> and <code class="language-plaintext highlighter-rouge">c()</code> are calls to ordinary Java 
+methods, which were declared in Kotlin without <code class="language-plaintext highlighter-rouge">suspend</code> keyword. The generated code now looks way different.</p>
 
 <figure class="highlight"><pre><code class="language-text" data-lang="text">  public static final java.lang.Object b3(kotlin.coroutines.experimental.Continuation&lt;? super kotlin.Unit&gt;);
     descriptor: (Lkotlin/coroutines/experimental/Continuation;)Ljava/lang/Object;
@@ -229,9 +222,9 @@ methods, which were declared in Kotlin without <code class="highlighter-rouge">s
       18: invokevirtual #42                 // Method streams4/ZKt$b3$1.doResume:(Ljava/lang/Object;Ljava/lang/Throwable;)Ljava/lang/Object;
       21: areturn</code></pre></figure>
 
-<p>Instead of having the method in-place, it now generates an inner class for the state-machine to implement the <code class="highlighter-rouge">suspend</code>.</p>
+<p>Instead of having the method in-place, it now generates an inner class for the state-machine to implement the <code class="language-plaintext highlighter-rouge">suspend</code>.</p>
 
-<p>The class <code class="highlighter-rouge">streams4/ZKt$b3$1</code> is generated as follows</p>
+<p>The class <code class="language-plaintext highlighter-rouge">streams4/ZKt$b3$1</code> is generated as follows</p>
 
 <figure class="highlight"><pre><code class="language-text" data-lang="text">final class streams4.ZKt$b3$1 extends kotlin.coroutines.experimental.jvm.internal.CoroutineImpl {
   public final java.lang.Object doResume(java.lang.Object, java.lang.Throwable);
@@ -288,12 +281,12 @@ methods, which were declared in Kotlin without <code class="highlighter-rouge">s
        6: return
 }</code></pre></figure>
 
-<p>The implementation of <code class="highlighter-rouge">b3()</code> function is moved to a state machine anonymous object. The main method of 
+<p>The implementation of <code class="language-plaintext highlighter-rouge">b3()</code> function is moved to a state machine anonymous object. The main method of 
 the inner object does a switch over states of the state machine.
-The <code class="highlighter-rouge">b3()</code> function is split by every <code class="highlighter-rouge">suspend</code> function call. On the example below,
+The <code class="language-plaintext highlighter-rouge">b3()</code> function is split by every <code class="language-plaintext highlighter-rouge">suspend</code> function call. On the example below,
 we have only 2 states. This is up to helper functions to assert the machine is always in a correct state.</p>
 
-<p>On every <code class="highlighter-rouge">suspend</code> function call, Kotlin creates an object to encapsulate the state of the state machine, that 
+<p>On every <code class="language-plaintext highlighter-rouge">suspend</code> function call, Kotlin creates an object to encapsulate the state of the state machine, that 
 is created to implement the continuations on top of JVM.</p>
 
 <h1 id="conclusion">Conclusion</h1>
@@ -333,31 +326,28 @@ code in my apps.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -387,26 +377,49 @@ code in my apps.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

@@ -52,7 +52,7 @@
 
 
 <link rel="canonical" href="https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/" />
-<link href="https://feeds.feedburner.com/jonnyzzz" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
 <meta name="MobileOptimized" content="320" />
@@ -87,19 +87,16 @@
 	<nav role="navigation" id="site-nav">
 	    <ul>
       
-		    
+		    <li><a href="/" >Home</a></li>
+		  
 		    <li><a href="/about/" >About</a></li>
 		  
-		    
 		    <li><a href="/blog/" >Blog</a></li>
 		  
-		    
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    
 		    <li><a href="/talks/" >Talks</a></li>
 		  
-		    
 		    <li><a href="/tags/" >Tags</a></li>
 		  
 	    </ul>
@@ -138,13 +135,12 @@
         <span class="entry-date date published"><time datetime="2021-09-01T00:00:00+00:00"><i class="fa fa-calendar-o"></i> September 01, 2021</time></span>
         
         
-        <span class="social-share-twitter">
-  <a href="https://twitter.com/intent/tweet?hashtags=pki-tree,x509,jvm,kotlin,AWS,certificates&amp;text=X.509%20Certificates%20with%20AWS%20KMS&amp;url=https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/&amp;via=jonnyzzz" title="Share on Twitter" itemprop="Twitter" target="_blank"><i class="fa fa-twitter-square"></i> Tweet</a>
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=pki-tree,x509,jvm,kotlin,AWS,certificates&amp;text=X.509%20Certificates%20with%20AWS%20KMS&amp;url=https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
-  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/" title="Share on Facebook" itemprop="Facebook" target="_blank"><i class="fa fa-facebook-square"></i> Like</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2021/09/01/x509-kms-aws/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
 </span>
-
 <!-- /.social-share -->
 
         
@@ -161,7 +157,7 @@ without having private keys in my code.</p>
 to <a href="https://aws.amazon.com/certificate-manager/pricing/?nc=sn&amp;loc=3">host private certificates</a>.
 By the time of writing (August 2021), every certificate would cost about $400/month, excluding
 API calls. It is fine to use that for a root certificate, but it looks too much when
-multiplied by <code class="highlighter-rouge">N</code>, as in my case. There is no API for signatures for an ACM managed
+multiplied by <code class="language-plaintext highlighter-rouge">N</code>, as in my case. There is no API for signatures for an ACM managed
 certificate too, so one would have to deal with private keys.</p>
 
 <h3 id="hosted-keys">Hosted Keys</h3>
@@ -182,13 +178,13 @@ certificates with keys in the KMS for my solution.</p>
 <h3 id="openssl">OpenSSL</h3>
 
 <p>OpenSSL supports all necessary operations with X509 certificates.
-The <code class="highlighter-rouge">openssl</code> console command could help to
+The <code class="language-plaintext highlighter-rouge">openssl</code> console command could help to
 decode a given certificate, validate, generate or sign. 
 Ping me in the comment or on <a href="https://twitter.com/jonnyzzz">Twitter</a> and I’ll blog more details.
 I <a href="https://twitter.com/jonnyzzz/status/1432325398155640834?s=20">test the generated</a>
-certificates via <code class="highlighter-rouge">openssl</code> command to make sure it was done correctly.</p>
+certificates via <code class="language-plaintext highlighter-rouge">openssl</code> command to make sure it was done correctly.</p>
 
-<p>Sadly, but the <code class="highlighter-rouge">openssl</code> command does not support KMS or hardware keys out of the box.
+<p>Sadly, but the <code class="language-plaintext highlighter-rouge">openssl</code> command does not support KMS or hardware keys out of the box.
 One has to dig deeper into the implementation level, patches, sources, or forks.</p>
 
 <p>For my further investigation, I’d use JVM and the
@@ -200,25 +196,25 @@ on <a href="https://twitter.com/jonnyzzz">Twitter</a>, so it would happen earlie
 
 <h3 id="bouncy-castle-on-jvm">Bouncy Castle on JVM</h3>
 
-<p>One usually generates a child X509 certificate using the <code class="highlighter-rouge">JcaX509v3CertificateBuilder</code>
+<p>One usually generates a child X509 certificate using the <code class="language-plaintext highlighter-rouge">JcaX509v3CertificateBuilder</code>
 from <a href="https://www.bouncycastle.org/">Bouncy Castle</a>.
 It takes the parent certificate and signs a child certificate with the
 parent one.</p>
 
 <p>Here is a simplified example to generate a signed subordinate certificate:</p>
 
-<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">parentCa</span><span class="p">:</span> <span class="n">X509CertificateHolder</span> <span class="p">=</span> <span class="n">TODO</span><span class="p">(</span><span class="s">"Load parent certificate"</span><span class="p">)</span>
-<span class="kd">val</span> <span class="py">builder</span> <span class="p">=</span> <span class="n">JcaX509v3CertificateBuilder</span><span class="p">(</span>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">parentCa</span><span class="p">:</span> <span class="nc">X509CertificateHolder</span> <span class="p">=</span> <span class="nc">TODO</span><span class="p">(</span><span class="s">"Load parent certificate"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">builder</span> <span class="p">=</span> <span class="nc">JcaX509v3CertificateBuilder</span><span class="p">(</span>
   <span class="n">parentCa</span><span class="p">.</span><span class="n">subject</span><span class="p">,</span>
-  <span class="n">BigInteger</span><span class="p">(</span><span class="s">"C0 Ff Ee"</span><span class="p">),</span>
-  <span class="n">Date</span><span class="p">(),</span>
+  <span class="nc">BigInteger</span><span class="p">(</span><span class="s">"C0 Ff Ee"</span><span class="p">),</span>
+  <span class="nc">Date</span><span class="p">(),</span>
   <span class="n">parentCa</span><span class="p">.</span><span class="n">notAfter</span><span class="p">,</span>
   <span class="n">rootSubject</span><span class="p">,</span>
   <span class="n">childCaPublicKey</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="c1">//TODO: condifigure the builder to add extensions and params</span>
-<span class="kd">val</span> <span class="py">signer</span><span class="p">:</span> <span class="n">ContentSigner</span> <span class="p">=</span> <span class="n">TODO</span><span class="p">(</span><span class="s">"Implement the Content Signer"</span><span class="p">)</span>
-<span class="kd">val</span> <span class="py">childCert</span><span class="p">:</span> <span class="n">X509CertificateHolder</span> <span class="p">=</span> <span class="n">builder</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="n">signer</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">signer</span><span class="p">:</span> <span class="nc">ContentSigner</span> <span class="p">=</span> <span class="nc">TODO</span><span class="p">(</span><span class="s">"Implement the Content Signer"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">childCert</span><span class="p">:</span> <span class="nc">X509CertificateHolder</span> <span class="p">=</span> <span class="n">builder</span><span class="p">.</span><span class="nf">build</span><span class="p">(</span><span class="n">signer</span><span class="p">)</span>
 <span class="c1">//This is the child certificate, use JcaPEMWriter for PEM encoding </span>
 <span class="k">return</span> <span class="n">childCert</span>
 </code></pre></div></div>
@@ -226,32 +222,32 @@ parent one.</p>
 <p>As we see, it does not require a private key to run. It uses only
 the RSA public key of the child certificate. No secretes so far.</p>
 
-<p>The <code class="highlighter-rouge">ContentSigner</code> interface encapsulates the signature need.
-Usually, we use <code class="highlighter-rouge">JcaContentSignerBuilder</code> to create an instance 
+<p>The <code class="language-plaintext highlighter-rouge">ContentSigner</code> interface encapsulates the signature need.
+Usually, we use <code class="language-plaintext highlighter-rouge">JcaContentSignerBuilder</code> to create an instance 
 from a private key of the parent certificate. It is not the case here.</p>
 
 <h3 id="contentsigner-implementation-via-kms">ContentSigner implementation via KMS</h3>
 
-<p>We implement the <code class="highlighter-rouge">ContentSigner</code> directly, and do a remote
+<p>We implement the <code class="language-plaintext highlighter-rouge">ContentSigner</code> directly, and do a remote
 call to the AWS service for the signature. We do not have
 access to the actual private key bytes. I use the following 
 implementation for that:</p>
 
 <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="kd">class</span> <span class="nc">AwsKmsContentSignerSha512WithRSA</span><span class="p">(</span>
-  <span class="k">private</span> <span class="kd">val</span> <span class="py">aws</span><span class="p">:</span> <span class="n">KmsClient</span><span class="p">,</span>
-  <span class="k">private</span> <span class="kd">val</span> <span class="py">keyId</span><span class="p">:</span> <span class="n">String</span><span class="p">,</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">aws</span><span class="p">:</span> <span class="nc">KmsClient</span><span class="p">,</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">keyId</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span>
 <span class="p">)</span> <span class="p">:</span> <span class="nc">ContentSigner</span> <span class="p">{</span>
-  <span class="k">private</span> <span class="kd">val</span> <span class="py">bytesToSign</span> <span class="p">=</span> <span class="n">MessageDigest</span><span class="p">.</span><span class="n">getInstance</span><span class="p">(</span><span class="s">"SHA-512"</span><span class="p">)</span>
-  <span class="k">private</span> <span class="kd">val</span> <span class="py">wrapper</span> <span class="p">=</span> <span class="n">DigestOutputStream</span><span class="p">(</span><span class="n">OutputStream</span><span class="p">.</span><span class="n">nullOutputStream</span><span class="p">(),</span> <span class="n">bytesToSign</span><span class="p">)</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">bytesToSign</span> <span class="p">=</span> <span class="nc">MessageDigest</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">(</span><span class="s">"SHA-512"</span><span class="p">)</span>
+  <span class="k">private</span> <span class="kd">val</span> <span class="py">wrapper</span> <span class="p">=</span> <span class="nc">DigestOutputStream</span><span class="p">(</span><span class="nc">OutputStream</span><span class="p">.</span><span class="nf">nullOutputStream</span><span class="p">(),</span> <span class="n">bytesToSign</span><span class="p">)</span>
   <span class="k">override</span> <span class="k">fun</span> <span class="nf">getOutputStream</span><span class="p">()</span> <span class="p">=</span> <span class="n">wrapper</span>
-  <span class="k">override</span> <span class="k">fun</span> <span class="nf">getAlgorithmIdentifier</span><span class="p">()</span> <span class="p">=</span> <span class="n">AlgorithmIdentifier</span><span class="p">(</span><span class="n">PKCSObjectIdentifiers</span><span class="p">.</span><span class="n">sha512WithRSAEncryption</span><span class="p">)</span>
+  <span class="k">override</span> <span class="k">fun</span> <span class="nf">getAlgorithmIdentifier</span><span class="p">()</span> <span class="p">=</span> <span class="nc">AlgorithmIdentifier</span><span class="p">(</span><span class="nc">PKCSObjectIdentifiers</span><span class="p">.</span><span class="n">sha512WithRSAEncryption</span><span class="p">)</span>
   <span class="k">override</span> <span class="k">fun</span> <span class="nf">getSignature</span><span class="p">():</span> <span class="nc">ByteArray</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="n">aws</span><span class="p">.</span><span class="n">sign</span> <span class="p">{</span> <span class="n">req</span> <span class="p">-&gt;</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">keyId</span><span class="p">(</span><span class="n">keyId</span><span class="p">)</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">message</span><span class="p">(</span><span class="n">SdkBytes</span><span class="p">.</span><span class="n">fromByteArray</span><span class="p">(</span><span class="n">bytesToSign</span><span class="p">.</span><span class="n">digest</span><span class="p">()))</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">messageType</span><span class="p">(</span><span class="n">MessageType</span><span class="p">.</span><span class="n">DIGEST</span><span class="p">)</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">signingAlgorithm</span><span class="p">(</span><span class="n">SigningAlgorithmSpec</span><span class="p">.</span><span class="n">RSASSA_PKCS1_V1_5_SHA_512</span><span class="p">)</span>
-    <span class="p">}.</span><span class="n">signature</span><span class="p">().</span><span class="n">asByteArray</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">aws</span><span class="p">.</span><span class="nf">sign</span> <span class="p">{</span> <span class="n">req</span> <span class="p">-&gt;</span>
+      <span class="n">req</span><span class="p">.</span><span class="nf">keyId</span><span class="p">(</span><span class="n">keyId</span><span class="p">)</span>
+      <span class="n">req</span><span class="p">.</span><span class="nf">message</span><span class="p">(</span><span class="nc">SdkBytes</span><span class="p">.</span><span class="nf">fromByteArray</span><span class="p">(</span><span class="n">bytesToSign</span><span class="p">.</span><span class="nf">digest</span><span class="p">()))</span>
+      <span class="n">req</span><span class="p">.</span><span class="nf">messageType</span><span class="p">(</span><span class="nc">MessageType</span><span class="p">.</span><span class="nc">DIGEST</span><span class="p">)</span>
+      <span class="n">req</span><span class="p">.</span><span class="nf">signingAlgorithm</span><span class="p">(</span><span class="nc">SigningAlgorithmSpec</span><span class="p">.</span><span class="nc">RSASSA_PKCS1_V1_5_SHA_512</span><span class="p">)</span>
+    <span class="p">}.</span><span class="nf">signature</span><span class="p">().</span><span class="nf">asByteArray</span><span class="p">()</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></div>
@@ -260,22 +256,22 @@ implementation for that:</p>
 that needs to be signed. No matter how big is the certificate, it
 will only send a short message to the AWS.</p>
 
-<p>This code uses the <a href="https://aws.amazon.com/sdk-for-java/">AWS KMS client</a> and a <code class="highlighter-rouge">keyId</code>. 
+<p>This code uses the <a href="https://aws.amazon.com/sdk-for-java/">AWS KMS client</a> and a <code class="language-plaintext highlighter-rouge">keyId</code>. 
 It sends a request to AWS to generate the signature, it does not use the actual private
 key directly in our code. That is enough for the BouncyCastle library
 to sign the new certificate or data for us.</p>
 
 <p>You may also note, that there are many tricky bound constants in the code snippet:</p>
 <ul>
-  <li><code class="highlighter-rouge">SHA-512</code></li>
-  <li><code class="highlighter-rouge">PKCSObjectIdentifiers.sha512WithRSAEncryption</code></li>
-  <li><code class="highlighter-rouge">SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512</code></li>
+  <li><code class="language-plaintext highlighter-rouge">SHA-512</code></li>
+  <li><code class="language-plaintext highlighter-rouge">PKCSObjectIdentifiers.sha512WithRSAEncryption</code></li>
+  <li><code class="language-plaintext highlighter-rouge">SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_512</code></li>
 </ul>
 
 <p>Similarly, it could be tuned to use the SHA-256 signature instead. Note, it would require changing
 all three parameters.</p>
 
-<p>The <code class="highlighter-rouge">ContentSigner</code> interface is widely used in the BouncyCastle library, 
+<p>The <code class="language-plaintext highlighter-rouge">ContentSigner</code> interface is widely used in the BouncyCastle library, 
 so we could use it at many other places to implement signatures that we
 need, for example, a CMS (S/MIME) one.</p>
 
@@ -315,31 +311,28 @@ access to private keys.</p>
   the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
-	<a href="https://twitter.com/jonnyzzz" title="Eugene Petrenko on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2x"></i></a>
-	<a href="https://facebook.com/jonnyzzz" title="Eugene Petrenko on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2x"></i></a>
-	
-	<a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><i class="fa fa-linkedin-square fa-2x"></i></a>
-	<a href="http://stackoverflow.com/users/49811/eugene-petrenko" title="Eugene Petrenko on StackExchange" target="_blank"><i class="fa fa-stack-exchange fa-2x"></i></a>
-	<a href="https://instagram.com/jonnyzzz" title="Eugene Petrenko on Instagram" target="_blank"><i class="fa fa-instagram fa-2x"></i></a>
-	<a href="https://www.flickr.com/photos/_jonny_" title="Eugene Petrenko on Flickr" target="_blank"><i class="fa fa-flickr fa-2x"></i></a>
-	<a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><i class="fa fa-github-square fa-2x"></i></a>
-	
-  <a href="https://www.pinterest.com/jonnyzzz/" title="Eugene Petrenko on Pinterest" target="_blank"><i class="fa fa-pinterest fa-2x"></i></a>
-	
-  <a href="https://feeds.feedburner.com/jonnyzzz" title="Atom/RSS feed"><i class="fa fa-rss-square fa-2x"></i></a>
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
 </div><!-- /.social-icons -->
 
   </footer>
 </div><!-- /.footer-wrapper -->
 
-<script type="text/javascript">
-  var BASE_URL = '';
-</script>
-
 <script>
-  // use links _blank by default
+  // Open external links in new tab
   Array.from(document.links).forEach(link => {
-    if (link.hostname !== window.location.hostname) {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
       link.target = '_blank';
     }
   });
@@ -369,26 +362,49 @@ access to private keys.</p>
 
 
 
-<script type="text/javascript">
-  window.cookieconsent_options = {
-    "message":"This website uses cookies to ensure you get the best experience on our website",
-    "dismiss":"Got it!",
-    "learnMore":"More info",
-    "link":null,
-    "theme":"light-bottom"
-  };
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
 </script>
-
-<script async src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/1.0.9/cookieconsent.min.js" integrity="sha512-0PPyBBoM+fe2VQCaFFtI7ZYHSCfivLAqYNvPser8HZAY0wFwtGIJmENHco1hSDYwYtIlYkcWl8oDR/uTZtbopA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
-
-<!--SYNTAX HIGHLIGHTER BEGINS-->
-<!-- see https://prismjs.com/ download generator -->
-<link rel="stylesheet" href="/assets/prismjs/prism.css"/>
-
-<script src="/assets/prismjs/prism.js" ></script>
-
-<!--SYNTAX HIGHLIGHTER ENDS-->
 
 
 

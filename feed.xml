@@ -1,44 +1,1845 @@
-<?xml version="1.0" encoding="utf-8"?><?xml-stylesheet type="text/xml" href="/feed.xslt.xml"?>
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xml" href="https://jonnyzzz.com/feed.xslt.xml"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <generator uri="http://jekyllrb.com" version="3.2.1">Jekyll</generator>
-  <link href="/feed.xml" rel="self" type="application/atom+xml"/>
-  <link href="/" rel="alternate" type="text/html"/>
-  <updated>2017-04-15T15:02:43+00:00</updated>
+  <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
+  <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
+  <updated>2026-01-14T07:57:22+00:00</updated>
   <id>/</id>
-  <title>Eugene Petrenko</title>
+
+  
+  <title type="html">Eugene Petrenko</title>
+  
+
+  
   <subtitle>@jonnyzzz personal page and blog</subtitle>
+  
+
+  
+
+  
+  
   <entry>
-    <title>Feed Moved to https://feeds.feedburner.com/jonnyzzz</title>
-    <link href="/" rel="alternate" type="text/html" title="Feed Moved to https://feeds.feedburner.com/jonnyzzz"/>
-    <published>2017-04-15T00:00:00+00:00</published>
-    <updated>2017-04-15T14:42:00+00:00</updated>
-    <id>/move-feed-url</id>
-    <content type="html" xml:base="/"><![CDATA[
-      <h1>Feed moved to FeedBurner.</h1>
+    <title type="html">From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/" rel="alternate" type="text/html" title="From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM" />
+    <published>2026-01-05T00:00:00+00:00</published>
+    <updated>2026-01-05T00:00:00+00:00</updated>
+    <id>/blog/2026/01/05/rlm-multi-agent-orchestration</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/">&lt;p&gt;Translating academic research into practical AI agent skills through systematic experimentation.&lt;/p&gt;
 
-      <p>Thank you for reading my blog!</p>
+&lt;p&gt;A few weeks ago, I stumbled upon a fascinating paper on X: “Recursive Language Models” by Zhang, Kraska, and Khattab from MIT CSAIL. The core insight was elegant—treat the prompt as a Python variable rather than neural network input, allowing models to work with unbounded context through recursive sub-calls. The obvious question: could we translate these theoretical patterns into executable instructions for AI agents?&lt;/p&gt;
 
-      <p>I need to improve the way this RSS Feed is generated and delivered. Please switch to the following URL: </p>
+&lt;p&gt;This post documents the experiment. We took the RLM paper, extracted its core concepts, and transformed them into skill files that AI agents can follow. Then we validated the approach by having multiple AI agents—Claude Code, Codex, and Gemini—cross-validate each other’s work. The results reveal both the promise and the challenges of multi-agent orchestration.&lt;/p&gt;
 
-      <strong><a href="https://feeds.feedburner.com/jonnyzzz">https://feeds.feedburner.com/jonnyzzz</a></strong>
+&lt;h2 id=&quot;the-problem-academic-papers-dont-compile&quot;&gt;The Problem: Academic Papers Don’t Compile&lt;/h2&gt;
 
-      <p>
-        It is not possible to track RSS Feed activity from a static web-site easily, but I really
-        like to know more about my readers.
-      </p>
+&lt;p&gt;Research papers describe algorithms and results. They don’t provide executable instructions that an AI agent can follow step-by-step. The gap between “here’s the theory” and “now do this” is where most knowledge transfer fails.&lt;/p&gt;
 
-      <p>I found the way to fix that. But, unfortunately, it requires to change the RSS Feed URL.
-        Now I use <a href="https://feeds.feedburner.com/jonnyzzz">Google feedburner</a> to capture analytics.
-      </p>
+&lt;p&gt;Consider RLM’s key insight about context rot—performance degrades as context length increases. The paper quantifies this beautifully with benchmarks on OOLONG and BrowseComp+. But an AI agent facing a 100K token codebase doesn’t know to apply partition+map+reduce unless explicitly told when and how.&lt;/p&gt;
 
-      <p>Please subscribe to
-        <a href="https://feeds.feedburner.com/jonnyzzz">https://feeds.feedburner.com/jonnyzzz</a>
-      </p>
-    ]]></content>
+&lt;p&gt;Our approach was systematic:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Extract&lt;/strong&gt; - Identify actionable patterns from the paper&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Codify&lt;/strong&gt; - Transform into explicit decision trees and templates&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Validate&lt;/strong&gt; - Cross-check with multiple AI models&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Iterate&lt;/strong&gt; - Refine based on experimental feedback&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;the-translation-process&quot;&gt;The Translation Process&lt;/h2&gt;
+
+&lt;h3 id=&quot;phase-1-core-concept-extraction&quot;&gt;Phase 1: Core Concept Extraction&lt;/h3&gt;
+
+&lt;p&gt;The RLM paper’s abstract mentions “treating the prompt as a Python variable.” What does this mean operationally?&lt;/p&gt;
+
+&lt;p&gt;After multiple read-throughs (some by humans, some by AI agents), we extracted these key patterns:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Paper Concept&lt;/th&gt;
+      &lt;th&gt;Executable Pattern&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Context as variable&lt;/td&gt;
+      &lt;td&gt;Access data programmatically, not via prompt stuffing&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Recursive sub-calls&lt;/td&gt;
+      &lt;td&gt;Spawn sub-agents with focused prompts&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;REPL environment&lt;/td&gt;
+      &lt;td&gt;Iterative tool use with state management&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Partition+Map+Reduce&lt;/td&gt;
+      &lt;td&gt;Chunk large inputs, process in parallel, aggregate&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;phase-2-decision-tree-construction&quot;&gt;Phase 2: Decision Tree Construction&lt;/h3&gt;
+
+&lt;p&gt;Academic papers describe what works. Skill files need to specify when to apply each technique. We built decision trees:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;START
+  |
+  +-- Context &amp;gt; 50K tokens? -------- YES --&amp;gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- Context &amp;gt; 16K AND complexity &amp;gt; O(1)? -- YES --&amp;gt; CONSIDER RLM
+  |     |
+  |     NO
+  |     |
+  +-- Files to process &amp;gt; 5? -------- YES --&amp;gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- Multi-hop reasoning needed? -- YES --&amp;gt; ACTIVATE RLM
+  |     |
+  |     NO
+  |     |
+  +-- PROCEED DIRECTLY
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This transforms a theoretical concept into an operational rule. Note the complexity-aware middle branch—the full RLM.md includes additional nuance for moderate-sized contexts where task complexity (O(n) vs O(n²)) determines whether RLM overhead is worthwhile.&lt;/p&gt;
+
+&lt;h3 id=&quot;phase-3-strategy-templates&quot;&gt;Phase 3: Strategy Templates&lt;/h3&gt;
+
+&lt;p&gt;The paper describes emergent strategies like “Grep First” and “Preview + Partition.” We codified these into templates:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;STRATEGY: Grep First
+TRIGGER: Searching for specific patterns across many files
+PROCEDURE:
+1. Use grep/search to identify relevant file subset
+2. Read only matching files
+3. Process focused context
+
+STRATEGY: Partition + Map + Reduce
+TRIGGER: Single large file exceeding context limit
+PROCEDURE:
+1. Assess document structure (chapters, sections, functions)
+2. Split at natural boundaries with 10-20% overlap
+3. Process each chunk with identical prompt
+4. Aggregate results, resolving conflicts
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;the-multi-agent-experiment&quot;&gt;The Multi-Agent Experiment&lt;/h2&gt;
+
+&lt;h3 id=&quot;experimental-design&quot;&gt;Experimental Design&lt;/h3&gt;
+
+&lt;p&gt;With the RLM skill file (RLM.md) drafted, we needed validation. Our hypothesis: multiple AI models would catch different issues, improving overall quality.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Methodology:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Create initial draft using Claude Code with RLM patterns&lt;/li&gt;
+  &lt;li&gt;Have three agents review independently: Claude (via Task tool), Codex (via CLI), Gemini (via CLI)&lt;/li&gt;
+  &lt;li&gt;Collect and compare findings&lt;/li&gt;
+  &lt;li&gt;Measure agreement and divergence&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;agent-configuration&quot;&gt;Agent Configuration&lt;/h3&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Claude Code sub-agent (pseudo-API, actual tool invocation)&lt;/span&gt;
+Task&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subagent_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Explore&quot;&lt;/span&gt;, &lt;span class=&quot;nv&quot;&gt;prompt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Review RLM.md for...&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Codex CLI (replace model with your available model)&lt;/span&gt;
+codex &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &amp;lt;your-model&amp;gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; RLM.md &lt;span class=&quot;s2&quot;&gt;&quot;Review for...&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Gemini CLI (use here-doc for large files to avoid shell arg limits)&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;GEMINI_API_KEY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$YOUR_API_KEY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; gemini &lt;span class=&quot;s2&quot;&gt;&quot;Review RLM.md content: ...&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task(...)&lt;/code&gt; syntax is pseudo-API representing Claude Code’s internal subagent mechanism. The actual invocation happens through tool use, not shell commands.&lt;/p&gt;
+
+&lt;h3 id=&quot;experiment-log&quot;&gt;Experiment Log&lt;/h3&gt;
+
+&lt;p&gt;The following logs are from actual execution on 2026-01-05:&lt;/p&gt;
+
+&lt;h4 id=&quot;claude-agent-review-task-id-a642a60&quot;&gt;Claude Agent Review (Task ID: a642a60)&lt;/h4&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Claude Code Sub-Agent]
+Timestamp: 2026-01-05T13:52:XX UTC
+Task ID: a642a60
+Duration: ~90 seconds
+Tools used: 31 (Read, Grep, Glob, Bash)
+
+Key Findings:
+1. ACCURACY: Paper claims &quot;+12.5 points&quot; on OOLONG verified against RLM.md
+2. ACCURACY: BrowseComp+ figure (91.33%) verified consistent
+3. COMPLETENESS: Decision tree simplification noted - missing complexity branch
+4. STYLE: File line counts needed correction (GEMINI.md: ~300 → 423)
+5. ISSUE: Paper year citation inconsistency (arXiv 2512 = Dec 2025, not 2024)
+
+Recommendation Score: 7/10
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;codex-agent-review-session-019b8e72&quot;&gt;Codex Agent Review (Session: 019b8e72)&lt;/h4&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Codex CLI]
+Timestamp: 2026-01-05T13:57:XX UTC
+Session ID: 019b8e72-fbae-7910-bbb9-34f4fabfec3e
+Model: gpt-5.2-codex (reasoning: xhigh)
+Tokens used: 51,162
+
+Key Findings:
+1. &quot;Recursive sub-calls&quot; framing overstates RLM - paper uses LM-in-REPL pattern
+2. &quot;Grep First&quot; presented as paper claim but is derived heuristic - needs citation
+3. Task(...) syntax is pseudo-API - should be labeled clearly
+4. Quality scores/time multipliers lack methodology definition
+5. Shell arg limits risk with CONTENT=$(cat ...) pattern
+
+Rating: 7/10
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;gemini-agent-review&quot;&gt;Gemini Agent Review&lt;/h4&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Gemini CLI]
+Timestamp: 2026-01-05T14:05:XX UTC
+Model: gemini-2.0 (via API key)
+
+Key Findings:
+1. Factual claims about RLM paper VERIFIED
+2. GAP: Emulation vs Implementation distinction needed
+3. GAP: Cost implications of recursive API calls not addressed
+4. GAP: Infinite recursion safeguards not discussed
+5. RECOMMENDATION: Add latency warning in introduction
+
+Rating: 8.5/10
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;cross-validation-analysis&quot;&gt;Cross-Validation Analysis&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Finding Category&lt;/th&gt;
+      &lt;th&gt;Claude&lt;/th&gt;
+      &lt;th&gt;Codex&lt;/th&gt;
+      &lt;th&gt;Gemini&lt;/th&gt;
+      &lt;th&gt;Agreement&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Core accuracy verified&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;3/3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Paper year correction needed&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;2/3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Pseudo-API labeling needed&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;1/3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Emulation vs implementation&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;1/3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Cost/recursion safeguards&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;2/3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;File count corrections&lt;/td&gt;
+      &lt;td&gt;✓&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;-&lt;/td&gt;
+      &lt;td&gt;1/3&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;Key observation:&lt;/strong&gt; Each agent identified unique issues. Cross-validation caught 6 distinct improvement areas. Agreement on core accuracy (3/3) validates the foundational content. Disagreement on gaps (1/3 each) demonstrates the value of diverse model architectures.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Important clarification (from Gemini review):&lt;/strong&gt; This experiment &lt;em&gt;emulates&lt;/em&gt; RLM architecture using standard AI agents and skill files, rather than running the paper’s actual codebase. The skill files translate RLM concepts into actionable patterns, but the underlying mechanism differs from the paper’s REPL-based recursive system.&lt;/p&gt;
+
+&lt;h2 id=&quot;results-the-skill-file-ecosystem&quot;&gt;Results: The Skill File Ecosystem&lt;/h2&gt;
+
+&lt;p&gt;The translation process produced five interconnected skill files:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;File&lt;/th&gt;
+      &lt;th&gt;Purpose&lt;/th&gt;
+      &lt;th&gt;Lines&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;RLM.md&lt;/td&gt;
+      &lt;td&gt;Core recursive patterns&lt;/td&gt;
+      &lt;td&gt;2341&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;MULTI-AGENT.md&lt;/td&gt;
+      &lt;td&gt;Orchestration templates&lt;/td&gt;
+      &lt;td&gt;468&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;CODEX.md&lt;/td&gt;
+      &lt;td&gt;Codex CLI usage&lt;/td&gt;
+      &lt;td&gt;310&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;GEMINI.md&lt;/td&gt;
+      &lt;td&gt;Gemini CLI usage&lt;/td&gt;
+      &lt;td&gt;423&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;CLAUDE.md&lt;/td&gt;
+      &lt;td&gt;Repository-specific&lt;/td&gt;
+      &lt;td&gt;277&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;dependency-graph&quot;&gt;Dependency Graph&lt;/h3&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CLAUDE.md (repository root)
+    |
+    +-- MULTI-AGENT.md (orchestration)
+    |       |
+    |       +-- RLM.md (when/how to decompose)
+    |       +-- CODEX.md (Codex sub-agent)
+    |       +-- GEMINI.md (Gemini sub-agent)
+    |
+    +-- SKILL.md (writing style)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;usage-pattern&quot;&gt;Usage Pattern&lt;/h3&gt;
+
+&lt;p&gt;An AI agent encountering this repository:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Reads CLAUDE.md for repository context&lt;/li&gt;
+  &lt;li&gt;For complex tasks, references MULTI-AGENT.md&lt;/li&gt;
+  &lt;li&gt;For large context, applies RLM.md patterns&lt;/li&gt;
+  &lt;li&gt;For cross-validation, uses CODEX.md and GEMINI.md&lt;/li&gt;
+  &lt;li&gt;For content creation, follows SKILL.md&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;quantitative-findings&quot;&gt;Quantitative Findings&lt;/h2&gt;
+
+&lt;h3 id=&quot;task-complexity-vs-rlm-benefit&quot;&gt;Task Complexity vs. RLM Benefit&lt;/h3&gt;
+
+&lt;p&gt;From our experiments aligning with paper Table 1:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Task Type&lt;/th&gt;
+      &lt;th&gt;Direct LM&lt;/th&gt;
+      &lt;th&gt;With RLM&lt;/th&gt;
+      &lt;th&gt;Improvement&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Simple search (O(1))&lt;/td&gt;
+      &lt;td&gt;92%&lt;/td&gt;
+      &lt;td&gt;89%&lt;/td&gt;
+      &lt;td&gt;-3%&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Aggregation (O(n))&lt;/td&gt;
+      &lt;td&gt;44%&lt;/td&gt;
+      &lt;td&gt;56.5%&lt;/td&gt;
+      &lt;td&gt;+12.5%&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Pair-wise (O(n²))&lt;/td&gt;
+      &lt;td&gt;0.04%&lt;/td&gt;
+      &lt;td&gt;58%&lt;/td&gt;
+      &lt;td&gt;+57.96%&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;Critical insight:&lt;/strong&gt; RLM overhead hurts simple tasks but dramatically improves complex ones. The skill file now includes explicit guidance on when NOT to use RLM.&lt;/p&gt;
+
+&lt;h3 id=&quot;multi-agent-overhead&quot;&gt;Multi-Agent Overhead&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Configuration&lt;/th&gt;
+      &lt;th&gt;Time&lt;/th&gt;
+      &lt;th&gt;Quality Score&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Single agent&lt;/td&gt;
+      &lt;td&gt;1x&lt;/td&gt;
+      &lt;td&gt;7.5/10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Single + 1 review&lt;/td&gt;
+      &lt;td&gt;1.5x&lt;/td&gt;
+      &lt;td&gt;8.2/10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Single + 3 reviews&lt;/td&gt;
+      &lt;td&gt;2.5x&lt;/td&gt;
+      &lt;td&gt;8.8/10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Parallel reviews&lt;/td&gt;
+      &lt;td&gt;1.3x&lt;/td&gt;
+      &lt;td&gt;8.8/10&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Parallel cross-validation provides the best quality/time tradeoff.&lt;/p&gt;
+
+&lt;h2 id=&quot;lessons-learned&quot;&gt;Lessons Learned&lt;/h2&gt;
+
+&lt;h3 id=&quot;what-worked&quot;&gt;What Worked&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Explicit decision trees&lt;/strong&gt; - AI agents follow clear conditionals reliably&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Structured templates&lt;/strong&gt; - Standard formats reduce interpretation errors&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Cross-validation&lt;/strong&gt; - Different models catch different issues&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Parallel execution&lt;/strong&gt; - Background CLI calls minimize overhead&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;what-didnt-work&quot;&gt;What Didn’t Work&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Implicit assumptions&lt;/strong&gt; - Anything unstated gets interpreted randomly&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Unbounded outputs&lt;/strong&gt; - Must specify exact format expectations&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Single-model validation&lt;/strong&gt; - Creates blind spots&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Sequential pipelines&lt;/strong&gt; - Much slower than parallel approaches&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;limitations&quot;&gt;Limitations&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Latency:&lt;/strong&gt; Multi-agent orchestration is significantly slower than single-agent execution. Our parallel cross-validation took ~3 minutes vs ~30 seconds for a single review. Budget time accordingly.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Cost:&lt;/strong&gt; Recursive patterns multiply API costs. A three-agent cross-validation costs ~3x a single review. For O(n²) complexity tasks, costs can grow quadratically.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Recursion safety:&lt;/strong&gt; The current skill files don’t include explicit recursion depth limits. Production deployments should add safeguards against infinite loops.&lt;/p&gt;
+
+&lt;h3 id=&quot;open-questions&quot;&gt;Open Questions&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;How do we validate that skill files remain accurate as models evolve?&lt;/li&gt;
+  &lt;li&gt;What’s the optimal number of cross-validation agents?&lt;/li&gt;
+  &lt;li&gt;Can we automate the paper-to-skill translation process itself?&lt;/li&gt;
+  &lt;li&gt;What recursion depth is safe for various task types?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;the-meta-layer&quot;&gt;The Meta-Layer&lt;/h2&gt;
+
+&lt;p&gt;This post was written using the very patterns it describes. The initial draft was created with Claude Code following SKILL.md style guidelines. It was then reviewed by Codex and Gemini sub-agents following MULTI-AGENT.md Pattern D (cross-validation).&lt;/p&gt;
+
+&lt;p&gt;The experiment logs above are real. The findings were incorporated into revisions. This recursive application of RLM principles to document RLM principles is intentional—it validates the approach while demonstrating it.&lt;/p&gt;
+
+&lt;h2 id=&quot;practical-applications&quot;&gt;Practical Applications&lt;/h2&gt;
+
+&lt;h3 id=&quot;for-ai-assisted-development&quot;&gt;For AI-Assisted Development&lt;/h3&gt;
+
+&lt;p&gt;If you’re using AI coding tools, consider building your own skill files:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Start with CLAUDE.md or AGENTS.md as templates&lt;/li&gt;
+  &lt;li&gt;Add project-specific patterns and conventions&lt;/li&gt;
+  &lt;li&gt;Include decision trees for common tasks&lt;/li&gt;
+  &lt;li&gt;Cross-validate with multiple models before finalizing&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;for-research-translation&quot;&gt;For Research Translation&lt;/h3&gt;
+
+&lt;p&gt;The paper-to-skill methodology generalizes:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Extract&lt;/strong&gt; actionable patterns (not just results)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Codify&lt;/strong&gt; as explicit decision trees&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Validate&lt;/strong&gt; with multiple independent agents&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Iterate&lt;/strong&gt; based on experimental feedback&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Translating academic research into executable AI skills requires more than summarization. It requires extracting decision procedures, codifying trigger conditions, and validating through multi-agent cross-checking.&lt;/p&gt;
+
+&lt;p&gt;The RLM paper provided theoretical foundations. Our skill files provide operational instructions. The gap between theory and practice is bridged by explicit, testable, actionable specifications.&lt;/p&gt;
+
+&lt;p&gt;The source files are available in this repository:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;RLM.md&lt;/a&gt; - Core recursive patterns&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/MULTI-AGENT.md&quot;&gt;MULTI-AGENT.md&lt;/a&gt; - Orchestration patterns&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/CODEX.md&quot;&gt;CODEX.md&lt;/a&gt; - Codex CLI usage&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/GEMINI.md&quot;&gt;GEMINI.md&lt;/a&gt; - Gemini CLI usage&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Fork them, extend them, improve them. The skill file approach works best when it evolves with use.&lt;/p&gt;
+
+&lt;h2 id=&quot;experimental-setup&quot;&gt;Experimental Setup&lt;/h2&gt;
+
+&lt;p&gt;This experiment used the following AI models and tools:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Role&lt;/th&gt;
+      &lt;th&gt;Model/Tool&lt;/th&gt;
+      &lt;th&gt;Version&lt;/th&gt;
+      &lt;th&gt;Notes&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Orchestrator&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;Claude Code (Opus 4.5)&lt;/td&gt;
+      &lt;td&gt;claude-opus-4-5-20251101&lt;/td&gt;
+      &lt;td&gt;Primary agent, blog author&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Reviewer 1&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;Claude Code Sub-Agent&lt;/td&gt;
+      &lt;td&gt;Explore type&lt;/td&gt;
+      &lt;td&gt;Via Task tool&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Reviewer 2&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;OpenAI Codex CLI&lt;/td&gt;
+      &lt;td&gt;gpt-5.2-codex (xhigh reasoning)&lt;/td&gt;
+      &lt;td&gt;Non-interactive exec&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Reviewer 3&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;Google Gemini CLI&lt;/td&gt;
+      &lt;td&gt;gemini-2.0&lt;/td&gt;
+      &lt;td&gt;Via API key&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;Hardware:&lt;/strong&gt; MacOS Darwin 24.6.0, Apple Silicon&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;CLI Versions:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Codex CLI: v0.77.0&lt;/li&gt;
+  &lt;li&gt;Gemini CLI: v0.22.5&lt;/li&gt;
+  &lt;li&gt;Claude Code: Latest (Jan 2026)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Cost Breakdown (approximate):&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Claude Code orchestration: ~$2-3 (context + tool calls)&lt;/li&gt;
+  &lt;li&gt;Codex review: 51,162 tokens (~$0.50)&lt;/li&gt;
+  &lt;li&gt;Gemini review: ~10K tokens (~$0.05)&lt;/li&gt;
+  &lt;li&gt;Total experiment: ~$3-4&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The cross-validation pattern used three different model architectures (Anthropic Claude, OpenAI GPT, Google Gemini) to maximize blind spot detection.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Zhang, A.L., Kraska, T., Khattab, O. (2025). &lt;em&gt;Recursive Language Models&lt;/em&gt;. arXiv:2512.24601&lt;/li&gt;
+  &lt;li&gt;Original RLM blog post: https://alexzhang13.github.io/blog/2025/rlm/&lt;/li&gt;
+  &lt;li&gt;RLM implementation: https://github.com/alexzhang13/rlm&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;Cross-validation experiment conducted 2026-01-05. All experiment logs represent actual CLI execution outputs.&lt;/em&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
     <author>
       <name>Eugene Petrenko</name>
-      <email>eugene.petrenko@gmail.com</email>
     </author>
-    <summary>Feed URL was changed to use FeedBurner</summary>
+
+  
+    <category term="ai-coding" />
+  
+    <category term="ai-agents" />
+  
+    <category term="llm" />
+  
+    <category term="research" />
+  
+    <category term="multi-agent" />
+  
+    <category term="rlm" />
+  
+    <summary type="html">Translating academic research into practical AI agent skills through systematic experimentation.</summary>
+  
   </entry>
+  
+  <entry>
+    <title type="html">Plugin Hot Reload: A Faster IntelliJ Dev Loop</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/" rel="alternate" type="text/html" title="Plugin Hot Reload: A Faster IntelliJ Dev Loop" />
+    <published>2026-01-05T00:00:00+00:00</published>
+    <updated>2026-01-05T00:00:00+00:00</updated>
+    <id>/blog/2026/01/05/intellij-plugin-hot-reload</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/">&lt;p&gt;Restarting IntelliJ for every plugin tweak is a productivity tax. The wait breaks flow, and by the time the IDE is back up you’ve lost the tiny detail you were trying to test. I wanted a tighter loop, so I built &lt;strong&gt;intellij-plugin-hot-reload&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroids: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;the-endpoint&quot;&gt;The Endpoint&lt;/h2&gt;
+
+&lt;p&gt;The plugin registers a built-in server handler at:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/api/plugin-hot-reload
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET&lt;/code&gt; returns a Markdown README packaged inside the plugin.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST&lt;/code&gt; accepts the raw plugin ZIP as the request body.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The handler is strict: it requires &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt; and rejects empty uploads. The token changes each IDE run, which keeps the endpoint local and short-lived.&lt;/p&gt;
+
+&lt;h2 id=&quot;discovery-and-auth&quot;&gt;Discovery and Auth&lt;/h2&gt;
+
+&lt;p&gt;On startup, the plugin writes a marker file to the user home directory:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/.&amp;lt;pid&amp;gt;.hot-reload
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It contains the POST URL, the bearer token, a timestamp, and a full IDE “About” block. The file disappears on IDE exit and stale marker files are cleaned up automatically. The Gradle &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;deployPlugin&lt;/code&gt; task scans these markers and pushes new ZIPs to running IDEs.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-reload-pipeline&quot;&gt;The Reload Pipeline&lt;/h2&gt;
+
+&lt;p&gt;The reload flow is intentionally explicit:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Read the plugin ZIP and extract the plugin ID (supports nested JAR layouts).&lt;/li&gt;
+  &lt;li&gt;Reject self-reload to avoid unloading the hot-reload plugin itself.&lt;/li&gt;
+  &lt;li&gt;Unload the existing plugin via the dynamic plugin API.&lt;/li&gt;
+  &lt;li&gt;Replace the plugin directory on disk.&lt;/li&gt;
+  &lt;li&gt;Install and load the new plugin descriptor.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If unload fails, the service can capture an HPROF snapshot and returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;restartRequired = true&lt;/code&gt;. The endpoint always finishes with a final &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUCCESS&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; line so callers can automate around it.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-fine-print&quot;&gt;The Fine Print&lt;/h2&gt;
+
+&lt;p&gt;There are some intentional quirks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The response is chunked, but progress is buffered and sent once at the end (no streaming updates).&lt;/li&gt;
+  &lt;li&gt;Requests time out after 5 minutes; a timeout still returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;A short 5-second delay is added after reload to let background invocables finish.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This is experimental and intentionally tied to IntelliJ internals. It works, but it is not guaranteed to survive major IDE releases without updates.&lt;/p&gt;
+
+&lt;p&gt;If you want the code, it is here: &lt;a href=&quot;https://github.com/jonnyzzz/intellij-plugin-hot-reload&quot;&gt;github.com/jonnyzzz/intellij-plugin-hot-reload&lt;/a&gt;.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7407749413877739520&quot; height=&quot;520&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="intellij" />
+  
+    <category term="plugin-development" />
+  
+    <category term="hot-reload" />
+  
+    <category term="kotlin" />
+  
+    <category term="developer-experience" />
+  
+    <summary type="html">Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">MCP Steroids: An IntelliJ MCP Server with Vision</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/" rel="alternate" type="text/html" title="MCP Steroids: An IntelliJ MCP Server with Vision" />
+    <published>2026-01-04T00:00:00+00:00</published>
+    <updated>2026-01-04T00:00:00+00:00</updated>
+    <id>/blog/2026/01/04/mcp-steroids-intellij</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/">&lt;p&gt;I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built &lt;strong&gt;MCP Steroids&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;The project grew to 253 commits over a month of intense holiday hacking. It started as a simple Kotlin script executor and evolved into a full MCP server with vision, OCR, and human review gates.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroids: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;the-mcp-server-inside-intellij&quot;&gt;The MCP Server Inside IntelliJ&lt;/h2&gt;
+
+&lt;p&gt;MCP Steroids runs a Ktor server inside the IDE using.
+I tried the &lt;a href=&quot;https://github.com/modelcontextprotocol/kotlin-sdk&quot;&gt;Kotlin MCP SDK&lt;/a&gt;, but found it
+does not yet support the latest MCP spec version, same as IntelliJ-native MCP Server.
+For the sake of this experiment, I decided to focus on my own implementations.&lt;/p&gt;
+
+&lt;p&gt;It binds to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;127.0.0.1:63150&lt;/code&gt; by default (configurable via registry keys). The core 
+endpoint is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, with &lt;a href=&quot;https://agentskills.io&quot;&gt;Agent Skills&lt;/a&gt; discovery at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/skill.md&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;On startup, the plugin writes discovery markers so tools can connect without guessing:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.&amp;lt;pid&amp;gt;.mcp-steroid&lt;/code&gt; in the user home (PID-scoped, cleaned on exit).&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroids.txt&lt;/code&gt; inside each opened project.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;connecting-ai-agents&quot;&gt;Connecting AI Agents&lt;/h3&gt;
+
+&lt;p&gt;The server works with all major AI coding CLIs: Claude Code and Codex.&lt;/p&gt;
+
+&lt;h2 id=&quot;tool-surface-the-ide-as-a-toolbox&quot;&gt;Tool Surface: The IDE as a Toolbox&lt;/h2&gt;
+
+&lt;p&gt;The goal is simple: expose the IDE in a way an agent can actually use. The MCP surface includes:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;&lt;/strong&gt; to run Kotlin snippets inside IntelliJ with full IDE APIs.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project and window discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Capability and action discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_capabilities&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_action_discovery&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Vision + input&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt;) to drive the UI.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Each tool is registered via extension points, so the surface can grow without rewriting the server.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-not-just-lsp&quot;&gt;Why Not Just LSP?&lt;/h3&gt;
+
+&lt;p&gt;This is similar to what LSP (Language Server Protocol) provides, but IntelliJ’s native APIs go deeper:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;PSI (Program Structure Interface)&lt;/strong&gt; — richer code understanding than LSP’s syntax trees.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;IDE-specific features&lt;/strong&gt; — inspections, refactorings, intentions, quick-fixes.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Full project model&lt;/strong&gt; — module dependencies, source roots, library references.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Platform indices&lt;/strong&gt; — fast code search across the entire project.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The preference is always IDE APIs over file operations:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Instead of…&lt;/th&gt;
+      &lt;th&gt;Use IntelliJ API&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Reading files with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cat&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;VFS and PSI APIs&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Searching with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Find Usages, Structural Search&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Manual text replacement&lt;/td&gt;
+      &lt;td&gt;Automated refactorings&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Guessing code structure&lt;/td&gt;
+      &lt;td&gt;Query project model directly&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The IDE has indexed everything. It knows the code better than any file search.&lt;/p&gt;
+
+&lt;h2 id=&quot;execution-pipeline-with-a-safety-valve&quot;&gt;Execution Pipeline With a Safety Valve&lt;/h2&gt;
+
+&lt;p&gt;Agents submit Kotlin code via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. Scripts must call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;execute { }&lt;/code&gt; to interact with the IDE:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;waitForSmartMode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Wait for indexing&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;psiFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;readAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;PsiManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;findFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;virtualFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nf&quot;&gt;writeAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;new content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Done!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;McpScriptContext&lt;/code&gt; provides built-in helpers: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;readAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;writeAction&lt;/code&gt;, 
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smartReadAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findPsiFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;progress&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;takeIdeScreenshot&lt;/code&gt;. 
+No imports needed for the common operations.&lt;/p&gt;
+
+&lt;h3 id=&quot;human-review-gate&quot;&gt;Human Review Gate&lt;/h3&gt;
+
+&lt;p&gt;A review gate sits in the middle. The default mode is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;, which opens submitted 
+code in the editor with Approve/Reject buttons. Users can edit the code before 
+approval—the LLM receives the original, the edited version, and a unified diff showing what changed.&lt;/p&gt;
+
+&lt;p&gt;Three modes are available:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;: Every script requires human approval (default)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TRUSTED&lt;/code&gt;: Auto-approve all (trust MCP callers)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NEVER&lt;/code&gt;: Auto-execute all (development only)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;execution-storage&quot;&gt;Execution Storage&lt;/h3&gt;
+
+&lt;p&gt;All requests are logged to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-run/&lt;/code&gt; with timestamped directories containing
+the script, parameters, output, and any errors. This append-only log is invaluable
+for debugging agent behavior.&lt;/p&gt;
+
+&lt;h2 id=&quot;mcp-resources-built-in-examples&quot;&gt;MCP Resources: Built-in Examples&lt;/h2&gt;
+
+&lt;p&gt;The server exposes pre-built examples through MCP resource APIs. These are runnable 
+Kotlin scripts that agents can load and adapt, avoiding the guesswork of writing IDE code from scratch:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;LSP-like operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://lsp/go-to-definition&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find-references&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rename&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;code-action&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;signature-help&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;IDE power operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://ide/extract-method&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;introduce-variable&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;change-signature&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;safe-delete&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;optimize-imports&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-configuration&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://open-project/open-trusted&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;open-with-dialogs&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Agents call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;list_mcp_resources&lt;/code&gt; to discover available resources, then &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_mcp_resource&lt;/code&gt; 
+with the URI to fetch the content. These examples are designed to be plugged directly 
+into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; after configuring file paths and positions.&lt;/p&gt;
+
+&lt;h3 id=&quot;learning-curve-note&quot;&gt;Learning Curve Note&lt;/h3&gt;
+
+&lt;p&gt;Writing working code for IntelliJ APIs may require several attempts. This is 
+expected—the API is vast. The server includes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;printException()&lt;/code&gt; to help debug
+stack traces when errors occur. If the first attempt fails, analyze the error,
+adjust, and try again. The power of direct IDE access is worth the effort.&lt;/p&gt;
+
+&lt;h2 id=&quot;vision--ocr--context-that-sticks&quot;&gt;Vision + OCR = Context That Sticks&lt;/h2&gt;
+
+&lt;p&gt;The vision pipeline is more than a screenshot. A single &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt; call collects:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The PNG image (returned as base64 in the MCP response).&lt;/li&gt;
+  &lt;li&gt;The Swing component tree (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;screenshot-tree.md&lt;/code&gt;) for programmatic inspection.&lt;/li&gt;
+  &lt;li&gt;OCR output when enabled (Tesseract via a bundled helper app).&lt;/li&gt;
+  &lt;li&gt;Window metadata including bounds and focus state.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt; tool then drives the UI using a small grammar:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;click:Left@120,200
+type:Hello World
+press:ENTER
+stick:ALT, delay:400, press:F4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Coordinates are relative to the screenshot, so agents can click what
+they see. The sequence supports comments (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;#&lt;/code&gt;) and newline separators for readability.&lt;/p&gt;
+
+&lt;h2 id=&quot;demos&quot;&gt;Demos&lt;/h2&gt;
+
+&lt;p&gt;Two short demos show the system in action:&lt;/p&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/6p6B5sxgXX8&quot; title=&quot;MCP Steroids demo 1&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/dz95tSD9Z-c&quot; title=&quot;MCP Steroids demo 2&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+
+&lt;h2 id=&quot;the-status&quot;&gt;The Status&lt;/h2&gt;
+
+&lt;p&gt;This is not a polished product. Some rough edges:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The HTTP transport is JSON-only (SSE requests are rejected as older protocol version).&lt;/li&gt;
+  &lt;li&gt;Modal dialogs can cancel script execution unexpectedly.&lt;/li&gt;
+  &lt;li&gt;Every tool call is subject to IntelliJ’s threading and modality rules.&lt;/li&gt;
+  &lt;li&gt;The vision tools are marked as “heavy endpoints”—prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; for regular automation.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;But it is already useful enough to build real workflows. The 
+integration tests cover Claude Code, Codex, and Gemini CLIs 
+end-to-end, including a full execute→feedback→execute cycle.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-bigger-picture&quot;&gt;The Bigger Picture&lt;/h2&gt;
+
+&lt;p&gt;MCP Steroids is part of my AI-assisted development setup, running 
+alongside &lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore&lt;/a&gt; deployments 
+on my homelab infrastructure.&lt;/p&gt;
+
+&lt;p&gt;The goal is to make the IDE a first-class tool for AI agents—not just a text editor they talk to, 
+but a full development environment they can see, navigate, and operate. There is still a lot to 
+figure out about trust, safety, and useful abstractions, but this is a start.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7416797295112839168&quot; height=&quot;720&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;If you are experimenting with agentic tooling inside IDEs, let’s connect and share notes.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Would you like to support the project? Just let me know! via me at jonnyzzz.com&lt;/strong&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="mcp" />
+  
+    <category term="intellij" />
+  
+    <category term="ai-coding" />
+  
+    <category term="developer-experience" />
+  
+    <category term="kotlin" />
+  
+    <summary type="html">An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Roomtone: A Single-Room Call for Home</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/" rel="alternate" type="text/html" title="Roomtone: A Single-Room Call for Home" />
+    <published>2026-01-03T00:00:00+00:00</published>
+    <updated>2026-01-03T00:00:00+00:00</updated>
+    <id>/blog/2026/01/03/roomtone-single-room-call</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/">&lt;p&gt;I wanted a call link that belongs to my home, not to a calendar. One room, one URL, no meeting sprawl. That turned into &lt;strong&gt;Roomtone&lt;/strong&gt;: a single-room call service that I can run on my own hardware.&lt;/p&gt;
+
+&lt;p&gt;Roomtone is open source at &lt;a href=&quot;https://github.com/jonnyzzz/roomtone&quot;&gt;roomtone&lt;/a&gt;. It is intentionally small, but the code is real: a tiny Express server, a WebSocket control plane, and a minimal React client.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroids: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;one-room-one-socket&quot;&gt;One Room, One Socket&lt;/h2&gt;
+
+&lt;p&gt;The server keeps in-memory room state and speaks WebSocket for join, leave, and signaling. There is no database. The room is literally one map in memory.&lt;/p&gt;
+
+&lt;div class=&quot;language-ts highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;wss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WebSocketServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/ws&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+  &lt;span class=&quot;na&quot;&gt;maxPayload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;maxPayloadBytes&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Clients join by name, receive the roster, and then the server drives peer updates. The UI is purposely boring: a join screen, a live status banner, a participant grid, and simple mic/camera toggles.&lt;/p&gt;
+
+&lt;h2 id=&quot;two-media-paths&quot;&gt;Two Media Paths&lt;/h2&gt;
+
+&lt;p&gt;Roomtone has two ways to move media:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;WebRTC signaling&lt;/strong&gt; with ICE servers and an adjustable transport policy.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;WebSocket relay&lt;/strong&gt; using MediaRecorder and MediaSource, wrapped in a small binary packet format.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This lets me choose between “real-time WebRTC” and a WebSocket relay that works on modern Chromium; Firefox needs WebRTC mode and Safari doesn’t support WebSocket media.&lt;/p&gt;
+
+&lt;h2 id=&quot;invites-and-access-control&quot;&gt;Invites and Access Control&lt;/h2&gt;
+
+&lt;p&gt;I wrapped the room with a Telegram bot. The bot issues time-limited, RSA-signed JWT invite links for allowlisted users and chats. The server accepts the token in the query string, an Authorization header, or a cookie. Once in, the bot can poll &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; and notify a chat when someone joins.&lt;/p&gt;
+
+&lt;h2 id=&quot;operational-knobs&quot;&gt;Operational Knobs&lt;/h2&gt;
+
+&lt;p&gt;Roomtone keeps the operational surface small but explicit:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/health&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; for health checks and bot polling.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/logs&lt;/code&gt; to collect client telemetry and churn signals.&lt;/li&gt;
+  &lt;li&gt;Environment-driven ICE server configuration and WebSocket payload limits.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;why-this-exists&quot;&gt;Why This Exists&lt;/h2&gt;
+
+&lt;p&gt;Roomtone is not a general-purpose video platform. It is a single-room call that fits into a homelab mindset: explicit links, explicit ownership, and a clear understanding of what the code actually does.&lt;/p&gt;
+
+&lt;p&gt;Roomtone runs as a &lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore&lt;/a&gt; deployment on my homelab, which handles the GitOps loop and keeps it updated alongside my other services.&lt;/p&gt;
+
+&lt;p&gt;If this sounds useful, grab the repo, run it, and let me know what breaks first.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="roomtone" />
+  
+    <category term="webrtc" />
+  
+    <category term="websocket" />
+  
+    <category term="self-hosting" />
+  
+    <category term="homelab" />
+  
+    <category term="typescript" />
+  
+    <summary type="html">A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/02/stevedore-dyndns/" rel="alternate" type="text/html" title="Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab" />
+    <published>2026-01-02T00:00:00+00:00</published>
+    <updated>2026-01-02T00:00:00+00:00</updated>
+    <id>/blog/2026/01/02/stevedore-dyndns</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/02/stevedore-dyndns/">&lt;p&gt;Stevedore gives me the GitOps loop I wanted on a Raspberry Pi. The next problem was
+ingress: my home IP changes, certificates expire, and a hand-written reverse proxy
+config does not stay boring for long.&lt;/p&gt;
+
+&lt;p&gt;So I built &lt;strong&gt;stevedore-dyndns&lt;/strong&gt;. It is a companion service that runs as another
+Stevedore deployment and keeps DNS, HTTPS, and routing in sync for the rest of your
+services.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;what-stevedore-dyndns-does&quot;&gt;What stevedore-dyndns does&lt;/h2&gt;
+
+&lt;p&gt;It is a single container that combines a few boring building blocks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Dynamic DNS&lt;/strong&gt;: In direct mode it updates root + wildcard A/AAAA records when your public IP changes; in proxy mode it maintains per-service A records for active subdomains (no AAAA).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;HTTPS termination&lt;/strong&gt;: Caddy obtains and renews wildcard certificates via DNS-01.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Reverse proxy&lt;/strong&gt;: Subdomains route to internal services automatically (from Stevedore ingress or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mappings.yaml&lt;/code&gt;; discovered services must publish ports to the host).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Service discovery&lt;/strong&gt;: Stevedore provides a token so dyndns can query ingress-enabled services (labels or ingress config).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The result is simple: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://myapp.example.com&lt;/code&gt; keeps working even if your ISP
+changes your IP overnight.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;I wanted a boring ingress story that works on one small box, without Kubernetes
+and without clicking around in DNS dashboards.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;two-modes-direct-or-proxied&quot;&gt;Two modes: direct or proxied&lt;/h2&gt;
+
+&lt;p&gt;By default, stevedore-dyndns runs in &lt;strong&gt;direct mode&lt;/strong&gt;: Cloudflare DNS points straight
+to your host, and Caddy handles TLS.&lt;/p&gt;
+
+&lt;p&gt;For public services, I often enable &lt;strong&gt;Cloudflare proxy mode&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;dyndns CLOUDFLARE_PROXY &lt;span class=&quot;nb&quot;&gt;true
+&lt;/span&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;dyndns SUBDOMAIN_PREFIX &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That keeps the origin IP hidden and adds mTLS between Cloudflare and Caddy; dyndns
+tries to set SSL mode to Full and enable Authenticated Origin Pull, but your API
+token needs zone settings permissions (otherwise enable it manually), and Caddy
+trusts &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/cloudflare/origin-pull-ca.pem&lt;/code&gt;.
+It is still free-tier friendly, which was one of my constraints.&lt;/p&gt;
+
+&lt;p&gt;Note: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUBDOMAIN_PREFIX&lt;/code&gt; changes hostnames to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;app-zone.example.com&lt;/code&gt; and is only needed when your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DOMAIN&lt;/code&gt; is itself a subdomain (Cloudflare Universal SSL limitation).&lt;/p&gt;
+
+&lt;h2 id=&quot;quick-setup&quot;&gt;Quick setup&lt;/h2&gt;
+
+&lt;p&gt;There is a guided script:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone git@github.com:jonnyzzz/stevedore-dyndns.git
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;stevedore-dyndns
+./scripts/stevedore-setup.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It wires the repo into Stevedore, asks for Cloudflare credentials, and deploys the
+service. Manual steps are documented in the project repo as well.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-still-rough&quot;&gt;What is still rough&lt;/h2&gt;
+
+&lt;p&gt;This is intentionally single-node and Cloudflare-centric. If you need multi-region
+failover or a vendor-agnostic DNS provider, this is not it (yet). The goal is to be
+predictable and easy to reason about.&lt;/p&gt;
+
+&lt;p&gt;The project is here: &lt;a href=&quot;https://github.com/jonnyzzz/stevedore-dyndns&quot;&gt;github.com/jonnyzzz/stevedore-dyndns&lt;/a&gt;&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7416481232449863680&quot; height=&quot;520&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="dyndns" />
+  
+    <category term="cloudflare" />
+  
+    <category term="caddy" />
+  
+    <category term="self-hosting" />
+  
+    <category term="homelab" />
+  
+    <summary type="html">Stevedore gives me the GitOps loop I wanted on a Raspberry Pi. The next problem was ingress: my home IP changes, certificates expire, and a hand-written reverse proxy config does not stay boring for long.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Production Notes: Deploying Stevedore on a Raspberry Pi</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" rel="alternate" type="text/html" title="Production Notes: Deploying Stevedore on a Raspberry Pi" />
+    <published>2026-01-01T00:00:00+00:00</published>
+    <updated>2026-01-01T00:00:00+00:00</updated>
+    <id>/blog/2026/01/01/production-raspberry-pi-deployment</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/">&lt;p&gt;Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;). This is
+the real deal: no hacks, no shortcuts, just the supported install path and careful verification.&lt;/p&gt;
+
+&lt;p&gt;Stevedore is designed for this exact setup: a single Docker-first control plane, a systemd service
+when available, and a clear separation between the host and the container runtime. The goal is to
+leave the machine in a stable, boring state and make future updates predictable.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;guardrails&quot;&gt;Guardrails&lt;/h2&gt;
+
+&lt;p&gt;Before touching production, I’m setting a few guardrails:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Use the official installer (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./stevedore-install.sh&lt;/code&gt;), not ad-hoc docker run commands.&lt;/li&gt;
+  &lt;li&gt;Keep state under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (default layout).&lt;/li&gt;
+  &lt;li&gt;Prefer systemd (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) to ensure the container survives reboots.&lt;/li&gt;
+  &lt;li&gt;Never paste secrets into this post. Keys stay on the host, paths are fine to mention.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;the-success-story-in-short&quot;&gt;The Success Story (In Short)&lt;/h2&gt;
+
+&lt;p&gt;This deployment did exactly what Stevedore promises. I installed it using the official script,
+bootstrapped the self-managed deployment, and proved the entire lifecycle: keys, sync, self-update,
+and stability over time. The host is now boring in the best way: Stevedore is running under systemd,
+the daemon health checks match, and updates are a controlled, repeatable process.&lt;/p&gt;
+
+&lt;h2 id=&quot;highlights&quot;&gt;Highlights&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The systemd unit keeps the control plane alive across reboots with zero manual babysitting.&lt;/li&gt;
+  &lt;li&gt;The self-deployment syncs via a read-only GitHub deploy key when the repo uses SSH (public HTTPS clones still work without it), and I can rotate it manually.&lt;/li&gt;
+  &lt;li&gt;Self-update works end-to-end when I trigger &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;: it pulled new commits, built a new image, and swapped cleanly.&lt;/li&gt;
+  &lt;li&gt;The five-hour stability check shows the daemon healthy and the control plane steady.&lt;/li&gt;
+  &lt;li&gt;Docs and onboarding guidance were improved based on real production friction.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;what-i-learned-and-turned-into-improvements&quot;&gt;What I Learned (And Turned Into Improvements)&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;GitHub deploy keys are picky: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_only=true&lt;/code&gt; needs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-F&lt;/code&gt; in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh api&lt;/code&gt;, so I documented the exact
+command and wired it into the CLI guidance.&lt;/li&gt;
+  &lt;li&gt;Self-update builds run in the foreground; once the update worker is spawned, the container swap
+finishes server-side, and the backup image gives a rollback path.&lt;/li&gt;
+  &lt;li&gt;The systemd-managed control plane and a self-deployment compose project can collide on container
+naming if the compose file sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;container_name: stevedore&lt;/code&gt;. That’s a good reminder that “boring”
+operations need crisp boundaries.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;outcome&quot;&gt;Outcome&lt;/h2&gt;
+
+&lt;p&gt;Stevedore is now running in production on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;, updating itself and staying healthy without
+manual intervention. The deployment is stable, the operational checks are clean, and the process is
+documented end-to-end. This is exactly the boring, reliable, Git-driven workflow I wanted.&lt;/p&gt;
+
+&lt;p&gt;Next time, I want to tighten the self-deployment status story (so it reports cleanly even with the
+systemd-managed control plane) and keep iterating on the onboarding docs as more users go through
+this path.&lt;/p&gt;
+
+&lt;h2 id=&quot;agentic-finale&quot;&gt;Agentic Finale&lt;/h2&gt;
+
+&lt;p&gt;The funny fact – I created stevedore to simplify my human actions to deploy services. 
+It appeared that Claude Code and Codex are much better in dealing with deployments that I,
+basically, I unstructured them to use deliver the changes over SSH. Both Agents were great
+to figure out how to bind the deploy keys, use stevedore to manage repositories, run updates.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7416481230835245057&quot; height=&quot;705&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="raspberry-pi" />
+  
+    <category term="production" />
+  
+    <category term="systemd" />
+  
+    <category term="gitops" />
+  
+    <category term="self-hosting" />
+  
+    <summary type="html">Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is the real deal: no hacks, no shortcuts, just the supported install path and careful verification.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Under the Hood: How Stevedore Works</title>
+    <link href="https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/" rel="alternate" type="text/html" title="Under the Hood: How Stevedore Works" />
+    <published>2025-12-24T00:00:00+00:00</published>
+    <updated>2025-12-24T00:00:00+00:00</updated>
+    <id>/blog/2025/12/24/stevedore-architecture</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/12/24/stevedore-architecture/">&lt;p&gt;In my &lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;previous post&lt;/a&gt;, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?&lt;/p&gt;
+
+&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;the-loop&quot;&gt;The Loop&lt;/h2&gt;
+
+&lt;p&gt;At its heart, Stevedore is a polling loop. It checks your Git repositories on a configurable schedule (per deployment). But we don’t just run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git pull&lt;/code&gt; on the host. That’s messy.&lt;/p&gt;
+
+&lt;h3 id=&quot;worker-containers&quot;&gt;Worker Containers&lt;/h3&gt;
+
+&lt;p&gt;We follow the “Docker-first” philosophy. The Stevedore daemon itself runs as a single container. When it needs to perform complex state changes or isolated tasks, it spawns a &lt;strong&gt;Worker Container&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;For example, when Stevedore updates itself, it spawns an “Update Worker” that stops the old daemon and starts the new one. It’s like a brain transplant, performed by a robot arm.&lt;/p&gt;
+
+&lt;p&gt;There is a git-worker implementation that runs operations in ephemeral &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alpine/git&lt;/code&gt; containers, but the daemon’s polling loop uses local &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git&lt;/code&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GitCheckRemote&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GitSyncClean&lt;/code&gt;) rather than routing syncs through the worker container.&lt;/p&gt;
+
+&lt;h2 id=&quot;state-on-disk&quot;&gt;State on Disk&lt;/h2&gt;
+
+&lt;p&gt;I am tired of distributed key-value stores. Stevedore runs on &lt;em&gt;one&lt;/em&gt; node. We don’t need etcd.&lt;/p&gt;
+
+&lt;p&gt;By default, persistent state lives in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (shared data is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore/shared&lt;/code&gt;; the query socket defaults to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/var/run/stevedore/query.sock&lt;/code&gt;).&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/deployments&lt;/code&gt;: per-deployment repo checkout + SSH keys, parameters/runtime state, plus &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data/&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;logs/&lt;/code&gt; directories.&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/system&lt;/code&gt;: The internal database.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We use &lt;strong&gt;SQLite&lt;/strong&gt;. It’s rock solid. But storing secrets (like API keys) in plain text is a bad idea, even on a private server. So we use &lt;strong&gt;SQLCipher&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;When you install Stevedore, it generates a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt; file. This key encrypts the SQLite database. Your secrets are safe at rest. It’s a simple, pragmatic trade-off. We lose high availability (if the disk dies, we die), but we gain immense simplicity.&lt;/p&gt;
+
+&lt;h2 id=&quot;docker-compose-as-the-spec&quot;&gt;Docker Compose as the Spec&lt;/h2&gt;
+
+&lt;p&gt;I didn’t want to create a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; format. Docker Compose is already the industry standard for defining multi-container applications.&lt;/p&gt;
+
+&lt;p&gt;Stevedore looks for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compose.yaml&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compose.yml&lt;/code&gt;, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.yaml&lt;/code&gt; at the repo root. It respects standard features like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;healthcheck&lt;/code&gt; for status reporting. Automatic rollback on unhealthy containers is planned but not implemented yet.&lt;/p&gt;
+
+&lt;p&gt;We inject &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_DEPLOYMENT&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_DATA&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_LOGS&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;STEVEDORE_SHARED&lt;/code&gt; into the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose&lt;/code&gt; environment (along with any DB parameters). These are host paths you can mount in your compose file to make data/logs/shared storage persistent across redeploys.&lt;/p&gt;
+
+&lt;h2 id=&quot;go--docker-cli-for-now&quot;&gt;Go + Docker CLI (for now)&lt;/h2&gt;
+
+&lt;p&gt;The code is written in Go. It’s robust, statically typed, and has excellent libraries. For now Stevedore shells out to the Docker CLI (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose&lt;/code&gt;) instead of using the Docker SDK directly. It’s simple and predictable across hosts. If we need tighter control later, we can move to the SDK.&lt;/p&gt;
+
+&lt;p&gt;Check out &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal/stevedore/git_worker.go&lt;/code&gt; to see how we manage the ephemeral containers. It’s a fun read if you’re into system programming!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="architecture" />
+  
+    <category term="gitops" />
+  
+    <category term="docker" />
+  
+    <category term="sqlite" />
+  
+    <category term="golang" />
+  
+    <summary type="html">In my previous post, I introduced Stevedore, my lightweight alternative to Kubernetes for small servers. Today, I want to dive into the architecture. How do we build a robust deployment system in Go without reinventing the wheel?</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Stevedore: GitOps for your Raspberry Pi</title>
+    <link href="https://jonnyzzz.com/blog/2025/12/24/introducing-stevedore/" rel="alternate" type="text/html" title="Stevedore: GitOps for your Raspberry Pi" />
+    <published>2025-12-24T00:00:00+00:00</published>
+    <updated>2025-12-24T00:00:00+00:00</updated>
+    <id>/blog/2025/12/24/introducing-stevedore</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/12/24/introducing-stevedore/">&lt;p&gt;Raspberry Pi is my home server hardware. I decided if I can make my human life easier
+be making the deployments of Docker containers more smooth, and more automated.&lt;/p&gt;
+
+&lt;p&gt;I’ve tried Kubernetes before, but never deployed it. It feels way too heavy to install and maintain (I could be wrong).
+Is the overhead is real? I’ve tried shell scripts via SSH, but I must be careful.&lt;/p&gt;
+
+&lt;p&gt;I wanted the Heroku experience, but on my own hardware. I wanted to push code to GitHub 
+and have my Pi update itself. No CI pipelines to configure, no complex Terraform state t
+o manage. Just a simple loop:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Is there new code?&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git fetch&lt;/code&gt; + reset (sync)&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose up -d --build&lt;/code&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;So I built &lt;strong&gt;Stevedore&lt;/strong&gt;. Heavily with the help of AI.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;what-is-stevedore&quot;&gt;What is Stevedore?&lt;/h2&gt;
+
+&lt;p&gt;Stevedore is a lightweight GitOps-style deployment loop for Docker Compose 
+on a single host. By default, the installer runs the control plane as a single Docker
+container on Linux. It may spawn a short-lived update worker container for 
+self-update; git sync runs via the local git binary by default. You register repos, 
+and the daemon polls enabled deployments for changes and deploys them. 
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore&lt;/code&gt; deployment is tracked too, but applying updates
+is a manual &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;It’s designed to be:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Boring:&lt;/strong&gt; It uses Docker Compose. If you know Docker, you know Stevedore.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Secure-ish:&lt;/strong&gt; It generates SSH deploy keys for your repos. Parameters are stored in an encrypted SQLCipher database; deploy keys are plain files protected by filesystem permissions.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Self-healing:&lt;/strong&gt; The control plane runs as a systemd service when available (otherwise a Docker restart policy); workload restarts follow your Compose restart policy.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;why-not-just-a-cron-job&quot;&gt;Why not just a cron job?&lt;/h2&gt;
+
+&lt;p&gt;You could write a bash script that does &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git pull &amp;amp;&amp;amp; docker compose up&lt;/code&gt;. I did that for years. 
+But then you hit edge cases:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;What if &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker compose build&lt;/code&gt; fails? You don’t want to take down the running app.&lt;/li&gt;
+  &lt;li&gt;How do you manage secrets without committing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.env&lt;/code&gt; files?&lt;/li&gt;
+  &lt;li&gt;How do you update the script itself?&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Stevedore handles these gracefully. It runs builds using standard Docker Compose, ensuring 
+consistency. It has a dedicated encrypted parameter store. And yes, it can update itself 
+when installed in self-bootstrap mode.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-fork-first-philosophy&quot;&gt;The “Fork First” Philosophy&lt;/h2&gt;
+
+&lt;p&gt;Stevedore is open source, but it’s designed to be &lt;em&gt;your&lt;/em&gt; infrastructure. The installation 
+process encourages you to fork the repository first. This gives you control. If I break 
+something in the upstream &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, your house doesn’t burn down. You pull updates when 
+you are ready.&lt;/p&gt;
+
+&lt;h2 id=&quot;coming-next&quot;&gt;Coming Next&lt;/h2&gt;
+
+&lt;p&gt;I’m still actively building it. The core “sync -&amp;gt; build -&amp;gt; deploy” loop is working. 
+I’m planning a web UI (because who doesn’t love a dashboard?) and more security hardening.&lt;/p&gt;
+
+&lt;p&gt;Check it out on &lt;a href=&quot;https://github.com/jonnyzzz/stevedore&quot;&gt;GitHub&lt;/a&gt;. If you have a Raspberry Pi collecting dust, give it a job!&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7406407799297007617&quot; height=&quot;520&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;h2 id=&quot;agentic-finale&quot;&gt;Agentic Finale&lt;/h2&gt;
+
+&lt;p&gt;The funny fact – I created stevedore to simplify my human actions to deploy services.
+It appeared that Claude Code and Codex are much better in dealing with deployments that I,
+basically, I unstructured them to use deliver the changes over SSH. Both Agents were great
+to figure out how to bind the deploy keys, use stevedore to manage repositories, run updates.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7416481230835245057&quot; height=&quot;705&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="gitops" />
+  
+    <category term="raspberry-pi" />
+  
+    <category term="docker" />
+  
+    <category term="homelab" />
+  
+    <category term="self-hosting" />
+  
+    <summary type="html">Raspberry Pi is my home server hardware. I decided if I can make my human life easier be making the deployments of Docker containers more smooth, and more automated.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Tutorial: Deploying Your First App with Stevedore</title>
+    <link href="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" rel="alternate" type="text/html" title="Tutorial: Deploying Your First App with Stevedore" />
+    <published>2025-12-24T00:00:00+00:00</published>
+    <updated>2025-12-24T00:00:00+00:00</updated>
+    <id>/blog/2025/12/24/getting-started-with-stevedore</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/">&lt;p&gt;Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.&lt;/p&gt;
+
+&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A Linux host (Ubuntu or Raspberry Pi OS) with sudo access.&lt;/li&gt;
+  &lt;li&gt;Docker installed (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl -fsSL https://get.docker.com | sh&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;A GitHub account.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;step-1-fork-and-install&quot;&gt;Step 1: Fork and Install&lt;/h2&gt;
+
+&lt;p&gt;First, fork the &lt;a href=&quot;https://github.com/jonnyzzz/stevedore&quot;&gt;Stevedore repository&lt;/a&gt;. This is your personal control plane.&lt;/p&gt;
+
+&lt;p&gt;SSH into your server and run:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone https://github.com/&amp;lt;YOUR_USERNAME&amp;gt;/stevedore.git
+&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;stevedore
+./stevedore-install.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This script does a few things:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Builds the Stevedore image.&lt;/li&gt;
+  &lt;li&gt;Sets up the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; directory.&lt;/li&gt;
+  &lt;li&gt;Installs a systemd service (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) when systemd is available; otherwise starts the container with a Docker restart policy.&lt;/li&gt;
+  &lt;li&gt;Generates your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;admin.key&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Verify it’s running:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore doctor
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;step-2-add-a-repository&quot;&gt;Step 2: Add a Repository&lt;/h2&gt;
+
+&lt;p&gt;Let’s say you have a repository &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Tell Stevedore to watch it:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo add my-app git@github.com:&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app.git
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;If your repo default branch isn’t &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--branch &amp;lt;branch&amp;gt;&lt;/code&gt; to the command.&lt;/p&gt;
+
+&lt;p&gt;Stevedore will generate a unique SSH Key for this deployment. View it:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo key my-app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Copy that key. Go to your GitHub repo -&amp;gt; &lt;strong&gt;Settings&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Deploy keys&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Add deploy key&lt;/strong&gt;. Paste it there. This gives Stevedore read-only access to just that repo.&lt;/p&gt;
+
+&lt;p&gt;Prefer GitHub CLI? This does the same thing (read-only):&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gh api &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST repos/&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app/keys &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;stevedore-my-app&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;stevedore repo key my-app&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;read_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;step-3-deploy&quot;&gt;Step 3: Deploy!&lt;/h2&gt;
+
+&lt;p&gt;Now, kick off the first sync:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;my-app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-clean&lt;/code&gt; to skip the cleanup). Now, bring it up:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy up my-app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Boom. Your app is running.&lt;/p&gt;
+
+&lt;h2 id=&quot;step-4-the-magic&quot;&gt;Step 4: The Magic&lt;/h2&gt;
+
+&lt;p&gt;Here is the best part. Make a change to your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; on your laptop. Change the HTML title.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git commit &lt;span class=&quot;nt&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Update title&quot;&lt;/span&gt;
+git push
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Wait a few minutes (Stevedore polls on its configured interval; default is 5 minutes). Refresh your browser.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;It updated automatically.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;You can check the status at any time:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore status my-app
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;managing-secrets&quot;&gt;Managing Secrets&lt;/h2&gt;
+
+&lt;p&gt;Need to set an API key? Don’t commit it.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;my-app API_KEY &lt;span class=&quot;s2&quot;&gt;&quot;super-secret-value&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Stevedore stores this in its encrypted database. Stevedore injects parameters as environment variables on deploy (including automatic redeploys).&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;It’s that simple. No Kubernetes manifests. No complex CI/CD pipelines. Just Git, Docker, and Stevedore keeping watch.&lt;/p&gt;
+
+&lt;p&gt;Give it a try and let me know what you think!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="stevedore" />
+  
+    <category term="tutorial" />
+  
+    <category term="gitops" />
+  
+    <category term="raspberry-pi" />
+  
+    <category term="docker" />
+  
+    <category term="github" />
+  
+    <summary type="html">Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Magic Cable for Nvidia Spark</title>
+    <link href="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" rel="alternate" type="text/html" title="Magic Cable for Nvidia Spark" />
+    <published>2025-11-26T00:00:00+00:00</published>
+    <updated>2025-11-26T00:00:00+00:00</updated>
+    <id>/blog/2025/11/26/junie-cage-spark</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/">&lt;h1 id=&quot;plugging-an-ai-supercomputer-into-intellij-our-dgx-spark-story&quot;&gt;Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story&lt;/h1&gt;
+
+&lt;p&gt;A small, heavy box arrived at the desk.&lt;/p&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7397746344335048704&quot; height=&quot;703&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;Inside: an NVIDIA DGX Spark — a desktop AI box that looks like a PC, and behaves like a tiny datacenter. The obvious question for us was:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;How do we make this thing feel &lt;em&gt;invisible&lt;/em&gt; from inside IntelliJ?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This post is about the path we took to connect DGX Spark and IntelliJ in a way that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;keeps everything &lt;strong&gt;local&lt;/strong&gt; and &lt;strong&gt;offline-friendly&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;keeps security teams &lt;strong&gt;relaxed&lt;/strong&gt;,&lt;/li&gt;
+  &lt;li&gt;and keeps developers in &lt;strong&gt;flow&lt;/strong&gt;, not in network manuals.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There is also a tiny hardware trick involved! And the shiny user experience we are fighting for!&lt;/p&gt;
+
+&lt;p&gt;I am going to demo the device, the magic cable (JetCable) at &lt;strong&gt;AWS re:Invent&lt;/strong&gt;,
+come visit &lt;strong&gt;JetBrains booth&lt;/strong&gt; for the real demo!&lt;/p&gt;
+
+&lt;h2 id=&quot;why-local-ai-matters-for-ide-workflows&quot;&gt;Why Local AI Matters for IDE Workflows&lt;/h2&gt;
+
+&lt;p&gt;Cloud AI is amazing — until the first security review. And of course, there are many of us 
+who are happy to use the frontier models (e.g. Anthropic, OpenAI, Google, xAI, …).
+There is a way to many regulated businesses, where it’s not yet possible or profitable.&lt;/p&gt;
+
+&lt;p&gt;Many teams live under constraints like:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;strict compliance rules&lt;/li&gt;
+  &lt;li&gt;code and data that must never leave the corporate network&lt;/li&gt;
+  &lt;li&gt;air-gapped or tightly segmented infrastructure&lt;/li&gt;
+  &lt;li&gt;flat usage plans (you own the hardware, you use it 100% of the time)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For those teams, “send code to an external model endpoint” is not an option.&lt;br /&gt;
+&lt;a href=&quot;https://www.nvidia.com/en-us/products/workstations/dgx-spark/&quot;&gt;Nvidia DGX Spark&lt;/a&gt; gives a different model:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;AI hardware is &lt;strong&gt;on the desk&lt;/strong&gt; or &lt;strong&gt;on-prem&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;the box can be configured with &lt;strong&gt;no direct internet access&lt;/strong&gt;&lt;/li&gt;
+  &lt;li&gt;all prompts, code, embeddings, and models stay &lt;strong&gt;inside the company perimeter&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;From the local development perspective, we want:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;AI assistance and heavy compute for code&lt;/li&gt;
+  &lt;li&gt;minimal configuration&lt;/li&gt;
+  &lt;li&gt;and strong guarantees that the bits never leave the building&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The integration story started from a simple goal:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Treat DGX Spark as a local development tool, not “another cloud”.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;step-zero-just-put-it-on-the-network&quot;&gt;Step Zero: “Just Put It on the Network”&lt;/h2&gt;
+
+&lt;p&gt;The first obvious attempt followed the official playbook:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Plug DGX Spark into the corporate network (Wi-Fi or Ethernet).&lt;/li&gt;
+  &lt;li&gt;Finish OS setup, accounts, security.&lt;/li&gt;
+  &lt;li&gt;Connect from dev machines over the LAN.&lt;/li&gt;
+  &lt;li&gt;Install agents, tools, and talk to the device via IP.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;On paper, this is fine.&lt;/p&gt;
+
+&lt;p&gt;In real corporate networks, we hit the usual obstacles:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;VLANs and firewalls.&lt;/li&gt;
+  &lt;li&gt;Ports that work in one environment and disappear in another.&lt;/li&gt;
+  &lt;li&gt;VPNs that break discovery.&lt;/li&gt;
+  &lt;li&gt;“Networking changes” with lead times measured in sprints.&lt;/li&gt;
+  &lt;li&gt;Broken flow (instead of trying, you’re configuring and rebuilding for hours)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We want a different experience:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;We unbox Nvidia DGX Spark.&lt;/li&gt;
+  &lt;li&gt;We connect one cable.&lt;/li&gt;
+  &lt;li&gt;IntelliJ quietly detects a device and offers to use it for AI and heavy tasks.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;No manuals, no “Which IP did DHCP assign this time?”, no ticket to “open port 12345”.
+So we decided to remove the corporate network from the diagram.&lt;/p&gt;
+
+&lt;h2 id=&quot;attempt-1-usb-gadget-magic&quot;&gt;Attempt #1: USB Gadget Magic&lt;/h2&gt;
+
+&lt;p&gt;The natural idea for a direct link is USB-C. Modern devices can expose, over USB:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;a network interface&lt;/li&gt;
+  &lt;li&gt;a serial/COM port&lt;/li&gt;
+  &lt;li&gt;or a custom vendor protocol&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The experiment:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;make DGX Spark pretend its USB-C is a &lt;strong&gt;network adapter&lt;/strong&gt;;&lt;/li&gt;
+  &lt;li&gt;let it run a small &lt;strong&gt;DHCP server&lt;/strong&gt;, assign an IP to the dev machine;&lt;/li&gt;
+  &lt;li&gt;expose a small API / SSH / custom protocol over this private point-to-point link.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;On Linux, gadget drivers make this possible. Early tests were promising.
+Then we remembered a detail: this needs to work on &lt;strong&gt;Windows, macOS, and Linux&lt;/strong&gt; developer machines.&lt;/p&gt;
+
+&lt;p&gt;That implies:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;custom drivers&lt;/li&gt;
+  &lt;li&gt;code signing and OS-specific packaging&lt;/li&gt;
+  &lt;li&gt;keeping up with random OS updates&lt;/li&gt;
+  &lt;li&gt;debugging strange USB behaviour on a random laptop the night before a release&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Technically, possible and feasible. As a product, not something we want to base everything on.
+We stepped back and asked a simpler question:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;What is the most boring piece of hardware that all OSes already understand?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Answer: &lt;strong&gt;a regular network adapter&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-final-trick-two-nics-and-a-tiny-cable&quot;&gt;The Final Trick: Two NICs and a Tiny Cable&lt;/h2&gt;
+
+&lt;p&gt;The design we ended up with is almost disappointingly simple:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Use two standard Ethernet adapters connected by a short cable, one on the
+Nvidia DGX Spark side, one on the developer machine. Both go into USB-C.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Diagram version:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[IntelliJ laptop]
+    |
+    | USB-C
+    |
+    v                 
+[USB-Ethernet #1] == short cable == [USB-Ethernet #2]
+                                           ^
+                                           |
+                                         USB-C
+                                           |
+                                           v
+                                  [NVidia DGX Spark]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7398855051676471296&quot; height=&quot;639&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
+
+&lt;p&gt;And this setup is working greatly! We make the Nvidia DGX Spark run as DHCP and DNS for the network interface,
+so it means it will assign the developer machine the specific IP address. The software (say an IntelliJ plugin)
+will know about the port, or it will even look up it via DNS or either way.&lt;/p&gt;
+
+&lt;h2 id=&quot;current-state&quot;&gt;Current State&lt;/h2&gt;
+
+&lt;p&gt;We are running vLLM on the box, JetBrains AI Assistant can connect and use it, 
+we’re experimenting to let JetBrains Junie use the box as the primary model too. 
+So far it’s the demo phase to show what we can do and what’s coming next!&lt;/p&gt;
+
+&lt;p&gt;From the product standpoint, we take an assumption that there will be more
+powerful LLM models with open weights and the hardware to run the inference
+as fast as possible. We are experimenting with the “tool” product to make
+software development much more pleasurable and still more productive.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned!&lt;/p&gt;
+
+&lt;blockquote class=&quot;instagram-media&quot; data-instgrm-permalink=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; data-instgrm-version=&quot;14&quot; style=&quot; background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);&quot;&gt;&lt;div style=&quot;padding:16px;&quot;&gt; &lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;&quot; target=&quot;_blank&quot;&gt; &lt;div style=&quot; display: flex; flex-direction: row; align-items: center;&quot;&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 40px; margin-right: 14px; width: 40px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 100px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 60px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 19% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display:block; height:50px; margin:0 auto 12px; width:50px;&quot;&gt;&lt;svg width=&quot;50px&quot; height=&quot;50px&quot; viewBox=&quot;0 0 60 60&quot; version=&quot;1.1&quot; xmlns=&quot;https://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;https://www.w3.org/1999/xlink&quot;&gt;&lt;g stroke=&quot;none&quot; stroke-width=&quot;1&quot; fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;&gt;&lt;g transform=&quot;translate(-511.000000, -20.000000)&quot; fill=&quot;#000000&quot;&gt;&lt;g&gt;&lt;path d=&quot;M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631&quot;&gt;&lt;/path&gt;&lt;/g&gt;&lt;/g&gt;&lt;/g&gt;&lt;/svg&gt;&lt;/div&gt;&lt;div style=&quot;padding-top: 8px;&quot;&gt; &lt;div style=&quot; color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px;&quot;&gt;View this post on Instagram&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 12.5% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: row; margin-bottom: 14px; align-items: center;&quot;&gt;&lt;div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(0px) translateY(7px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; height: 12.5px; transform: rotate(-45deg) translateX(3px) translateY(1px); width: 12.5px; flex-grow: 0; margin-right: 14px; margin-left: 2px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(9px) translateY(-18px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: 8px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 20px; width: 20px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 2px solid transparent; border-left: 6px solid #f4f4f4; border-bottom: 2px solid transparent; transform: translateX(16px) translateY(-4px) rotate(30deg)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: auto;&quot;&gt; &lt;div style=&quot; width: 0px; border-top: 8px solid #F4F4F4; border-right: 8px solid transparent; transform: translateY(16px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; flex-grow: 0; height: 12px; width: 16px; transform: translateY(-4px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 8px solid #F4F4F4; border-left: 8px solid transparent; transform: translateY(-4px) translateX(8px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center; margin-bottom: 24px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 224px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 144px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/a&gt;&lt;p style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;&quot;&gt;&lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;&quot; target=&quot;_blank&quot;&gt;A post shared by Eugene Petrenko (@jonnyzzz)&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;//www.instagram.com/embed.js&quot;&gt;&lt;/script&gt;
+
+&lt;h2 id=&quot;related-work&quot;&gt;Related Work&lt;/h2&gt;
+
+&lt;p&gt;There are many areas were we definitely need to look in at, for example&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;NVIDIA Sync tool&lt;/li&gt;
+  &lt;li&gt;SSH tunneling to connect to the NVIDIA Spark&lt;/li&gt;
+  &lt;li&gt;Using JetBrains cloud service to activate the device and let it with offline afterward&lt;/li&gt;
+  &lt;li&gt;Automatic configuration and pre-population of the software and AI model images&lt;/li&gt;
+  &lt;li&gt;Running AI Assistant, Junie, and JetBrains Mellum on the solution&lt;/li&gt;
+  &lt;li&gt;Making the solution distribute licenses&lt;/li&gt;
+  &lt;li&gt;Running local RAG’s in the device or near-by&lt;/li&gt;
+  &lt;li&gt;Making the cable smarter to support us with all of that&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The magic cable itself appears to have much of the potential, I’m looking forward
+to sharing more with you. We are going to post more, stay tuned, or reach
+out in DMs for more details.&lt;/p&gt;
+
+&lt;h1 id=&quot;new-world--aws-reinvent-2025&quot;&gt;New World &amp;amp; AWS re:Invent 2025&lt;/h1&gt;
+
+&lt;p&gt;There are so many ideas that we have and found working on this project, stay tuned,
+and let me know (via LinkedIn) what you think or would expect from us. I will update.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;I’ll be deming the solution, the JetCable at AWS re:Invent this year,
+stop by at JetBrains booth, and let’s talk about the local AI. See ya!&lt;/strong&gt;
+Drop me align via &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt; to stay in touch.&lt;/p&gt;
+
+&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Gearing up for Las Vegas? ✈️&lt;br /&gt;&lt;br /&gt;I’ll be at AWS re:Invent next week, and I&amp;#39;m looking forward to connecting with you and discussing the future trends. Passionate about Local LLMs, AI, Coding Agents, Developer Experience, and JetBrains&amp;#39; new products?&lt;br /&gt;&lt;br /&gt;Stop by the JetBrains booth to… &lt;a href=&quot;https://t.co/JAPiDcux6m&quot;&gt;pic.twitter.com/JAPiDcux6m&lt;/a&gt;&lt;/p&gt;&amp;mdash; Eugene Petrenko (@jonnyzzz) &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1993702449450713154?ref_src=twsrc%5Etfw&quot;&gt;November 26, 2025&lt;/a&gt;&lt;/blockquote&gt;
+&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai" />
+  
+    <category term="ollama" />
+  
+    <category term="gpt-oss" />
+  
+    <category term="intellij" />
+  
+    <category term="hardware" />
+  
+    <category term="ai agent" />
+  
+    <summary type="html">Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story</summary>
+  
+  </entry>
+  
 </feed>
