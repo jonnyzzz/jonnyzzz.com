@@ -158,6 +158,8 @@ Two short demos show the system in action:
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroids demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+The full playlist has 7 videos, from quick CodeDozer demos to two longer "Real Work in Monorepo" sessions.
+
 ## The Status
 
 This is not a polished product. Some rough edges:
@@ -186,3 +188,9 @@ figure out about trust, safety, and useful abstractions, but this is a start.
 If you are experimenting with agentic tooling inside IDEs, let's connect and share notes.
 
 **Would you like to support the project? Just let me know! via me at jonnyzzz.com**
+
+## Full Playlist
+
+Watch the full playlist on YouTube: [IntelliJ MCP Steroid](https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f)
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f" title="IntelliJ MCP Steroid playlist" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
