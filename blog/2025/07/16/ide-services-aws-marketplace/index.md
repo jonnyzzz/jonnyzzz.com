@@ -1,6 +1,8 @@
 # JetBrains IDE Services Lands on AWS Marketplace: What This Means for Enterprise Developer Experience
 
 **Date:** July 16, 2025  
+**Author:** Eugene Petrenko  
+**Tags:** jetbrains, enterprise, devops, ide-services, ai, developer-productivity
 
 ---
 

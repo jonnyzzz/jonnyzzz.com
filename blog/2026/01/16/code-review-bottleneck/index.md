@@ -1,6 +1,8 @@
 # Stop Optimizing Code Generation: Why Code Review Is Your Real SDLC Bottleneck
 
-**Date:** January 15, 2026  
+**Date:** January 16, 2026  
+**Author:** Eugene Petrenko  
+**Tags:** ai, developer-productivity
 
 ---
 

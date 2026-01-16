@@ -1,6 +1,8 @@
 # Why Enterprises Need Dedicated AI Backends for Developer Teams
 
 **Date:** June 25, 2025  
+**Author:** Eugene Petrenko  
+**Tags:** jetbrains, enterprise, devops, ide-services, ai, developer-productivity
 
 ---
 
