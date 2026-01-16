@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-01-15T09:08:47+00:00</updated>
+  <updated>2026-01-16T07:23:07+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,299 @@
   
 
   
+  
+  <entry>
+    <title type="html">Kotlin DSLs in 2026: Patterns That Stood the Test of Time</title>
+    <link href="https://jonnyzzz.com/kotlin/java/dsl/2026/01/15/kotlin-dsl-2026/" rel="alternate" type="text/html" title="Kotlin DSLs in 2026: Patterns That Stood the Test of Time" />
+    <published>2026-01-15T00:00:00+00:00</published>
+    <updated>2026-01-15T00:00:00+00:00</updated>
+    <id>/kotlin/java/dsl/2026/01/15/kotlin-dsl-2026</id>
+    <content type="html" xml:base="https://jonnyzzz.com/kotlin/java/dsl/2026/01/15/kotlin-dsl-2026/">&lt;p&gt;Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. 
+Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration 
+files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived 
+but have become fundamental to how we build modern JVM applications.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-core-idea-that-never-changed&quot;&gt;The Core Idea That Never Changed&lt;/h2&gt;
+
+&lt;p&gt;The fundamental insight remains: Kotlin’s language features–extension functions, lambdas 
+with receivers, and operator overloading–turn any API into a potential DSL.&lt;/p&gt;
+
+&lt;p&gt;Consider the classic Java builder problem:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Traditional Java builder usage - verbose and error-prone&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Easy to copy-paste errors!&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The solution I proposed in 2018 still works perfectly:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;what-has-evolved-scope-control&quot;&gt;What Has Evolved: Scope Control&lt;/h2&gt;
+
+&lt;p&gt;Kotlin introduced &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; for better scope control in DSLs:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@DslMarker&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;annotation&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ConfigDsl&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@ConfigDsl&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;lateinit&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;database&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; annotation prevents accidentally calling outer scope functions from inner blocks.&lt;/p&gt;
+
+&lt;h2 id=&quot;build-systems-gradle-kotlin-dsl-matured&quot;&gt;Build Systems: Gradle Kotlin DSL Matured&lt;/h2&gt;
+
+&lt;p&gt;The patterns for ad-hoc plugins and code reuse have become standard:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// buildSrc/src/main/kotlin/service-conventions.gradle.kts&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;application&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nf&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin:kotlin-bom&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;io.ktor:ktor-server-core:2.3.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The trick of using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$id:$id.gradle.plugin:$version&lt;/code&gt; to include plugin dependencies 
+in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; remains the key insight for sharing complex build logic.&lt;/p&gt;
+
+&lt;h2 id=&quot;configuration-as-code-the-dsl-way&quot;&gt;Configuration as Code: The DSL Way&lt;/h2&gt;
+
+&lt;p&gt;The concept of transforming configuration files into executable Kotlin code has proven durable:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Parse the original format (properties, YAML, XML)&lt;/li&gt;
+  &lt;li&gt;Generate readable Kotlin DSL code&lt;/li&gt;
+  &lt;li&gt;Execute the DSL to produce the original format&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Instead of log4j.properties&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;console&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;console&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;%d{ISO8601} [%t] %-5p %c - %m%n&quot;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;nf&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ERROR&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;console&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Variable references enable find-usages and rename refactoring. The type system catches invalid configurations at compile time.&lt;/p&gt;
+
+&lt;h2 id=&quot;modern-use-cases&quot;&gt;Modern Use Cases&lt;/h2&gt;
+
+&lt;p&gt;Beyond build systems, Kotlin DSLs have found homes in:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;API Client Generation&lt;/strong&gt;: Ktor uses DSLs for routing and request handling&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Infrastructure as Code&lt;/strong&gt;: Kotlin DSLs for Terraform or Pulumi&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Data Pipelines&lt;/strong&gt;: Spark and Flink wrappers&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;UI Frameworks&lt;/strong&gt;: Compose is fundamentally a Kotlin DSL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;practical-guidelines-for-dsl-design&quot;&gt;Practical Guidelines for DSL Design&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Start with the usage site&lt;/strong&gt;: Write how you want the DSL to look first&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt;&lt;/strong&gt;: Always add scope control&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Prefer extension functions&lt;/strong&gt;: Keep core interfaces clean&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Make illegal states unrepresentable&lt;/strong&gt;: Use the type system&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Provide escape hatches&lt;/strong&gt;: Sometimes users need the underlying API&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Kotlin DSLs have moved from a clever technique to an essential tool in the JVM ecosystem. 
+The patterns established years ago remain the foundation. What has changed is the tooling
+maturity and breadth of applications.&lt;/p&gt;
+
+&lt;p&gt;If you are still writing verbose Java builder code or maintaining error-prone configuration 
+files, consider whether a thin Kotlin DSL layer could transform your development experience.&lt;/p&gt;
+
+&lt;p&gt;The best programs remain immutable programs. And the best configurations are the ones that fail
+at compile time, not in production.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name></name>
+    </author>
+
+  
+    <summary type="html">Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived but have become fundamental to how we build modern JVM applications.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">Stop Optimizing Code Generation: Why Code Review Is Your Real SDLC Bottleneck</title>
+    <link href="https://jonnyzzz.com/ai/developer-productivity/2026/01/15/code-review-bottleneck/" rel="alternate" type="text/html" title="Stop Optimizing Code Generation: Why Code Review Is Your Real SDLC Bottleneck" />
+    <published>2026-01-15T00:00:00+00:00</published>
+    <updated>2026-01-15T00:00:00+00:00</updated>
+    <id>/ai/developer-productivity/2026/01/15/code-review-bottleneck</id>
+    <content type="html" xml:base="https://jonnyzzz.com/ai/developer-productivity/2026/01/15/code-review-bottleneck/">&lt;p&gt;Everyone is racing to make developers write code faster. GitHub Copilot promises 55% 
+faster task completion. Cursor raised $2.3B on the promise of AI-native coding. Amazon 
+launched Kiro. Google built Antigravity. The message is clear: AI will supercharge code generation.&lt;/p&gt;
+
+&lt;p&gt;But here is the uncomfortable truth: &lt;strong&gt;coding was never your bottleneck.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;the-myth-of-the-coding-bottleneck&quot;&gt;The Myth of the Coding Bottleneck&lt;/h2&gt;
+
+&lt;p&gt;According to IDC research, developers spend only 16% of their time actually 
+writing code. Data from 250,000+ developers shows they code approximately 52 
+minutes per day–about 4 hours and 21 minutes during a normal workweek.&lt;/p&gt;
+
+&lt;p&gt;Where does the rest of the time go? Meetings, context switching, waiting for builds, 
+debugging production issues, and–critically–&lt;strong&gt;waiting for code reviews&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;If your developers are only coding 16% of their day, making that 16% twice as fast 
+means you have improved total developer throughput by… 8%. Meanwhile, the other 
+84% of their time remains untouched.&lt;/p&gt;
+
+&lt;h2 id=&quot;where-time-actually-goes-the-real-bottlenecks&quot;&gt;Where Time Actually Goes: The Real Bottlenecks&lt;/h2&gt;
+
+&lt;p&gt;If you want to optimize your SDLC, you need to measure it. Here is what the data reveals:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Code Review Wait Times&lt;/strong&gt;
+Elite development teams complete code reviews in under 3 hours, with 
+pickup times under 75 minutes. Most teams are far from elite. When 
+developers wait 3 days for a review, they context-switch to other 
+work. Research shows it takes an average of 23 minutes to refocus after an interruption.&lt;/p&gt;
+
+&lt;p&gt;At Meta, they found a direct correlation between slow code review times and engineer
+dissatisfaction. When they optimized their review process, their average 
+“Time In Review” dropped 7%, and diffs waiting longer than three days decreased by 12%.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Context Switching Costs&lt;/strong&gt;
+Gerald Weinberg’s research demonstrates that adding a single extra 
+project to a developer’s workload consumes 20% of their time through context 
+switching. Add a third task, and half their time evaporates.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-code-review-is-the-right-place-for-ai&quot;&gt;Why Code Review Is the Right Place for AI&lt;/h2&gt;
+
+&lt;p&gt;Code review sits at the intersection of several properties that make it ideal for AI assistance:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;1. High Volume, Repetitive Patterns&lt;/strong&gt;
+Most code review feedback falls into predictable categories: style 
+violations, null safety issues, missing error handling, deprecated
+API usage, performance anti-patterns.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;2. Expert Knowledge Is Scarce&lt;/strong&gt;
+Every organization has “rock star” reviewers–the developers 
+everyone wants reviewing their code. AI can extract patterns from these
+experts’ historical reviews and apply them at scale.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;3. Review Latency Compounds&lt;/strong&gt;
+A 24-hour code review delay is not just 24 hours lost. It triggers context 
+switching, creates WIP accumulation, and extends your entire change lead time.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;4. Human Reviewers Should Focus on Architecture, Not Syntax&lt;/strong&gt;
+Senior developers’ time is better spent on architectural decisions, 
+mentoring, and strategic code concerns–not catching missing null checks.&lt;/p&gt;
+
+&lt;h2 id=&quot;action-items-for-engineering-leaders&quot;&gt;Action Items for Engineering Leaders&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Measure your SDLC&lt;/strong&gt; - Track where time actually goes. What is your median PR pickup time?&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Identify your review bottlenecks&lt;/strong&gt; - Who are your rock star reviewers?&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Start with automation of the mechanical&lt;/strong&gt; - Ensure CI and static analysis gates are in place before human review&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Extract patterns from your best reviewers&lt;/strong&gt; - Analyze historical review comments&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Measure the impact&lt;/strong&gt; - Track review cycle time before and after AI assistance&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;the-future&quot;&gt;The Future&lt;/h2&gt;
+
+&lt;p&gt;I do believe that we are at the verge of automatic processes, you cannot
+effectively benefit from AI tools if you keep doing 100% of some work manually
+within your SDLC pipeline.&lt;/p&gt;
+
+&lt;p&gt;We need to build automated code reviews, which will make our developers faster,
+and which will allow us to process more code, partially automatically.&lt;/p&gt;
+
+&lt;p&gt;In the long run, I believe, we are going to start building trust, and make AI a
+natural pall and helper in the review process. Build it to make it to complete
+5% of the reviews to make it trustworthy partner. And grow from that.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-future-reviewer&quot;&gt;The Future Reviewer&lt;/h2&gt;
+
+&lt;p&gt;Given we have automated code reviews, where an AI agents can comment on the review,
+they can propose suggested improvements, and humans for help.&lt;/p&gt;
+
+&lt;p&gt;Such AI Agents need to learn from your existing code reviews, so you build skill and
+principles, which your team is operating on. That is the way the trust is established.&lt;/p&gt;
+
+&lt;p&gt;The learned principles should sit in the Markdown files directly in your repositories,
+team should read, discuss, and update it.&lt;/p&gt;
+
+&lt;p&gt;** Move all your water cooler conversations to the Markdown files, wikis, so agents can read that **&lt;/p&gt;
+
+&lt;p&gt;Remote teams, that’s for you too!&lt;/p&gt;
+
+&lt;h2 id=&quot;the-future-agentic-swarm&quot;&gt;The Future Agentic Swarm&lt;/h2&gt;
+
+&lt;p&gt;Agents will be talking to each other. Like a coding agent will interact with the reviewers agents.&lt;/p&gt;
+
+&lt;p&gt;As it works for humans today. No changes.&lt;/p&gt;
+
+&lt;p&gt;And agents love working in the feedback loop, gamification!&lt;/p&gt;
+
+&lt;h2 id=&quot;the-bigger-picture&quot;&gt;The Bigger Picture&lt;/h2&gt;
+
+&lt;p&gt;The organizations that win will not be those who generate code fastest. They will be the 
+ones who deliver value fastest – and that requires optimizing the entire software 
+development lifecycle, not just the coding phase.&lt;/p&gt;
+
+&lt;p&gt;Coding is not your bottleneck. It probably never was. The data is clear. Now it is time to put
+AI where it will actually make a difference.&lt;/p&gt;
+
+&lt;p&gt;Code review is waiting.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name></name>
+    </author>
+
+  
+    <summary type="html">Everyone is racing to make developers write code faster. GitHub Copilot promises 55% faster task completion. Cursor raised $2.3B on the promise of AI-native coding. Amazon launched Kiro. Google built Antigravity. The message is clear: AI will supercharge code generation.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM</title>
@@ -1460,393 +1753,6 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
     <category term="self-hosting" />
   
     <summary type="html">Raspberry Pi is my home server hardware. I decided if I can make my human life easier be making the deployments of Docker containers more smooth, and more automated.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Tutorial: Deploying Your First App with Stevedore</title>
-    <link href="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" rel="alternate" type="text/html" title="Tutorial: Deploying Your First App with Stevedore" />
-    <published>2025-12-24T00:00:00+00:00</published>
-    <updated>2025-12-24T00:00:00+00:00</updated>
-    <id>/blog/2025/12/24/getting-started-with-stevedore</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/">&lt;p&gt;Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A Linux host (Ubuntu or Raspberry Pi OS) with sudo access.&lt;/li&gt;
-  &lt;li&gt;Docker installed (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl -fsSL https://get.docker.com | sh&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;A GitHub account.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;step-1-fork-and-install&quot;&gt;Step 1: Fork and Install&lt;/h2&gt;
-
-&lt;p&gt;First, fork the &lt;a href=&quot;https://github.com/jonnyzzz/stevedore&quot;&gt;Stevedore repository&lt;/a&gt;. This is your personal control plane.&lt;/p&gt;
-
-&lt;p&gt;SSH into your server and run:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone https://github.com/&amp;lt;YOUR_USERNAME&amp;gt;/stevedore.git
-&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;stevedore
-./stevedore-install.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This script does a few things:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;Builds the Stevedore image.&lt;/li&gt;
-  &lt;li&gt;Sets up the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; directory.&lt;/li&gt;
-  &lt;li&gt;Installs a systemd service (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) when systemd is available; otherwise starts the container with a Docker restart policy.&lt;/li&gt;
-  &lt;li&gt;Generates your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;admin.key&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt;.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Verify it’s running:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore doctor
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-2-add-a-repository&quot;&gt;Step 2: Add a Repository&lt;/h2&gt;
-
-&lt;p&gt;Let’s say you have a repository &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Tell Stevedore to watch it:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo add my-app git@github.com:&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app.git
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;If your repo default branch isn’t &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--branch &amp;lt;branch&amp;gt;&lt;/code&gt; to the command.&lt;/p&gt;
-
-&lt;p&gt;Stevedore will generate a unique SSH Key for this deployment. View it:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo key my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Copy that key. Go to your GitHub repo -&amp;gt; &lt;strong&gt;Settings&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Deploy keys&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Add deploy key&lt;/strong&gt;. Paste it there. This gives Stevedore read-only access to just that repo.&lt;/p&gt;
-
-&lt;p&gt;Prefer GitHub CLI? This does the same thing (read-only):&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gh api &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST repos/&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app/keys &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;stevedore-my-app&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;stevedore repo key my-app&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;read_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-3-deploy&quot;&gt;Step 3: Deploy!&lt;/h2&gt;
-
-&lt;p&gt;Now, kick off the first sync:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-clean&lt;/code&gt; to skip the cleanup). Now, bring it up:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy up my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Boom. Your app is running.&lt;/p&gt;
-
-&lt;h2 id=&quot;step-4-the-magic&quot;&gt;Step 4: The Magic&lt;/h2&gt;
-
-&lt;p&gt;Here is the best part. Make a change to your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; on your laptop. Change the HTML title.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git commit &lt;span class=&quot;nt&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Update title&quot;&lt;/span&gt;
-git push
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Wait a few minutes (Stevedore polls on its configured interval; default is 5 minutes). Refresh your browser.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;It updated automatically.&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;You can check the status at any time:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore status my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;managing-secrets&quot;&gt;Managing Secrets&lt;/h2&gt;
-
-&lt;p&gt;Need to set an API key? Don’t commit it.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;my-app API_KEY &lt;span class=&quot;s2&quot;&gt;&quot;super-secret-value&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Stevedore stores this in its encrypted database. Stevedore injects parameters as environment variables on deploy (including automatic redeploys).&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;It’s that simple. No Kubernetes manifests. No complex CI/CD pipelines. Just Git, Docker, and Stevedore keeping watch.&lt;/p&gt;
-
-&lt;p&gt;Give it a try and let me know what you think!&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="tutorial" />
-  
-    <category term="gitops" />
-  
-    <category term="raspberry-pi" />
-  
-    <category term="docker" />
-  
-    <category term="github" />
-  
-    <summary type="html">Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Magic Cable for Nvidia Spark</title>
-    <link href="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/" rel="alternate" type="text/html" title="Magic Cable for Nvidia Spark" />
-    <published>2025-11-26T00:00:00+00:00</published>
-    <updated>2025-11-26T00:00:00+00:00</updated>
-    <id>/blog/2025/11/26/junie-cage-spark</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/11/26/junie-cage-spark/">&lt;h1 id=&quot;plugging-an-ai-supercomputer-into-intellij-our-dgx-spark-story&quot;&gt;Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story&lt;/h1&gt;
-
-&lt;p&gt;A small, heavy box arrived at the desk.&lt;/p&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7397746344335048704&quot; height=&quot;703&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
-
-&lt;p&gt;Inside: an NVIDIA DGX Spark — a desktop AI box that looks like a PC, and behaves like a tiny datacenter. The obvious question for us was:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;How do we make this thing feel &lt;em&gt;invisible&lt;/em&gt; from inside IntelliJ?&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;This post is about the path we took to connect DGX Spark and IntelliJ in a way that:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;keeps everything &lt;strong&gt;local&lt;/strong&gt; and &lt;strong&gt;offline-friendly&lt;/strong&gt;,&lt;/li&gt;
-  &lt;li&gt;keeps security teams &lt;strong&gt;relaxed&lt;/strong&gt;,&lt;/li&gt;
-  &lt;li&gt;and keeps developers in &lt;strong&gt;flow&lt;/strong&gt;, not in network manuals.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;There is also a tiny hardware trick involved! And the shiny user experience we are fighting for!&lt;/p&gt;
-
-&lt;p&gt;I am going to demo the device, the magic cable (JetCable) at &lt;strong&gt;AWS re:Invent&lt;/strong&gt;,
-come visit &lt;strong&gt;JetBrains booth&lt;/strong&gt; for the real demo!&lt;/p&gt;
-
-&lt;h2 id=&quot;why-local-ai-matters-for-ide-workflows&quot;&gt;Why Local AI Matters for IDE Workflows&lt;/h2&gt;
-
-&lt;p&gt;Cloud AI is amazing — until the first security review. And of course, there are many of us 
-who are happy to use the frontier models (e.g. Anthropic, OpenAI, Google, xAI, …).
-There is a way to many regulated businesses, where it’s not yet possible or profitable.&lt;/p&gt;
-
-&lt;p&gt;Many teams live under constraints like:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;strict compliance rules&lt;/li&gt;
-  &lt;li&gt;code and data that must never leave the corporate network&lt;/li&gt;
-  &lt;li&gt;air-gapped or tightly segmented infrastructure&lt;/li&gt;
-  &lt;li&gt;flat usage plans (you own the hardware, you use it 100% of the time)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;For those teams, “send code to an external model endpoint” is not an option.&lt;br /&gt;
-&lt;a href=&quot;https://www.nvidia.com/en-us/products/workstations/dgx-spark/&quot;&gt;Nvidia DGX Spark&lt;/a&gt; gives a different model:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;AI hardware is &lt;strong&gt;on the desk&lt;/strong&gt; or &lt;strong&gt;on-prem&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;the box can be configured with &lt;strong&gt;no direct internet access&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;all prompts, code, embeddings, and models stay &lt;strong&gt;inside the company perimeter&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;From the local development perspective, we want:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;AI assistance and heavy compute for code&lt;/li&gt;
-  &lt;li&gt;minimal configuration&lt;/li&gt;
-  &lt;li&gt;and strong guarantees that the bits never leave the building&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The integration story started from a simple goal:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Treat DGX Spark as a local development tool, not “another cloud”.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;step-zero-just-put-it-on-the-network&quot;&gt;Step Zero: “Just Put It on the Network”&lt;/h2&gt;
-
-&lt;p&gt;The first obvious attempt followed the official playbook:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;Plug DGX Spark into the corporate network (Wi-Fi or Ethernet).&lt;/li&gt;
-  &lt;li&gt;Finish OS setup, accounts, security.&lt;/li&gt;
-  &lt;li&gt;Connect from dev machines over the LAN.&lt;/li&gt;
-  &lt;li&gt;Install agents, tools, and talk to the device via IP.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;On paper, this is fine.&lt;/p&gt;
-
-&lt;p&gt;In real corporate networks, we hit the usual obstacles:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;VLANs and firewalls.&lt;/li&gt;
-  &lt;li&gt;Ports that work in one environment and disappear in another.&lt;/li&gt;
-  &lt;li&gt;VPNs that break discovery.&lt;/li&gt;
-  &lt;li&gt;“Networking changes” with lead times measured in sprints.&lt;/li&gt;
-  &lt;li&gt;Broken flow (instead of trying, you’re configuring and rebuilding for hours)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;We want a different experience:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;We unbox Nvidia DGX Spark.&lt;/li&gt;
-  &lt;li&gt;We connect one cable.&lt;/li&gt;
-  &lt;li&gt;IntelliJ quietly detects a device and offers to use it for AI and heavy tasks.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;No manuals, no “Which IP did DHCP assign this time?”, no ticket to “open port 12345”.
-So we decided to remove the corporate network from the diagram.&lt;/p&gt;
-
-&lt;h2 id=&quot;attempt-1-usb-gadget-magic&quot;&gt;Attempt #1: USB Gadget Magic&lt;/h2&gt;
-
-&lt;p&gt;The natural idea for a direct link is USB-C. Modern devices can expose, over USB:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;a network interface&lt;/li&gt;
-  &lt;li&gt;a serial/COM port&lt;/li&gt;
-  &lt;li&gt;or a custom vendor protocol&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The experiment:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;make DGX Spark pretend its USB-C is a &lt;strong&gt;network adapter&lt;/strong&gt;;&lt;/li&gt;
-  &lt;li&gt;let it run a small &lt;strong&gt;DHCP server&lt;/strong&gt;, assign an IP to the dev machine;&lt;/li&gt;
-  &lt;li&gt;expose a small API / SSH / custom protocol over this private point-to-point link.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;On Linux, gadget drivers make this possible. Early tests were promising.
-Then we remembered a detail: this needs to work on &lt;strong&gt;Windows, macOS, and Linux&lt;/strong&gt; developer machines.&lt;/p&gt;
-
-&lt;p&gt;That implies:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;custom drivers&lt;/li&gt;
-  &lt;li&gt;code signing and OS-specific packaging&lt;/li&gt;
-  &lt;li&gt;keeping up with random OS updates&lt;/li&gt;
-  &lt;li&gt;debugging strange USB behaviour on a random laptop the night before a release&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Technically, possible and feasible. As a product, not something we want to base everything on.
-We stepped back and asked a simpler question:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;What is the most boring piece of hardware that all OSes already understand?&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Answer: &lt;strong&gt;a regular network adapter&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-final-trick-two-nics-and-a-tiny-cable&quot;&gt;The Final Trick: Two NICs and a Tiny Cable&lt;/h2&gt;
-
-&lt;p&gt;The design we ended up with is almost disappointingly simple:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Use two standard Ethernet adapters connected by a short cable, one on the
-Nvidia DGX Spark side, one on the developer machine. Both go into USB-C.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Diagram version:&lt;/p&gt;
-
-&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[IntelliJ laptop]
-    |
-    | USB-C
-    |
-    v                 
-[USB-Ethernet #1] == short cable == [USB-Ethernet #2]
-                                           ^
-                                           |
-                                         USB-C
-                                           |
-                                           v
-                                  [NVidia DGX Spark]
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7398855051676471296&quot; height=&quot;639&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
-
-&lt;p&gt;And this setup is working greatly! We make the Nvidia DGX Spark run as DHCP and DNS for the network interface,
-so it means it will assign the developer machine the specific IP address. The software (say an IntelliJ plugin)
-will know about the port, or it will even look up it via DNS or either way.&lt;/p&gt;
-
-&lt;h2 id=&quot;current-state&quot;&gt;Current State&lt;/h2&gt;
-
-&lt;p&gt;We are running vLLM on the box, JetBrains AI Assistant can connect and use it, 
-we’re experimenting to let JetBrains Junie use the box as the primary model too. 
-So far it’s the demo phase to show what we can do and what’s coming next!&lt;/p&gt;
-
-&lt;p&gt;From the product standpoint, we take an assumption that there will be more
-powerful LLM models with open weights and the hardware to run the inference
-as fast as possible. We are experimenting with the “tool” product to make
-software development much more pleasurable and still more productive.&lt;/p&gt;
-
-&lt;p&gt;Stay tuned!&lt;/p&gt;
-
-&lt;blockquote class=&quot;instagram-media&quot; data-instgrm-permalink=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; data-instgrm-version=&quot;14&quot; style=&quot; background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);&quot;&gt;&lt;div style=&quot;padding:16px;&quot;&gt; &lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%;&quot; target=&quot;_blank&quot;&gt; &lt;div style=&quot; display: flex; flex-direction: row; align-items: center;&quot;&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 40px; margin-right: 14px; width: 40px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 100px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 60px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 19% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display:block; height:50px; margin:0 auto 12px; width:50px;&quot;&gt;&lt;svg width=&quot;50px&quot; height=&quot;50px&quot; viewBox=&quot;0 0 60 60&quot; version=&quot;1.1&quot; xmlns=&quot;https://www.w3.org/2000/svg&quot; xmlns:xlink=&quot;https://www.w3.org/1999/xlink&quot;&gt;&lt;g stroke=&quot;none&quot; stroke-width=&quot;1&quot; fill=&quot;none&quot; fill-rule=&quot;evenodd&quot;&gt;&lt;g transform=&quot;translate(-511.000000, -20.000000)&quot; fill=&quot;#000000&quot;&gt;&lt;g&gt;&lt;path d=&quot;M556.869,30.41 C554.814,30.41 553.148,32.076 553.148,34.131 C553.148,36.186 554.814,37.852 556.869,37.852 C558.924,37.852 560.59,36.186 560.59,34.131 C560.59,32.076 558.924,30.41 556.869,30.41 M541,60.657 C535.114,60.657 530.342,55.887 530.342,50 C530.342,44.114 535.114,39.342 541,39.342 C546.887,39.342 551.658,44.114 551.658,50 C551.658,55.887 546.887,60.657 541,60.657 M541,33.886 C532.1,33.886 524.886,41.1 524.886,50 C524.886,58.899 532.1,66.113 541,66.113 C549.9,66.113 557.115,58.899 557.115,50 C557.115,41.1 549.9,33.886 541,33.886 M565.378,62.101 C565.244,65.022 564.756,66.606 564.346,67.663 C563.803,69.06 563.154,70.057 562.106,71.106 C561.058,72.155 560.06,72.803 558.662,73.347 C557.607,73.757 556.021,74.244 553.102,74.378 C549.944,74.521 548.997,74.552 541,74.552 C533.003,74.552 532.056,74.521 528.898,74.378 C525.979,74.244 524.393,73.757 523.338,73.347 C521.94,72.803 520.942,72.155 519.894,71.106 C518.846,70.057 518.197,69.06 517.654,67.663 C517.244,66.606 516.755,65.022 516.623,62.101 C516.479,58.943 516.448,57.996 516.448,50 C516.448,42.003 516.479,41.056 516.623,37.899 C516.755,34.978 517.244,33.391 517.654,32.338 C518.197,30.938 518.846,29.942 519.894,28.894 C520.942,27.846 521.94,27.196 523.338,26.654 C524.393,26.244 525.979,25.756 528.898,25.623 C532.057,25.479 533.004,25.448 541,25.448 C548.997,25.448 549.943,25.479 553.102,25.623 C556.021,25.756 557.607,26.244 558.662,26.654 C560.06,27.196 561.058,27.846 562.106,28.894 C563.154,29.942 563.803,30.938 564.346,32.338 C564.756,33.391 565.244,34.978 565.378,37.899 C565.522,41.056 565.552,42.003 565.552,50 C565.552,57.996 565.522,58.943 565.378,62.101 M570.82,37.631 C570.674,34.438 570.167,32.258 569.425,30.349 C568.659,28.377 567.633,26.702 565.965,25.035 C564.297,23.368 562.623,22.342 560.652,21.575 C558.743,20.834 556.562,20.326 553.369,20.18 C550.169,20.033 549.148,20 541,20 C532.853,20 531.831,20.033 528.631,20.18 C525.438,20.326 523.257,20.834 521.349,21.575 C519.376,22.342 517.703,23.368 516.035,25.035 C514.368,26.702 513.342,28.377 512.574,30.349 C511.834,32.258 511.326,34.438 511.181,37.631 C511.035,40.831 511,41.851 511,50 C511,58.147 511.035,59.17 511.181,62.369 C511.326,65.562 511.834,67.743 512.574,69.651 C513.342,71.625 514.368,73.296 516.035,74.965 C517.703,76.634 519.376,77.658 521.349,78.425 C523.257,79.167 525.438,79.673 528.631,79.82 C531.831,79.965 532.853,80.001 541,80.001 C549.148,80.001 550.169,79.965 553.369,79.82 C556.562,79.673 558.743,79.167 560.652,78.425 C562.623,77.658 564.297,76.634 565.965,74.965 C567.633,73.296 568.659,71.625 569.425,69.651 C570.167,67.743 570.674,65.562 570.82,62.369 C570.966,59.17 571,58.147 571,50 C571,41.851 570.966,40.831 570.82,37.631&quot;&gt;&lt;/path&gt;&lt;/g&gt;&lt;/g&gt;&lt;/g&gt;&lt;/svg&gt;&lt;/div&gt;&lt;div style=&quot;padding-top: 8px;&quot;&gt; &lt;div style=&quot; color:#3897f0; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:550; line-height:18px;&quot;&gt;View this post on Instagram&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;padding: 12.5% 0;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: row; margin-bottom: 14px; align-items: center;&quot;&gt;&lt;div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(0px) translateY(7px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; height: 12.5px; transform: rotate(-45deg) translateX(3px) translateY(1px); width: 12.5px; flex-grow: 0; margin-right: 14px; margin-left: 2px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot;background-color: #F4F4F4; border-radius: 50%; height: 12.5px; width: 12.5px; transform: translateX(9px) translateY(-18px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: 8px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 50%; flex-grow: 0; height: 20px; width: 20px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 2px solid transparent; border-left: 6px solid #f4f4f4; border-bottom: 2px solid transparent; transform: translateX(16px) translateY(-4px) rotate(30deg)&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;margin-left: auto;&quot;&gt; &lt;div style=&quot; width: 0px; border-top: 8px solid #F4F4F4; border-right: 8px solid transparent; transform: translateY(16px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; flex-grow: 0; height: 12px; width: 16px; transform: translateY(-4px);&quot;&gt;&lt;/div&gt; &lt;div style=&quot; width: 0; height: 0; border-top: 8px solid #F4F4F4; border-left: 8px solid transparent; transform: translateY(-4px) translateX(8px);&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt; &lt;div style=&quot;display: flex; flex-direction: column; flex-grow: 1; justify-content: center; margin-bottom: 24px;&quot;&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; margin-bottom: 6px; width: 224px;&quot;&gt;&lt;/div&gt; &lt;div style=&quot; background-color: #F4F4F4; border-radius: 4px; flex-grow: 0; height: 14px; width: 144px;&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/a&gt;&lt;p style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; line-height:17px; margin-bottom:0; margin-top:8px; overflow:hidden; padding:8px 0 7px; text-align:center; text-overflow:ellipsis; white-space:nowrap;&quot;&gt;&lt;a href=&quot;https://www.instagram.com/p/DRhfcEQjBBi/?utm_source=ig_embed&amp;amp;utm_campaign=loading&quot; style=&quot; color:#c9c8cd; font-family:Arial,sans-serif; font-size:14px; font-style:normal; font-weight:normal; line-height:17px; text-decoration:none;&quot; target=&quot;_blank&quot;&gt;A post shared by Eugene Petrenko (@jonnyzzz)&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;&lt;/blockquote&gt;
-&lt;script async=&quot;&quot; src=&quot;//www.instagram.com/embed.js&quot;&gt;&lt;/script&gt;
-
-&lt;h2 id=&quot;related-work&quot;&gt;Related Work&lt;/h2&gt;
-
-&lt;p&gt;There are many areas were we definitely need to look in at, for example&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;NVIDIA Sync tool&lt;/li&gt;
-  &lt;li&gt;SSH tunneling to connect to the NVIDIA Spark&lt;/li&gt;
-  &lt;li&gt;Using JetBrains cloud service to activate the device and let it with offline afterward&lt;/li&gt;
-  &lt;li&gt;Automatic configuration and pre-population of the software and AI model images&lt;/li&gt;
-  &lt;li&gt;Running AI Assistant, Junie, and JetBrains Mellum on the solution&lt;/li&gt;
-  &lt;li&gt;Making the solution distribute licenses&lt;/li&gt;
-  &lt;li&gt;Running local RAG’s in the device or near-by&lt;/li&gt;
-  &lt;li&gt;Making the cable smarter to support us with all of that&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The magic cable itself appears to have much of the potential, I’m looking forward
-to sharing more with you. We are going to post more, stay tuned, or reach
-out in DMs for more details.&lt;/p&gt;
-
-&lt;h1 id=&quot;new-world--aws-reinvent-2025&quot;&gt;New World &amp;amp; AWS re:Invent 2025&lt;/h1&gt;
-
-&lt;p&gt;There are so many ideas that we have and found working on this project, stay tuned,
-and let me know (via LinkedIn) what you think or would expect from us. I will update.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;I’ll be deming the solution, the JetCable at AWS re:Invent this year,
-stop by at JetBrains booth, and let’s talk about the local AI. See ya!&lt;/strong&gt;
-Drop me align via &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt; to stay in touch.&lt;/p&gt;
-
-&lt;blockquote class=&quot;twitter-tweet&quot;&gt;&lt;p lang=&quot;en&quot; dir=&quot;ltr&quot;&gt;Gearing up for Las Vegas? ✈️&lt;br /&gt;&lt;br /&gt;I’ll be at AWS re:Invent next week, and I&amp;#39;m looking forward to connecting with you and discussing the future trends. Passionate about Local LLMs, AI, Coding Agents, Developer Experience, and JetBrains&amp;#39; new products?&lt;br /&gt;&lt;br /&gt;Stop by the JetBrains booth to… &lt;a href=&quot;https://t.co/JAPiDcux6m&quot;&gt;pic.twitter.com/JAPiDcux6m&lt;/a&gt;&lt;/p&gt;&amp;mdash; Eugene Petrenko (@jonnyzzz) &lt;a href=&quot;https://twitter.com/jonnyzzz/status/1993702449450713154?ref_src=twsrc%5Etfw&quot;&gt;November 26, 2025&lt;/a&gt;&lt;/blockquote&gt;
-&lt;script async=&quot;&quot; src=&quot;https://platform.twitter.com/widgets.js&quot; charset=&quot;utf-8&quot;&gt;&lt;/script&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai" />
-  
-    <category term="ollama" />
-  
-    <category term="gpt-oss" />
-  
-    <category term="intellij" />
-  
-    <category term="hardware" />
-  
-    <category term="ai agent" />
-  
-    <summary type="html">Plugging an AI Supercomputer into IntelliJ: Our DGX Spark Story</summary>
   
   </entry>
   

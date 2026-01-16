@@ -74,16 +74,18 @@ gemini -m model-name "prompt" 2>&1
 
 ### Approval Modes
 
-```bash
-# Default - prompts for approval on actions
-gemini "prompt" 2>&1
+**Give sub-agents full access** - don't restrict capabilities. Use auto-approve for non-interactive execution.
 
-# Auto-approve edits (careful!)
+```bash
+# Auto-approve edits (recommended for sub-agents)
 gemini --approval-mode auto_edit "prompt" 2>&1
 
-# YOLO mode - auto-approve everything (dangerous!)
+# YOLO mode - auto-approve everything (for trusted tasks)
 gemini --approval-mode yolo "prompt" 2>&1
 # Alias: gemini -y "prompt"
+
+# Default - prompts for approval (not suitable for sub-agents)
+gemini "prompt" 2>&1
 ```
 
 ### Output Formats
@@ -463,3 +465,7 @@ echo ""
 
 echo "=== Cross-Validation Complete ==="
 ```
+
+---
+
+*Follow [@jonnyzzz](https://twitter.com/jonnyzzz) on X and [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) for more on AI agents and developer tooling.*

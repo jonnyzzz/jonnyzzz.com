@@ -108,14 +108,13 @@
         <h1 class="entry-title">AI Agent Resources</h1>
       </header>
       <div class="entry-content">
-        <p>This site provides resources for AI agents to better understand and interact with the content.
+        <p>This page provides resources for AI agents implementing multi-agent orchestration patterns.
 These files follow the <a href="https://llmstxt.org/">llms.txt specification</a> and related patterns
 for AI-readable content.</p>
 
 <h2 id="skill-files">Skill Files</h2>
 
-<p>The following markdown files provide instructions and patterns for AI agents working with this repository
-or implementing multi-agent orchestration:</p>
+<p>The following markdown files provide instructions and patterns for AI agents:</p>
 
 <table>
   <thead>
@@ -127,7 +126,11 @@ or implementing multi-agent orchestration:</p>
   <tbody>
     <tr>
       <td><a href="/RLM.md">RLM.md</a></td>
-      <td>Recursive Language Models implementation guide - theoretical foundation for task decomposition and handling inputs beyond context windows</td>
+      <td>Recursive Language Models - actionable instructions for task decomposition and handling large contexts</td>
+    </tr>
+    <tr>
+      <td><a href="/RLM-extra.md">RLM-extra.md</a></td>
+      <td>Detailed RLM reference - architecture, benchmarks, prompt templates, error handling</td>
     </tr>
     <tr>
       <td><a href="/MULTI-AGENT.md">MULTI-AGENT.md</a></td>
@@ -148,40 +151,29 @@ or implementing multi-agent orchestration:</p>
   </tbody>
 </table>
 
-<h2 id="blog-post-markdown">Blog Post Markdown</h2>
+<h2 id="how-to-use">How to Use</h2>
 
-<p>All blog posts written in markdown are also available in their raw form for AI agents.
-Append <code class="language-plaintext highlighter-rouge">index.md</code> to any blog post URL to get clean markdown without HTML rendering:</p>
+<p>Copy these files to your project root to provide AI agents with orchestration patterns:</p>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/          → HTML page
-https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md  → Clean markdown
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Download skill files to your project</span>
+curl <span class="nt">-sO</span> https://example.com/RLM.md
+curl <span class="nt">-sO</span> https://example.com/MULTI-AGENT.md
+curl <span class="nt">-sO</span> https://example.com/CLAUDE-CODE.md
+curl <span class="nt">-sO</span> https://example.com/CODEX.md
+curl <span class="nt">-sO</span> https://example.com/GEMINI.md
 </code></pre></div></div>
 
-<p>The <code class="language-plaintext highlighter-rouge">.md</code> files contain no YAML front matter. Metadata is provided as readable text at the top of each file.</p>
+<p>Or reference them in your project’s <code class="language-plaintext highlighter-rouge">CLAUDE.md</code> or similar instruction file:</p>
 
-<h2 id="how-to-fetch">How to Fetch</h2>
+<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gu">## Related Skill Files</span>
 
-<p>AI agents can fetch these resources using curl or any HTTP client:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Fetch skill files</span>
-curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md
-curl <span class="nt">-s</span> https://jonnyzzz.com/MULTI-AGENT.md
-curl <span class="nt">-s</span> https://jonnyzzz.com/CLAUDE-CODE.md
-curl <span class="nt">-s</span> https://jonnyzzz.com/CODEX.md
-curl <span class="nt">-s</span> https://jonnyzzz.com/GEMINI.md
-
-<span class="c"># Fetch a blog post as markdown</span>
-curl <span class="nt">-s</span> https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md
-
-<span class="c"># Pipe to your context or save to file</span>
-curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md | <span class="nb">head</span> <span class="nt">-100</span>
-curl <span class="nt">-s</span> https://jonnyzzz.com/RLM.md <span class="o">&gt;</span> /tmp/rlm-context.md
-</code></pre></div></div>
-
-<p>For AI agents with web fetch capabilities:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>WebFetch: https://jonnyzzz.com/RLM.md
-WebFetch: https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md
+| File | Purpose |
+|------|---------|
+| <span class="gs">**RLM.md**</span> | Recursive Language Models - actionable instructions |
+| <span class="gs">**MULTI-AGENT.md**</span> | Agent orchestration patterns and templates |
+| <span class="gs">**CODEX.md**</span> | Using Codex CLI as sub-agent |
+| <span class="gs">**GEMINI.md**</span> | Using Gemini CLI as sub-agent |
+| <span class="gs">**CLAUDE-CODE.md**</span> | Using Claude Code CLI as sub-agent |
 </code></pre></div></div>
 
 <h2 id="usage">Usage</h2>
@@ -189,10 +181,19 @@ WebFetch: https://jonnyzzz.com/blog/2024/09/17/Eugene-20-years/index.md
 <p>These resources are designed for:</p>
 
 <ul>
-  <li>AI coding assistants analyzing this codebase</li>
+  <li>AI coding assistants working with codebases</li>
   <li>Multi-agent systems that need to coordinate sub-tasks</li>
   <li>LLM-based tools that benefit from structured markdown input</li>
-  <li>Developers implementing similar patterns in their own projects</li>
+  <li>Developers implementing multi-agent patterns in their own projects</li>
+</ul>
+
+<h2 id="connect">Connect</h2>
+
+<p>If you find these resources useful, please follow me for updates on AI agents, multi-agent patterns, and developer tooling:</p>
+
+<ul>
+  <li><a href="https://www.linkedin.com/in/jonnyzzz/">Follow me on LinkedIn</a></li>
+  <li><a href="https://twitter.com/jonnyzzz">Follow me on X (Twitter)</a></li>
 </ul>
 
       </div><!-- /.entry-content -->

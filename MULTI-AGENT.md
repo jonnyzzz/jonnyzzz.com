@@ -12,11 +12,11 @@ This document instructs AI agents on how to orchestrate multiple sub-agents for 
 
 | File | Purpose |
 |------|---------|
-| **RLM.md** | Theoretical foundation - when/how to decompose tasks |
+| **RLM.md** | Core RLM instructions - when/how to decompose tasks |
+| **RLM-extra.md** | Detailed RLM reference - templates, benchmarks, error handling |
+| **CLAUDE-CODE.md** | Using Claude Code CLI as sub-agent |
 | **CODEX.md** | Using Codex CLI as sub-agent for multimodal/focused tasks |
 | **GEMINI.md** | Using Gemini CLI as sub-agent for cross-validation |
-| **CLAUDE.md** | Repository-specific instructions |
-| **SKILL.md** | Writing style guide |
 
 ---
 
@@ -218,23 +218,23 @@ CONSTRAINTS:
 ### Example: Repository Analysis Agent
 
 ```
-You are analyzing the jonnyzzz.com Jekyll blog repository.
+You are analyzing a software repository.
 
 CONTEXT:
-This is part of a multi-agent analysis to create comprehensive AI instructions.
-Other agents are analyzing: content, git history, branding.
+This is part of a multi-agent analysis to understand the codebase structure.
+Other agents are analyzing: dependencies, tests, documentation.
 
 TASKS:
-1. Read _config.yml to understand site configuration
-2. Examine _layouts/ and _includes/ for template structure
-3. Check _plugins/ for custom functionality
-4. Analyze build process (in.sh, build.sh, Dockerfile)
+1. Read configuration files to understand project settings
+2. Examine source directory structure
+3. Check for custom tooling or plugins
+4. Analyze build process and scripts
 
 FILES TO READ:
-- _config.yml - site settings
-- in.sh - development workflow
-- Dockerfile - build environment
-- _plugins/*.rb - custom plugins
+- Configuration files (package.json, pyproject.toml, etc.)
+- Build scripts
+- Dockerfile (if present)
+- Custom plugins/extensions
 
 OUTPUT FORMAT:
 ## Tech Stack
@@ -318,10 +318,10 @@ After collecting agent results:
 
 ```
 Phase 1 - Parallel Analysis:
-  Agent 1: Technical structure (config, build, plugins)
-  Agent 2: Content analysis (posts, talks)
+  Agent 1: Technical structure (config, build, dependencies)
+  Agent 2: Source code analysis (modules, components)
   Agent 3: Git history (patterns, contributors)
-  Agent 4: Style/branding (about, social links)
+  Agent 4: Documentation (README, API docs)
   Agent 5: Testing setup (tests, CI)
 
 Phase 2 - Parallel Review:
@@ -466,3 +466,7 @@ for chunk: spawn agent
 wait all
 aggregate results
 ```
+
+---
+
+*Follow [@jonnyzzz](https://twitter.com/jonnyzzz) on X and [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) for more on AI agents and developer tooling.*

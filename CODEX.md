@@ -52,23 +52,17 @@ codex exec -m model-name "prompt" 2>&1
 
 ### Performance and Config Notes
 
+- **Give sub-agents full access** - don't restrict capabilities unnecessarily.
 - Codex reads defaults from `~/.codex/config.toml` (for example `model`).
 - Prefer defaults unless you have a concrete reason to override config.
 - Avoid setting `reasoning_effort` explicitly; if a task is slow, increase command timeout or split prompts instead.
-- If you need Codex to read outside the repo (e.g., `../stevedore*`, `../roomtone`), allow full read access:
+- For full filesystem access (recommended for cross-repo work):
 
 ```bash
 codex exec -c 'sandbox_permissions=["disk-full-read-access"]' "prompt" 2>&1
 ```
 
-- When validating blog posts, treat source code as the source of truth (not README-only). Common sibling repos:
-  - `../stevedore`
-  - `../stevedore-dyndns`
-  - `../roomtone`
-  - `../intellij-mcp-steroids`
-  - `../intellij-plugin-hot-reload`
-
-- Startup logs may show MCP servers (IntelliJ/Playwright) initializing; factor that into timeouts.
+- Startup logs may show MCP servers initializing; factor that into timeouts.
 - If Codex timeouts on large repos, run tasks sequentially and use a longer timeout (for example `gtimeout 900 codex exec ...`).
 
 ### Image Input
@@ -363,3 +357,7 @@ cat /tmp/out*.txt
 # With timeout
 timeout 300 codex exec "prompt" 2>&1
 ```
+
+---
+
+*Follow [@jonnyzzz](https://twitter.com/jonnyzzz) on X and [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) for more on AI agents and developer tooling.*

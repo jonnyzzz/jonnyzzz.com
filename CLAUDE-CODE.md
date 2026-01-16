@@ -58,20 +58,17 @@ claude -p --output-format json "prompt"
 claude -p --output-format stream-json "prompt"
 ```
 
-### Tool Access Control
+### Tool Access
+
+**Recommended:** Give sub-agents full tool access. Don't restrict yourself - sub-agents should have the same capabilities as the main agent.
 
 ```bash
-# Allow specific tools only
-echo "Read /path/to/file.md and summarize" | claude -p --allowedTools "Read"
+# Full access (recommended)
+echo "Your prompt" | claude -p 2>&1
 
-# Allow multiple tools
-echo "Search and read files" | claude -p --allowedTools "Read,Grep,Glob"
-
-# Allow Bash with specific patterns
-echo "Run git status" | claude -p --allowedTools "Bash(git:*)"
-
-# Deny specific tools
-claude -p --disallowedTools "Edit,Write" "analyze this code"
+# If you must restrict (rare cases)
+echo "prompt" | claude -p --allowedTools "Read,Grep,Glob"
+echo "prompt" | claude -p --disallowedTools "Edit,Write"
 ```
 
 ## Spawning Claude Code from Another Agent
@@ -89,11 +86,11 @@ echo "Your detailed prompt here" | claude -p 2>&1
 ### With File Context
 
 ```bash
-# Claude Code will use Read tool to access files
+# Claude Code will use its tools to access files
 echo "Read /path/to/file.md and extract:
 1. Key concepts
 2. Implementation patterns
-3. Summary in 3 sentences" | claude -p --allowedTools "Read" 2>&1
+3. Summary in 3 sentences" | claude -p 2>&1
 ```
 
 ### Capturing Structured Output
@@ -115,10 +112,10 @@ echo "What is 2+2?" | claude -p --output-format json 2>&1 | jq -r '.result'
 ### From Bash (Background Jobs)
 
 ```bash
-# Launch multiple Claude Code instances IN PARALLEL
-echo "Task 1: Analyze auth module" | claude -p --allowedTools "Read,Grep" > /tmp/out1.txt 2>&1 &
-echo "Task 2: Analyze database layer" | claude -p --allowedTools "Read,Grep" > /tmp/out2.txt 2>&1 &
-echo "Task 3: Analyze API endpoints" | claude -p --allowedTools "Read,Grep" > /tmp/out3.txt 2>&1 &
+# Launch multiple Claude Code instances IN PARALLEL (full tool access)
+echo "Task 1: Analyze auth module" | claude -p > /tmp/out1.txt 2>&1 &
+echo "Task 2: Analyze database layer" | claude -p > /tmp/out2.txt 2>&1 &
+echo "Task 3: Analyze API endpoints" | claude -p > /tmp/out3.txt 2>&1 &
 
 # Wait for ALL to complete
 wait
@@ -140,10 +137,10 @@ wait
 ### Parallel Map Pattern
 
 ```bash
-# Process multiple files in parallel
+# Process multiple files in parallel (full tool access)
 for file in src/module1.ts src/module2.ts src/module3.ts; do
   echo "Read $file and identify potential bugs" | \
-    claude -p --allowedTools "Read" > "/tmp/analysis-$(basename $file).txt" 2>&1 &
+    claude -p > "/tmp/analysis-$(basename $file).txt" 2>&1 &
 done
 wait
 
@@ -207,7 +204,7 @@ If no issues found, output: '## Security Review\n\nNo security issues identified
 CONSTRAINTS:
 - Focus only on security, not code style
 - Reference specific line numbers
-- Provide remediation suggestions" | claude -p --allowedTools "Read" 2>&1
+- Provide remediation suggestions" | claude -p 2>&1
 ```
 
 ---
@@ -234,7 +231,7 @@ wait
 
 ```bash
 # Primary analysis done by main agent
-# Validate with Claude Code sub-agent:
+# Validate with Claude Code sub-agent (full tool access):
 echo "Read /tmp/primary-analysis.md and review for:
 1. Logical consistency
 2. Missing edge cases
@@ -242,7 +239,7 @@ echo "Read /tmp/primary-analysis.md and review for:
 4. Factual errors
 
 Output only issues found, or 'VALIDATED: No issues found' if none." | \
-  claude -p --allowedTools "Read" 2>&1
+  claude -p 2>&1
 ```
 
 ---
@@ -324,3 +321,7 @@ cat /tmp/out*.txt
 # With timeout
 timeout 300 bash -c 'echo "prompt" | claude -p' 2>&1
 ```
+
+---
+
+*Follow [@jonnyzzz](https://twitter.com/jonnyzzz) on X and [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) for more on AI agents and developer tooling.*
