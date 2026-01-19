@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-01-16T14:27:05+00:00</updated>
+  <updated>2026-01-19T22:55:12+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,167 @@
   
 
   
+  
+  <entry>
+    <title type="html">Kotlin DSLs in 2026: Patterns That Stood the Test of Time</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/19/kotlin-dsl-2026/" rel="alternate" type="text/html" title="Kotlin DSLs in 2026: Patterns That Stood the Test of Time" />
+    <published>2026-01-19T00:00:00+00:00</published>
+    <updated>2026-01-19T00:00:00+00:00</updated>
+    <id>/blog/2026/01/19/kotlin-dsl-2026</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/19/kotlin-dsl-2026/">&lt;p&gt;Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. 
+Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration 
+files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived 
+but have become fundamental to how we build modern JVM applications.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-core-idea-that-never-changed&quot;&gt;The Core Idea That Never Changed&lt;/h2&gt;
+
+&lt;p&gt;The fundamental insight remains: Kotlin’s language features–extension functions, lambdas 
+with receivers, and operator overloading–turn any API into a potential DSL.&lt;/p&gt;
+
+&lt;p&gt;Consider the classic Java builder problem:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Traditional Java builder usage - verbose and error-prone&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Easy to copy-paste errors!&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The solution I proposed in 2018 still works perfectly:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;what-has-evolved-scope-control&quot;&gt;What Has Evolved: Scope Control&lt;/h2&gt;
+
+&lt;p&gt;Kotlin introduced &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; for better scope control in DSLs:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@DslMarker&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;annotation&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ConfigDsl&lt;/span&gt;
+
+&lt;span class=&quot;nd&quot;&gt;@ConfigDsl&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;lateinit&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;
+    
+    &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;database&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; annotation prevents accidentally calling outer scope functions from inner blocks.&lt;/p&gt;
+
+&lt;h2 id=&quot;build-systems-gradle-kotlin-dsl-matured&quot;&gt;Build Systems: Gradle Kotlin DSL Matured&lt;/h2&gt;
+
+&lt;p&gt;The patterns for ad-hoc plugins and code reuse have become standard:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// buildSrc/src/main/kotlin/service-conventions.gradle.kts&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;application&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nf&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin:kotlin-bom&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;io.ktor:ktor-server-core:2.3.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The trick of using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$id:$id.gradle.plugin:$version&lt;/code&gt; to include plugin dependencies 
+in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; remains the key insight for sharing complex build logic.&lt;/p&gt;
+
+&lt;h2 id=&quot;configuration-as-code-the-dsl-way&quot;&gt;Configuration as Code: The DSL Way&lt;/h2&gt;
+
+&lt;p&gt;The concept of transforming configuration files into executable Kotlin code has proven durable:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Parse the original format (properties, YAML, XML)&lt;/li&gt;
+  &lt;li&gt;Generate readable Kotlin DSL code&lt;/li&gt;
+  &lt;li&gt;Execute the DSL to produce the original format&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Instead of log4j.properties&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;console&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;console&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;%d{ISO8601} [%t] %-5p %c - %m%n&quot;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    
+    &lt;span class=&quot;nf&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ERROR&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;console&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Variable references enable find-usages and rename refactoring. The type system catches invalid configurations at compile time.&lt;/p&gt;
+
+&lt;h2 id=&quot;modern-use-cases&quot;&gt;Modern Use Cases&lt;/h2&gt;
+
+&lt;p&gt;Beyond build systems, Kotlin DSLs have found homes in:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;API Client Generation&lt;/strong&gt;: Ktor uses DSLs for routing and request handling&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Infrastructure as Code&lt;/strong&gt;: Kotlin DSLs for Terraform or Pulumi&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Data Pipelines&lt;/strong&gt;: Spark and Flink wrappers&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;UI Frameworks&lt;/strong&gt;: Compose is fundamentally a Kotlin DSL&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;practical-guidelines-for-dsl-design&quot;&gt;Practical Guidelines for DSL Design&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Start with the usage site&lt;/strong&gt;: Write how you want the DSL to look first&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt;&lt;/strong&gt;: Always add scope control&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Prefer extension functions&lt;/strong&gt;: Keep core interfaces clean&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Make illegal states unrepresentable&lt;/strong&gt;: Use the type system&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Provide escape hatches&lt;/strong&gt;: Sometimes users need the underlying API&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Kotlin DSLs have moved from a clever technique to an essential tool in the JVM ecosystem. 
+The patterns established years ago remain the foundation. What has changed is the tooling
+maturity and breadth of applications.&lt;/p&gt;
+
+&lt;p&gt;If you are still writing verbose Java builder code or maintaining error-prone configuration 
+files, consider whether a thin Kotlin DSL layer could transform your development experience.&lt;/p&gt;
+
+&lt;p&gt;The best programs remain immutable programs. And the best configurations are the ones that fail
+at compile time, not in production.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="kotlin" />
+  
+    <category term="java" />
+  
+    <category term="dsl" />
+  
+    <summary type="html">Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived but have become fundamental to how we build modern JVM applications.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Stop Optimizing Code Generation: Why Code Review Is Your Real SDLC Bottleneck</title>
@@ -1602,155 +1763,6 @@ to figure out how to bind the deploy keys, use stevedore to manage repositories,
     <category term="self-hosting" />
   
     <summary type="html">Raspberry Pi is my home server hardware. I decided if I can make my human life easier be making the deployments of Docker containers more smooth, and more automated.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Tutorial: Deploying Your First App with Stevedore</title>
-    <link href="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/" rel="alternate" type="text/html" title="Tutorial: Deploying Your First App with Stevedore" />
-    <published>2025-12-24T00:00:00+00:00</published>
-    <updated>2025-12-24T00:00:00+00:00</updated>
-    <id>/blog/2025/12/24/getting-started-with-stevedore</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2025/12/24/getting-started-with-stevedore/">&lt;p&gt;Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;prerequisites&quot;&gt;Prerequisites&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A Linux host (Ubuntu or Raspberry Pi OS) with sudo access.&lt;/li&gt;
-  &lt;li&gt;Docker installed (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl -fsSL https://get.docker.com | sh&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;A GitHub account.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;step-1-fork-and-install&quot;&gt;Step 1: Fork and Install&lt;/h2&gt;
-
-&lt;p&gt;First, fork the &lt;a href=&quot;https://github.com/jonnyzzz/stevedore&quot;&gt;Stevedore repository&lt;/a&gt;. This is your personal control plane.&lt;/p&gt;
-
-&lt;p&gt;SSH into your server and run:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone https://github.com/&amp;lt;YOUR_USERNAME&amp;gt;/stevedore.git
-&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;stevedore
-./stevedore-install.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This script does a few things:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;Builds the Stevedore image.&lt;/li&gt;
-  &lt;li&gt;Sets up the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; directory.&lt;/li&gt;
-  &lt;li&gt;Installs a systemd service (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) when systemd is available; otherwise starts the container with a Docker restart policy.&lt;/li&gt;
-  &lt;li&gt;Generates your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;admin.key&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;db.key&lt;/code&gt;.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Verify it’s running:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore doctor
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-2-add-a-repository&quot;&gt;Step 2: Add a Repository&lt;/h2&gt;
-
-&lt;p&gt;Let’s say you have a repository &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; with a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker-compose.yaml&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;Tell Stevedore to watch it:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo add my-app git@github.com:&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app.git
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;If your repo default branch isn’t &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;, add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--branch &amp;lt;branch&amp;gt;&lt;/code&gt; to the command.&lt;/p&gt;
-
-&lt;p&gt;Stevedore will generate a unique SSH Key for this deployment. View it:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore repo key my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Copy that key. Go to your GitHub repo -&amp;gt; &lt;strong&gt;Settings&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Deploy keys&lt;/strong&gt; -&amp;gt; &lt;strong&gt;Add deploy key&lt;/strong&gt;. Paste it there. This gives Stevedore read-only access to just that repo.&lt;/p&gt;
-
-&lt;p&gt;Prefer GitHub CLI? This does the same thing (read-only):&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gh api &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST repos/&amp;lt;YOUR_USERNAME&amp;gt;/my-web-app/keys &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;stevedore-my-app&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;key&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;stevedore repo key my-app&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
-  &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;read_only&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step-3-deploy&quot;&gt;Step 3: Deploy!&lt;/h2&gt;
-
-&lt;p&gt;Now, kick off the first sync:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy &lt;span class=&quot;nb&quot;&gt;sync &lt;/span&gt;my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Stevedore will pull the code (it also hard-resets the repo and cleans untracked files by default; use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-clean&lt;/code&gt; to skip the cleanup). Now, bring it up:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore deploy up my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Boom. Your app is running.&lt;/p&gt;
-
-&lt;h2 id=&quot;step-4-the-magic&quot;&gt;Step 4: The Magic&lt;/h2&gt;
-
-&lt;p&gt;Here is the best part. Make a change to your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;my-web-app&lt;/code&gt; on your laptop. Change the HTML title.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git commit &lt;span class=&quot;nt&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Update title&quot;&lt;/span&gt;
-git push
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Wait a few minutes (Stevedore polls on its configured interval; default is 5 minutes). Refresh your browser.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;It updated automatically.&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;You can check the status at any time:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore status my-app
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;managing-secrets&quot;&gt;Managing Secrets&lt;/h2&gt;
-
-&lt;p&gt;Need to set an API key? Don’t commit it.&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;my-app API_KEY &lt;span class=&quot;s2&quot;&gt;&quot;super-secret-value&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Stevedore stores this in its encrypted database. Stevedore injects parameters as environment variables on deploy (including automatic redeploys).&lt;/p&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;It’s that simple. No Kubernetes manifests. No complex CI/CD pipelines. Just Git, Docker, and Stevedore keeping watch.&lt;/p&gt;
-
-&lt;p&gt;Give it a try and let me know what you think!&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="tutorial" />
-  
-    <category term="gitops" />
-  
-    <category term="raspberry-pi" />
-  
-    <category term="docker" />
-  
-    <category term="github" />
-  
-    <summary type="html">Ready to turn your Raspberry Pi into a GitOps powerhouse? Let’s install Stevedore and deploy a simple web server.</summary>
   
   </entry>
   

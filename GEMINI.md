@@ -60,7 +60,7 @@ export GEMINI_API_KEY="your-api-key-here"
 
 ```bash
 # Non-interactive execution (one-shot)
-gemini "your prompt here" 2>&1
+gemini --approval-mode auto_edit "your prompt here" 2>&1
 
 # Interactive mode
 gemini
@@ -69,7 +69,7 @@ gemini
 gemini -i "initial prompt"
 
 # With specific model (syntax reference)
-gemini -m model-name "prompt" 2>&1
+gemini -m model-name --approval-mode auto_edit "prompt" 2>&1
 ```
 
 ### Approval Modes
@@ -88,17 +88,19 @@ gemini --approval-mode yolo "prompt" 2>&1
 gemini "prompt" 2>&1
 ```
 
+**MCP and skills:** avoid `--allowed-mcp-server-names`, `--allowed-tools`, or `--extensions` unless you intend to restrict access. By default, all configured MCP servers and extensions remain available.
+
 ### Output Formats
 
 ```bash
 # Plain text output (default)
-gemini "prompt" 2>&1
+gemini --approval-mode auto_edit "prompt" 2>&1
 
 # JSON output (for parsing)
-gemini -o json "prompt" 2>&1
+gemini -o json --approval-mode auto_edit "prompt" 2>&1
 
 # Streaming JSON
-gemini -o stream-json "prompt" 2>&1
+gemini -o stream-json --approval-mode auto_edit "prompt" 2>&1
 ```
 
 ---
@@ -109,7 +111,7 @@ gemini -o stream-json "prompt" 2>&1
 
 ```bash
 # From Claude Code, use Bash tool:
-gemini "Your detailed prompt here" 2>&1
+gemini --approval-mode auto_edit "Your detailed prompt here" 2>&1
 ```
 
 ### For File Analysis
@@ -119,7 +121,7 @@ Unlike Codex, Gemini doesn't have an `-i` flag for file input. Instead, include 
 ```bash
 # Read file content and pass to Gemini
 CONTENT=$(cat /path/to/file.md)
-gemini "Analyze this content:
+gemini --approval-mode auto_edit "Analyze this content:
 
 $CONTENT
 
@@ -133,7 +135,7 @@ Tasks:
 
 ```bash
 # Save output to file for later processing
-gemini "prompt" > /tmp/gemini-output.txt 2>&1
+gemini --approval-mode auto_edit "prompt" > /tmp/gemini-output.txt 2>&1
 
 # Then read the output
 cat /tmp/gemini-output.txt
@@ -167,7 +169,7 @@ CONSTRAINTS:
 ```bash
 CONTENT=$(cat output.md)
 
-gemini "CONTEXT:
+gemini --approval-mode auto_edit "CONTEXT:
 You are cross-validating a document produced by another AI agent.
 
 INPUT:
@@ -213,9 +215,9 @@ CONSTRAINTS:
 
 ```bash
 # Launch multiple Gemini instances IN PARALLEL
-gemini "Task 1: analyze section A" > /tmp/out1.txt 2>&1 &
-gemini "Task 2: analyze section B" > /tmp/out2.txt 2>&1 &
-gemini "Task 3: analyze section C" > /tmp/out3.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 1: analyze section A" > /tmp/out1.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 2: analyze section B" > /tmp/out2.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 3: analyze section C" > /tmp/out3.txt 2>&1 &
 
 # Wait for ALL to complete
 wait
@@ -228,9 +230,9 @@ cat /tmp/out1.txt /tmp/out2.txt /tmp/out3.txt
 
 ```bash
 # Run parallel tasks with timeout (macOS: use gtimeout from coreutils)
-timeout 300 gemini "Task 1" > /tmp/out1.txt 2>&1 &
-timeout 300 gemini "Task 2" > /tmp/out2.txt 2>&1 &
-timeout 300 gemini "Task 3" > /tmp/out3.txt 2>&1 &
+timeout 300 gemini --approval-mode auto_edit "Task 1" > /tmp/out1.txt 2>&1 &
+timeout 300 gemini --approval-mode auto_edit "Task 2" > /tmp/out2.txt 2>&1 &
+timeout 300 gemini --approval-mode auto_edit "Task 3" > /tmp/out3.txt 2>&1 &
 wait
 ```
 
@@ -240,7 +242,7 @@ wait
 # Process multiple files in parallel
 for file in src/module1.ts src/module2.ts src/module3.ts; do
   CONTENT=$(cat "$file")
-  gemini "Analyze this code:
+  gemini --approval-mode auto_edit "Analyze this code:
 
 $CONTENT
 
@@ -267,7 +269,7 @@ When implementing RLM's Partition+Map strategy, Gemini can serve as the sub-LM:
 # Step 2: MAP (Gemini sub-agents process IN PARALLEL)
 for chunk in chunk1.txt chunk2.txt chunk3.txt; do
   CONTENT=$(cat "$chunk")
-  gemini "Process this chunk:
+  gemini --approval-mode auto_edit "Process this chunk:
 
 $CONTENT
 
@@ -290,7 +292,7 @@ CONTENT=$(cat output.md)
 
 # Cross-validate with different models in parallel
 codex exec -i output.md "Review for technical accuracy" > review_codex.md 2>&1 &
-gemini "Review this for accuracy:
+gemini --approval-mode auto_edit "Review this for accuracy:
 
 $CONTENT
 
@@ -324,7 +326,7 @@ RETRY_COUNT=0
 TIMEOUT_SEC=300
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  if timeout $TIMEOUT_SEC gemini "prompt" 2>&1; then
+  if timeout $TIMEOUT_SEC gemini --approval-mode auto_edit "prompt" 2>&1; then
     break
   fi
   RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -388,33 +390,33 @@ done
 
 ```bash
 # Basic execution
-gemini "prompt" 2>&1
+gemini --approval-mode auto_edit "prompt" 2>&1
 
 # With model (syntax reference)
-gemini -m model-name "prompt" 2>&1
+gemini -m model-name --approval-mode auto_edit "prompt" 2>&1
 
 # Auto-approve edits
 gemini --approval-mode auto_edit "prompt" 2>&1
 
 # JSON output
-gemini -o json "prompt" 2>&1
+gemini -o json --approval-mode auto_edit "prompt" 2>&1
 
 # With file content
 CONTENT=$(cat file.md)
-gemini "Analyze: $CONTENT" 2>&1
+gemini --approval-mode auto_edit "Analyze: $CONTENT" 2>&1
 
 # Capture output to file
-gemini "prompt" > output.txt 2>&1
+gemini --approval-mode auto_edit "prompt" > output.txt 2>&1
 
 # PARALLEL EXECUTION (always prefer this)
-gemini "Task 1" > /tmp/out1.txt 2>&1 &
-gemini "Task 2" > /tmp/out2.txt 2>&1 &
-gemini "Task 3" > /tmp/out3.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 1" > /tmp/out1.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 2" > /tmp/out2.txt 2>&1 &
+gemini --approval-mode auto_edit "Task 3" > /tmp/out3.txt 2>&1 &
 wait
 cat /tmp/out*.txt
 
 # With timeout
-timeout 300 gemini "prompt" 2>&1
+timeout 300 gemini --approval-mode auto_edit "prompt" 2>&1
 ```
 
 ---
@@ -439,7 +441,7 @@ codex exec -i "$OUTPUT_FILE" "Review for technical accuracy. Output: JSON with i
   > /tmp/review_codex.json 2>&1 &
 
 echo "Launching Gemini review..."
-gemini "Cross-validate this document:
+gemini --approval-mode auto_edit "Cross-validate this document:
 
 $CONTENT
 

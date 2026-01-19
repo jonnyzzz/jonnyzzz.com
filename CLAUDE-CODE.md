@@ -46,16 +46,16 @@ claude --version
 
 ```bash
 # Non-interactive execution (print mode)
-claude -p "your prompt here"
+claude -p --tools default --permission-mode dontAsk "your prompt here"
 
 # With stdin input
-echo "your prompt here" | claude -p
+echo "your prompt here" | claude -p --tools default --permission-mode dontAsk
 
 # JSON output format
-claude -p --output-format json "prompt"
+claude -p --tools default --permission-mode dontAsk --output-format json "prompt"
 
 # Stream JSON output (for real-time processing)
-claude -p --output-format stream-json "prompt"
+claude -p --tools default --permission-mode dontAsk --output-format stream-json "prompt"
 ```
 
 ### Tool Access
@@ -63,13 +63,18 @@ claude -p --output-format stream-json "prompt"
 **Recommended:** Give sub-agents full tool access. Don't restrict yourself - sub-agents should have the same capabilities as the main agent.
 
 ```bash
-# Full access (recommended)
-echo "Your prompt" | claude -p 2>&1
+# Full access + autonomous approvals (recommended for sub-agents)
+echo "Your prompt" | claude -p --tools default --permission-mode dontAsk 2>&1
+
+# Auto-approve edits but still prompt for higher-risk actions
+echo "Your prompt" | claude -p --tools default --permission-mode acceptEdits 2>&1
 
 # If you must restrict (rare cases)
-echo "prompt" | claude -p --allowedTools "Read,Grep,Glob"
-echo "prompt" | claude -p --disallowedTools "Edit,Write"
+echo "prompt" | claude -p --allowedTools "Read,Grep,Glob" --permission-mode dontAsk
+echo "prompt" | claude -p --disallowedTools "Edit,Write" --permission-mode dontAsk
 ```
+
+**MCP and skills:** keep slash commands enabled (do not pass `--disable-slash-commands`), and load MCP servers with `--mcp-config <path>` if they are not already in your default settings. Avoid `--strict-mcp-config` unless you provide the full MCP list.
 
 ## Spawning Claude Code from Another Agent
 
@@ -77,10 +82,10 @@ echo "prompt" | claude -p --disallowedTools "Edit,Write"
 
 ```bash
 # Simple execution with prompt as argument
-claude -p "Your detailed prompt here" 2>&1
+claude -p --tools default --permission-mode dontAsk "Your detailed prompt here" 2>&1
 
 # With stdin (preferred for complex prompts)
-echo "Your detailed prompt here" | claude -p 2>&1
+echo "Your detailed prompt here" | claude -p --tools default --permission-mode dontAsk 2>&1
 ```
 
 ### With File Context
@@ -90,17 +95,17 @@ echo "Your detailed prompt here" | claude -p 2>&1
 echo "Read /path/to/file.md and extract:
 1. Key concepts
 2. Implementation patterns
-3. Summary in 3 sentences" | claude -p 2>&1
+3. Summary in 3 sentences" | claude -p --tools default --permission-mode dontAsk 2>&1
 ```
 
 ### Capturing Structured Output
 
 ```bash
 # JSON output for programmatic processing
-echo "List 3 main points" | claude -p --output-format json 2>&1
+echo "List 3 main points" | claude -p --tools default --permission-mode dontAsk --output-format json 2>&1
 
 # Parse the result field from JSON
-echo "What is 2+2?" | claude -p --output-format json 2>&1 | jq -r '.result'
+echo "What is 2+2?" | claude -p --tools default --permission-mode dontAsk --output-format json 2>&1 | jq -r '.result'
 ```
 
 ---
@@ -113,9 +118,9 @@ echo "What is 2+2?" | claude -p --output-format json 2>&1 | jq -r '.result'
 
 ```bash
 # Launch multiple Claude Code instances IN PARALLEL (full tool access)
-echo "Task 1: Analyze auth module" | claude -p > /tmp/out1.txt 2>&1 &
-echo "Task 2: Analyze database layer" | claude -p > /tmp/out2.txt 2>&1 &
-echo "Task 3: Analyze API endpoints" | claude -p > /tmp/out3.txt 2>&1 &
+echo "Task 1: Analyze auth module" | claude -p --tools default --permission-mode dontAsk > /tmp/out1.txt 2>&1 &
+echo "Task 2: Analyze database layer" | claude -p --tools default --permission-mode dontAsk > /tmp/out2.txt 2>&1 &
+echo "Task 3: Analyze API endpoints" | claude -p --tools default --permission-mode dontAsk > /tmp/out3.txt 2>&1 &
 
 # Wait for ALL to complete
 wait
@@ -128,9 +133,9 @@ cat /tmp/out1.txt /tmp/out2.txt /tmp/out3.txt
 
 ```bash
 # Run parallel tasks with timeout (macOS: use gtimeout from coreutils)
-timeout 300 bash -c 'echo "Task 1" | claude -p' > /tmp/out1.txt 2>&1 &
-timeout 300 bash -c 'echo "Task 2" | claude -p' > /tmp/out2.txt 2>&1 &
-timeout 300 bash -c 'echo "Task 3" | claude -p' > /tmp/out3.txt 2>&1 &
+timeout 300 bash -c 'echo "Task 1" | claude -p --tools default --permission-mode dontAsk' > /tmp/out1.txt 2>&1 &
+timeout 300 bash -c 'echo "Task 2" | claude -p --tools default --permission-mode dontAsk' > /tmp/out2.txt 2>&1 &
+timeout 300 bash -c 'echo "Task 3" | claude -p --tools default --permission-mode dontAsk' > /tmp/out3.txt 2>&1 &
 wait
 ```
 
@@ -140,7 +145,7 @@ wait
 # Process multiple files in parallel (full tool access)
 for file in src/module1.ts src/module2.ts src/module3.ts; do
   echo "Read $file and identify potential bugs" | \
-    claude -p > "/tmp/analysis-$(basename $file).txt" 2>&1 &
+    claude -p --tools default --permission-mode dontAsk > "/tmp/analysis-$(basename $file).txt" 2>&1 &
 done
 wait
 
@@ -204,7 +209,7 @@ If no issues found, output: '## Security Review\n\nNo security issues identified
 CONSTRAINTS:
 - Focus only on security, not code style
 - Reference specific line numbers
-- Provide remediation suggestions" | claude -p 2>&1
+- Provide remediation suggestions" | claude -p --tools default --permission-mode dontAsk 2>&1
 ```
 
 ---
@@ -218,9 +223,9 @@ CONSTRAINTS:
 # Create task descriptions for each chunk
 
 # Step 2: MAP (Claude Code sub-agents process IN PARALLEL)
-echo "Process chunk 1: $CHUNK1_DESCRIPTION" | claude -p > /tmp/result1.txt 2>&1 &
-echo "Process chunk 2: $CHUNK2_DESCRIPTION" | claude -p > /tmp/result2.txt 2>&1 &
-echo "Process chunk 3: $CHUNK3_DESCRIPTION" | claude -p > /tmp/result3.txt 2>&1 &
+echo "Process chunk 1: $CHUNK1_DESCRIPTION" | claude -p --tools default --permission-mode dontAsk > /tmp/result1.txt 2>&1 &
+echo "Process chunk 2: $CHUNK2_DESCRIPTION" | claude -p --tools default --permission-mode dontAsk > /tmp/result2.txt 2>&1 &
+echo "Process chunk 3: $CHUNK3_DESCRIPTION" | claude -p --tools default --permission-mode dontAsk > /tmp/result3.txt 2>&1 &
 wait
 
 # Step 3: REDUCE (orchestrating agent aggregates results)
@@ -239,7 +244,7 @@ echo "Read /tmp/primary-analysis.md and review for:
 4. Factual errors
 
 Output only issues found, or 'VALIDATED: No issues found' if none." | \
-  claude -p 2>&1
+  claude -p --tools default --permission-mode dontAsk 2>&1
 ```
 
 ---
@@ -264,7 +269,7 @@ RETRY_COUNT=0
 TIMEOUT_SEC=300
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-  if timeout $TIMEOUT_SEC bash -c 'echo "your prompt" | claude -p' 2>&1; then
+  if timeout $TIMEOUT_SEC bash -c 'echo "your prompt" | claude -p --tools default --permission-mode dontAsk' 2>&1; then
     break
   fi
   RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -300,26 +305,26 @@ done
 
 ```bash
 # Basic non-interactive execution
-claude -p "prompt"
+claude -p --tools default --permission-mode dontAsk "prompt"
 
 # With stdin (better for complex prompts)
-echo "prompt" | claude -p
+echo "prompt" | claude -p --tools default --permission-mode dontAsk
 
 # With specific tools only
-echo "prompt" | claude -p --allowedTools "Read,Grep"
+echo "prompt" | claude -p --allowedTools "Read,Grep" --permission-mode dontAsk
 
 # JSON output
-echo "prompt" | claude -p --output-format json
+echo "prompt" | claude -p --tools default --permission-mode dontAsk --output-format json
 
 # PARALLEL EXECUTION (always prefer this)
-echo "Task 1" | claude -p > /tmp/out1.txt 2>&1 &
-echo "Task 2" | claude -p > /tmp/out2.txt 2>&1 &
-echo "Task 3" | claude -p > /tmp/out3.txt 2>&1 &
+echo "Task 1" | claude -p --tools default --permission-mode dontAsk > /tmp/out1.txt 2>&1 &
+echo "Task 2" | claude -p --tools default --permission-mode dontAsk > /tmp/out2.txt 2>&1 &
+echo "Task 3" | claude -p --tools default --permission-mode dontAsk > /tmp/out3.txt 2>&1 &
 wait
 cat /tmp/out*.txt
 
 # With timeout
-timeout 300 bash -c 'echo "prompt" | claude -p' 2>&1
+timeout 300 bash -c 'echo "prompt" | claude -p --tools default --permission-mode dontAsk' 2>&1
 ```
 
 ---
