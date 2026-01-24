@@ -10,13 +10,14 @@ This document instructs AI agents on how to orchestrate multiple sub-agents for 
 
 ## Related Skill Files
 
-| File | Purpose |
-|------|---------|
-| **RLM.md** | Core RLM instructions - when/how to decompose tasks |
-| **RLM-extra.md** | Detailed RLM reference - templates, benchmarks, error handling |
-| **CLAUDE-CODE.md** | Using Claude Code CLI as sub-agent |
-| **CODEX.md** | Using Codex CLI as sub-agent for multimodal/focused tasks |
-| **GEMINI.md** | Using Gemini CLI as sub-agent for cross-validation |
+| File | Purpose | Online |
+|------|---------|--------|
+| **RLM.md** | Core RLM instructions - when/how to decompose tasks | [View](https://jonnyzzz.com/RLM.md) |
+| **RLM-extra.md** | Detailed RLM reference - templates, benchmarks, error handling | [View](https://jonnyzzz.com/RLM-extra.md) |
+| **CLAUDE-CODE.md** | Using Claude Code CLI as sub-agent (⚠️ limited MCP visibility) | [View](https://jonnyzzz.com/CLAUDE-CODE.md) |
+| **CODEX.md** | Using Codex CLI as sub-agent (✅ BEST for IntelliJ MCP) | [View](https://jonnyzzz.com/CODEX.md) |
+| **GEMINI.md** | Using Gemini CLI as sub-agent for cross-validation (no MCP) | [View](https://jonnyzzz.com/GEMINI.md) |
+| **MULTI-AGENT.md** | This document - orchestration patterns | [View](https://jonnyzzz.com/MULTI-AGENT.md) |
 
 ---
 
@@ -45,6 +46,63 @@ From RLM.md - activate multi-agent when:
 
 ---
 
+## Part 1.5: MCP Server Visibility (CRITICAL)
+
+**IMPORTANT:** MCP servers must be registered to be available. Once registered, Claude Code and Codex automatically inherit them.
+
+### MCP Visibility Matrix
+
+| CLI | Playwright MCP | IntelliJ MCP Steroid | Best Use Case |
+|-----|----------------|---------------------|---------------|
+| **Claude Code** | ✅ Yes (if registered) | ✅ Yes (if registered) | Web research, browser automation, general coding |
+| **Codex** | ✅ Yes (if registered) | ✅ Yes (if registered) | IntelliJ IDE operations, full MCP access |
+| **Gemini** | ❌ No | ❌ No | Cross-validation, alternative perspective, non-MCP tasks |
+
+### MCP Registration Requirements
+
+**To use MCP servers with sub-agents, they must be registered first:**
+
+```bash
+# Find IntelliJ MCP URL (written by IntelliJ to ~/.*.mcp-steroid)
+cat ~/.*.mcp-steroid  # Shows URL and registration commands
+
+# Claude Code registration (use URL from file above)
+claude mcp add --transport http intellij-steroid <URL>
+claude mcp add playwright npx @playwright/mcp@latest
+claude mcp list  # Verify registration
+
+# Codex registration (use URL from file above)
+codex mcp add intellij --url <URL>
+codex mcp add playwright npx "@playwright/mcp@latest"
+codex mcp list  # Verify registration
+```
+
+**Key insight:** Once registered, MCP servers are automatically inherited by ALL sub-agents regardless of command-line flags used to spawn them.
+
+### Implications for Task Assignment
+
+**IntelliJ Platform Development:**
+- ✅ **Use Claude Code or Codex** - both see IntelliJ MCP when registered
+- Tools available: `steroid_execute_code`, `steroid_open_project`, PSI operations, refactoring APIs
+
+**Browser Automation:**
+- ✅ **Use Claude Code or Codex** - both have Playwright MCP when registered
+- ❌ **Don't use Gemini** - no MCP support
+
+**Pure Code Analysis (no IDE integration needed):**
+- ✅ **Use any CLI** - Gemini works well for this
+- Consider Gemini for alternative perspective without MCP overhead
+
+**Working Directory:** Always spawn sub-agents from correct working directory to inherit project configurations:
+```bash
+(cd /path/to/project && <CLI-command> "prompt")
+# or with Codex: codex -C /path/to/project --full-auto exec "prompt"
+```
+
+**See:** [CLAUDE-CODE.md](https://jonnyzzz.com/CLAUDE-CODE.md), [CODEX.md](https://jonnyzzz.com/CODEX.md), [GEMINI.md](https://jonnyzzz.com/GEMINI.md) for complete details on MCP registration and usage.
+
+---
+
 ## Part 2: Agent Types and Capabilities
 
 ### Available Agent Types (Claude Code)
@@ -58,10 +116,18 @@ From RLM.md - activate multi-agent when:
 
 ### External Agent CLIs
 
-| CLI | Best For | Invocation |
-|-----|----------|------------|
-| **codex** | Focused non-interactive tasks, PDF analysis | `codex exec -i file.pdf "prompt"` |
-| **gemini** | Alternative perspective, cross-validation | `gemini "prompt"` |
+| CLI | Best For | Playwright MCP | IntelliJ MCP | Invocation |
+|-----|----------|----------------|--------------|------------|
+| **claude-code** | Web research, browser automation | ✅ Yes (if registered) | ✅ Yes (if registered) | `echo "prompt" \| claude -p --tools default --permission-mode dontAsk` |
+| **codex** | IntelliJ IDE work, PDF analysis, full MCP access | ✅ Yes (if registered) | ✅ Yes (if registered) | `codex --full-auto exec "prompt"` |
+| **gemini** | Cross-validation, alternative perspective | ❌ No | ❌ No | `gemini --approval-mode auto_edit "prompt"` |
+
+**Note:** MCP servers must be registered once using `claude mcp add` or `codex mcp add` commands. Once registered, they are automatically available to all sub-agents.
+
+**Full documentation:**
+- [CLAUDE-CODE.md](https://jonnyzzz.com/CLAUDE-CODE.md) - Complete Claude Code sub-agent guide
+- [CODEX.md](https://jonnyzzz.com/CODEX.md) - Complete Codex sub-agent guide (includes sandbox workarounds)
+- [GEMINI.md](https://jonnyzzz.com/GEMINI.md) - Complete Gemini sub-agent guide
 
 ---
 
@@ -371,54 +437,97 @@ Phase 4 - Incorporate:
 
 ---
 
-## Part 8: CLI Integration
+## Part 8: CLI Integration and Best Practices
 
-### Spawning Codex Sub-Agents
+### Choosing the Right CLI
+
+**Decision tree:**
+1. **Need IntelliJ IDE operations?** → Use **Codex** (only CLI with IntelliJ MCP)
+2. **Need browser automation?** → Use **Claude Code** or **Codex** (both have Playwright)
+3. **Need cross-validation?** → Use **Gemini** (alternative model)
+4. **Pure code analysis?** → Any CLI works, **Gemini** good for alternative perspective
+
+### Spawning Claude Code Sub-Agents
 
 ```bash
-# Non-interactive focused task
-codex exec "Your detailed prompt" 2>&1
+# From correct working directory (for config inheritance)
+echo "Your detailed prompt" | claude -p --tools default --permission-mode dontAsk 2>&1
 
-# With file input (PDF, image, etc.)
-codex exec -i file.pdf "Analyze this document" 2>&1
+# With JSON output
+echo "prompt" | claude -p --tools default --permission-mode dontAsk --output-format json 2>&1
 
-# With model selection
-codex exec -m gpt-5.2-codex "Complex analysis task" 2>&1
-
-# Capture output for later processing
-codex exec "prompt" > /tmp/result.txt 2>&1
+# Parallel execution
+echo "Task 1" | claude -p --tools default --permission-mode dontAsk > /tmp/out1.txt 2>&1 &
+echo "Task 2" | claude -p --tools default --permission-mode dontAsk > /tmp/out2.txt 2>&1 &
+wait
 ```
 
-See **CODEX.md** for complete reference.
+**Note:** Claude Code sub-agents do NOT see IntelliJ MCP. Use Codex for IDE work.
+
+**Full guide:** [CLAUDE-CODE.md](https://jonnyzzz.com/CLAUDE-CODE.md)
+
+### Spawning Codex Sub-Agents (BEST for IntelliJ)
+
+```bash
+# Recommended: Full-auto mode with working directory
+codex -C /path/to/project --full-auto exec "Your detailed prompt" 2>&1
+
+# With file input (PDF, image, etc.)
+codex --full-auto -i file.pdf exec "Analyze this document" 2>&1
+
+# With --json for structured logs
+codex --full-auto --json exec "Complex analysis task" 2>&1
+
+# Capture output for later processing
+codex --full-auto exec "prompt" > /tmp/result.txt 2>&1
+
+# For nested execution (when running Codex from within Codex)
+TMP_HOME=/tmp/codex-home
+mkdir -p "$TMP_HOME/.codex"
+cp ~/.codex/auth.json "$TMP_HOME/.codex/"
+HOME="$TMP_HOME" codex --full-auto exec "prompt" 2>&1
+```
+
+**Codex sees BOTH Playwright AND IntelliJ MCP** - use it for IDE operations!
+
+**Full guide:** [CODEX.md](https://jonnyzzz.com/CODEX.md) (includes sandbox workarounds)
 
 ### Spawning Gemini Sub-Agents
 
 ```bash
-# Non-interactive focused task
-gemini "Your detailed prompt" 2>&1
+# From correct working directory
+(cd /path/to/project && gemini --approval-mode auto_edit "Your detailed prompt" 2>&1)
 
-# With approval mode for file operations
+# With YOLO mode (auto-approve everything - use with caution)
 gemini --approval-mode yolo "Task requiring file access" 2>&1
 
 # Capture output
-gemini "prompt" > /tmp/result.txt 2>&1
+gemini --approval-mode auto_edit "prompt" > /tmp/result.txt 2>&1
 ```
 
-See **GEMINI.md** for complete reference.
+**Note:** Gemini does NOT see MCP servers. Use for non-MCP tasks only.
+
+**Full guide:** [GEMINI.md](https://jonnyzzz.com/GEMINI.md)
 
 ### Parallel Execution Pattern
 
 ```bash
-# Launch multiple sub-agents in parallel
-codex exec -i doc1.pdf "Analyze section 1" > /tmp/r1.txt 2>&1 &
-codex exec -i doc2.pdf "Analyze section 2" > /tmp/r2.txt 2>&1 &
-gemini "Cross-validate approach" > /tmp/r3.txt 2>&1 &
+# Example: IntelliJ analysis + cross-validation
+# Use Codex for IDE work, Gemini for review
+
+# Launch in parallel
+codex -C /path/to/intellij --full-auto exec "Analyze PSI structure in X.kt" > /tmp/codex.txt 2>&1 &
+gemini --approval-mode auto_edit "Review /path/to/intellij/X.kt for code quality" > /tmp/gemini.txt 2>&1 &
 
 # Wait for all
 wait
 
 # Collect results
-cat /tmp/r1.txt /tmp/r2.txt /tmp/r3.txt
+echo "=== Codex Analysis (with IntelliJ MCP) ==="
+cat /tmp/codex.txt
+echo ""
+echo "=== Gemini Review (alternative perspective) ==="
+cat /tmp/gemini.txt
 ```
 
 ---

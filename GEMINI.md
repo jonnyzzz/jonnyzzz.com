@@ -17,13 +17,33 @@ This document instructs AI agents (Claude Code, Codex, etc.) on how to spawn Gem
 | **Alternative Perspective** | Gemini may catch issues Claude/Codex miss |
 | **Diversity in Review** | Multiple model architectures reduce blind spots |
 | **Long-Context Tasks** | Gemini has large context window for extensive documents |
+| **Non-MCP Tasks** | Good for pure code analysis without IDE integration |
 
 ### When NOT to Use Gemini
 
-- Tasks requiring specific Claude Code tools (MCP, browser)
-- When Codex non-interactive mode is more appropriate
+- **MCP-dependent tasks** - Gemini does NOT see MCP servers (use Codex or Claude Code instead)
+- **IntelliJ IDE operations** - No MCP access (use Codex)
+- **Browser automation** - No Playwright MCP (use Claude Code or Codex)
+- Tasks requiring specific IDE or browser tools
 - Simple edits that don't benefit from cross-validation
 - Tasks requiring conversation history access
+
+### ⚠️ MCP Server Visibility
+
+**IMPORTANT:** Gemini does NOT integrate with MCP servers.
+
+| MCP Server | Visible to Gemini | Impact |
+|------------|------------------|---------|
+| Playwright | ❌ No | Cannot control browsers |
+| IntelliJ MCP Steroid | ❌ No | Cannot use IDE operations |
+
+**What Gemini HAS:**
+- Native file system operations (read, write, search, glob)
+- Web capabilities (search, fetch)
+- Shell command execution
+- Memory and cognition features
+
+**Best Use:** Code review, analysis, and validation tasks that don't require IDE or browser integration.
 
 ---
 
@@ -207,6 +227,201 @@ CONSTRAINTS:
 
 ---
 
+## Working Directory Requirements
+
+**IMPORTANT:** Always spawn Gemini sub-agents from the correct working directory to access project-specific configuration files.
+
+### Why Working Directory Matters
+
+Gemini can access configuration from:
+1. **Project files** - Build configs, git settings, documentation
+2. **AI guidelines** - GEMINI.md, CLAUDE.md, .ai/ directory
+3. **`.mcp.json`** - Can read it but doesn't use MCP servers
+4. **File structure** - Inherits current directory for file operations
+
+**Note:** Gemini does NOT inherit MCP server configurations, but can read and understand project structure.
+
+### Recommended Pattern
+
+```bash
+# Option 1: Run from project root
+cd /path/to/project
+gemini --approval-mode auto_edit "prompt" 2>&1
+
+# Option 2: Use subshell
+(cd /path/to/project && gemini --approval-mode auto_edit "prompt" 2>&1)
+```
+
+### Verification
+
+Test that Gemini sees project structure:
+
+```bash
+(cd /path/to/project && gemini --approval-mode auto_edit "What is your current working directory? What configuration files do you see? What tools are available?" 2>&1)
+```
+
+**Expected output:**
+- Working directory: `/path/to/project`
+- Config files: Build files, .gitignore, GEMINI.md, etc.
+- Tools: Native filesystem, web, shell (NO MCP servers)
+
+---
+
+## Automation with Python UV and Bash Scripts
+
+### Using Python with UV
+
+```python
+#!/usr/bin/env python3
+"""Example: Parallel Gemini sub-agents with Python UV"""
+import subprocess
+import asyncio
+from pathlib import Path
+import os
+
+async def run_gemini_agent(
+    prompt: str,
+    output_file: Path,
+    approval_mode: str = "auto_edit"
+) -> int:
+    """Run Gemini sub-agent and capture output."""
+    # Ensure GEMINI_API_KEY is set
+    if not os.getenv("GEMINI_API_KEY"):
+        raise ValueError("GEMINI_API_KEY environment variable not set")
+
+    cmd = [
+        "gemini",
+        "--approval-mode", approval_mode
+    ]
+
+    with output_file.open('w') as f:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=subprocess.PIPE,
+            stdout=f,
+            stderr=subprocess.STDOUT
+        )
+
+        await proc.communicate(input=prompt.encode())
+        return proc.returncode
+
+async def main():
+    """Launch 3 Gemini agents in parallel."""
+    tasks = [
+        run_gemini_agent(
+            "Read /path/to/file1.md and extract key concepts",
+            Path("/tmp/gemini-out1.txt")
+        ),
+        run_gemini_agent(
+            "Read /path/to/file2.md and identify patterns",
+            Path("/tmp/gemini-out2.txt")
+        ),
+        run_gemini_agent(
+            "Read /path/to/file3.md and summarize",
+            Path("/tmp/gemini-out3.txt")
+        )
+    ]
+
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    print(f"All agents completed with results: {results}")
+
+    # Aggregate results
+    for i in range(1, 4):
+        output_file = Path(f"/tmp/gemini-out{i}.txt")
+        if output_file.exists():
+            print(f"\n=== Agent {i} Output ===")
+            print(output_file.read_text())
+        else:
+            print(f"\n=== Agent {i} FAILED ===")
+
+if __name__ == "__main__":
+    # Verify API key before running
+    if not os.getenv("GEMINI_API_KEY"):
+        print("ERROR: GEMINI_API_KEY not set. Set it with:")
+        print("export GEMINI_API_KEY='your-api-key-here'")
+        exit(1)
+
+    asyncio.run(main())
+```
+
+### Bash Script Template
+
+```bash
+#!/usr/bin/env bash
+# run-parallel-gemini-agents.sh
+# Launch multiple Gemini sub-agents in parallel
+
+set -euo pipefail
+
+# Check for API key
+if [ -z "${GEMINI_API_KEY:-}" ]; then
+    echo "ERROR: GEMINI_API_KEY environment variable not set"
+    echo "Set it with: export GEMINI_API_KEY='your-api-key-here'"
+    exit 1
+fi
+
+# Configuration
+OUTPUT_DIR="/tmp/gemini-agents"
+TIMEOUT_SEC=300
+APPROVAL_MODE="auto_edit"
+
+# Tasks array
+declare -a TASKS=(
+    "Analyze authentication patterns in the codebase"
+    "Review error handling strategies"
+    "Identify performance optimization opportunities"
+)
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+# Launch agents in parallel
+echo "=== Launching ${#TASKS[@]} Gemini agents in parallel ==="
+pids=()
+
+for i in "${!TASKS[@]}"; do
+    task="${TASKS[$i]}"
+    output_file="$OUTPUT_DIR/agent-$((i+1)).txt"
+
+    echo "Starting agent $((i+1)): ${task:0:50}..."
+
+    # Launch in background with timeout protection
+    (
+        timeout "$TIMEOUT_SEC" bash -c \
+            "echo \"$task\" | gemini --approval-mode \"$APPROVAL_MODE\" 2>&1" \
+            > "$output_file" 2>&1
+    ) &
+    pids+=($!)
+done
+
+# Wait for all agents
+echo "Waiting for all agents to complete..."
+for pid in "${pids[@]}"; do
+    wait "$pid" && echo "Agent $pid completed successfully" || echo "Agent $pid failed"
+done
+
+# Aggregate results
+echo ""
+echo "=== Aggregated Results ==="
+for i in $(seq 1 ${#TASKS[@]}); do
+    echo ""
+    echo "--- Agent $i ---"
+    if [ -f "$OUTPUT_DIR/agent-$i.txt" ]; then
+        cat "$OUTPUT_DIR/agent-$i.txt"
+    else
+        echo "ERROR: Output file not found"
+    fi
+done
+
+echo ""
+echo "=== Execution Complete ==="
+echo "Individual outputs saved to: $OUTPUT_DIR"
+```
+
+Make executable with: `chmod +x run-parallel-gemini-agents.sh`
+
+---
+
 ## Parallel Execution (CRITICAL)
 
 **Always run independent Gemini sub-agents in parallel** for maximum throughput. Each instance runs in isolation with its own context.
@@ -335,31 +550,93 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
 done
 ```
 
+### Troubleshooting Guide
+
+**API Key Issues:**
+
+```bash
+# Verify API key is set
+if [ -z "${GEMINI_API_KEY:-}" ]; then
+    echo "ERROR: GEMINI_API_KEY not set"
+    echo "Get your API key from: https://makersuite.google.com/app/apikey"
+    echo "Set it with: export GEMINI_API_KEY='your-api-key-here'"
+    exit 1
+fi
+
+# Test API key validity
+if ! gemini --approval-mode auto_edit "test" 2>&1 | grep -q "Error.*401\|Error.*API"; then
+    echo "✓ API key appears valid"
+else
+    echo "✗ API key invalid or expired"
+fi
+```
+
+**Timeout Issues:**
+
+If Gemini sub-agents timeout frequently:
+1. Increase timeout: use `timeout 600` instead of `timeout 300`
+2. Reduce prompt complexity - break into smaller sub-tasks
+3. Check network connectivity to Google's APIs
+
+**Permission Issues:**
+
+If you see permission prompts despite `--approval-mode auto_edit`:
+1. Try `--approval-mode yolo` for fully automatic approval (use with caution)
+2. Ensure you're not in an interactive terminal (redirecting stdin may help)
+
+**Rate Limiting:**
+
+If you hit rate limits with parallel agents:
+```bash
+# Add delays between launches
+for task in "${TASKS[@]}"; do
+    echo "$task" | gemini --approval-mode auto_edit > output.txt 2>&1 &
+    sleep 2  # 2-second delay between launches
+done
+wait
+```
+
 ---
 
 ## Comparing CLI Tools
 
+### Feature Comparison
+
 | Feature | Claude Code | Codex | Gemini |
 |---------|-------------|-------|--------|
 | Interactive mode | ✓ | ✓ | ✓ |
-| Non-interactive | via Task tool | `exec` | one-shot |
+| Non-interactive | `claude -p` | `codex exec` | `gemini` one-shot |
 | File input | Read tool | `-i` flag | via prompt |
-| PDF support | Read tool | `-i` flag | via prompt |
+| Image/PDF support | Read tool | `-i` flag | via prompt |
 | Model selection | in settings | `-m` flag | `-m` flag |
-| Parallel execution | Task tool | background jobs | background jobs |
-| MCP support | ✓ | ✓ | ✓ |
+| Parallel execution | background jobs | background jobs | background jobs |
+| **Playwright MCP** | ✅ **Yes** | ✅ **Yes** | ❌ **No** |
+| **IntelliJ MCP** | ❌ **No** | ✅ **Yes** | ❌ **No** |
+| Working dir inheritance | ✓ | ✓ (with `-C`) | ✓ |
 
-### When to Use Which
+### MCP Visibility Summary
 
-| Scenario | Best Tool |
-|----------|-----------|
-| Primary orchestration | Claude Code |
-| Focused non-interactive task | Codex |
-| PDF/image analysis | Codex |
-| Cross-validation review | Gemini |
-| Alternative perspective | Gemini |
-| Complex multi-step workflow | Claude Code |
-| Long context tasks | Gemini (large context) |
+| CLI | Playwright | IntelliJ MCP | Best For |
+|-----|------------|--------------|----------|
+| **Claude Code** | ✅ Yes (if registered) | ✅ Yes (if registered) | Web research, general coding, browser automation |
+| **Codex** | ✅ Yes (if registered) | ✅ Yes (if registered) | IntelliJ IDE work, full MCP access |
+| **Gemini** | ❌ No | ❌ No | Cross-validation, alternative perspective, non-MCP tasks |
+
+**Key:** MCP servers must be registered using `claude mcp add` or `codex mcp add` commands. Once registered, they are automatically inherited by all sub-agents. Gemini does NOT support MCP servers.
+
+### When to Use Which CLI
+
+| Scenario | Best Tool | Reason |
+|----------|-----------|--------|
+| **IntelliJ IDE operations** | Claude Code or Codex | Both see IntelliJ MCP when registered |
+| **Browser automation** | Claude Code or Codex | Both have Playwright MCP when registered |
+| **Web research** | Claude Code | Built-in WebSearch, WebFetch |
+| **Image/PDF analysis** | Codex | Native `-i` flag support |
+| **Cross-validation** | Gemini | Different model, alternative perspective |
+| **Primary orchestration** | Claude Code | Full tool suite, conversation context |
+| **Focused non-interactive** | Codex | `exec` mode for non-interactive work |
+| **Long context tasks** | Gemini | Large context window |
+| **Pure code analysis** | Gemini | Good without MCP dependencies |
 
 ---
 

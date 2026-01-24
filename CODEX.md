@@ -12,18 +12,49 @@ This document instructs AI agents (Claude Code, Junie, etc.) on how to spawn Cod
 
 | Scenario | Why Codex |
 |----------|-----------|
+| **IntelliJ IDE Operations** | ✅ Sees IntelliJ MCP Steroid when registered |
 | **Image Analysis (png/jpg)** | Codex handles image input with `-i` flag |
 | **Focused Code Review** | Non-interactive `review` mode for specific files |
 | **Large File Processing** | Codex can work independently without context rot |
 | **Parallel Workloads** | Multiple Codex instances can run simultaneously |
 | **Cross-Validation** | Different AI agent provides second opinion |
+| **Full MCP Access** | Sees registered MCP servers (Playwright, IntelliJ MCP, etc.) |
 
 ### When NOT to Use Codex
 
 - Interactive debugging requiring back-and-forth
 - Tasks needing access to conversation history
-- Operations requiring MCP tools (browser, etc.)
 - Simple edits that Claude Code can do directly
+
+### ✅ MCP Server Visibility
+
+**VERIFIED:** Codex sub-agents INHERIT all registered MCP servers automatically.
+
+| MCP Server | Visibility | Requirements |
+|------------|-----------|--------------|
+| Playwright | ✅ Auto-inherited | `codex mcp add playwright npx "@playwright/mcp@latest"` |
+| IntelliJ MCP Steroid | ✅ Auto-inherited | `codex mcp add intellij --url <URL>` |
+| Any Custom MCP | ✅ Auto-inherited | Register once with `codex mcp add` |
+
+**Key insight:** MCP servers registered with `codex mcp add` are available to ALL Codex sessions, including sub-agents spawned with any command-line flags.
+
+**To check registered MCPs:**
+```bash
+codex mcp list
+```
+
+**To register IntelliJ MCP Steroid:**
+```bash
+# IntelliJ writes the MCP server URL to a file in your home directory
+# Find the file (named after the IntelliJ process ID)
+cat ~/.*.mcp-steroid
+
+# Use the URL from that file to register
+codex mcp add intellij --url <URL-from-file>
+
+# Verify it's connected
+codex mcp list
+```
 
 ---
 
@@ -35,25 +66,52 @@ This document instructs AI agents (Claude Code, Junie, etc.) on how to spawn Cod
 # Verify Codex is available
 which codex
 # Expected: /opt/homebrew/bin/codex (macOS) or similar
+
+# Check available commands
+codex --help
+
+# Check exec command options
+codex exec --help
 ```
 
 ### Core Commands
 
 ```bash
-# Non-interactive execution (may still request approvals)
-codex exec "your prompt here" 2>&1
+# RECOMMENDED: Minimal non-interactive run with full parameters
+codex -a never -s workspace-write -C /path/to/repo --add-dir /path/to/other/repo exec -m gpt-5.2-codex
+
+# RECOMMENDED: Low-friction auto mode (alias for -a on-request --sandbox workspace-write)
+codex --full-auto exec "your prompt here" 2>&1
 
 # Fully autonomous (no approval prompts; sandboxed)
 codex -a never --sandbox workspace-write exec "your prompt here" 2>&1
 
-# Low-friction auto mode (allows model to request escalation if needed)
-codex --full-auto exec "your prompt here" 2>&1
+# With output capture to file (use shell redirection)
+codex -a never --sandbox workspace-write exec "prompt" > /tmp/codex-output.txt 2>&1
+
+# Stream JSON events (machine-readable logs)
+codex -a never --sandbox workspace-write --json exec "prompt" 2>&1
 
 # Code review mode
 codex -a never --sandbox workspace-write review "review instructions" 2>&1
 
-# With model selection (syntax)
-codex -a never --sandbox workspace-write -m model-name exec "prompt" 2>&1
+# With model selection
+codex -a never --sandbox workspace-write -m gpt-5.2-codex exec "prompt" 2>&1
+```
+
+### Stdin Input with Heredoc
+
+```bash
+cat <<'PROMPT' | codex -a never -s workspace-write -C /path/to/repo exec -m gpt-5.2-codex
+Your multi-line prompt here.
+
+Can include variable references and complex formatting.
+PROMPT
+
+# Shorter heredoc pattern
+cat <<'EOF' | codex --full-auto exec
+Task description here
+EOF
 ```
 
 ### Performance and Config Notes
@@ -78,6 +136,83 @@ codex --dangerously-bypass-approvals-and-sandbox exec "prompt" 2>&1
 - Startup logs may show MCP servers initializing; factor that into timeouts.
 - If Codex timeouts on large repos, run tasks sequentially and use a longer timeout (for example `gtimeout 900 codex -a never --sandbox workspace-write exec ...`).
 
+### Sandbox Parameters (Detailed)
+
+Codex provides multiple sandbox-related flags for controlling execution security and permissions:
+
+#### Available Sandbox Flags
+
+| Flag | Description |
+|------|-------------|
+| `-s, --sandbox <MODE>` | Select sandbox policy (e.g., `workspace-write`, `never`) |
+| `--full-auto` | **Recommended:** Low-friction sandboxed auto-execution (alias for `-a on-request -s workspace-write`) |
+| `--dangerously-bypass-approvals-and-sandbox` | Skip ALL confirmations and sandboxing (DANGEROUS - testing only) |
+| `-c 'sandbox_permissions=[...]'` | Configure specific sandbox permissions |
+
+#### Sandbox Modes
+
+```bash
+# Recommended for sub-agents: Full-auto mode
+codex --full-auto exec "prompt" 2>&1
+
+# Explicit workspace-write sandbox
+codex -a never -s workspace-write exec "prompt" 2>&1
+
+# No sandbox (requires external sandboxing)
+codex -a never -s never exec "prompt" 2>&1
+```
+
+#### Advanced: Custom Sandbox Permissions
+
+```bash
+# Grant disk-full-read-access
+codex -c 'sandbox_permissions=["disk-full-read-access"]' --full-auto exec "prompt" 2>&1
+
+# Multiple permissions
+codex -c 'sandbox_permissions=["disk-full-read-access", "network-access"]' --full-auto exec "prompt" 2>&1
+```
+
+### Sandbox Limitations and Nested Execution
+
+**IMPORTANT:** When running Codex sub-agents from within a Codex session, you may encounter permission errors accessing `~/.codex/sessions`:
+
+```
+Error: Fatal error: Codex cannot access session files at ~/.codex/sessions
+(permission denied)
+```
+
+**Cause:** Parent Codex session's sandbox restricts writes to `~/.codex/` directory.
+
+**Solution 1: HOME Directory Workaround** (Recommended)
+
+```bash
+# Create temporary home directory for nested Codex sessions
+TMP_HOME=/tmp/codex-home
+mkdir -p "$TMP_HOME/.codex"
+
+# Copy authentication (required for API access)
+cp ~/.codex/auth.json "$TMP_HOME/.codex/"
+
+# Optional: copy config to preserve settings
+cp ~/.codex/config.toml "$TMP_HOME/.codex/" 2>/dev/null || true
+
+# Run Codex with redirected HOME
+HOME="$TMP_HOME" codex --full-auto exec "your prompt here" 2>&1
+```
+
+**Solution 2: Dangerous Bypass** (Testing only)
+
+```bash
+# ONLY for isolated testing environments
+codex --dangerously-bypass-approvals-and-sandbox exec "prompt" 2>&1
+```
+
+**When is HOME workaround needed?**
+- Running Codex sub-agents from within a Codex agent (nested execution)
+- Running from Docker containers or restricted environments
+- Any scenario where `~/.codex/` is not writable
+- When you see "Operation not permitted" errors
+
 ### Image Input
 
 ```bash
@@ -91,6 +226,46 @@ codex -a never --sandbox workspace-write -i screen1.png -i screen2.jpg exec "Com
 pdftotext report.pdf /tmp/report.txt
 codex -a never --sandbox workspace-write exec "Read /tmp/report.txt and summarize the key findings." 2>&1
 ```
+
+---
+
+## Working Directory Requirements
+
+**IMPORTANT:** Always spawn Codex sub-agents from the correct working directory to inherit project-specific configurations and MCP servers.
+
+### Why Working Directory Matters
+
+Codex inherits configuration from:
+1. **`.mcp.json`** - MCP server configurations (FULL visibility - both Playwright and IntelliJ!)
+2. **Project configs** - Build files, git settings, editor configs
+3. **Skills** - Project-specific and global skills
+4. **AGENTS instructions** - If present in parent session
+
+### Recommended Pattern with -C Flag
+
+```bash
+# Use -C flag to specify working directory
+codex -C /path/to/project --full-auto exec "prompt" 2>&1
+
+# With additional directories
+codex -C /path/to/project --add-dir /path/to/other --full-auto exec "prompt" 2>&1
+
+# From subshell (alternative)
+(cd /path/to/project && codex --full-auto exec "prompt" 2>&1)
+```
+
+### Verification
+
+Test that Codex sees project configs and MCP servers:
+
+```bash
+codex -C /path/to/project --full-auto exec "What is your current working directory? What MCP servers are available? What config files do you see?" 2>&1
+```
+
+**Expected output:**
+- Working directory: `/path/to/project`
+- Config files: `.mcp.json`, build files, etc.
+- MCP servers: **BOTH Playwright AND IntelliJ MCP Steroid** ✅
 
 ---
 
@@ -116,12 +291,155 @@ codex -a never --sandbox workspace-write exec "Read /path/to/file.md and output:
 ### Capturing Output
 
 ```bash
-# Save only the last assistant message (avoids noisy logs)
-codex -a never --sandbox workspace-write exec --output-last-message /tmp/codex-output.txt "prompt" 2>&1
+# Capture all output with shell redirection
+codex -a never --sandbox workspace-write exec "prompt" > /tmp/codex-output.txt 2>&1
 
 # Then read the output
 cat /tmp/codex-output.txt
+
+# Filter for just the result (if JSON output is needed)
+codex -a never --sandbox workspace-write --json exec "prompt" 2>&1 | tee /tmp/codex-output.txt
 ```
+
+---
+
+## Automation with Python UV and Bash Scripts
+
+### Using Python with UV
+
+```python
+#!/usr/bin/env python3
+"""Example: Parallel Codex sub-agents with Python UV"""
+import subprocess
+import asyncio
+from pathlib import Path
+
+async def run_codex_agent(
+    prompt: str,
+    output_file: Path,
+    repo_path: str = ".",
+    model: str = "gpt-5.2-codex"
+) -> int:
+    """Run Codex sub-agent and capture output."""
+    cmd = [
+        "codex",
+        "-a", "never",
+        "-s", "workspace-write",
+        "-C", repo_path,
+        "exec",
+        "-m", model
+    ]
+
+    with output_file.open('w') as f:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=subprocess.PIPE,
+            stdout=f,
+            stderr=subprocess.STDOUT
+        )
+
+        await proc.communicate(input=prompt.encode())
+        return proc.returncode
+
+async def main():
+    """Launch 3 Codex agents in parallel."""
+    repo = "/Users/jonnyzzz/Work/jonnyzzz.com-src"
+
+    tasks = [
+        run_codex_agent(
+            "Read CLAUDE.md and extract key technologies",
+            Path("/tmp/codex-out1.txt"),
+            repo
+        ),
+        run_codex_agent(
+            "Read RLM.md and summarize main concepts",
+            Path("/tmp/codex-out2.txt"),
+            repo
+        ),
+        run_codex_agent(
+            "Read SKILL.md and identify writing patterns",
+            Path("/tmp/codex-out3.txt"),
+            repo
+        )
+    ]
+
+    results = await asyncio.gather(*tasks)
+    print(f"All agents completed with codes: {results}")
+
+    # Aggregate results
+    for i in range(1, 4):
+        print(f"\n=== Agent {i} Output ===")
+        print(Path(f"/tmp/codex-out{i}.txt").read_text())
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Bash Script Template
+
+```bash
+#!/usr/bin/env bash
+# run-parallel-codex-agents.sh
+# Launch multiple Codex sub-agents in parallel
+
+set -euo pipefail
+
+# Configuration
+REPO_PATH="/Users/jonnyzzz/Work/jonnyzzz.com-src"
+OUTPUT_DIR="/tmp/codex-agents"
+TIMEOUT_SEC=300
+MODEL="gpt-5.2-codex"
+
+# Tasks array
+declare -a TASKS=(
+    "Read CLAUDE.md and extract Docker configuration"
+    "Read RLM.md and identify partition strategies"
+    "Read SKILL.md and summarize writing style"
+)
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+# Launch agents in parallel
+echo "=== Launching ${#TASKS[@]} Codex agents in parallel ==="
+pids=()
+
+for i in "${!TASKS[@]}"; do
+    task="${TASKS[$i]}"
+    output_file="$OUTPUT_DIR/agent-$((i+1)).txt"
+
+    echo "Starting agent $((i+1)): ${task:0:50}..."
+
+    # Launch in background with timeout protection
+    (
+        timeout "$TIMEOUT_SEC" bash -c \
+            "echo \"$task\" | codex -a never -s workspace-write -C \"$REPO_PATH\" \
+             exec -m \"$MODEL\" > \"$output_file\" 2>&1"
+    ) &
+    pids+=($!)
+done
+
+# Wait for all agents
+echo "Waiting for all agents to complete..."
+for pid in "${pids[@]}"; do
+    wait "$pid" && echo "Agent $pid completed successfully" || echo "Agent $pid failed"
+done
+
+# Aggregate results
+echo ""
+echo "=== Aggregated Results ==="
+for i in $(seq 1 ${#TASKS[@]}); do
+    echo ""
+    echo "--- Agent $i ---"
+    cat "$OUTPUT_DIR/agent-$i.txt"
+done
+
+echo ""
+echo "=== Execution Complete ==="
+echo "Individual outputs saved to: $OUTPUT_DIR"
+```
+
+Make executable with: `chmod +x run-parallel-codex-agents.sh`
 
 ---
 
@@ -298,6 +616,48 @@ done
 
 ---
 
+## Comparing CLI Tools
+
+### Feature Comparison
+
+| Feature | Claude Code | Codex | Gemini |
+|---------|-------------|-------|--------|
+| Interactive mode | ✓ | ✓ | ✓ |
+| Non-interactive | `claude -p` | `codex exec` | `gemini` one-shot |
+| File input | Read tool | `-i` flag | via prompt |
+| Image/PDF support | Read tool | `-i` flag | via prompt |
+| Model selection | in settings | `-m` flag | `-m` flag |
+| Parallel execution | background jobs | background jobs | background jobs |
+| **Playwright MCP** | ✅ **Yes** | ✅ **Yes** | ❌ **No** |
+| **IntelliJ MCP** | ❌ **No** | ✅ **Yes** | ❌ **No** |
+| Working dir inheritance | ✓ | ✓ (with `-C`) | ✓ |
+
+### MCP Visibility Summary
+
+| CLI | Playwright | IntelliJ MCP | Best For |
+|-----|------------|--------------|----------|
+| **Claude Code** | ✅ Yes (if registered) | ✅ Yes (if registered) | Web research, general coding, browser automation |
+| **Codex** | ✅ Yes (if registered) | ✅ Yes (if registered) | IntelliJ IDE work, full MCP access |
+| **Gemini** | ❌ No | ❌ No | Cross-validation, alternative perspective, non-MCP tasks |
+
+**Key:** MCP servers must be registered using `claude mcp add` or `codex mcp add` commands. Once registered, they are automatically inherited by all sub-agents.
+
+### When to Use Which CLI
+
+| Scenario | Best Tool | Reason |
+|----------|-----------|--------|
+| **IntelliJ IDE operations** | Claude Code or Codex | Both see IntelliJ MCP when registered |
+| **Browser automation** | Claude Code or Codex | Both have Playwright MCP when registered |
+| **Web research** | Claude Code | Built-in WebSearch, WebFetch |
+| **Image/PDF analysis** | Codex | Native `-i` flag support |
+| **Cross-validation** | Gemini | Different model, alternative perspective |
+| **Primary orchestration** | Claude Code | Full tool suite, conversation context |
+| **Focused non-interactive** | Codex | `exec` mode for non-interactive work |
+| **Long context tasks** | Gemini | Large context window |
+| **Pure code analysis** | Gemini | Good without MCP dependencies |
+
+---
+
 ## Best Practices
 
 ### DO
@@ -348,14 +708,27 @@ Output specific additions needed." > improvements.md 2>&1
 ## Quick Reference Card
 
 ```bash
+codex -a never -s workspace-write -C /path/to/repo --add-dir /path/to/other exec -m gpt-5.2-codex
+
+# RECOMMENDED: Low-friction auto mode
+codex --full-auto exec "prompt" 2>&1
+
 # Basic non-interactive execution
 codex -a never --sandbox workspace-write exec "prompt" 2>&1
 
+# With output capture to file (shell redirection)
+codex -a never --sandbox workspace-write exec "prompt" > /tmp/codex-output.txt 2>&1
+
+# Stream JSON events (machine-readable logs)
+codex -a never --sandbox workspace-write --json exec "prompt" 2>&1
+
+# With stdin heredoc
+cat <<'EOF' | codex --full-auto exec
+Multi-line prompt here
+EOF
+
 # With image input
 codex -a never --sandbox workspace-write -i screenshot.png exec "prompt" 2>&1
-
-# With file paths (Codex reads the file)
-codex -a never --sandbox workspace-write exec "Read ./notes.md and summarize" 2>&1
 
 # Code review mode
 codex review "review instructions" 2>&1

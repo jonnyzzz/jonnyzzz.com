@@ -26,6 +26,36 @@ This document instructs AI agents on how to spawn Claude Code CLI as a sub-agent
 - Simple operations that can be done directly
 - When you need the result immediately inline (sub-agents run asynchronously)
 
+### ✅ MCP Server Visibility
+
+**VERIFIED:** Claude Code sub-agents INHERIT all registered MCP servers automatically. Command-line arguments do NOT block MCP inheritance.
+
+| MCP Server | Visibility | Requirements |
+|------------|-----------|--------------|
+| Playwright | ✅ Auto-inherited | `claude mcp add playwright npx @playwright/mcp@latest` |
+| IntelliJ MCP Steroid | ✅ Auto-inherited | `claude mcp add --transport http intellij-steroid <URL>` |
+| Any Custom MCP | ✅ Auto-inherited | Register once with `claude mcp add` |
+
+**Key insight:** MCP servers registered with `claude mcp add` are available to ALL Claude Code sessions, including sub-agents spawned with any command-line flags (`-p`, `--tools default`, `--permission-mode dontAsk`, etc.).
+
+**To check registered MCPs:**
+```bash
+claude mcp list
+```
+
+**To register IntelliJ MCP Steroid:**
+```bash
+# IntelliJ writes the MCP server URL to a file in your home directory
+# Find the file (named after the IntelliJ process ID)
+cat ~/.*.mcp-steroid
+
+# Use the URL from that file to register
+claude mcp add --transport http intellij-steroid <URL-from-file>
+
+# Verify it's connected
+claude mcp list
+```
+
 ---
 
 ## Claude Code CLI Reference
@@ -45,17 +75,17 @@ claude --version
 ### Core Commands
 
 ```bash
-# Non-interactive execution (print mode)
-claude -p --tools default --permission-mode dontAsk "your prompt here"
+# RECOMMENDED: Non-interactive execution with full tools (stdin + stderr capture)
+echo "<prompt>" | claude -p --tools default --permission-mode dontAsk 2>&1
 
-# With stdin input
-echo "your prompt here" | claude -p --tools default --permission-mode dontAsk
+# With prompt as argument
+claude -p --tools default --permission-mode dontAsk "your prompt here" 2>&1
 
-# JSON output format
-claude -p --tools default --permission-mode dontAsk --output-format json "prompt"
+# JSON output format (for programmatic parsing)
+echo "your prompt" | claude -p --tools default --permission-mode dontAsk --output-format json 2>&1
 
 # Stream JSON output (for real-time processing)
-claude -p --tools default --permission-mode dontAsk --output-format stream-json "prompt"
+echo "your prompt" | claude -p --tools default --permission-mode dontAsk --output-format stream-json 2>&1
 ```
 
 ### Tool Access
@@ -114,6 +144,8 @@ echo "What is 2+2?" | claude -p --tools default --permission-mode dontAsk --outp
 
 **Always run independent Claude Code sub-agents in parallel** for maximum throughput. Each instance runs in isolation with its own context.
 
+**Note on Permissions:** Even with `--permission-mode dontAsk`, background jobs using `&` may still trigger permission prompts in some scenarios. This is expected security behavior. For truly non-interactive parallel execution within Claude Code, consider using the Task tool with multiple concurrent sub-agents instead of bash background jobs.
+
 ### From Bash (Background Jobs)
 
 ```bash
@@ -152,6 +184,147 @@ wait
 # Aggregate results
 cat /tmp/analysis-*.txt
 ```
+
+---
+
+## Working Directory Requirements
+
+**IMPORTANT:** Always spawn Claude Code sub-agents from the correct working directory to inherit project-specific configurations.
+
+### Why Working Directory Matters
+
+Claude Code inherits configuration from:
+1. **`.claude/` directory** - Settings, commands, hooks, rules
+2. **`CLAUDE.md`** - Project guidelines and instructions
+3. **`.mcp.json`** - MCP server configurations (limited - see MCP Visibility above)
+4. **Project files** - Git config, editor config, build files
+
+### Recommended Pattern
+
+```bash
+# Option 1: Run from project root
+cd /path/to/project
+echo "prompt" | claude -p --tools default --permission-mode dontAsk 2>&1
+
+# Option 2: Use subshell
+(cd /path/to/project && echo "prompt" | claude -p --tools default --permission-mode dontAsk 2>&1)
+```
+
+### Verification
+
+Test that sub-agent sees project configs:
+
+```bash
+(cd /path/to/project && echo "What is your current working directory? What configuration files do you see?" | claude -p --tools default --permission-mode dontAsk 2>&1)
+```
+
+**Expected output:**
+- Working directory: `/path/to/project`
+- Config files: `.claude/`, `CLAUDE.md`, `.mcp.json`, etc.
+- MCP servers: Playwright (IntelliJ MCP will be missing - use Codex instead)
+
+---
+
+## Automation with Python UV and Bash Scripts
+
+### Using Python with UV
+
+```python
+#!/usr/bin/env python3
+"""Example: Parallel Claude Code sub-agents with Python UV"""
+import subprocess
+import asyncio
+from pathlib import Path
+
+async def run_claude_agent(prompt: str, output_file: Path) -> int:
+    """Run Claude Code sub-agent and capture output."""
+    cmd = ["bash", "-c", f'echo "{prompt}" | claude -p --tools default --permission-mode dontAsk 2>&1']
+
+    with output_file.open('w') as f:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=f,
+            stderr=subprocess.STDOUT
+        )
+        return await proc.wait()
+
+async def main():
+    """Launch 3 Claude Code agents in parallel."""
+    tasks = [
+        run_claude_agent("Analyze auth module", Path("/tmp/out1.txt")),
+        run_claude_agent("Analyze database layer", Path("/tmp/out2.txt")),
+        run_claude_agent("Analyze API endpoints", Path("/tmp/out3.txt"))
+    ]
+
+    results = await asyncio.gather(*tasks)
+    print(f"All agents completed with codes: {results}")
+
+    # Aggregate results
+    for i in range(1, 4):
+        print(f"\n=== Agent {i} Output ===")
+        print(Path(f"/tmp/out{i}.txt").read_text())
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Bash Script Template
+
+```bash
+#!/usr/bin/env bash
+# run-parallel-claude-agents.sh
+# Launch multiple Claude Code sub-agents in parallel
+
+set -euo pipefail
+
+# Configuration
+TASKS=(
+    "Task 1: Analyze authentication module"
+    "Task 2: Analyze database layer"
+    "Task 3: Analyze API endpoints"
+)
+OUTPUT_DIR="/tmp/claude-agents"
+TIMEOUT_SEC=300
+
+# Create output directory
+mkdir -p "$OUTPUT_DIR"
+
+# Launch agents in parallel
+echo "=== Launching ${#TASKS[@]} Claude Code agents in parallel ==="
+pids=()
+
+for i in "${!TASKS[@]}"; do
+    task="${TASKS[$i]}"
+    output_file="$OUTPUT_DIR/agent-$((i+1)).txt"
+
+    echo "Starting agent $((i+1)): $task"
+
+    # Launch in background with timeout protection
+    (
+        timeout "$TIMEOUT_SEC" bash -c \
+            "echo \"$task\" | claude -p --tools default --permission-mode dontAsk 2>&1" \
+            > "$output_file" 2>&1
+    ) &
+    pids+=($!)
+done
+
+# Wait for all agents
+echo "Waiting for all agents to complete..."
+for pid in "${pids[@]}"; do
+    wait "$pid" && echo "Agent $pid completed successfully" || echo "Agent $pid failed"
+done
+
+# Aggregate results
+echo ""
+echo "=== Aggregated Results ==="
+cat "$OUTPUT_DIR"/agent-*.txt
+
+echo ""
+echo "=== Execution Complete ==="
+echo "Individual outputs saved to: $OUTPUT_DIR"
+```
+
+Make executable with: `chmod +x run-parallel-claude-agents.sh`
 
 ---
 
@@ -280,6 +453,48 @@ done
 
 ---
 
+## Comparing CLI Tools
+
+### Feature Comparison
+
+| Feature | Claude Code | Codex | Gemini |
+|---------|-------------|-------|--------|
+| Interactive mode | ✓ | ✓ | ✓ |
+| Non-interactive | `claude -p` | `codex exec` | `gemini` one-shot |
+| File input | Read tool | `-i` flag | via prompt |
+| Image/PDF support | Read tool | `-i` flag | via prompt |
+| Model selection | in settings | `-m` flag | `-m` flag |
+| Parallel execution | background jobs | background jobs | background jobs |
+| **Playwright MCP** | ✅ **Yes** (if registered) | ✅ **Yes** (if registered) | ❌ **No** |
+| **IntelliJ MCP** | ✅ **Yes** (if registered) | ✅ **Yes** (if registered) | ❌ **No** |
+| Working dir inheritance | ✓ | ✓ (with `-C`) | ✓ |
+
+### MCP Visibility Summary
+
+| CLI | Playwright | IntelliJ MCP | Best For |
+|-----|------------|--------------|----------|
+| **Claude Code** | ✅ Yes (if registered) | ✅ Yes (if registered) | Web research, general coding, browser automation |
+| **Codex** | ✅ Yes (if registered) | ✅ Yes (if registered) | IntelliJ IDE work, full MCP access |
+| **Gemini** | ❌ No | ❌ No | Cross-validation, alternative perspective, non-MCP tasks |
+
+**Key:** MCP servers must be registered using `claude mcp add` or `codex mcp add` commands. Once registered, they are automatically inherited by all sub-agents.
+
+### When to Use Which CLI
+
+| Scenario | Best Tool | Reason |
+|----------|-----------|--------|
+| **IntelliJ IDE operations** | Claude Code or Codex | Both see IntelliJ MCP when registered |
+| **Browser automation** | Claude Code or Codex | Both have Playwright MCP when registered |
+| **Web research** | Claude Code | Built-in WebSearch, WebFetch |
+| **Image/PDF analysis** | Codex | Native `-i` flag support |
+| **Cross-validation** | Gemini | Different model, alternative perspective |
+| **Primary orchestration** | Claude Code | Full tool suite, conversation context |
+| **Focused non-interactive** | Codex | `exec` mode, best MCP visibility |
+| **Long context tasks** | Gemini | Large context window |
+| **Pure code analysis** | Gemini | Good without MCP dependencies |
+
+---
+
 ## Best Practices
 
 ### DO
@@ -304,17 +519,16 @@ done
 ## Quick Reference Card
 
 ```bash
-# Basic non-interactive execution
-claude -p --tools default --permission-mode dontAsk "prompt"
+echo "<prompt>" | claude -p --tools default --permission-mode dontAsk 2>&1
 
-# With stdin (better for complex prompts)
-echo "prompt" | claude -p --tools default --permission-mode dontAsk
+# With prompt as argument
+claude -p --tools default --permission-mode dontAsk "prompt" 2>&1
 
 # With specific tools only
-echo "prompt" | claude -p --allowedTools "Read,Grep" --permission-mode dontAsk
+echo "prompt" | claude -p --allowedTools "Read,Grep" --permission-mode dontAsk 2>&1
 
-# JSON output
-echo "prompt" | claude -p --tools default --permission-mode dontAsk --output-format json
+# JSON output (for programmatic parsing)
+echo "prompt" | claude -p --tools default --permission-mode dontAsk --output-format json 2>&1
 
 # PARALLEL EXECUTION (always prefer this)
 echo "Task 1" | claude -p --tools default --permission-mode dontAsk > /tmp/out1.txt 2>&1 &
