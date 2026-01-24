@@ -2,11 +2,11 @@
 
 ## Core Principle
 
-**Context rot** degrades LLM performance as input length increases. RLM solves this by treating context as a **variable in an external environment**, not neural network input.
+**Context rot** degrades LLM performance as input increases. RLM solves this by treating context as a **variable in external environment**, not neural network input.
 
 ```
-Traditional: LLM receives 100K tokens → attention dilutes → accuracy drops
-RLM: LLM receives query only → context accessed programmatically → accuracy maintained
+Traditional: LLM(100K tokens) → attention dilutes → accuracy drops
+RLM: LLM(query) + programmatic context access → accuracy maintained
 ```
 
 **The shift:** Context management becomes **programmatic, not neural**.
@@ -15,140 +15,94 @@ RLM: LLM receives query only → context accessed programmatically → accuracy 
 
 ## When to Activate RLM
 
-Use this decision tree at the start of every task:
+Use this decision tree at task start:
 
 ```
-Context > 50K tokens? ─────────────────────── YES → ACTIVATE RLM
+Context > 50K tokens? ────────────────────────── YES → ACTIVATE RLM
     │
-    NO
+    NO → Context > 16K AND multi-hop reasoning? ─ YES → ACTIVATE RLM
     │
-Context > 16K AND task complexity > O(1)? ── YES → CONSIDER RLM
+    NO → Files > 5? ─────────────────────────── YES → ACTIVATE RLM
     │
-    NO
-    │
-Files to process > 5? ─────────────────────── YES → ACTIVATE RLM
-    │
-    NO
-    │
-Multi-hop or aggregation reasoning needed? ── YES → ACTIVATE RLM
-    │
-    NO
-    │
-PROCEED DIRECTLY (no RLM needed)
+    NO → Proceed directly (no RLM needed)
 ```
-
-### Task Complexity Guide
-
-| Task Type | Complexity | RLM Benefit |
-|-----------|------------|-------------|
-| Find one phrase | O(1) | Low - base LLM handles well |
-| Classify all entries | O(n) | High - prevents context rot |
-| Pair-wise reasoning | O(n²) | Critical - base LLM fails completely |
 
 ---
 
 ## The Six-Step Protocol
 
-Execute these steps **in order** when RLM is activated:
+Execute **in order** when RLM activated:
 
-### 1. ASSESS - Peek at Context
+### 1. ASSESS → Peek at Context
 
-```python
-# Don't read everything. Sample first:
-print(f"Total size: {len(context)} chars")
-print(context[:2000])  # Preview structure
+**Action:** Sample structure before reading full content.
+
+```bash
+wc -c file.txt          # Get total size
+head -n 100 file.txt    # Preview first 100 lines
+ls -lh directory/       # Check file count and sizes
 ```
 
-**Output:** Understand context type (JSON, text, code) and natural boundaries.
+**Output:** Understand data type (text/JSON/code), boundaries (files/sections), total scope.
 
-### 2. DECIDE - Select Strategy
+### 2. DECIDE → Select Strategy
 
-| Context Type | Size | Strategy |
-|--------------|------|----------|
-| Any | < 4K | Direct processing |
-| Text | 4K-50K | Grep to narrow, then process |
-| Text | > 50K | Partition + Map |
-| Multi-document | > 5 docs | Parallel sub-agents |
-| Code | Multiple files | Partition by file/concern |
+**Action:** Match context characteristics to processing strategy.
 
-### 3. DECOMPOSE - Partition the Work
+| Context Size | Strategy | Implementation |
+|--------------|----------|----------------|
+| < 4K tokens | Direct processing | Read and process normally |
+| 4K-50K tokens | Grep first | `grep -r "pattern"` → read matches only |
+| > 50K tokens | Partition + Map | Split → parallel sub-agents → aggregate |
+| Multiple files (> 5) | Parallel sub-agents | One agent per file/group |
 
-Split at **natural boundaries**, not arbitrary byte offsets:
-- By file (one sub-agent per file)
+### 3. DECOMPOSE → Partition the Work
+
+Split at **natural boundaries**:
+- By file (one agent per file)
 - By section (split at headers)
 - By record (batch N records per chunk)
-- By concern (auth vs UI vs DB)
 
-**Target chunk size:** 4K-10K tokens per sub-task.
+**Target:** 4K-10K tokens per sub-task.
 
-### 4. EXECUTE - Run Sub-Agents
+### 4. EXECUTE → Run Sub-Agents
 
-**Parallel** if sub-tasks are independent:
-```bash
-# Launch all sub-agents simultaneously
-agent1 "Process chunk 1" > /tmp/r1.txt &
-agent2 "Process chunk 2" > /tmp/r2.txt &
-agent3 "Process chunk 3" > /tmp/r3.txt &
-wait
-```
+**Parallel** if independent, **sequential** if dependent.
 
-**Sequential** if results depend on each other.
+Use bash or Python scripts to orchestrate (see Orchestration section below).
 
-### 5. SYNTHESIZE - Combine Results
+### 5. SYNTHESIZE → Combine Results
 
-| Pattern | When to Use |
-|---------|-------------|
+| Pattern | When |
+|---------|------|
 | Concatenate | Order matters, no conflicts |
 | Merge | Deduplication needed |
 | Reduce | Counting, statistics |
 | Vote | Classification (majority wins) |
 
-### 6. VERIFY - Check Completeness
+### 6. VERIFY → Check Completeness
 
 - [ ] Original query fully addressed?
-- [ ] All partitions contributed results?
-- [ ] No obvious gaps in coverage?
-- [ ] Spot-check 2-3 claims against source?
+- [ ] All partitions contributed?
+- [ ] No gaps in coverage?
+- [ ] Spot-check 2-3 claims?
 
 ---
 
-## Anti-Patterns (Critical DON'Ts)
+## Critical Anti-Patterns
 
-### ❌ Reading Everything First
-
-**Wrong:** Load all 50 files into context, then think.
-
-**Right:** Peek → Grep → Read only relevant sections → Expand if needed.
-
-### ❌ Sub-Agent Explosion
-
-**Wrong:** Spawn 100 sub-agents for 100 files.
-
-**Right:** Group logically, target 3-10 sub-agents per level, max depth 2.
-
-### ❌ Context Starvation
-
-**Wrong:** Give sub-agent just the function body.
-
-**Right:** Include imports, types, usage context, and relationship to other components.
-
-### ❌ Blind Partitioning
-
-**Wrong:** Split at arbitrary byte boundaries.
-
-**Right:** Split at semantic boundaries (files, sections, records).
-
-### ❌ Ignoring Grep
-
-**Wrong:** Read every file to find error handling code.
-
-**Right:** `grep -r "try\|catch\|except\|error"` → Read only matched sections.
+**❌ DON'T:**
+- Read everything first → Peek → Grep → Read relevant only
+- Spawn 100 sub-agents → Group logically, 3-10 per level, max depth 2
+- Give sub-agents insufficient context → Include imports, types, usage context
+- Split at arbitrary bytes → Split at semantic boundaries
+- Skip grep for searchable tasks → `grep -r "pattern"` → Read matches only
 
 ---
 
 ## Orchestration Scripts
 
-**Create a bash or Python script** to orchestrate sub-agents. This provides:
+**Create bash or Python scripts to orchestrate sub-agents.** This provides:
 - Reproducible execution
 - Timeout protection
 - Parallel execution control
@@ -164,7 +118,7 @@ QUERY="$1"
 RESULT_DIR=$(mktemp -d)
 TIMEOUT_SEC=300
 
-# PARTITION: Split work (customize this)
+# PARTITION: Define chunks (customize this)
 CHUNKS=("chunk1.txt" "chunk2.txt" "chunk3.txt")
 
 # MAP: Process chunks in parallel
@@ -214,35 +168,57 @@ if __name__ == "__main__":
     print(orchestrate(chunks, "Your query here"))
 ```
 
+**Key practices:**
+- Use timeouts to prevent hangs
+- Run independent sub-tasks in parallel (use `&` and `wait` in bash)
+- Capture both stdout and stderr (`2>&1`)
+- Store intermediate results for debugging
+
 ---
 
 ## Agent-Specific Implementation
 
-Use these guides for spawning sub-agents with specific CLI tools:
+Use these guides for spawning sub-agents with CLI tools:
 
 | Tool | Guide | Best For |
 |------|-------|----------|
-| Claude Code | [CLAUDE-CODE.md](CLAUDE-CODE.md) | Full tool access, web search, complex tasks |
-| Codex | [CODEX.md](CODEX.md) | Image/PDF analysis, focused code review |
-| Gemini | [GEMINI.md](GEMINI.md) | Cross-validation, alternative perspective |
+| **Claude Code** | [CLAUDE-CODE.md](https://jonnyzzz.com/CLAUDE-CODE.md) | Web search, browser automation, general coding |
+| **Codex** | [CODEX.md](https://jonnyzzz.com/CODEX.md) | IntelliJ IDE operations, image/PDF analysis, full MCP access |
+| **Gemini** | [GEMINI.md](https://jonnyzzz.com/GEMINI.md) | Cross-validation, alternative perspective, long context |
+
+**Multi-Agent Orchestration:** See [MULTI-AGENT.md](https://jonnyzzz.com/MULTI-AGENT.md) for patterns: Parallel Research, Pipeline, Partition+Map+Reduce, Cross-Validation.
 
 ### Quick Spawn Examples
 
-**Give sub-agents full tool access** - don't restrict capabilities.
+**Give sub-agents full access** - don't restrict capabilities. Sub-agents automatically inherit:
+- All OS-wide MCP servers (Playwright, IntelliJ MCP Steroid, etc.)
+- Project-specific configurations and skills
+- Custom plugins and extensions
 
 ```bash
 # Claude Code (full tool access)
-echo "Analyze auth module" | claude -p > result.txt 2>&1 &
+echo "Analyze auth module" | claude -p --tools default --permission-mode dontAsk 2>&1 &
 
-# Codex (full access, with image input)
-codex exec -i screenshot.png "Describe this UI" > result.txt 2>&1 &
+# Codex (full access)
+codex -C /path/to/project --full-auto exec "Analyze PSI structure in X.kt" 2>&1 &
 
-# Gemini (full access)
-gemini "Review this analysis for accuracy" > result.txt 2>&1 &
+# Gemini (alternative perspective)
+gemini --approval-mode auto_edit "Review analysis for accuracy" 2>&1 &
 
 # Wait for all
 wait
 ```
+
+**MCP Server Setup (Optional):** For browser automation or IntelliJ IDE operations, register MCP servers once:
+```bash
+# Optional: Enable browser automation
+claude mcp add playwright npx @playwright/mcp@latest
+
+# Optional: Enable IntelliJ IDE operations (URL from ~/.*.mcp-steroid)
+codex mcp add intellij --url <URL>
+```
+
+Once registered, MCP servers are automatically available to all sub-agents.
 
 ---
 
@@ -262,7 +238,7 @@ wait
 │   1. ASSESS   → Peek, don't read everything                 │
 │   2. DECIDE   → Match context + task to strategy            │
 │   3. DECOMPOSE → Partition at natural boundaries            │
-│   4. EXECUTE  → Parallel if independent                     │
+│   4. EXECUTE  → Parallel if independent (use scripts!)      │
 │   5. SYNTHESIZE → Merge, dedupe, resolve conflicts          │
 │   6. VERIFY   → Check completeness and accuracy             │
 ├─────────────────────────────────────────────────────────────┤
@@ -270,12 +246,13 @@ wait
 │   • Can I grep to narrow scope first?                       │
 │   • Are sub-tasks independent (parallel) or dependent?      │
 │   • Does each sub-agent have enough context?                │
+│   • Should I write a script to orchestrate this?            │
 ├─────────────────────────────────────────────────────────────┤
-│ AVOID:                                                      │
-│   ✗ Reading everything before thinking                      │
-│   ✗ Spawning > 10 sub-agents per level                      │
-│   ✗ Providing insufficient context to sub-agents            │
-│   ✗ Splitting at arbitrary byte boundaries                  │
+│ ORCHESTRATION:                                              │
+│   • Write bash or Python scripts for reproducibility        │
+│   • Use timeouts to prevent hangs                           │
+│   • Run independent tasks in parallel (& and wait)          │
+│   • Capture stderr: 2>&1                                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -285,13 +262,14 @@ wait
 
 For comprehensive documentation including:
 - Formal architecture and system design
-- Benchmark results and cost analysis
+- Benchmark results (OOLONG: +28%, OOLONG-Pairs: 0.04% → 58%)
 - Detailed prompt templates for sub-agents
 - Error handling and recovery protocols
-- Complete bash script implementations
+- Complete bash/Python script implementations
 - Strategy decision flowcharts
+- Paper analysis and key findings
 
-See **[RLM-extra.md](RLM-extra.md)**.
+See **[RLM-extra.md](https://jonnyzzz.com/RLM-extra.md)**.
 
 ---
 
