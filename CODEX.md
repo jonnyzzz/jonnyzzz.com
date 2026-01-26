@@ -115,6 +115,7 @@ codex mcp list
 - **Auth fails:** Run `codex login` again or check OpenAI account status
 - **Command not found:** Verify npm global bin directory is in PATH
 - **Nested execution issues:** See [Nested Execution](#nested-execution-codex-spawning-codex) section
+- **CLI hangs or no output:** Check outbound DNS/network access; in sandboxed environments ensure `~/.codex` is writable (or set `HOME` to a writable dir with `.codex`), and consider `--skip-git-repo-check` when running outside a repo
 
 **You're ready!** Proceed to Quick Start command above.
 

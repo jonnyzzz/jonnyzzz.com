@@ -95,6 +95,12 @@ claude --version
 
 ---
 
+## Troubleshooting
+
+- **CLI hangs or no output:** Check outbound DNS/network access; verify `claude --version` works, and try a trivial prompt (`echo "hi" | claude -p ...`) to confirm the runtime is reachable.
+
+---
+
 ## Core Commands
 
 ### Recommended Pattern (Non-Interactive)

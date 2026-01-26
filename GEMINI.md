@@ -74,6 +74,28 @@ echo 'export GEMINI_API_KEY="your-api-key"' >> ~/.bashrc  # or ~/.zshrc
 source ~/.bashrc  # or source ~/.zshrc
 ```
 
+### 2.1 Sandbox/CI Home Directory (Recommended in restricted environments)
+
+If you see `EPERM` creating `~/.gemini/...`, set a writable Gemini home and
+seed settings there:
+
+```bash
+# Redirect Gemini's home dir (uses ${GEMINI_CLI_HOME}/.gemini/)
+export GEMINI_CLI_HOME="/path/to/writable/dir"
+mkdir -p "$GEMINI_CLI_HOME/.gemini"
+
+# Optional: disable usage stats + telemetry to avoid ClearcutLogger crashes
+cat > "$GEMINI_CLI_HOME/.gemini/settings.json" <<'JSON'
+{
+  "privacy": { "usageStatisticsEnabled": false },
+  "telemetry": { "enabled": false, "logPrompts": false }
+}
+JSON
+```
+
+Note: `GEMINI_CLI_HOME` is read at startup, so set it in the environment
+before invoking `gemini`.
+
 ### 3. Verify Setup
 
 ```bash
@@ -87,8 +109,11 @@ gemini --approval-mode auto_edit "echo Hello" 2>&1
 
 **Common Issues:**
 - **Exit code 41:** `GEMINI_API_KEY` not set → Run export command above
+- **EPERM mkdir ~/.gemini/tmp/.../chats:** Set `GEMINI_CLI_HOME` to a writable directory (see Sandbox/CI section)
+- **TypeError: Cannot read properties of undefined (reading 'model')** during startup → Disable usage stats in settings (`privacy.usageStatisticsEnabled: false`)
 - **Rate limits:** Too many requests → Wait and retry or use different API key
 - **Auth error:** Invalid API key → Get new key from MakerSuite
+- **TypeError: fetch failed sending request:** Network/DNS blocked → confirm outbound access or set `HTTPS_PROXY`/`HTTP_PROXY`; enable `general.retryFetchErrors` in settings for transient failures
 
 **You're ready!** Proceed to Quick Start command above.
 
@@ -313,9 +338,12 @@ if __name__ == "__main__":
 |-------|-------|----------|
 | `command not found` | Gemini not installed | Install via official instructions |
 | Exit code 41 | `GEMINI_API_KEY` not set | `export GEMINI_API_KEY="key"` |
+| `EPERM mkdir ~/.gemini/tmp/.../chats` | Home dir not writable | Set `GEMINI_CLI_HOME` to a writable dir and create `${GEMINI_CLI_HOME}/.gemini` |
+| `TypeError: Cannot read properties of undefined (reading 'model')` | Usage stats init issue | Set `privacy.usageStatisticsEnabled: false` in settings |
 | Timeout | Task too complex | Break into smaller sub-tasks |
 | Rate limit | Too many requests | Add delays between calls |
 | Auth error | Invalid API key | Re-authenticate with `gemini login` |
+| `TypeError: fetch failed sending request` | Network/DNS blocked | Verify outbound access or set `HTTPS_PROXY`/`HTTP_PROXY`; enable `general.retryFetchErrors` |
 
 **See [MULTI-AGENT.md Part 9](https://jonnyzzz.com/MULTI-AGENT.md) for complete error handling patterns.**
 
@@ -379,7 +407,7 @@ gemini --approval-mode auto_edit "Task 3" > /tmp/out3.txt 2>&1 &
 wait
 cat /tmp/out*.txt
 
-# With timeout
+# With timeout (macOS: use `gtimeout` from coreutils or a Python wrapper)
 timeout 300 gemini --approval-mode auto_edit "prompt" 2>&1
 
 # API key check
