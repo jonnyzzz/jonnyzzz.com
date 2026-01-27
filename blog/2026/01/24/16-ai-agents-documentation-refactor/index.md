@@ -2,7 +2,7 @@
 
 **Date:** January 24, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, multi-agent, documentation, rlm
+**Tags:** ai-agents, multi-agent, sub-agent, documentation, rlm
 
 ---
 
