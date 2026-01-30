@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-01-27T22:37:26+00:00</updated>
+  <updated>2026-01-30T17:39:34+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,81 @@
   
 
   
+  
+  <entry>
+    <title type="html">Orchestrating AI Fleets: When Agents Manage Agents</title>
+    <link href="https://jonnyzzz.com/blog/2026/01/30/orchestrating-ai-fleets/" rel="alternate" type="text/html" title="Orchestrating AI Fleets: When Agents Manage Agents" />
+    <published>2026-01-30T00:00:00+00:00</published>
+    <updated>2026-01-30T00:00:00+00:00</updated>
+    <id>/blog/2026/01/30/orchestrating-ai-fleets</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/30/orchestrating-ai-fleets/">&lt;p&gt;For the last several days, I have made my AI Agents call each other. Claude Code, Codex, and Gemini. 
+After several agentic improvements, the root prompt does the following steps:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Instructs an agent to copy and adjust the prompt for their task&lt;/li&gt;
+  &lt;li&gt;Instructs to use the standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; start agents, log outputs&lt;/li&gt;
+  &lt;li&gt;Clearly states that the AI agent should use the script, not the embedded feature&lt;/li&gt;
+  &lt;li&gt;Starts the agent at any working folder&lt;/li&gt;
+  &lt;li&gt;One more secret ingredient to make it work, or two&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One AI Agent controls the flow of a fleet of other agents. It is much better than just a bash loop, 
+and I like how it performs and adapts to the task given.&lt;/p&gt;
+
+&lt;p&gt;Today:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Deep research on a product topic was conducted by 16+ agents&lt;/li&gt;
+  &lt;li&gt;Code reading of a big monorepo, so the agent could understand how to implement the REST API client&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Claude Code calling multiple agents on the JetBrains Space reposiotry to mine knowledge from my repositories
+&lt;img src=&quot;/images/posts/2026-01-30-orchestrating-ai-fleets-example.png&quot; alt=&quot;img_2.png&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;There is more&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Agent processes never ask me, and bother much less&lt;/li&gt;
+  &lt;li&gt;I manage to make a root AI Agent run for hours unattended&lt;/li&gt;
+  &lt;li&gt;It keeps the context small for each and avoid context rot&lt;/li&gt;
+  &lt;li&gt;One can manage 3-5 such sessions, and I want to grow this number&lt;/li&gt;
+  &lt;li&gt;The baseline is still the &lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;https://jonnyzzz.com/RLM.md&lt;/a&gt;,
+which I based on the outcomes of my multiple experiments&lt;/li&gt;
+  &lt;li&gt;Look what I’ve done &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;What’s next? One part say – do measurements. I will keep experimenting at the first place, 
+and I need a partnership to set it up in a more scientific manner.&lt;/p&gt;
+
+&lt;p&gt;This work builds directly on the success of my previous experiment 
+where &lt;a href=&quot;/blog/2026/01/24/16-ai-agents-documentation-refactor/&quot;&gt;16 AI Agents Fixed Our Documentation Problem&lt;/a&gt;
+and relies heavily on the &lt;a href=&quot;/blog/2026/01/05/rlm-multi-agent-orchestration/&quot;&gt;Recursive Language Model (RLM)&lt;/a&gt;
+methodology I established earlier this year.&lt;/p&gt;
+
+&lt;p&gt;Happy Friday!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="multi-agent" />
+  
+    <category term="orchestration" />
+  
+    <category term="automation" />
+  
+    <category term="llm" />
+  
+    <summary type="html">AI Agents call each other by themselves: One controls the flow, others work on the short task</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Coding in English with AI</title>
@@ -2430,115 +2505,6 @@ predictable and easy to reason about.&lt;/p&gt;
     <category term="homelab" />
   
     <summary type="html">Stevedore gives me the GitOps loop I wanted on a Raspberry Pi. The next problem was ingress: my home IP changes, certificates expire, and a hand-written reverse proxy config does not stay boring for long.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Production Notes: Deploying Stevedore on a Raspberry Pi</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/" rel="alternate" type="text/html" title="Production Notes: Deploying Stevedore on a Raspberry Pi" />
-    <published>2026-01-01T00:00:00+00:00</published>
-    <updated>2026-01-01T00:00:00+00:00</updated>
-    <id>/blog/2026/01/01/production-raspberry-pi-deployment</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/01/production-raspberry-pi-deployment/">&lt;p&gt;Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;). This is
-the real deal: no hacks, no shortcuts, just the supported install path and careful verification.&lt;/p&gt;
-
-&lt;p&gt;Stevedore is designed for this exact setup: a single Docker-first control plane, a systemd service
-when available, and a clear separation between the host and the container runtime. The goal is to
-leave the machine in a stable, boring state and make future updates predictable.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;guardrails&quot;&gt;Guardrails&lt;/h2&gt;
-
-&lt;p&gt;Before touching production, I’m setting a few guardrails:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Use the official installer (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./stevedore-install.sh&lt;/code&gt;), not ad-hoc docker run commands.&lt;/li&gt;
-  &lt;li&gt;Keep state under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/stevedore&lt;/code&gt; (default layout).&lt;/li&gt;
-  &lt;li&gt;Prefer systemd (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore.service&lt;/code&gt;) to ensure the container survives reboots.&lt;/li&gt;
-  &lt;li&gt;Never paste secrets into this post. Keys stay on the host, paths are fine to mention.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-success-story-in-short&quot;&gt;The Success Story (In Short)&lt;/h2&gt;
-
-&lt;p&gt;This deployment did exactly what Stevedore promises. I installed it using the official script,
-bootstrapped the self-managed deployment, and proved the entire lifecycle: keys, sync, self-update,
-and stability over time. The host is now boring in the best way: Stevedore is running under systemd,
-the daemon health checks match, and updates are a controlled, repeatable process.&lt;/p&gt;
-
-&lt;h2 id=&quot;highlights&quot;&gt;Highlights&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The systemd unit keeps the control plane alive across reboots with zero manual babysitting.&lt;/li&gt;
-  &lt;li&gt;The self-deployment syncs via a read-only GitHub deploy key when the repo uses SSH (public HTTPS clones still work without it), and I can rotate it manually.&lt;/li&gt;
-  &lt;li&gt;Self-update works end-to-end when I trigger &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stevedore self-update&lt;/code&gt;: it pulled new commits, built a new image, and swapped cleanly.&lt;/li&gt;
-  &lt;li&gt;The five-hour stability check shows the daemon healthy and the control plane steady.&lt;/li&gt;
-  &lt;li&gt;Docs and onboarding guidance were improved based on real production friction.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;what-i-learned-and-turned-into-improvements&quot;&gt;What I Learned (And Turned Into Improvements)&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;GitHub deploy keys are picky: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_only=true&lt;/code&gt; needs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-F&lt;/code&gt; in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh api&lt;/code&gt;, so I documented the exact
-command and wired it into the CLI guidance.&lt;/li&gt;
-  &lt;li&gt;Self-update builds run in the foreground; once the update worker is spawned, the container swap
-finishes server-side, and the backup image gives a rollback path.&lt;/li&gt;
-  &lt;li&gt;The systemd-managed control plane and a self-deployment compose project can collide on container
-naming if the compose file sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;container_name: stevedore&lt;/code&gt;. That’s a good reminder that “boring”
-operations need crisp boundaries.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;outcome&quot;&gt;Outcome&lt;/h2&gt;
-
-&lt;p&gt;Stevedore is now running in production on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rp16g&lt;/code&gt;, updating itself and staying healthy without
-manual intervention. The deployment is stable, the operational checks are clean, and the process is
-documented end-to-end. This is exactly the boring, reliable, Git-driven workflow I wanted.&lt;/p&gt;
-
-&lt;p&gt;Next time, I want to tighten the self-deployment status story (so it reports cleanly even with the
-systemd-managed control plane) and keep iterating on the onboarding docs as more users go through
-this path.&lt;/p&gt;
-
-&lt;h2 id=&quot;agentic-finale&quot;&gt;Agentic Finale&lt;/h2&gt;
-
-&lt;p&gt;The funny fact – I created stevedore to simplify my human actions to deploy services. 
-It appeared that Claude Code and Codex are much better in dealing with deployments that I,
-basically, I unstructured them to use deliver the changes over SSH. Both Agents were great
-to figure out how to bind the deploy keys, use stevedore to manage repositories, run updates.&lt;/p&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:share:7416481230835245057&quot; height=&quot;705&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="raspberry-pi" />
-  
-    <category term="production" />
-  
-    <category term="systemd" />
-  
-    <category term="gitops" />
-  
-    <category term="self-hosting" />
-  
-    <summary type="html">Today is the day. I’m putting Stevedore into production on my Raspberry Pi host (rp16g). This is the real deal: no hacks, no shortcuts, just the supported install path and careful verification.</summary>
   
   </entry>
   
