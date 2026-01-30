@@ -23,7 +23,7 @@ Today:
 - Code reading of a big monorepo, so the agent could understand how to implement the REST API client
 
 Claude Code calling multiple agents on the JetBrains Space reposiotry to mine knowledge from my repositories
-![img_2.png](/images/posts/2026-01-30-orchestrating-ai-fleets-example.png)
+![Claude Code orchestrating multiple agents](/images/posts/2026-01-30-orchestrating-ai-fleets-example.png)
 
 There is more
 - Agent processes never ask me, and bother much less
@@ -41,5 +41,8 @@ This work builds directly on the success of my previous experiment
 where [16 AI Agents Fixed Our Documentation Problem]({% post_url blog/2026-01-24-16-ai-agents-documentation-refactor %})
 and relies heavily on the [Recursive Language Model (RLM)]({% post_url blog/2026-01-05-rlm-multi-agent-orchestration %})
 methodology I established earlier this year.
+
+The fleet is busy workin'
+![AI Agent fleet busy working](/images/posts/2026-01-30-orchestrating-ai-fleets-busy-working.png)
 
 Happy Friday!
