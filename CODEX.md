@@ -51,7 +51,7 @@ curl -O https://jonnyzzz.com/CODEX.md
 
 | Scenario | Why Codex |
 |----------|-----------|
-| **IntelliJ IDE Operations** | ✅ Full access to IntelliJ MCP Steroid (when registered) |
+| **IntelliJ IDE Operations** | ✅ Full access to MCP Steroid (when registered) |
 | **Image/PDF Analysis** | Native `-i` flag support |
 | **Focused Code Review** | Non-interactive `review` mode |
 | **Large File Processing** | Works independently without context rot |
@@ -128,7 +128,7 @@ codex mcp list
 | MCP Server | Visibility | Registration |
 |------------|-----------|--------------|
 | Playwright | ✅ Auto-inherited | `codex mcp add playwright npx "@playwright/mcp@latest"` |
-| IntelliJ MCP Steroid | ✅ Auto-inherited | `codex mcp add intellij --url <URL>` |
+| MCP Steroid | ✅ Auto-inherited | `codex mcp add intellij --url <URL>` |
 | Any Custom MCP | ✅ Auto-inherited | `codex mcp add <name> <command>` |
 
 **Key:** MCP servers registered with `codex mcp add` are available to ALL Codex sessions, including sub-agents.
@@ -138,9 +138,9 @@ codex mcp list
 codex mcp list
 ```
 
-**Register IntelliJ MCP:**
+**Register MCP Steroid:**
 ```bash
-# IntelliJ writes MCP URL to ~/.*.mcp-steroid
+# IntelliJ writes MCP Steroid URL to ~/.*.mcp-steroid
 cat ~/.*.mcp-steroid
 
 # Register using URL from file

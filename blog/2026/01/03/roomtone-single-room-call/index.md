@@ -13,7 +13,7 @@ Roomtone is open source at [roomtone](https://github.com/jonnyzzz/roomtone). It 
 ## Series: Holiday Sprint with AI
 
 - [290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex]({% post_url blog/2025-01-06-holiday-sprint-with-ai %})
-- [MCP Steroids: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %})
+- [MCP Steroid: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %})
 - [Plugin Hot Reload: A Faster IntelliJ Dev Loop]({% post_url blog/2026-01-05-intellij-plugin-hot-reload %})
 - [Roomtone: A Single-Room Call for Home]({% post_url blog/2026-01-03-roomtone-single-room-call %})
 

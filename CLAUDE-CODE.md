@@ -390,7 +390,7 @@ timeout 300 bash -c 'echo "prompt" | claude -p --tools default --permission-mode
 | MCP Server | Visibility | Registration |
 |------------|-----------|--------------|
 | Playwright | ✅ Auto-inherited | `claude mcp add playwright npx @playwright/mcp@latest` |
-| IntelliJ MCP Steroid | ✅ Auto-inherited | `claude mcp add --transport http intellij-steroid <URL>` |
+| MCP Steroid | ✅ Auto-inherited | `claude mcp add --transport http intellij-steroid <URL>` |
 | Any Custom MCP | ✅ Auto-inherited | `claude mcp add <name> <command>` |
 
 **Key:** MCP servers registered with `claude mcp add` are available to ALL Claude Code sessions, including sub-agents spawned with any command-line flags.
@@ -400,9 +400,9 @@ timeout 300 bash -c 'echo "prompt" | claude -p --tools default --permission-mode
 claude mcp list
 ```
 
-**Register IntelliJ MCP:**
+**Register MCP Steroid:**
 ```bash
-# IntelliJ writes MCP URL to ~/.*.mcp-steroid
+# IntelliJ writes MCP Steroid URL to ~/.*.mcp-steroid
 cat ~/.*.mcp-steroid
 
 # Register using URL from file
@@ -421,7 +421,7 @@ claude mcp add --transport http intellij-steroid <URL>
 |---------|-----------|-----|
 | Sub-agent doesn't see MCP tools | Not registered globally | `claude mcp add <name> <command>` |
 | MCP listed but tools unavailable | Restrictive tool flags | Use `--tools default` instead of `--allowedTools` |
-| IntelliJ MCP tools fail | IDE not running | Start IntelliJ, verify project open |
+| MCP Steroid tools fail | IDE not running | Start IntelliJ, verify project open |
 | MCP works in parent, not sub-agent | Local `.mcp.json` only | Register globally with `claude mcp add` |
 | Playwright browser fails | MCP server not started | Check `claude mcp list`, restart if needed |
 | Tools timeout immediately | MCP server crashed | Restart MCP server, check logs |
@@ -439,9 +439,9 @@ echo "List all available tools, especially MCP-provided ones" | \
 
 ### Important MCP Gotchas
 
-**1. IntelliJ MCP Only Works While IDE Is Running**
+**1. MCP Steroid Only Works While IDE Is Running**
 
-IntelliJ MCP Steroid requires the IDE to be open with the MCP server running. If IntelliJ closes, all MCP tools become unavailable.
+MCP Steroid requires the IDE to be open with the MCP server running. If IntelliJ closes, all MCP tools become unavailable.
 
 **2. Tool Restriction Flags Block MCP Access**
 
@@ -455,16 +455,16 @@ echo "prompt" | claude -p --allowedTools "Read,Write,Grep" --permission-mode don
 echo "prompt" | claude -p --tools default --permission-mode dontAsk 2>&1
 ```
 
-**3. IntelliJ MCP Operates on Currently Open Project**
+**3. MCP Steroid Operates on Currently Open Project**
 
-IntelliJ MCP Steroid executes code in the context of the currently focused project in the IDE. If multiple projects are open, ensure the correct one has focus, or use the `project_name` parameter in MCP calls.
+MCP Steroid executes code in the context of the currently focused project in the IDE. If multiple projects are open, ensure the correct one has focus, or use the `project_name` parameter in MCP calls.
 
 ---
 
 **For comprehensive patterns, see:**
 - [MULTI-AGENT.md](https://jonnyzzz.com/MULTI-AGENT.md) - Orchestration, parallel execution, error handling
 - [RLM.md](https://jonnyzzz.com/RLM.md) - Partition+Map+Reduce patterns
-- [CODEX.md](https://jonnyzzz.com/CODEX.md) - Alternative CLI with IntelliJ MCP support
+- [CODEX.md](https://jonnyzzz.com/CODEX.md) - Alternative CLI with MCP Steroid support
 - [GEMINI.md](https://jonnyzzz.com/GEMINI.md) - Cross-validation with different model
 
 *Follow [@jonnyzzz](https://twitter.com/jonnyzzz) on X and [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) for more on AI agents and developer tooling.*

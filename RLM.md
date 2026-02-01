@@ -191,7 +191,7 @@ Use these guides for spawning sub-agents with CLI tools:
 ### Quick Spawn Examples
 
 **Give sub-agents full access** - don't restrict capabilities. Sub-agents automatically inherit:
-- All OS-wide MCP servers (Playwright, IntelliJ MCP Steroid, etc.)
+- All OS-wide MCP servers (Playwright, MCP Steroid, etc.)
 - Project-specific configurations and skills
 - Custom plugins and extensions
 

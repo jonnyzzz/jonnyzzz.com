@@ -1,4 +1,4 @@
-# MCP Steroids: An IntelliJ MCP Server with Vision
+# MCP Steroid: An IntelliJ MCP Server with Vision
 
 **Date:** January 04, 2026  
 **Author:** Eugene Petrenko  
@@ -6,20 +6,22 @@
 
 ---
 
-I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built **MCP Steroids**.
+I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built **[MCP Steroid](https://mcp-steroid.jonnyzzz.com/)**.
+
+![MCP Steroid logo]({{ site.url }}/images/mcp-steroid-logo.png)
 
 The project grew to 253 commits over a month of intense holiday hacking. It started as a simple Kotlin script executor and evolved into a full MCP server with vision, OCR, and human review gates.
 
 ## Series: Holiday Sprint with AI
 
 - [290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex]({% post_url blog/2025-01-06-holiday-sprint-with-ai %})
-- [MCP Steroids: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %})
+- [MCP Steroid: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %})
 - [Plugin Hot Reload: A Faster IntelliJ Dev Loop]({% post_url blog/2026-01-05-intellij-plugin-hot-reload %})
 - [Roomtone: A Single-Room Call for Home]({% post_url blog/2026-01-03-roomtone-single-room-call %})
 
 ## The MCP Server Inside IntelliJ
 
-MCP Steroids runs a Ktor server inside the IDE using.
+MCP Steroid runs a Ktor server inside the IDE using.
 I tried the [Kotlin MCP SDK](https://github.com/modelcontextprotocol/kotlin-sdk), but found it
 does not yet support the latest MCP spec version, same as IntelliJ-native MCP Server.
 For the sake of this experiment, I decided to focus on my own implementations. 
@@ -154,9 +156,9 @@ they see. The sequence supports comments (`#`) and newline separators for readab
 
 Two short demos show the system in action:
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/6p6B5sxgXX8" title="MCP Steroids demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/6p6B5sxgXX8" title="MCP Steroid demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroids demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroid demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 The full playlist has 7 videos, from quick CodeDozer demos to two longer "Real Work in Monorepo" sessions.
 
@@ -175,7 +177,7 @@ end-to-end, including a full execute→feedback→execute cycle.
 
 ## The Bigger Picture
 
-MCP Steroids is part of my AI-assisted development setup, running 
+MCP Steroid is part of my AI-assisted development setup, running 
 alongside [Stevedore]({% post_url blog/2025-12-24-introducing-stevedore %}) deployments 
 on my homelab infrastructure.
 
@@ -191,6 +193,6 @@ If you are experimenting with agentic tooling inside IDEs, let's connect and sha
 
 ## Full Playlist
 
-Watch the full playlist on YouTube: [IntelliJ MCP Steroid](https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f)
+Watch the full playlist on YouTube: [MCP Steroid](https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f)
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f" title="IntelliJ MCP Steroid playlist" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f" title="MCP Steroid playlist" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

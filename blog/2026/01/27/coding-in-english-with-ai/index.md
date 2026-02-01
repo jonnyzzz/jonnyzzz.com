@@ -47,7 +47,8 @@ is cheap, and experimentation is not blocked by that.
 Today, I have multiple code repositories of **prompts**. I task selected agents to write prompts 
 for their sub-agents. I version-control and back-up kilobytes of prompts. I ask agents
 to interview agents on selected agentic integration topics. And of course some agents
-will code, run tests in IntelliJ via the MCP Steroid plugin, debug the code and so on. 
+will code, run tests in IntelliJ via the [MCP Steroid](https://mcp-steroid.jonnyzzz.com/)
+plugin, debug the code and so on. 
 
 We are approaching a shift where AI Agents become the primary users of software development tools.
 The 'Buying Persona' remains human, but the 'User Persona' is becoming digital. Tools must

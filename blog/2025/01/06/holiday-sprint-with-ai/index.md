@@ -32,7 +32,10 @@ Every single one of these commits has `Co-Authored-By: Claude` or similar in the
 
 The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) has been getting a lot of attention. Anthropic released it as a way for AI assistants to interact with external tools. I wanted to see what happens when you take MCP seriously inside an IDE.
 
-The result is [intellij-mcp-steroids](https://github.com/jonnyzzz/intellij-mcp-steroids)—an IntelliJ plugin that exposes the IDE's full power through MCP. Full write-up: [MCP Steroids: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %}).
+The result is [intellij-mcp-steroids](https://github.com/jonnyzzz/intellij-mcp-steroids)—an IntelliJ plugin
+that exposes the IDE's full power through MCP. Full write-up:
+[MCP Steroid: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %}).
+Project homepage: [mcp-steroid.jonnyzzz.com](https://mcp-steroid.jonnyzzz.com/).
 
 ### What We Built
 

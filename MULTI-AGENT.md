@@ -76,7 +76,7 @@ Activate multi-agent when:
 ### Registration
 
 ```bash
-# Find IntelliJ MCP URL (written by IntelliJ to ~/.*.mcp-steroid)
+# Find MCP Steroid URL (written by IntelliJ to ~/.*.mcp-steroid)
 cat ~/.*.mcp-steroid
 
 # Register for Claude Code
@@ -92,7 +92,7 @@ codex mcp list
 
 ### Visibility Matrix
 
-| CLI | Playwright MCP | IntelliJ MCP | Best Use Case |
+| CLI | Playwright MCP | MCP Steroid | Best Use Case |
 |-----|----------------|--------------|---------------|
 | **claude** | ✅ Yes (if registered) | ✅ Yes (if registered) | Web research, browser automation, general coding |
 | **codex** | ✅ Yes (if registered) | ✅ Yes (if registered) | IntelliJ IDE operations, full MCP access |
@@ -103,7 +103,7 @@ codex mcp list
 ### Task Assignment Based on MCP Needs
 
 **IntelliJ Platform Development:**
-- ✅ Use `claude` or `codex` (both see IntelliJ MCP when registered)
+- ✅ Use `claude` or `codex` (both see MCP Steroid when registered)
 - Tools: `steroid_execute_code`, `steroid_open_project`, PSI, refactoring APIs
 
 **Browser Automation:**
@@ -150,7 +150,7 @@ Spawn agent from project directory with prompt: "What is your current working di
 **Expected output:**
 - Working directory: `/path/to/project`
 - Config files: `.claude/`, `CLAUDE.md`, etc.
-- MCP servers: Playwright, IntelliJ MCP (if registered)
+- MCP servers: Playwright, MCP Steroid (if registered)
 
 **See CLI-specific docs for exact invocation commands.**
 
@@ -835,7 +835,7 @@ fi
 | Model selection | in settings | `-m` flag | `-m` flag |
 | Parallel execution | background jobs | background jobs | background jobs |
 | **Playwright MCP** | ✅ Yes (if registered) | ✅ Yes (if registered) | ❌ No |
-| **IntelliJ MCP** | ✅ Yes (if registered) | ✅ Yes (if registered) | ❌ No |
+| **MCP Steroid** | ✅ Yes (if registered) | ✅ Yes (if registered) | ❌ No |
 
 ### Command Patterns
 
@@ -866,7 +866,7 @@ aggregate results
 
 | Scenario | Best Tool | Reason |
 |----------|-----------|--------|
-| **IntelliJ IDE operations** | claude or codex | Both see IntelliJ MCP when registered |
+| **IntelliJ IDE operations** | claude or codex | Both see MCP Steroid when registered |
 | **Browser automation** | claude or codex | Both have Playwright MCP when registered |
 | **Web research** | claude | Built-in WebSearch, WebFetch |
 | **Image/PDF analysis** | codex | Native `-i` flag support |

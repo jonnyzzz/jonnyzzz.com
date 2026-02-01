@@ -145,13 +145,6 @@ gemini --approval-mode auto_edit "echo Hello" 2>&1
 
 ## MCP Server Visibility
 
-**Gemini does NOT integrate with MCP servers.**
-
-| MCP Server | Visible to Gemini | Impact |
-|------------|------------------|---------|
-| Playwright | ❌ No | Cannot control browsers |
-| IntelliJ MCP Steroid | ❌ No | Cannot use IDE operations |
-
 **What Gemini HAS:**
 - Native file system operations (read, write, search, glob)
 - Web capabilities (search, fetch)
@@ -370,7 +363,6 @@ fi
 
 **Quick Summary for Gemini:**
 - ✅ Best for: Cross-validation, long context tasks, pure code analysis
-- ❌ MCP Support: None (no Playwright, no IntelliJ MCP)
 - ✅ Alternative model: Different architecture provides diverse reasoning
 
 ---
