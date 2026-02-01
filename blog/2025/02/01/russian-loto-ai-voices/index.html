@@ -1,0 +1,537 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Russian Loto with AI Celebrity Voices &#8211; Eugene Petrenko</title>
+<meta name="description" content="Building a Russian Loto announcer with 12 celebrity AI voices using Qwen3-TTS"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai, tts, python, qwen, voice-cloning" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Russian Loto with AI Celebrity Voices -- Eugene Petrenko" />
+<meta name="twitter:description" content="Building a Russian Loto announcer with 12 celebrity AI voices using Qwen3-TTS" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Russian Loto with AI Celebrity Voices -- Eugene Petrenko" />
+<meta property="og:description" content="Building a Russian Loto announcer with 12 celebrity AI voices using Qwen3-TTS" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2025/02/01/russian-loto-ai-voices/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai" />
+
+<meta property="article:tag" content="tts" />
+
+<meta property="article:tag" content="python" />
+
+<meta property="article:tag" content="qwen" />
+
+<meta property="article:tag" content="voice-cloning" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2025/02/01/russian-loto-ai-voices/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai" title="Pages tagged ai">ai</a></li><li><a href="/tags/#tts" title="Pages tagged tts">tts</a></li><li><a href="/tags/#python" title="Pages tagged python">python</a></li><li><a href="/tags/#qwen" title="Pages tagged qwen">qwen</a></li><li><a href="/tags/#voice-cloning" title="Pages tagged voice-cloning">voice-cloning</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Russian Loto with AI Celebrity Voices</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2025-02-01T00:00:00+00:00">February 01, 2025</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=ai,tts,python,qwen,voice-cloning&amp;text=Russian%20Loto%20with%20AI%20Celebrity%20Voices&amp;url=https://jonnyzzz.com/blog/2025/02/01/russian-loto-ai-voices/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2025/02/01/russian-loto-ai-voices/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>Hey Siri, can you count from 1 to 90 in random order? Siri could not. But Russian Loto absolutely
+needs it: a caller shuffles 1-90 and announces each number as people mark their tickets.</p>
+
+<p>If you never played Loto/Bingo, this explainer shows the call-and-mark loop:
+<a href="https://www.youtube.com/watch?v=H1tQs2vXnQg">Learn Numbers Playing Lotto (Bingo) (Games in Russian for complete beginners)</a>.</p>
+
+<p>I challenged Claude to build the game in 10 minutes. Then, in the next 20 minutes, I had Qwen TTS
+running locally on my Mac with AI celebrity voices. It was fast to invent, and it turned into
+great family fun.</p>
+
+<p>The result: <a href="https://github.com/jonnyzzz/jonnyzzz-loto">jonnyzzz-loto</a> — a Russian Loto game where
+12 AI-generated celebrity voices announce numbers with character-specific jokes.</p>
+
+<h2 id="the-problem-with-real-loto">The Problem with Real Loto</h2>
+
+<p>Family gatherings with Russian Loto have a problem: the person calling numbers gets bored. They
+read monotonously. The game becomes a chore. What if the announcer was actually entertaining?</p>
+
+<p>The obvious solution: record celebrity-like voice samples and use voice cloning. But that requires
+finding clean audio samples, dealing with licensing concerns, and building a pipeline for each
+celebrity. Too much work for a weekend prototype.</p>
+
+<h2 id="qwen3-tts-and-voicedesign">Qwen3-TTS and VoiceDesign</h2>
+
+<p>Alibaba’s <a href="https://huggingface.co/Qwen/Qwen2.5-Omni-3B">Qwen3-TTS</a> changed everything. This
+open-source model (Apache 2.0) has a fascinating capability called VoiceDesign — instead of
+cloning a voice from audio samples, you describe the voice in text and the model generates it.
+That is exactly what rapid prototyping needs: a prompt, a quick run, a new character.</p>
+
+<p>No samples needed. Just a text description like:</p>
+
+<blockquote>
+  <p>“A deep elderly male Russian voice, slow deliberate speech with long pauses, authoritative
+Soviet leader tone, slight speech impediment”</p>
+</blockquote>
+
+<p>And outcomes something that sounds like Brezhnev. Not a clone — but a convincing character voice
+that captures the essence.</p>
+
+<h2 id="the-tech-stack">The Tech Stack</h2>
+
+<p>The project runs entirely locally on Mac with Apple Silicon, optimized for short iteration loops:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Setup (creates venv, installs dependencies)</span>
+./setup_qwen_mac.sh
+
+<span class="c"># Run with AI voices</span>
+uv run python loto.py <span class="nt">--qwen</span>
+</code></pre></div></div>
+
+<p><strong>Stack:</strong></p>
+<ul>
+  <li>Python with <a href="https://github.com/astral-sh/uv">uv</a> package manager</li>
+  <li>Qwen3-TTS for speech synthesis</li>
+  <li>MPS (Metal Performance Shaders) for GPU acceleration on Apple Silicon</li>
+  <li>pygame for audio playback</li>
+  <li>VoiceDesign model for text-to-voice-description synthesis</li>
+</ul>
+
+<p>The setup script handles PyTorch with MPS support, the transformers library, and audio
+dependencies. First run downloads the model (~3GB).</p>
+
+<h2 id="12-celebrity-voices-random-pick-claude-generated">12 Celebrity Voices Random Pick (Claude-Generated)</h2>
+
+<p>Each character has a unique voice description and personality:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Character</th>
+      <th>Voice Description</th>
+      <th>Style</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Leonid Brezhnev</td>
+      <td>Deep elderly male, slow deliberate speech, Soviet gravitas</td>
+      <td>Turns everything into five-year plan references</td>
+    </tr>
+    <tr>
+      <td>Maxim Galkin</td>
+      <td>Theatrical, energetic showman, perfect diction</td>
+      <td>Game show host enthusiasm</td>
+    </tr>
+    <tr>
+      <td>Alla Pugacheva</td>
+      <td>Mature female, pop diva, dramatic pauses</td>
+      <td>Primadonna drama for every number</td>
+    </tr>
+    <tr>
+      <td>Vinni-Puh (Evgeny Leonov)</td>
+      <td>Warm, friendly, childlike wonder</td>
+      <td>Honey and friendship references</td>
+    </tr>
+    <tr>
+      <td>Vladimir Zhirinovsky</td>
+      <td>Passionate, loud, political fervor</td>
+      <td>Makes everything a political statement</td>
+    </tr>
+    <tr>
+      <td>Monetochka</td>
+      <td>Young female, indie pop, Gen-Z slang</td>
+      <td>“Это вайб!” for random numbers</td>
+    </tr>
+    <tr>
+      <td>Korol i Shut (Gorshok)</td>
+      <td>Theatrical punk rock, horror imagery</td>
+      <td>Gothic humor, Friday the 13th</td>
+    </tr>
+    <tr>
+      <td>Vladimir Vysotsky</td>
+      <td>Raspy, intense, poetic bard</td>
+      <td>Every number becomes existential</td>
+    </tr>
+    <tr>
+      <td>Sergey Shnurov (Leningrad)</td>
+      <td>Rock provocateur, irreverent, mocking</td>
+      <td>Makes fun of the game itself</td>
+    </tr>
+    <tr>
+      <td>Filipp Kirkorov</td>
+      <td>Grandiose pop king, over-the-top</td>
+      <td>Everything is a grand celebration</td>
+    </tr>
+    <tr>
+      <td>Grigory Leps</td>
+      <td>Rock ballad, emotional, gravelly</td>
+      <td>Dramatic weight to each number</td>
+    </tr>
+    <tr>
+      <td>Nikolay Baskov</td>
+      <td>Operatic tenor, polished, charming</td>
+      <td>Treats Loto like opera</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="character-specific-jokes">Character-Specific Jokes</h2>
+
+<p>The magic isn’t just in the voices — each character has jokes tailored to specific numbers. Here
+are some examples:</p>
+
+<p><strong>Brezhnev on 5:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Пять... Пятилетка! Выполним и перевыполним план!
+(Five... Five-year plan! We will fulfill and exceed the plan!)
+</code></pre></div></div>
+
+<p><strong>Gorshok (Korol i Shut) on 13:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Тринадцать! Моё любимое число! Ха-ха-ха! Пятница тринадцатое!
+(Thirteen! My favorite number! Ha-ha-ha! Friday the 13th!)
+</code></pre></div></div>
+
+<p><strong>Zhirinovsky on any number:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Это число... это символ нашей великой страны!
+(This number... this is a symbol of our great country!)
+</code></pre></div></div>
+
+<p><strong>Monetochka on 69:</strong></p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ой, это тот самый мем... Найс!
+(Oh, that's that meme... Nice!)
+</code></pre></div></div>
+
+<p>The character definitions live in Python dataclasses with voice descriptions, typical phrases,
+and number-specific joke mappings.</p>
+
+<h2 id="how-voicedesign-actually-works">How VoiceDesign Actually Works</h2>
+
+<p>Traditional TTS voice cloning needs audio samples. VoiceDesign takes a different approach:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">voice_description</span> <span class="o">=</span> <span class="sh">"""</span><span class="s">
+A deep elderly male Russian voice speaking with
+slow deliberate speech and long dramatic pauses.
+Authoritative Soviet leader tone with slight
+speech impediment characteristic of late period.
+</span><span class="sh">"""</span>
+
+<span class="c1"># The model generates voice parameters from the description
+# No audio samples required
+</span></code></pre></div></div>
+
+<p>The model was trained to understand voice characteristics from text and synthesize matching
+speech. It’s not perfect — sometimes the voices drift across utterances. But for a game where
+each number is a separate audio clip, it works well.</p>
+
+<p>The Russian language support is surprisingly good. Qwen handles Cyrillic text natively, and the
+pronunciation is close enough that native speakers recognize the character archetypes.</p>
+
+<h2 id="noise-detection-making-it-interactive">Noise Detection: Making It Interactive</h2>
+
+<p>The game includes an experimental feature: ambient noise detection. It listens to the room and
+reacts:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># When the room gets quiet, repeat the last number
+# Uses exponential backoff to get attention
+</span><span class="k">if</span> <span class="n">ambient_noise</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">:</span>
+    <span class="nf">repeat_last_number</span><span class="p">()</span>
+    <span class="n">backoff</span> <span class="o">*=</span> <span class="mi">2</span>
+</code></pre></div></div>
+
+<p>This makes the game feel more alive — when people are talking and not paying attention, the AI
+announcer waits. When it gets quiet, it calls the next number or repeats. Like a patient game
+master.</p>
+
+<h2 id="running-the-game">Running the Game</h2>
+
+<p>Basic usage:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Install dependencies</span>
+./setup_qwen_mac.sh
+
+<span class="c"># Run with AI voices (first run generates all audio clips)</span>
+uv run python loto.py <span class="nt">--qwen</span>
+
+<span class="c"># Run with pre-generated voices (faster startup)</span>
+uv run python loto.py <span class="nt">--qwen</span> <span class="nt">--cache</span>
+
+<span class="c"># Select specific character</span>
+uv run python loto.py <span class="nt">--qwen</span> <span class="nt">--character</span> brezhnev
+</code></pre></div></div>
+
+<p>First run takes a while — it generates audio for all numbers (1-90) for the selected character.
+Subsequent runs with <code class="language-plaintext highlighter-rouge">--cache</code> start instantly.</p>
+
+<h2 id="performance-on-apple-silicon">Performance on Apple Silicon</h2>
+
+<p>On M1/M2/M3 Macs, the MPS backend provides decent performance:</p>
+
+<ul>
+  <li>Audio generation: ~2-3 seconds per number</li>
+  <li>First run (90 numbers): ~3-4 minutes per character</li>
+  <li>Cached playback: instant</li>
+</ul>
+
+<p>For comparison, CPU-only inference is 5-10x slower. The MPS optimization in PyTorch makes local
+AI TTS practical.</p>
+
+<h2 id="lessons-learned">Lessons Learned</h2>
+
+<p><strong>Family Fun</strong> is easy to achieve. Just a suggent idea gets much easier to implement.</p>
+
+<p><strong>VoiceDesign is powerful but inconsistent.</strong> The same voice description can produce slightly
+different voices across runs. For a game, this adds variety. For production TTS, you’d want more
+control.</p>
+
+<p><strong>Character design matters more than voice quality.</strong> A mediocre voice with great jokes is more
+entertaining than a perfect voice reading numbers monotonously. The character personalities
+carry the experience.</p>
+
+<p><strong>#LocalAI for fun projects is here.</strong> No API keys, no cloud costs, no latency. Models like
+Qwen3-TTS make creative voice projects accessible to anyone with a decent Mac.</p>
+
+<h2 id="try-it">Try It</h2>
+
+<p>The code is at <a href="https://github.com/jonnyzzz/jonnyzzz-loto">github.com/jonnyzzz/jonnyzzz-loto</a>.</p>
+
+<p>Add your own characters. Improve the jokes. Make Brezhnev more authentic. The voice description
+format is simple enough that you can experiment without ML expertise.</p>
+
+<p>And if you have a better joke for number 77 (семьдесят семь) — submit a PR.</p>
+
+<p>Find me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or
+<a href="https://twitter.com/jonnyzzz">Twitter</a> if you build something fun with AI voices.</p>
+
+<p>Stay tuned, I will prepare something similar with NVIDIA DGX Spart setup for some conferences in the furure!</p>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2025/01/06/holiday-sprint-with-ai/" class="btn" title="290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex">Previous</a>
+      
+      
+        <a href="/blog/2025/06/25/enterprise-ai-backend/" class="btn" title="Why Enterprises Need Dedicated AI Backends for Developer Teams">Next</a>
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
