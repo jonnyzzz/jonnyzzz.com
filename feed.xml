@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-01T16:32:39+00:00</updated>
+  <updated>2026-02-01T18:59:33+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,303 @@
   
 
   
+  
+  <entry>
+    <title type="html">Russian Loto with AI Celebrity Voices</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/01/russian-loto-ai-voices/" rel="alternate" type="text/html" title="Russian Loto with AI Celebrity Voices" />
+    <published>2026-02-01T00:00:00+00:00</published>
+    <updated>2026-02-01T00:00:00+00:00</updated>
+    <id>/blog/2026/02/01/russian-loto-ai-voices</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/01/russian-loto-ai-voices/">&lt;p&gt;Hey Siri, can you count from 1 to 90 in random order? Siri could not. But Russian Loto absolutely
+needs it: a caller shuffles 1-90 and announces each number as people mark their tickets.&lt;/p&gt;
+
+&lt;p&gt;If you never played Loto/Bingo, this explainer shows the call-and-mark loop:
+&lt;a href=&quot;https://www.youtube.com/watch?v=H1tQs2vXnQg&quot;&gt;Learn Numbers Playing Lotto (Bingo) (Games in Russian for complete beginners)&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I challenged Claude to build the game in 10 minutes. Then, in the next 20 minutes, I had Qwen TTS
+running locally on my Mac with AI celebrity voices. It was fast to invent, and it turned into
+great family fun.&lt;/p&gt;
+
+&lt;p&gt;The result: &lt;a href=&quot;https://github.com/jonnyzzz/jonnyzzz-loto&quot;&gt;jonnyzzz-loto&lt;/a&gt; — a Russian Loto game where
+12 AI-generated celebrity voices announce numbers with character-specific jokes.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-problem-with-real-loto&quot;&gt;The Problem with Real Loto&lt;/h2&gt;
+
+&lt;p&gt;Family gatherings with Russian Loto have a problem: the person calling numbers gets bored. They
+read monotonously. The game becomes a chore. What if the announcer was actually entertaining?&lt;/p&gt;
+
+&lt;p&gt;The obvious solution: record celebrity-like voice samples and use voice cloning. But that requires
+finding clean audio samples, dealing with licensing concerns, and building a pipeline for each
+celebrity. Too much work for a weekend prototype.&lt;/p&gt;
+
+&lt;h2 id=&quot;qwen3-tts-and-voicedesign&quot;&gt;Qwen3-TTS and VoiceDesign&lt;/h2&gt;
+
+&lt;p&gt;Alibaba’s &lt;a href=&quot;https://huggingface.co/Qwen/Qwen2.5-Omni-3B&quot;&gt;Qwen3-TTS&lt;/a&gt; changed everything. This
+open-source model (Apache 2.0) has a fascinating capability called VoiceDesign — instead of
+cloning a voice from audio samples, you describe the voice in text and the model generates it.
+That is exactly what rapid prototyping needs: a prompt, a quick run, a new character.&lt;/p&gt;
+
+&lt;p&gt;No samples needed. Just a text description like:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“A deep elderly male Russian voice, slow deliberate speech with long pauses, authoritative
+Soviet leader tone, slight speech impediment”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;And outcomes something that sounds like Brezhnev. Not a clone — but a convincing character voice
+that captures the essence.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-tech-stack&quot;&gt;The Tech Stack&lt;/h2&gt;
+
+&lt;p&gt;The project runs entirely locally on Mac with Apple Silicon, optimized for short iteration loops:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Setup (creates venv, installs dependencies)&lt;/span&gt;
+./setup_qwen_mac.sh
+
+&lt;span class=&quot;c&quot;&gt;# Run with AI voices&lt;/span&gt;
+uv run python loto.py &lt;span class=&quot;nt&quot;&gt;--qwen&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Stack:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Python with &lt;a href=&quot;https://github.com/astral-sh/uv&quot;&gt;uv&lt;/a&gt; package manager&lt;/li&gt;
+  &lt;li&gt;Qwen3-TTS for speech synthesis&lt;/li&gt;
+  &lt;li&gt;MPS (Metal Performance Shaders) for GPU acceleration on Apple Silicon&lt;/li&gt;
+  &lt;li&gt;pygame for audio playback&lt;/li&gt;
+  &lt;li&gt;VoiceDesign model for text-to-voice-description synthesis&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The setup script handles PyTorch with MPS support, the transformers library, and audio
+dependencies. First run downloads the model (~3GB).&lt;/p&gt;
+
+&lt;h2 id=&quot;12-celebrity-voices-random-pick-claude-generated&quot;&gt;12 Celebrity Voices Random Pick (Claude-Generated)&lt;/h2&gt;
+
+&lt;p&gt;Each character has a unique voice description and personality:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Character&lt;/th&gt;
+      &lt;th&gt;Voice Description&lt;/th&gt;
+      &lt;th&gt;Style&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Leonid Brezhnev&lt;/td&gt;
+      &lt;td&gt;Deep elderly male, slow deliberate speech, Soviet gravitas&lt;/td&gt;
+      &lt;td&gt;Turns everything into five-year plan references&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Maxim Galkin&lt;/td&gt;
+      &lt;td&gt;Theatrical, energetic showman, perfect diction&lt;/td&gt;
+      &lt;td&gt;Game show host enthusiasm&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Alla Pugacheva&lt;/td&gt;
+      &lt;td&gt;Mature female, pop diva, dramatic pauses&lt;/td&gt;
+      &lt;td&gt;Primadonna drama for every number&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Vinni-Puh (Evgeny Leonov)&lt;/td&gt;
+      &lt;td&gt;Warm, friendly, childlike wonder&lt;/td&gt;
+      &lt;td&gt;Honey and friendship references&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Vladimir Zhirinovsky&lt;/td&gt;
+      &lt;td&gt;Passionate, loud, political fervor&lt;/td&gt;
+      &lt;td&gt;Makes everything a political statement&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Monetochka&lt;/td&gt;
+      &lt;td&gt;Young female, indie pop, Gen-Z slang&lt;/td&gt;
+      &lt;td&gt;“Это вайб!” for random numbers&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Korol i Shut (Gorshok)&lt;/td&gt;
+      &lt;td&gt;Theatrical punk rock, horror imagery&lt;/td&gt;
+      &lt;td&gt;Gothic humor, Friday the 13th&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Vladimir Vysotsky&lt;/td&gt;
+      &lt;td&gt;Raspy, intense, poetic bard&lt;/td&gt;
+      &lt;td&gt;Every number becomes existential&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Sergey Shnurov (Leningrad)&lt;/td&gt;
+      &lt;td&gt;Rock provocateur, irreverent, mocking&lt;/td&gt;
+      &lt;td&gt;Makes fun of the game itself&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Filipp Kirkorov&lt;/td&gt;
+      &lt;td&gt;Grandiose pop king, over-the-top&lt;/td&gt;
+      &lt;td&gt;Everything is a grand celebration&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Grigory Leps&lt;/td&gt;
+      &lt;td&gt;Rock ballad, emotional, gravelly&lt;/td&gt;
+      &lt;td&gt;Dramatic weight to each number&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Nikolay Baskov&lt;/td&gt;
+      &lt;td&gt;Operatic tenor, polished, charming&lt;/td&gt;
+      &lt;td&gt;Treats Loto like opera&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;character-specific-jokes&quot;&gt;Character-Specific Jokes&lt;/h2&gt;
+
+&lt;p&gt;The magic isn’t just in the voices — each character has jokes tailored to specific numbers. Here
+are some examples:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Brezhnev on 5:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Пять... Пятилетка! Выполним и перевыполним план!
+(Five... Five-year plan! We will fulfill and exceed the plan!)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Gorshok (Korol i Shut) on 13:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Тринадцать! Моё любимое число! Ха-ха-ха! Пятница тринадцатое!
+(Thirteen! My favorite number! Ha-ha-ha! Friday the 13th!)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Zhirinovsky on any number:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Это число... это символ нашей великой страны!
+(This number... this is a symbol of our great country!)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Monetochka on 69:&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ой, это тот самый мем... Найс!
+(Oh, that&apos;s that meme... Nice!)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The character definitions live in Python dataclasses with voice descriptions, typical phrases,
+and number-specific joke mappings.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-voicedesign-actually-works&quot;&gt;How VoiceDesign Actually Works&lt;/h2&gt;
+
+&lt;p&gt;Traditional TTS voice cloning needs audio samples. VoiceDesign takes a different approach:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;voice_description&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;sh&quot;&gt;&quot;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;
+A deep elderly male Russian voice speaking with
+slow deliberate speech and long dramatic pauses.
+Authoritative Soviet leader tone with slight
+speech impediment characteristic of late period.
+&lt;/span&gt;&lt;span class=&quot;sh&quot;&gt;&quot;&quot;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;# The model generates voice parameters from the description
+# No audio samples required
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The model was trained to understand voice characteristics from text and synthesize matching
+speech. It’s not perfect — sometimes the voices drift across utterances. But for a game where
+each number is a separate audio clip, it works well.&lt;/p&gt;
+
+&lt;p&gt;The Russian language support is surprisingly good. Qwen handles Cyrillic text natively, and the
+pronunciation is close enough that native speakers recognize the character archetypes.&lt;/p&gt;
+
+&lt;h2 id=&quot;noise-detection-making-it-interactive&quot;&gt;Noise Detection: Making It Interactive&lt;/h2&gt;
+
+&lt;p&gt;The game includes an experimental feature: ambient noise detection. It listens to the room and
+reacts:&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;# When the room gets quiet, repeat the last number
+# Uses exponential backoff to get attention
+&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ambient_noise&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;threshold&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;repeat_last_number&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;backoff&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This makes the game feel more alive — when people are talking and not paying attention, the AI
+announcer waits. When it gets quiet, it calls the next number or repeats. Like a patient game
+master.&lt;/p&gt;
+
+&lt;h2 id=&quot;running-the-game&quot;&gt;Running the Game&lt;/h2&gt;
+
+&lt;p&gt;Basic usage:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Install dependencies&lt;/span&gt;
+./setup_qwen_mac.sh
+
+&lt;span class=&quot;c&quot;&gt;# Run with AI voices (first run generates all audio clips)&lt;/span&gt;
+uv run python loto.py &lt;span class=&quot;nt&quot;&gt;--qwen&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Run with pre-generated voices (faster startup)&lt;/span&gt;
+uv run python loto.py &lt;span class=&quot;nt&quot;&gt;--qwen&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--cache&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Select specific character&lt;/span&gt;
+uv run python loto.py &lt;span class=&quot;nt&quot;&gt;--qwen&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--character&lt;/span&gt; brezhnev
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;First run takes a while — it generates audio for all numbers (1-90) for the selected character.
+Subsequent runs with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--cache&lt;/code&gt; start instantly.&lt;/p&gt;
+
+&lt;h2 id=&quot;performance-on-apple-silicon&quot;&gt;Performance on Apple Silicon&lt;/h2&gt;
+
+&lt;p&gt;On M1/M2/M3 Macs, the MPS backend provides decent performance:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Audio generation: ~2-3 seconds per number&lt;/li&gt;
+  &lt;li&gt;First run (90 numbers): ~3-4 minutes per character&lt;/li&gt;
+  &lt;li&gt;Cached playback: instant&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For comparison, CPU-only inference is 5-10x slower. The MPS optimization in PyTorch makes local
+AI TTS practical.&lt;/p&gt;
+
+&lt;h2 id=&quot;lessons-learned&quot;&gt;Lessons Learned&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Family Fun&lt;/strong&gt; is easy to achieve. Just a suggent idea gets much easier to implement.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;VoiceDesign is powerful but inconsistent.&lt;/strong&gt; The same voice description can produce slightly
+different voices across runs. For a game, this adds variety. For production TTS, you’d want more
+control.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Character design matters more than voice quality.&lt;/strong&gt; A mediocre voice with great jokes is more
+entertaining than a perfect voice reading numbers monotonously. The character personalities
+carry the experience.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;#LocalAI for fun projects is here.&lt;/strong&gt; No API keys, no cloud costs, no latency. Models like
+Qwen3-TTS make creative voice projects accessible to anyone with a decent Mac.&lt;/p&gt;
+
+&lt;h2 id=&quot;try-it&quot;&gt;Try It&lt;/h2&gt;
+
+&lt;p&gt;The code is at &lt;a href=&quot;https://github.com/jonnyzzz/jonnyzzz-loto&quot;&gt;github.com/jonnyzzz/jonnyzzz-loto&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Add your own characters. Improve the jokes. Make Brezhnev more authentic. The voice description
+format is simple enough that you can experiment without ML expertise.&lt;/p&gt;
+
+&lt;p&gt;And if you have a better joke for number 77 (семьдесят семь) — submit a PR.&lt;/p&gt;
+
+&lt;p&gt;Find me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
+&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt; if you build something fun with AI voices.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned, I will prepare something similar with NVIDIA DGX Spart setup for some conferences in the furure!&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai" />
+  
+    <category term="tts" />
+  
+    <category term="python" />
+  
+    <category term="qwen" />
+  
+    <category term="voice-cloning" />
+  
+    <summary type="html">Building a Russian Loto announcer with 12 celebrity AI voices using Qwen3-TTS</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Orchestrating AI Fleets: When Agents Manage Agents</title>
@@ -2397,117 +2694,6 @@ figure out about trust, safety, and useful abstractions, but this is a start.&lt
     <category term="typescript" />
   
     <summary type="html">A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/02/stevedore-dyndns/" rel="alternate" type="text/html" title="Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab" />
-    <published>2026-01-02T00:00:00+00:00</published>
-    <updated>2026-01-02T00:00:00+00:00</updated>
-    <id>/blog/2026/01/02/stevedore-dyndns</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/02/stevedore-dyndns/">&lt;p&gt;Stevedore gives me the GitOps loop I wanted on a Raspberry Pi. The next problem was
-ingress: my home IP changes, certificates expire, and a hand-written reverse proxy
-config does not stay boring for long.&lt;/p&gt;
-
-&lt;p&gt;So I built &lt;strong&gt;stevedore-dyndns&lt;/strong&gt;. It is a companion service that runs as another
-Stevedore deployment and keeps DNS, HTTPS, and routing in sync for the rest of your
-services.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-stevedore-on-a-raspberry-pi&quot;&gt;Series: Stevedore on a Raspberry Pi&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;what-stevedore-dyndns-does&quot;&gt;What stevedore-dyndns does&lt;/h2&gt;
-
-&lt;p&gt;It is a single container that combines a few boring building blocks:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Dynamic DNS&lt;/strong&gt;: In direct mode it updates root + wildcard A/AAAA records when your public IP changes; in proxy mode it maintains per-service A records for active subdomains (no AAAA).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;HTTPS termination&lt;/strong&gt;: Caddy obtains and renews wildcard certificates via DNS-01.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Reverse proxy&lt;/strong&gt;: Subdomains route to internal services automatically (from Stevedore ingress or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mappings.yaml&lt;/code&gt;; discovered services must publish ports to the host).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Service discovery&lt;/strong&gt;: Stevedore provides a token so dyndns can query ingress-enabled services (labels or ingress config).&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The result is simple: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https://myapp.example.com&lt;/code&gt; keeps working even if your ISP
-changes your IP overnight.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;I wanted a boring ingress story that works on one small box, without Kubernetes
-and without clicking around in DNS dashboards.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;two-modes-direct-or-proxied&quot;&gt;Two modes: direct or proxied&lt;/h2&gt;
-
-&lt;p&gt;By default, stevedore-dyndns runs in &lt;strong&gt;direct mode&lt;/strong&gt;: Cloudflare DNS points straight
-to your host, and Caddy handles TLS.&lt;/p&gt;
-
-&lt;p&gt;For public services, I often enable &lt;strong&gt;Cloudflare proxy mode&lt;/strong&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;dyndns CLOUDFLARE_PROXY &lt;span class=&quot;nb&quot;&gt;true
-&lt;/span&gt;stevedore param &lt;span class=&quot;nb&quot;&gt;set &lt;/span&gt;dyndns SUBDOMAIN_PREFIX &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That keeps the origin IP hidden and adds mTLS between Cloudflare and Caddy; dyndns
-tries to set SSL mode to Full and enable Authenticated Origin Pull, but your API
-token needs zone settings permissions (otherwise enable it manually), and Caddy
-trusts &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/cloudflare/origin-pull-ca.pem&lt;/code&gt;.
-It is still free-tier friendly, which was one of my constraints.&lt;/p&gt;
-
-&lt;p&gt;Note: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUBDOMAIN_PREFIX&lt;/code&gt; changes hostnames to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;app-zone.example.com&lt;/code&gt; and is only needed when your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DOMAIN&lt;/code&gt; is itself a subdomain (Cloudflare Universal SSL limitation).&lt;/p&gt;
-
-&lt;h2 id=&quot;quick-setup&quot;&gt;Quick setup&lt;/h2&gt;
-
-&lt;p&gt;There is a guided script:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git clone git@github.com:jonnyzzz/stevedore-dyndns.git
-&lt;span class=&quot;nb&quot;&gt;cd &lt;/span&gt;stevedore-dyndns
-./scripts/stevedore-setup.sh
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It wires the repo into Stevedore, asks for Cloudflare credentials, and deploys the
-service. Manual steps are documented in the project repo as well.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-still-rough&quot;&gt;What is still rough&lt;/h2&gt;
-
-&lt;p&gt;This is intentionally single-node and Cloudflare-centric. If you need multi-region
-failover or a vendor-agnostic DNS provider, this is not it (yet). The goal is to be
-predictable and easy to reason about.&lt;/p&gt;
-
-&lt;p&gt;The project is here: &lt;a href=&quot;https://github.com/jonnyzzz/stevedore-dyndns&quot;&gt;github.com/jonnyzzz/stevedore-dyndns&lt;/a&gt;&lt;/p&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7416481232449863680&quot; height=&quot;520&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="dyndns" />
-  
-    <category term="cloudflare" />
-  
-    <category term="caddy" />
-  
-    <category term="self-hosting" />
-  
-    <category term="homelab" />
-  
-    <summary type="html">Stevedore gives me the GitOps loop I wanted on a Raspberry Pi. The next problem was ingress: my home IP changes, certificates expire, and a hand-written reverse proxy config does not stay boring for long.</summary>
   
   </entry>
   
