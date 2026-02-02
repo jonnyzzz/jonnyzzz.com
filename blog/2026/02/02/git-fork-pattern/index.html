@@ -1,0 +1,520 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Git Fork Pattern: Full Checkouts Without the Bloat &#8211; Eugene Petrenko</title>
+<meta name="description" content="Why I stopped using git worktree and switched to full checkouts with shared objects"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, git, dev-tools, ai-agents, workflow" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Git Fork Pattern: Full Checkouts Without the Bloat -- Eugene Petrenko" />
+<meta name="twitter:description" content="Why I stopped using git worktree and switched to full checkouts with shared objects" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Git Fork Pattern: Full Checkouts Without the Bloat -- Eugene Petrenko" />
+<meta property="og:description" content="Why I stopped using git worktree and switched to full checkouts with shared objects" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="git" />
+
+<meta property="article:tag" content="dev-tools" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="workflow" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#dev-tools" title="Pages tagged dev-tools">dev-tools</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Git Fork Pattern: Full Checkouts Without the Bloat</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-02-02T00:00:00+00:00">February 02, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=git,dev-tools,ai-agents,workflow&amp;text=Git%20Fork%20Pattern:%20Full%20Checkouts%20Without%20the%20Bloat&amp;url=https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>I’ve been working with multiple AI agents on the same codebase, and <code class="language-plaintext highlighter-rouge">git worktree</code> kept getting in the way.
+The same branch can’t be checked out in multiple worktrees. Some git operations don’t work well with worktrees.
+<strong>So I stopped using worktrees entirely.</strong> Instead, I’m using full git checkouts that share objects with the
+original repository. <strong>Full git functionality, minimal disk usage.</strong></p>
+
+<hr />
+
+<h2 id="the-problem-with-git-worktree">The Problem with Git Worktree</h2>
+
+<p>Git worktree is useful for quick parallel work, but it has limitations that become painful when you’re
+orchestrating multiple AI agents or just need full git flexibility:</p>
+
+<ul>
+  <li><strong>Can’t checkout the same branch twice</strong> - Want two agents working on <code class="language-plaintext highlighter-rouge">main</code>? Can’t do it with worktrees.</li>
+  <li><strong>Limited git operations</strong> - Some rebase operations, submodules, and other features behave differently.</li>
+  <li><strong>Tool confusion</strong> - IDEs and git tools sometimes don’t handle worktrees well.</li>
+  <li><strong>Tied to main repo</strong> - Worktrees are dependent on the main repository structure.</li>
+</ul>
+
+<p>When you’re running <a href="https://jonnyzzz.com/MULTI-AGENT.md">multi-agent workflows</a> or just need multiple
+independent checkouts, these constraints become blockers.</p>
+
+<h2 id="the-solution-git-alternates">The Solution: Git Alternates</h2>
+
+<p>Git has a lesser-known feature called <strong>alternates</strong> - you can tell one repository to use another
+repository’s object database. This means:</p>
+
+<ul>
+  <li>Create as many full checkouts as you want</li>
+  <li>Each checkout is a complete, independent git repository</li>
+  <li>Objects (commits, trees, blobs) are shared via <code class="language-plaintext highlighter-rouge">.git/objects/info/alternates</code></li>
+  <li>New commits are stored locally, existing objects are read from the source</li>
+  <li><strong>Full git functionality, no worktree limitations</strong></li>
+</ul>
+
+<p>I tested this approach with our 25-year-old monorepo, and it works perfectly. Multiple agents can now
+work independently, each in their own full checkout, sharing the same object database.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<p>The implementation is straightforward. Here’s what happens:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Original repository</span>
+~/projects/myrepo/.git/objects  <span class="c"># Contains all git objects</span>
+
+<span class="c"># New fork</span>
+~/projects/myrepo-fork/.git/objects/info/alternates
+<span class="c"># Contains: /Users/username/projects/myrepo/.git/objects</span>
+
+<span class="c"># Result:</span>
+<span class="c"># - Fork reads objects from original</span>
+<span class="c"># - Fork writes new objects locally</span>
+<span class="c"># - Both are independent repositories</span>
+</code></pre></div></div>
+
+<p>When git needs an object, it checks the local <code class="language-plaintext highlighter-rouge">.git/objects</code> first, then checks the paths listed
+in the <code class="language-plaintext highlighter-rouge">alternates</code> file. It’s transparent and works with all git operations.</p>
+
+<h2 id="the-implementation">The Implementation</h2>
+
+<p>The implementation is just 5 steps:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. Create and initialize new repository</span>
+<span class="nb">mkdir</span> <span class="nt">-p</span> /path/to/fork <span class="o">&amp;&amp;</span> <span class="nb">cd</span> /path/to/fork <span class="o">&amp;&amp;</span> git init
+
+<span class="c"># 2. Set up object sharing (use absolute path)</span>
+<span class="nb">mkdir</span> <span class="nt">-p</span> .git/objects/info
+<span class="nb">echo</span> <span class="s2">"/absolute/path/to/source/.git/objects"</span> <span class="o">&gt;</span> .git/objects/info/alternates
+
+<span class="c"># 3. Copy git config (inherits remotes)</span>
+<span class="nb">cp</span> /absolute/path/to/source/.git/config .git/config
+
+<span class="c"># 4. Add parent remote and fetch</span>
+git remote add parent /absolute/path/to/source
+git fetch parent
+
+<span class="c"># 5. Checkout branch (track from parent)</span>
+git checkout <span class="nt">-b</span> main parent/main
+</code></pre></div></div>
+
+<p>Done. You now have <strong>two remotes</strong>: <code class="language-plaintext highlighter-rouge">origin</code> (from config) pointing to the real remote, and
+<code class="language-plaintext highlighter-rouge">parent</code> pointing to your local source repository.</p>
+
+<p>See <a href="https://jonnyzzz.com/GIT-FORK.md">GIT-FORK.md</a> for complete documentation.</p>
+
+<h2 id="two-remotes-pattern">Two Remotes Pattern</h2>
+
+<p>When you copy <code class="language-plaintext highlighter-rouge">.git/config</code>, you inherit the original repository’s remotes. Then you add a second
+remote for the local parent:</p>
+
+<ul>
+  <li><strong>origin</strong> (from config) → Real remote (GitHub, etc.) - push, pull, create PRs</li>
+  <li><strong>parent</strong> (added manually) → Local source repo - sync uncommitted changes</li>
+</ul>
+
+<p>This is powerful for multi-agent workflows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Working in fork</span>
+git commit <span class="nt">-m</span> <span class="s2">"feature work"</span>
+
+<span class="c"># Get latest from parent (before it's pushed anywhere)</span>
+git fetch parent
+git merge parent/main
+
+<span class="c"># Push to real remote</span>
+git push origin feature-branch
+</code></pre></div></div>
+
+<p>Agents can share work through the parent repository, then independently push to origin when ready.</p>
+
+<h2 id="disk-usage">Disk Usage</h2>
+
+<p>Actual numbers from testing:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Original repo:     150 MB
+Normal clone:      150 MB
+Git fork:          ~5 MB (only new commits)
+Git worktree:      ~5 MB (but with limitations)
+</code></pre></div></div>
+
+<p>The git fork gives you the disk efficiency of worktrees <strong>plus</strong> the full functionality of a
+complete repository, <strong>plus</strong> access to both local and remote changes.</p>
+
+<h2 id="ai-agent-integration">AI Agent Integration</h2>
+
+<p>This pattern works exceptionally well with AI agents. When I orchestrate multiple agents on the
+same codebase, I just tell them:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Agent, fork my git repository as suggested in GIT-FORK.md
+</code></pre></div></div>
+
+<p>Agents understand this pattern and implement the 5 steps automatically. Each agent gets its own
+fork with:</p>
+
+<ul>
+  <li>Full git access - create branches, rebase, merge, everything works</li>
+  <li>Shared objects - no disk space wasted</li>
+  <li>True independence - complete repository, no worktree constraints</li>
+</ul>
+
+<p>I added <a href="https://jonnyzzz.com/GIT-FORK.md">GIT-FORK.md</a> to my skill files alongside
+<a href="https://jonnyzzz.com/RLM.md">RLM.md</a> and <a href="https://jonnyzzz.com/MULTI-AGENT.md">MULTI-AGENT.md</a>.
+Agents read it and implement the pattern without additional instructions.</p>
+
+<h2 id="testing-and-validation">Testing and Validation</h2>
+
+<p>I tested this extensively:</p>
+
+<ul>
+  <li><strong>Multiple forks</strong> - Created 5+ forks from the same source, all working independently</li>
+  <li><strong>All git operations</strong> - Commit, branch, merge, rebase, cherry-pick - everything works</li>
+  <li><strong>Object sharing</strong> - Verified that shared objects aren’t duplicated (checked with <code class="language-plaintext highlighter-rouge">du -sh .git/objects</code>)</li>
+  <li><strong>Tool compatibility</strong> - IntelliJ, VSCode, git CLI, git GUI tools - all work normally</li>
+  <li><strong>25-year-old monorepo</strong> - Works with large, complex repositories</li>
+</ul>
+
+<p>The key insight: <strong>this is just a normal git repository with an optimization</strong>. Tools don’t need
+to know about alternates, they just work.</p>
+
+<h2 id="important-notes">Important Notes</h2>
+
+<p>A few things to keep in mind:</p>
+
+<ol>
+  <li><strong>Absolute paths</strong> - The <code class="language-plaintext highlighter-rouge">alternates</code> file must contain absolute paths, not relative paths</li>
+  <li><strong>Source availability</strong> - The source repository must remain available. If you delete it, forks lose shared objects</li>
+  <li><strong>Two remotes</strong> - Copying config gives you <code class="language-plaintext highlighter-rouge">origin</code>, then you add <code class="language-plaintext highlighter-rouge">parent</code> manually</li>
+  <li><strong>Track parent</strong> - Checkout from <code class="language-plaintext highlighter-rouge">parent/branch</code>, not <code class="language-plaintext highlighter-rouge">origin/branch</code></li>
+  <li><strong>Garbage collection</strong> - Each repository runs <code class="language-plaintext highlighter-rouge">git gc</code> independently, which is usually fine</li>
+  <li><strong>Not for distribution</strong> - This is for local development, not for sharing repos with others</li>
+</ol>
+
+<p>The two-remote pattern means you can:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch parent      <span class="c"># Get local uncommitted changes</span>
+git fetch origin      <span class="c"># Get pushed changes from team</span>
+git push origin main  <span class="c"># Push your work to team</span>
+</code></pre></div></div>
+
+<h2 id="the-pattern-in-practice">The Pattern in Practice</h2>
+
+<p>Here’s my typical workflow now:</p>
+
+<ol>
+  <li><strong>Main repository</strong> - My primary working copy at <code class="language-plaintext highlighter-rouge">~/projects/myrepo</code></li>
+  <li><strong>Tell agent</strong> - “Fork my git as suggested in GIT-FORK.md”</li>
+  <li><strong>Agent works</strong> - Creates fork, does work, full git capabilities</li>
+  <li><strong>Cleanup</strong> - Delete fork when done, no impact on main repository</li>
+</ol>
+
+<p>Some forks last minutes, some last days. The flexibility is what matters - forks are cheap (5MB),
+fully functional, and agents know how to create them.</p>
+
+<h2 id="why-this-matters">Why This Matters</h2>
+
+<p>The git fork pattern enables true parallel development with AI agents. Instead of carefully
+orchestrating which agent works where and managing worktree constraints, I just:</p>
+
+<ul>
+  <li>Spin up agent with its own fork</li>
+  <li>Agent works independently</li>
+  <li>Agent completes task</li>
+  <li>Results are integrated back</li>
+</ul>
+
+<p>The pattern scales to any number of agents. I’ve had 5+ agents working simultaneously, each in
+their own fork, no conflicts, no limitations.</p>
+
+<p>For solo development, this is useful too. Want to try a risky refactoring without branching? Fork
+it. Want to test something while keeping your main checkout clean? Fork it. Each fork is cheap and
+fully functional.</p>
+
+<hr />
+
+<h2 id="try-it-yourself">Try It Yourself</h2>
+
+<p>The complete pattern is in <a href="https://jonnyzzz.com/GIT-FORK.md">GIT-FORK.md</a> - just 5 steps:</p>
+
+<ol>
+  <li>Create and initialize fork</li>
+  <li>Set up alternates file (absolute path)</li>
+  <li>Copy git config</li>
+  <li>Add remote and fetch</li>
+  <li>Checkout branch</li>
+</ol>
+
+<p>If you’re working with AI agents, just reference GIT-FORK.md and they’ll implement it. If you’re
+doing it manually, the commands are straightforward - see the doc for exact syntax.</p>
+
+<hr />
+
+<h2 id="whats-next">What’s Next</h2>
+
+<p>I’m now exploring how to chain forks - creating a fork from a fork. This could enable interesting
+multi-level agent hierarchies where parent agents spawn child agents, each with their own workspace.</p>
+
+<p>The git alternates mechanism has been in git for years, but it’s not widely used. With AI agents
+becoming primary users of development tools, patterns like this become more important. <strong>Tools must
+now be optimized for agentic consumption.</strong></p>
+
+<p>If you’re orchestrating AI agents or just want more flexibility than git worktree provides, try the
+git fork pattern. It’s what I use every day now.</p>
+
+<hr />
+
+<p><strong>Questions? Experiments? Let me know how the git fork pattern works for you.</strong></p>
+
+<ul>
+  <li><a href="https://www.linkedin.com/in/jonnyzzz/">Follow me on LinkedIn</a></li>
+  <li><a href="https://twitter.com/jonnyzzz">Follow me on X (Twitter)</a></li>
+  <li><a href="https://jonnyzzz.com/ai/">Check out more AI agent patterns</a></li>
+</ul>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/02/01/russian-loto-ai-voices/" class="btn" title="Russian Loto with AI Celebrity Voices">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

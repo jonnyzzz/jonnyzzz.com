@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-01T22:02:55+00:00</updated>
+  <updated>2026-02-02T10:32:12+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,288 @@
   
 
   
+  
+  <entry>
+    <title type="html">Git Fork Pattern: Full Checkouts Without the Bloat</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/" rel="alternate" type="text/html" title="Git Fork Pattern: Full Checkouts Without the Bloat" />
+    <published>2026-02-02T00:00:00+00:00</published>
+    <updated>2026-02-02T00:00:00+00:00</updated>
+    <id>/blog/2026/02/02/git-fork-pattern</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/02/git-fork-pattern/">&lt;p&gt;I’ve been working with multiple AI agents on the same codebase, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git worktree&lt;/code&gt; kept getting in the way.
+The same branch can’t be checked out in multiple worktrees. Some git operations don’t work well with worktrees.
+&lt;strong&gt;So I stopped using worktrees entirely.&lt;/strong&gt; Instead, I’m using full git checkouts that share objects with the
+original repository. &lt;strong&gt;Full git functionality, minimal disk usage.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-problem-with-git-worktree&quot;&gt;The Problem with Git Worktree&lt;/h2&gt;
+
+&lt;p&gt;Git worktree is useful for quick parallel work, but it has limitations that become painful when you’re
+orchestrating multiple AI agents or just need full git flexibility:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Can’t checkout the same branch twice&lt;/strong&gt; - Want two agents working on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;? Can’t do it with worktrees.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Limited git operations&lt;/strong&gt; - Some rebase operations, submodules, and other features behave differently.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Tool confusion&lt;/strong&gt; - IDEs and git tools sometimes don’t handle worktrees well.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Tied to main repo&lt;/strong&gt; - Worktrees are dependent on the main repository structure.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When you’re running &lt;a href=&quot;https://jonnyzzz.com/MULTI-AGENT.md&quot;&gt;multi-agent workflows&lt;/a&gt; or just need multiple
+independent checkouts, these constraints become blockers.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-solution-git-alternates&quot;&gt;The Solution: Git Alternates&lt;/h2&gt;
+
+&lt;p&gt;Git has a lesser-known feature called &lt;strong&gt;alternates&lt;/strong&gt; - you can tell one repository to use another
+repository’s object database. This means:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Create as many full checkouts as you want&lt;/li&gt;
+  &lt;li&gt;Each checkout is a complete, independent git repository&lt;/li&gt;
+  &lt;li&gt;Objects (commits, trees, blobs) are shared via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/objects/info/alternates&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;New commits are stored locally, existing objects are read from the source&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Full git functionality, no worktree limitations&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I tested this approach with our 25-year-old monorepo, and it works perfectly. Multiple agents can now
+work independently, each in their own full checkout, sharing the same object database.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-it-works&quot;&gt;How It Works&lt;/h2&gt;
+
+&lt;p&gt;The implementation is straightforward. Here’s what happens:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Original repository&lt;/span&gt;
+~/projects/myrepo/.git/objects  &lt;span class=&quot;c&quot;&gt;# Contains all git objects&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# New fork&lt;/span&gt;
+~/projects/myrepo-fork/.git/objects/info/alternates
+&lt;span class=&quot;c&quot;&gt;# Contains: /Users/username/projects/myrepo/.git/objects&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Result:&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# - Fork reads objects from original&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# - Fork writes new objects locally&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# - Both are independent repositories&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When git needs an object, it checks the local &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/objects&lt;/code&gt; first, then checks the paths listed
+in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alternates&lt;/code&gt; file. It’s transparent and works with all git operations.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-implementation&quot;&gt;The Implementation&lt;/h2&gt;
+
+&lt;p&gt;The implementation is just 5 steps:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 1. Create and initialize new repository&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; /path/to/fork &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;cd&lt;/span&gt; /path/to/fork &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git init
+
+&lt;span class=&quot;c&quot;&gt;# 2. Set up object sharing (use absolute path)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; .git/objects/info
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;/absolute/path/to/source/.git/objects&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; .git/objects/info/alternates
+
+&lt;span class=&quot;c&quot;&gt;# 3. Copy git config (inherits remotes)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;cp&lt;/span&gt; /absolute/path/to/source/.git/config .git/config
+
+&lt;span class=&quot;c&quot;&gt;# 4. Add parent remote and fetch&lt;/span&gt;
+git remote add parent /absolute/path/to/source
+git fetch parent
+
+&lt;span class=&quot;c&quot;&gt;# 5. Checkout branch (track from parent)&lt;/span&gt;
+git checkout &lt;span class=&quot;nt&quot;&gt;-b&lt;/span&gt; main parent/main
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Done. You now have &lt;strong&gt;two remotes&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;origin&lt;/code&gt; (from config) pointing to the real remote, and
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;parent&lt;/code&gt; pointing to your local source repository.&lt;/p&gt;
+
+&lt;p&gt;See &lt;a href=&quot;https://jonnyzzz.com/GIT-FORK.md&quot;&gt;GIT-FORK.md&lt;/a&gt; for complete documentation.&lt;/p&gt;
+
+&lt;h2 id=&quot;two-remotes-pattern&quot;&gt;Two Remotes Pattern&lt;/h2&gt;
+
+&lt;p&gt;When you copy &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/config&lt;/code&gt;, you inherit the original repository’s remotes. Then you add a second
+remote for the local parent:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;origin&lt;/strong&gt; (from config) → Real remote (GitHub, etc.) - push, pull, create PRs&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;parent&lt;/strong&gt; (added manually) → Local source repo - sync uncommitted changes&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This is powerful for multi-agent workflows:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Working in fork&lt;/span&gt;
+git commit &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;feature work&quot;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# Get latest from parent (before it&apos;s pushed anywhere)&lt;/span&gt;
+git fetch parent
+git merge parent/main
+
+&lt;span class=&quot;c&quot;&gt;# Push to real remote&lt;/span&gt;
+git push origin feature-branch
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Agents can share work through the parent repository, then independently push to origin when ready.&lt;/p&gt;
+
+&lt;h2 id=&quot;disk-usage&quot;&gt;Disk Usage&lt;/h2&gt;
+
+&lt;p&gt;Actual numbers from testing:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Original repo:     150 MB
+Normal clone:      150 MB
+Git fork:          ~5 MB (only new commits)
+Git worktree:      ~5 MB (but with limitations)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The git fork gives you the disk efficiency of worktrees &lt;strong&gt;plus&lt;/strong&gt; the full functionality of a
+complete repository, &lt;strong&gt;plus&lt;/strong&gt; access to both local and remote changes.&lt;/p&gt;
+
+&lt;h2 id=&quot;ai-agent-integration&quot;&gt;AI Agent Integration&lt;/h2&gt;
+
+&lt;p&gt;This pattern works exceptionally well with AI agents. When I orchestrate multiple agents on the
+same codebase, I just tell them:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Agent, fork my git repository as suggested in GIT-FORK.md
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Agents understand this pattern and implement the 5 steps automatically. Each agent gets its own
+fork with:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Full git access - create branches, rebase, merge, everything works&lt;/li&gt;
+  &lt;li&gt;Shared objects - no disk space wasted&lt;/li&gt;
+  &lt;li&gt;True independence - complete repository, no worktree constraints&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I added &lt;a href=&quot;https://jonnyzzz.com/GIT-FORK.md&quot;&gt;GIT-FORK.md&lt;/a&gt; to my skill files alongside
+&lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;RLM.md&lt;/a&gt; and &lt;a href=&quot;https://jonnyzzz.com/MULTI-AGENT.md&quot;&gt;MULTI-AGENT.md&lt;/a&gt;.
+Agents read it and implement the pattern without additional instructions.&lt;/p&gt;
+
+&lt;h2 id=&quot;testing-and-validation&quot;&gt;Testing and Validation&lt;/h2&gt;
+
+&lt;p&gt;I tested this extensively:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Multiple forks&lt;/strong&gt; - Created 5+ forks from the same source, all working independently&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;All git operations&lt;/strong&gt; - Commit, branch, merge, rebase, cherry-pick - everything works&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Object sharing&lt;/strong&gt; - Verified that shared objects aren’t duplicated (checked with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;du -sh .git/objects&lt;/code&gt;)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Tool compatibility&lt;/strong&gt; - IntelliJ, VSCode, git CLI, git GUI tools - all work normally&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;25-year-old monorepo&lt;/strong&gt; - Works with large, complex repositories&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The key insight: &lt;strong&gt;this is just a normal git repository with an optimization&lt;/strong&gt;. Tools don’t need
+to know about alternates, they just work.&lt;/p&gt;
+
+&lt;h2 id=&quot;important-notes&quot;&gt;Important Notes&lt;/h2&gt;
+
+&lt;p&gt;A few things to keep in mind:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Absolute paths&lt;/strong&gt; - The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;alternates&lt;/code&gt; file must contain absolute paths, not relative paths&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Source availability&lt;/strong&gt; - The source repository must remain available. If you delete it, forks lose shared objects&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Two remotes&lt;/strong&gt; - Copying config gives you &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;origin&lt;/code&gt;, then you add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;parent&lt;/code&gt; manually&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Track parent&lt;/strong&gt; - Checkout from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;parent/branch&lt;/code&gt;, not &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;origin/branch&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Garbage collection&lt;/strong&gt; - Each repository runs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git gc&lt;/code&gt; independently, which is usually fine&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Not for distribution&lt;/strong&gt; - This is for local development, not for sharing repos with others&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The two-remote pattern means you can:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;git fetch parent      &lt;span class=&quot;c&quot;&gt;# Get local uncommitted changes&lt;/span&gt;
+git fetch origin      &lt;span class=&quot;c&quot;&gt;# Get pushed changes from team&lt;/span&gt;
+git push origin main  &lt;span class=&quot;c&quot;&gt;# Push your work to team&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;the-pattern-in-practice&quot;&gt;The Pattern in Practice&lt;/h2&gt;
+
+&lt;p&gt;Here’s my typical workflow now:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Main repository&lt;/strong&gt; - My primary working copy at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/projects/myrepo&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Tell agent&lt;/strong&gt; - “Fork my git as suggested in GIT-FORK.md”&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Agent works&lt;/strong&gt; - Creates fork, does work, full git capabilities&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Cleanup&lt;/strong&gt; - Delete fork when done, no impact on main repository&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Some forks last minutes, some last days. The flexibility is what matters - forks are cheap (5MB),
+fully functional, and agents know how to create them.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-this-matters&quot;&gt;Why This Matters&lt;/h2&gt;
+
+&lt;p&gt;The git fork pattern enables true parallel development with AI agents. Instead of carefully
+orchestrating which agent works where and managing worktree constraints, I just:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Spin up agent with its own fork&lt;/li&gt;
+  &lt;li&gt;Agent works independently&lt;/li&gt;
+  &lt;li&gt;Agent completes task&lt;/li&gt;
+  &lt;li&gt;Results are integrated back&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The pattern scales to any number of agents. I’ve had 5+ agents working simultaneously, each in
+their own fork, no conflicts, no limitations.&lt;/p&gt;
+
+&lt;p&gt;For solo development, this is useful too. Want to try a risky refactoring without branching? Fork
+it. Want to test something while keeping your main checkout clean? Fork it. Each fork is cheap and
+fully functional.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;try-it-yourself&quot;&gt;Try It Yourself&lt;/h2&gt;
+
+&lt;p&gt;The complete pattern is in &lt;a href=&quot;https://jonnyzzz.com/GIT-FORK.md&quot;&gt;GIT-FORK.md&lt;/a&gt; - just 5 steps:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Create and initialize fork&lt;/li&gt;
+  &lt;li&gt;Set up alternates file (absolute path)&lt;/li&gt;
+  &lt;li&gt;Copy git config&lt;/li&gt;
+  &lt;li&gt;Add remote and fetch&lt;/li&gt;
+  &lt;li&gt;Checkout branch&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If you’re working with AI agents, just reference GIT-FORK.md and they’ll implement it. If you’re
+doing it manually, the commands are straightforward - see the doc for exact syntax.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
+
+&lt;p&gt;I’m now exploring how to chain forks - creating a fork from a fork. This could enable interesting
+multi-level agent hierarchies where parent agents spawn child agents, each with their own workspace.&lt;/p&gt;
+
+&lt;p&gt;The git alternates mechanism has been in git for years, but it’s not widely used. With AI agents
+becoming primary users of development tools, patterns like this become more important. &lt;strong&gt;Tools must
+now be optimized for agentic consumption.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;If you’re orchestrating AI agents or just want more flexibility than git worktree provides, try the
+git fork pattern. It’s what I use every day now.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;Questions? Experiments? Let me know how the git fork pattern works for you.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;Follow me on LinkedIn&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Follow me on X (Twitter)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/ai/&quot;&gt;Check out more AI agent patterns&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="git" />
+  
+    <category term="dev-tools" />
+  
+    <category term="ai-agents" />
+  
+    <category term="workflow" />
+  
+    <summary type="html">Why I stopped using git worktree and switched to full checkouts with shared objects</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Russian Loto with AI Celebrity Voices</title>
@@ -2603,100 +2885,6 @@ figure out about trust, safety, and useful abstractions, but this is a start.&lt
     <category term="kotlin" />
   
     <summary type="html">An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Roomtone: A Single-Room Call for Home</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/" rel="alternate" type="text/html" title="Roomtone: A Single-Room Call for Home" />
-    <published>2026-01-03T00:00:00+00:00</published>
-    <updated>2026-01-03T00:00:00+00:00</updated>
-    <id>/blog/2026/01/03/roomtone-single-room-call</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/03/roomtone-single-room-call/">&lt;p&gt;I wanted a call link that belongs to my home, not to a calendar. One room, one URL, no meeting sprawl. That turned into &lt;strong&gt;Roomtone&lt;/strong&gt;: a single-room call service that I can run on my own hardware.&lt;/p&gt;
-
-&lt;p&gt;Roomtone is open source at &lt;a href=&quot;https://github.com/jonnyzzz/roomtone&quot;&gt;roomtone&lt;/a&gt;. It is intentionally small, but the code is real: a tiny Express server, a WebSocket control plane, and a minimal React client.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroid: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;one-room-one-socket&quot;&gt;One Room, One Socket&lt;/h2&gt;
-
-&lt;p&gt;The server keeps in-memory room state and speaks WebSocket for join, leave, and signaling. There is no database. The room is literally one map in memory.&lt;/p&gt;
-
-&lt;div class=&quot;language-ts highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;wss&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;WebSocketServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;({&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/ws&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;maxPayload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;maxPayloadBytes&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Clients join by name, receive the roster, and then the server drives peer updates. The UI is purposely boring: a join screen, a live status banner, a participant grid, and simple mic/camera toggles.&lt;/p&gt;
-
-&lt;h2 id=&quot;two-media-paths&quot;&gt;Two Media Paths&lt;/h2&gt;
-
-&lt;p&gt;Roomtone has two ways to move media:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;WebRTC signaling&lt;/strong&gt; with ICE servers and an adjustable transport policy.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;WebSocket relay&lt;/strong&gt; using MediaRecorder and MediaSource, wrapped in a small binary packet format.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This lets me choose between “real-time WebRTC” and a WebSocket relay that works on modern Chromium; Firefox needs WebRTC mode and Safari doesn’t support WebSocket media.&lt;/p&gt;
-
-&lt;h2 id=&quot;invites-and-access-control&quot;&gt;Invites and Access Control&lt;/h2&gt;
-
-&lt;p&gt;I wrapped the room with a Telegram bot. The bot issues time-limited, RSA-signed JWT invite links for allowlisted users and chats. The server accepts the token in the query string, an Authorization header, or a cookie. Once in, the bot can poll &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; and notify a chat when someone joins.&lt;/p&gt;
-
-&lt;h2 id=&quot;operational-knobs&quot;&gt;Operational Knobs&lt;/h2&gt;
-
-&lt;p&gt;Roomtone keeps the operational surface small but explicit:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/health&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/participants&lt;/code&gt; for health checks and bot polling.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/logs&lt;/code&gt; to collect client telemetry and churn signals.&lt;/li&gt;
-  &lt;li&gt;Environment-driven ICE server configuration and WebSocket payload limits.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;why-this-exists&quot;&gt;Why This Exists&lt;/h2&gt;
-
-&lt;p&gt;Roomtone is not a general-purpose video platform. It is a single-room call that fits into a homelab mindset: explicit links, explicit ownership, and a clear understanding of what the code actually does.&lt;/p&gt;
-
-&lt;p&gt;Roomtone runs as a &lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore&lt;/a&gt; deployment on my homelab, which handles the GitOps loop and keeps it updated alongside my other services.&lt;/p&gt;
-
-&lt;p&gt;If this sounds useful, grab the repo, run it, and let me know what breaks first.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="roomtone" />
-  
-    <category term="webrtc" />
-  
-    <category term="websocket" />
-  
-    <category term="self-hosting" />
-  
-    <category term="homelab" />
-  
-    <category term="typescript" />
-  
-    <summary type="html">A tiny, self-hosted call room with WebSocket control, WebRTC signaling, and Telegram-signed invites.</summary>
   
   </entry>
   
