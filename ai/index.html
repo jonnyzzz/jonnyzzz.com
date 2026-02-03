@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <title>AI Agent Resources &#8211; Eugene Petrenko</title>
-
+<meta name="description" content="MCP tools for IDE integration and prompt skill files for AI agents"/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko" />
 
 
 <!-- Twitter Cards -->
 <meta name="twitter:title" content="AI Agent Resources -- Eugene Petrenko" />
-
+<meta name="twitter:description" content="MCP tools for IDE integration and prompt skill files for AI agents" />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -20,7 +20,7 @@
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
 <meta property="og:title" content="AI Agent Resources -- Eugene Petrenko" />
-
+<meta property="og:description" content="MCP tools for IDE integration and prompt skill files for AI agents" />
 <meta property="og:url" content="https://jonnyzzz.com/ai/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
@@ -108,59 +108,103 @@
         <h1 class="entry-title">AI Agent Resources</h1>
       </header>
       <div class="entry-content">
-        <p>This page provides resources for AI agents implementing multi-agent orchestration patterns.
-These files follow the <a href="https://llmstxt.org/">llms.txt specification</a> and related patterns
-for AI-readable content.</p>
+        <h2 id="build-smarter-ai-agents">Build Smarter AI Agents</h2>
 
-<h2 id="skill-files">Skill Files</h2>
+<p>AI coding assistants are changing how we write software. But most tools treat your codebase as
+just text files. They grep, they guess, they miss context. Your IDE knows better—it has indexed
+everything, understands every symbol, sees every relationship.</p>
 
-<p>The following markdown files provide instructions and patterns for AI agents:</p>
+<p>This page provides the tools to bridge that gap: <strong>MCP Steroid</strong> gives AI agents direct access
+to IntelliJ’s brain, and <strong>prompt skill files</strong> teach agents how to orchestrate complex tasks.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>File</th>
-      <th>Purpose</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><a href="/RLM.md">RLM.md</a></td>
-      <td>Recursive Language Models - actionable instructions for task decomposition and handling large contexts</td>
-    </tr>
-    <tr>
-      <td><a href="/RLM-extra.md">RLM-extra.md</a></td>
-      <td>Detailed RLM reference - architecture, benchmarks, prompt templates, error handling</td>
-    </tr>
-    <tr>
-      <td><a href="/MULTI-AGENT.md">MULTI-AGENT.md</a></td>
-      <td>AI agent orchestration patterns - how to coordinate multiple sub-agents for complex tasks</td>
-    </tr>
-    <tr>
-      <td><a href="/GIT-FORK.md">GIT-FORK.md</a></td>
-      <td>Git Fork Pattern - create independent git checkouts with shared objects, alternative to git worktree</td>
-    </tr>
-    <tr>
-      <td><a href="/CLAUDE-CODE.md">CLAUDE-CODE.md</a></td>
-      <td>Using Claude Code CLI as a sub-agent - full tool access, web search, parallel execution</td>
-    </tr>
-    <tr>
-      <td><a href="/CODEX.md">CODEX.md</a></td>
-      <td>Using Codex CLI as a sub-agent - ideal for image analysis, focused code review, and parallel workloads</td>
-    </tr>
-    <tr>
-      <td><a href="/GEMINI.md">GEMINI.md</a></td>
-      <td>Using Gemini CLI as a sub-agent - provides alternative perspective for cross-validation and long-context tasks</td>
-    </tr>
-  </tbody>
-</table>
+<p><strong>On this page:</strong> <a href="#mcp-steroid">MCP Steroid</a> · <a href="#ai-agent-prompts">AI Agent Prompts</a> · <a href="#connect">Connect</a></p>
 
-<h2 id="how-to-use">How to Use</h2>
+<hr />
 
-<p>Copy these files to your project root to provide AI agents with orchestration patterns:</p>
+<div class="project-title">
+  <img class="project-logo" src="/images/mcp-steroid-logo.png" alt="MCP Steroid logo" />
+  <h2>MCP Steroid</h2>
+</div>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Download skill files to your project</span>
-curl <span class="nt">-sO</span> https://jonnyzzz.com/RLM.md
+<p>Give your AI agent a senior developer’s toolkit. MCP Steroid is an IntelliJ IDEA plugin that
+connects AI agents to the IDE’s runtime via the Model Context Protocol. Instead of reading text
+files and guessing at code structure, your AI assistant gets direct access to IntelliJ’s indexed
+code intelligence—the same power that makes IntelliJ the world’s most productive IDE.</p>
+
+<p>The IDE has indexed everything. It knows the code better than any file search. Your agent can
+navigate code semantically with go-to-definition and find-usages. It can run refactorings that
+update imports and rename symbols project-wide. It sees the same errors and warnings IntelliJ
+shows. It queries the project model for modules, dependencies, and source roots. It can even
+debug applications—setting breakpoints, controlling sessions, and inspecting threads.</p>
+
+<p>Agents submit Kotlin scripts via <code class="language-plaintext highlighter-rouge">steroid_execute_code</code>, and a review gate allows human approval
+before execution. Vision tools capture screenshots with component trees and OCR, enabling agents
+to click what they see.</p>
+
+<iframe width="280" height="158" src="https://www.youtube.com/embed/dz95tSD9Z-c" title="MCP Steroid demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+
+<h3 id="works-with-any-aiincluding-local-models">Works with Any AI—Including Local Models</h3>
+
+<p>MCP Steroid isn’t locked to any AI vendor. Connect Claude Code, Codex CLI, Gemini CLI, or any
+MCP-compatible agent. Run local models via Ollama for complete privacy—your code never leaves
+your machine. No credits, no API costs, no vendor lock-in. As AI API prices rise, LocalAI
+becomes the smart hedge.</p>
+
+<p><strong>Quick Start:</strong></p>
+
+<ol>
+  <li>Install the MCP Steroid plugin in IntelliJ IDEA 2025.3+</li>
+  <li>Open any project—the MCP server starts automatically</li>
+  <li>Connect your AI agent using the URL from <code class="language-plaintext highlighter-rouge">.idea/mcp-steroid.md</code></li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Claude Code</span>
+claude mcp add <span class="nt">--transport</span> http intellij-steroid <span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> .idea/mcp-steroid.md<span class="si">)</span><span class="s2">"</span>
+
+<span class="c"># Codex CLI</span>
+codex mcp add intellij-steroid <span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> .idea/mcp-steroid.md<span class="si">)</span><span class="s2">"</span>
+
+<span class="c"># Gemini CLI</span>
+gemini mcp add intellij-steroid <span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> .idea/mcp-steroid.md<span class="si">)</span><span class="s2">"</span> <span class="nt">--transport</span> http <span class="nt">--scope</span> user
+</code></pre></div></div>
+
+<p><a href="https://mcp-steroid.jonnyzzz.com/" target="_blank">Homepage</a> ·
+<a href="https://github.com/jonnyzzz/intellij-mcp-steroid" target="_blank">GitHub</a> ·
+<a href="https://www.youtube.com/@jonnyzzz" target="_blank">More Videos</a>
+Tags: <a href="/tags/#mcp">mcp</a>, <a href="/tags/#intellij">intellij</a>, <a href="/tags/#ai-coding">ai-coding</a></p>
+
+<hr />
+
+<h2 id="ai-agent-prompts">AI Agent Prompts</h2>
+
+<p>Prompt skill files teach AI agents how to orchestrate complex tasks. Copy them to your project
+root to enable multi-agent coordination, task decomposition, and CLI tool integration. These
+follow the <a href="https://llmstxt.org/">llms.txt specification</a> for AI-readable content.</p>
+
+<p><strong><a href="/RLM.md">RLM.md</a></strong> — Recursive Language Models. Actionable instructions for breaking large
+tasks into manageable pieces and handling contexts that exceed token limits. The core pattern
+for making AI agents work on real codebases.</p>
+
+<p><strong><a href="/MULTI-AGENT.md">MULTI-AGENT.md</a></strong> — Agent orchestration patterns. How to coordinate multiple
+sub-agents for complex tasks. Includes templates for parallel execution, cross-validation, and
+sequential pipelines.</p>
+
+<p><strong><a href="/GIT-FORK.md">GIT-FORK.md</a></strong> — Git Fork Pattern. Create independent git checkouts with shared
+objects. A lightweight alternative to git worktree that lets multiple agents work on the same
+repo simultaneously.</p>
+
+<p><strong><a href="/CLAUDE-CODE.md">CLAUDE-CODE.md</a></strong> — Using Claude Code CLI as a sub-agent. Full tool access,
+web search, parallel execution. The most capable agent for complex coding tasks.</p>
+
+<p><strong><a href="/CODEX.md">CODEX.md</a></strong> — Using Codex CLI as a sub-agent. Ideal for image analysis, focused
+code review, and parallel workloads. Supports PDF and image input.</p>
+
+<p><strong><a href="/GEMINI.md">GEMINI.md</a></strong> — Using Gemini CLI as a sub-agent. Provides alternative perspective
+for cross-validation and excels at long-context tasks.</p>
+
+<p><strong>Download all:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-sO</span> https://jonnyzzz.com/RLM.md
 curl <span class="nt">-sO</span> https://jonnyzzz.com/MULTI-AGENT.md
 curl <span class="nt">-sO</span> https://jonnyzzz.com/GIT-FORK.md
 curl <span class="nt">-sO</span> https://jonnyzzz.com/CLAUDE-CODE.md
@@ -168,39 +212,16 @@ curl <span class="nt">-sO</span> https://jonnyzzz.com/CODEX.md
 curl <span class="nt">-sO</span> https://jonnyzzz.com/GEMINI.md
 </code></pre></div></div>
 
-<p>Or reference them in your project’s <code class="language-plaintext highlighter-rouge">CLAUDE.md</code> or similar instruction file:</p>
-
-<div class="language-markdown highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="gu">## Related Skill Files</span>
-
-| File | Purpose |
-|------|---------|
-| <span class="gs">**RLM.md**</span> | Recursive Language Models - actionable instructions |
-| <span class="gs">**MULTI-AGENT.md**</span> | Agent orchestration patterns and templates |
-| <span class="gs">**GIT-FORK.md**</span> | Git Fork Pattern - independent checkouts with shared objects |
-| <span class="gs">**CODEX.md**</span> | Using Codex CLI as sub-agent |
-| <span class="gs">**GEMINI.md**</span> | Using Gemini CLI as sub-agent |
-| <span class="gs">**CLAUDE-CODE.md**</span> | Using Claude Code CLI as sub-agent |
-</code></pre></div></div>
-
-<h2 id="usage">Usage</h2>
-
-<p>These resources are designed for:</p>
-
-<ul>
-  <li>AI coding assistants working with codebases</li>
-  <li>Multi-agent systems that need to coordinate sub-tasks</li>
-  <li>LLM-based tools that benefit from structured markdown input</li>
-  <li>Developers implementing multi-agent patterns in their own projects</li>
-</ul>
+<hr />
 
 <h2 id="connect">Connect</h2>
 
-<p>If you find these resources useful, please follow me for updates on AI agents, multi-agent patterns, and developer tooling:</p>
+<p>Building with AI agents? Follow me for updates on MCP tools, multi-agent patterns, and
+developer tooling:</p>
 
-<ul>
-  <li><a href="https://www.linkedin.com/in/jonnyzzz/">Follow me on LinkedIn</a></li>
-  <li><a href="https://twitter.com/jonnyzzz">Follow me on X (Twitter)</a></li>
-</ul>
+<p><a href="https://www.linkedin.com/in/jonnyzzz/" target="_blank">LinkedIn</a> ·
+<a href="https://twitter.com/jonnyzzz" target="_blank">X (Twitter)</a> ·
+<a href="https://github.com/jonnyzzz" target="_blank">GitHub</a></p>
 
       </div><!-- /.entry-content -->
     </div><!-- /.entry-wrapper -->
