@@ -1,0 +1,470 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal &#8211; Eugene Petrenko</title>
+<meta name="description" content="How I built a shell-based orchestration framework that launches dozens of AI agents in parallel to research, implement, review, and test code changes"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, workflow, dev-tools, orchestration" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal -- Eugene Petrenko" />
+<meta name="twitter:description" content="How I built a shell-based orchestration framework that launches dozens of AI agents in parallel to research, implement, review, and test code changes" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal -- Eugene Petrenko" />
+<meta property="og:description" content="How I built a shell-based orchestration framework that launches dozens of AI agents in parallel to research, implement, review, and test code changes" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="workflow" />
+
+<meta property="article:tag" content="dev-tools" />
+
+<meta property="article:tag" content="orchestration" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li><li><a href="/tags/#dev-tools" title="Pages tagged dev-tools">dev-tools</a></li><li><a href="/tags/#orchestration" title="Pages tagged orchestration">orchestration</a></li>
+        </ul>
+        
+          <h1 class="entry-title">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-02-06T00:00:00+00:00">February 06, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=ai-agents,ai-coding,workflow,dev-tools,orchestration&amp;text=run-agent.sh:%20Orchestrating%20Dozens%20of%20AI%20Agents%20from%20Your%20Terminal&amp;url=https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>I’ve been running AI agents on codebases for a while now. One agent is useful.
+Two agents can review each other’s work. But <strong>dozens of agents working in parallel</strong>
+on the same codebase – that’s where things get interesting. That’s what
+<a href="https://run-agent.jonnyzzz.com/">run-agent.sh</a> does.</p>
+
+<p><img src="/images/run-agent-logo.png" alt="run-agent.sh logo" /></p>
+
+<hr />
+
+<h2 id="the-problem">The Problem</h2>
+
+<p>When you run a single AI agent on a task, you get one perspective, one approach,
+one shot at getting it right. The agent finishes, you review the output, and if
+it missed something you start over.</p>
+
+<p>What I wanted was a <strong>development team made of AI agents</strong> – one that researches
+the codebase, another that implements changes, a third that reviews the code, and
+a fourth that runs tests. All working simultaneously. All coordinated.</p>
+
+<p>The challenge: AI agents don’t naturally coordinate. Each one starts fresh with
+no knowledge of what the others are doing. They overwrite each other’s changes.
+They duplicate work. They have no way to say “I found a blocker” or “this task
+is done.”</p>
+
+<h2 id="the-solution-two-files">The Solution: Two Files</h2>
+
+<p>The entire framework is two files:</p>
+
+<p><strong><a href="https://run-agent.jonnyzzz.com/run-agent.sh">run-agent.sh</a></strong> – a unified
+shell script that launches Claude, Codex, or Gemini with full isolation. Each
+invocation gets its own run folder with the exact prompt, full stdout/stderr,
+PID tracking, and exit codes. Everything is captured. Nothing is lost.</p>
+
+<p><strong><a href="https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md">THE_PROMPT_v5.md</a></strong> – a
+project-independent orchestration workflow that defines 13 stages and 7 agent
+roles. This is the playbook that turns raw LLMs into a coordinated team.</p>
+
+<p>Both files are designed to work <strong>outside your project sources</strong>. The orchestration
+lives in its own directory – your codebase stays clean.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<p>The entry point is always an <strong>Orchestrator</strong> agent. You give it a task and point
+it at your repo. It reads <code class="language-plaintext highlighter-rouge">THE_PROMPT_v5.md</code> and starts spawning sub-agents:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./run-agent.sh claude /path/to/your/repo prompt.md
+./run-agent.sh codex /path/to/your/repo prompt.md
+./run-agent.sh gemini /path/to/your/repo prompt.md
+</code></pre></div></div>
+
+<p>Each agent gets a <strong>fixed role</strong>:</p>
+
+<ul>
+  <li><strong>Research</strong> – explores the codebase without making changes</li>
+  <li><strong>Implementation</strong> – writes code and tests</li>
+  <li><strong>Review</strong> – performs code review and quality checks</li>
+  <li><strong>Test</strong> – runs tests and verifies changes</li>
+  <li><strong>Debug</strong> – investigates failures and proposes fixes</li>
+  <li><strong>Monitor</strong> – watches for stalled agents and restarts them</li>
+</ul>
+
+<p>The orchestrator decides which agents to spawn, assigns tasks, and advances
+through the 13 stages: from initial cleanup and research, through implementation
+and quality gates, all the way to commit, push, and code review.</p>
+
+<h2 id="the-message-bus">The Message Bus</h2>
+
+<p>The key insight that makes multi-agent coordination work is <code class="language-plaintext highlighter-rouge">MESSAGE-BUS.md</code> –
+a file-based, <strong>append-only trace log</strong>. Every agent reads and writes to it.</p>
+
+<p>No databases. No message queues. No infrastructure. Just a markdown file.</p>
+
+<p>Agents use structured message types to communicate:</p>
+
+<ul>
+  <li><strong>FACT</strong> – concrete results (test counts, commit hashes)</li>
+  <li><strong>PROGRESS</strong> – in-flight status updates</li>
+  <li><strong>DECISION</strong> – policy choices with rationale</li>
+  <li><strong>REVIEW</strong> – structured code review feedback</li>
+  <li><strong>ERROR</strong> – failures that block progress</li>
+</ul>
+
+<p>The orchestrator reads the bus to decide what to do next. When an implementation
+agent finishes, it posts a FACT. The orchestrator sees it and spawns review agents.
+When reviewers approve, the orchestrator advances to testing. If a test fails,
+an ERROR gets posted, and the orchestrator spawns a debug agent.</p>
+
+<p>It’s simple, it’s traceable, and it works.</p>
+
+<h2 id="full-traceability">Full Traceability</h2>
+
+<p>Every agent run creates an isolated folder under <code class="language-plaintext highlighter-rouge">runs/</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>runs/
+  run_20260206-143000-12345/
+    prompt.md             # exact prompt sent to the agent
+    agent-stdout.txt      # everything the agent produced
+    agent-stderr.txt      # errors and warnings
+    cwd.txt               # working directory, command, exit code
+    run-agent.sh          # copy of the runner for reproducibility
+</code></pre></div></div>
+
+<p>When something goes wrong – and with dozens of agents, something always goes
+wrong – you can trace exactly what each agent was told, what it did, and why
+it failed. No “what did the AI do?” mysteries.</p>
+
+<h2 id="working-outside-your-project">Working Outside Your Project</h2>
+
+<p>A design choice I’m particularly happy with: the orchestration runs in its own
+directory, completely separate from your project sources.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>projects/
+  my-app/
+    fix-auth-bug/               # task directory
+      THE_PROMPT_v5.md          # orchestration workflow
+      run-agent.sh              # agent runner
+      MESSAGE-BUS.md            # swarm communication
+      runs/                     # all agent runs
+</code></pre></div></div>
+
+<p>Each task gets its own workspace with independent runs, message bus, and issue
+tracking. You can run multiple tasks on the same project in parallel. Your
+project repo stays clean – no orchestration artifacts mixed in.</p>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<p>Give this prompt to any AI agent (Claude, Codex, or Gemini):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Download and follow the orchestration workflow from:
+- https://run-agent.jonnyzzz.com/run-agent.sh
+- https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md
+
+Apply it to the project at: /path/to/your/repo
+
+Set up the working directory as:
+  projects/&lt;project-name&gt;/&lt;task-name&gt;/
+</code></pre></div></div>
+
+<p>The agent downloads the files, sets up the workspace, and starts orchestrating.
+All orchestration files are published at
+<a href="https://run-agent.jonnyzzz.com/">run-agent.jonnyzzz.com</a> under the
+Apache License 2.0.</p>
+
+<h2 id="agent-isolation-with-git-forks">Agent Isolation with Git Forks</h2>
+
+<p>Each agent needs its own workspace to avoid stepping on other agents’ changes.
+I use the <a href="/blog/2026/02/02/git-fork-pattern/">git fork pattern</a>
+for this – full checkouts that share objects with the original repository.
+Minimal disk overhead, full git functionality, true independence.</p>
+
+<p>The orchestrator tells each agent to fork the repo before starting work.
+When the agent is done, the changes get merged back. Simple, reliable,
+scales to any number of agents.</p>
+
+<h2 id="mcp-steroid-integration">MCP Steroid Integration</h2>
+
+<p>The framework works well with <a href="https://mcp-steroid.jonnyzzz.com/">MCP Steroid</a>
+for IDE-level quality gates. Before any commit lands, agents must pass through
+real IDE inspections – no new warnings, no new errors, compilation must succeed.
+The combination of multi-agent orchestration and IDE integration is where things
+get really powerful.</p>
+
+<p>An orchestrator can spawn a review agent that opens the project in IntelliJ via
+MCP Steroid, runs inspections, and posts the results back to the message bus.
+If the review finds issues, the orchestrator spawns a fix agent. The loop
+continues until the code is clean.</p>
+
+<hr />
+
+<h2 id="whats-next">What’s Next</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">THE_PROMPT_v5.md</code> is already at version 5 – the workflow keeps evolving
+as I learn what works and what doesn’t with real projects. The next areas I’m
+exploring are better conflict resolution when multiple implementation agents
+touch the same files, and tighter integration between the message bus and IDE
+quality gates.</p>
+
+<p>The code is on <a href="https://github.com/jonnyzzz/run-agent">GitHub</a>. Try it on a
+real project and see what a swarm of AI agents can do.</p>
+
+<hr />
+
+<p><strong>Questions? Want to share how you’re orchestrating AI agents?</strong></p>
+
+<ul>
+  <li><a href="https://www.linkedin.com/in/jonnyzzz/">Follow me on LinkedIn</a></li>
+  <li><a href="https://twitter.com/jonnyzzz">Follow me on X (Twitter)</a></li>
+  <li><a href="https://jonnyzzz.com/ai/">More AI agent patterns</a></li>
+</ul>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/02/02/git-fork-pattern/" class="btn" title="Git Fork Pattern: Full Checkouts Without the Bloat">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-06T10:57:51+00:00</updated>
+  <updated>2026-02-06T15:14:22+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,227 @@
   
 
   
+  
+  <entry>
+    <title type="html">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/" rel="alternate" type="text/html" title="run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal" />
+    <published>2026-02-06T00:00:00+00:00</published>
+    <updated>2026-02-06T00:00:00+00:00</updated>
+    <id>/blog/2026/02/06/run-agent-multi-agent-orchestration</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/">&lt;p&gt;I’ve been running AI agents on codebases for a while now. One agent is useful.
+Two agents can review each other’s work. But &lt;strong&gt;dozens of agents working in parallel&lt;/strong&gt;
+on the same codebase – that’s where things get interesting. That’s what
+&lt;a href=&quot;https://run-agent.jonnyzzz.com/&quot;&gt;run-agent.sh&lt;/a&gt; does.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/images/run-agent-logo.png&quot; alt=&quot;run-agent.sh logo&quot; /&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-problem&quot;&gt;The Problem&lt;/h2&gt;
+
+&lt;p&gt;When you run a single AI agent on a task, you get one perspective, one approach,
+one shot at getting it right. The agent finishes, you review the output, and if
+it missed something you start over.&lt;/p&gt;
+
+&lt;p&gt;What I wanted was a &lt;strong&gt;development team made of AI agents&lt;/strong&gt; – one that researches
+the codebase, another that implements changes, a third that reviews the code, and
+a fourth that runs tests. All working simultaneously. All coordinated.&lt;/p&gt;
+
+&lt;p&gt;The challenge: AI agents don’t naturally coordinate. Each one starts fresh with
+no knowledge of what the others are doing. They overwrite each other’s changes.
+They duplicate work. They have no way to say “I found a blocker” or “this task
+is done.”&lt;/p&gt;
+
+&lt;h2 id=&quot;the-solution-two-files&quot;&gt;The Solution: Two Files&lt;/h2&gt;
+
+&lt;p&gt;The entire framework is two files:&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com/run-agent.sh&quot;&gt;run-agent.sh&lt;/a&gt;&lt;/strong&gt; – a unified
+shell script that launches Claude, Codex, or Gemini with full isolation. Each
+invocation gets its own run folder with the exact prompt, full stdout/stderr,
+PID tracking, and exit codes. Everything is captured. Nothing is lost.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md&quot;&gt;THE_PROMPT_v5.md&lt;/a&gt;&lt;/strong&gt; – a
+project-independent orchestration workflow that defines 13 stages and 7 agent
+roles. This is the playbook that turns raw LLMs into a coordinated team.&lt;/p&gt;
+
+&lt;p&gt;Both files are designed to work &lt;strong&gt;outside your project sources&lt;/strong&gt;. The orchestration
+lives in its own directory – your codebase stays clean.&lt;/p&gt;
+
+&lt;h2 id=&quot;how-it-works&quot;&gt;How It Works&lt;/h2&gt;
+
+&lt;p&gt;The entry point is always an &lt;strong&gt;Orchestrator&lt;/strong&gt; agent. You give it a task and point
+it at your repo. It reads &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;THE_PROMPT_v5.md&lt;/code&gt; and starts spawning sub-agents:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh claude /path/to/your/repo prompt.md
+./run-agent.sh codex /path/to/your/repo prompt.md
+./run-agent.sh gemini /path/to/your/repo prompt.md
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Each agent gets a &lt;strong&gt;fixed role&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Research&lt;/strong&gt; – explores the codebase without making changes&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Implementation&lt;/strong&gt; – writes code and tests&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Review&lt;/strong&gt; – performs code review and quality checks&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Test&lt;/strong&gt; – runs tests and verifies changes&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Debug&lt;/strong&gt; – investigates failures and proposes fixes&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Monitor&lt;/strong&gt; – watches for stalled agents and restarts them&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The orchestrator decides which agents to spawn, assigns tasks, and advances
+through the 13 stages: from initial cleanup and research, through implementation
+and quality gates, all the way to commit, push, and code review.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-message-bus&quot;&gt;The Message Bus&lt;/h2&gt;
+
+&lt;p&gt;The key insight that makes multi-agent coordination work is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE-BUS.md&lt;/code&gt; –
+a file-based, &lt;strong&gt;append-only trace log&lt;/strong&gt;. Every agent reads and writes to it.&lt;/p&gt;
+
+&lt;p&gt;No databases. No message queues. No infrastructure. Just a markdown file.&lt;/p&gt;
+
+&lt;p&gt;Agents use structured message types to communicate:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;FACT&lt;/strong&gt; – concrete results (test counts, commit hashes)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;PROGRESS&lt;/strong&gt; – in-flight status updates&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;DECISION&lt;/strong&gt; – policy choices with rationale&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;REVIEW&lt;/strong&gt; – structured code review feedback&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;ERROR&lt;/strong&gt; – failures that block progress&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The orchestrator reads the bus to decide what to do next. When an implementation
+agent finishes, it posts a FACT. The orchestrator sees it and spawns review agents.
+When reviewers approve, the orchestrator advances to testing. If a test fails,
+an ERROR gets posted, and the orchestrator spawns a debug agent.&lt;/p&gt;
+
+&lt;p&gt;It’s simple, it’s traceable, and it works.&lt;/p&gt;
+
+&lt;h2 id=&quot;full-traceability&quot;&gt;Full Traceability&lt;/h2&gt;
+
+&lt;p&gt;Every agent run creates an isolated folder under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;runs/&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;runs/
+  run_20260206-143000-12345/
+    prompt.md             # exact prompt sent to the agent
+    agent-stdout.txt      # everything the agent produced
+    agent-stderr.txt      # errors and warnings
+    cwd.txt               # working directory, command, exit code
+    run-agent.sh          # copy of the runner for reproducibility
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When something goes wrong – and with dozens of agents, something always goes
+wrong – you can trace exactly what each agent was told, what it did, and why
+it failed. No “what did the AI do?” mysteries.&lt;/p&gt;
+
+&lt;h2 id=&quot;working-outside-your-project&quot;&gt;Working Outside Your Project&lt;/h2&gt;
+
+&lt;p&gt;A design choice I’m particularly happy with: the orchestration runs in its own
+directory, completely separate from your project sources.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projects/
+  my-app/
+    fix-auth-bug/               # task directory
+      THE_PROMPT_v5.md          # orchestration workflow
+      run-agent.sh              # agent runner
+      MESSAGE-BUS.md            # swarm communication
+      runs/                     # all agent runs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Each task gets its own workspace with independent runs, message bus, and issue
+tracking. You can run multiple tasks on the same project in parallel. Your
+project repo stays clean – no orchestration artifacts mixed in.&lt;/p&gt;
+
+&lt;h2 id=&quot;quick-start&quot;&gt;Quick Start&lt;/h2&gt;
+
+&lt;p&gt;Give this prompt to any AI agent (Claude, Codex, or Gemini):&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Download and follow the orchestration workflow from:
+- https://run-agent.jonnyzzz.com/run-agent.sh
+- https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md
+
+Apply it to the project at: /path/to/your/repo
+
+Set up the working directory as:
+  projects/&amp;lt;project-name&amp;gt;/&amp;lt;task-name&amp;gt;/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The agent downloads the files, sets up the workspace, and starts orchestrating.
+All orchestration files are published at
+&lt;a href=&quot;https://run-agent.jonnyzzz.com/&quot;&gt;run-agent.jonnyzzz.com&lt;/a&gt; under the
+Apache License 2.0.&lt;/p&gt;
+
+&lt;h2 id=&quot;agent-isolation-with-git-forks&quot;&gt;Agent Isolation with Git Forks&lt;/h2&gt;
+
+&lt;p&gt;Each agent needs its own workspace to avoid stepping on other agents’ changes.
+I use the &lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;git fork pattern&lt;/a&gt;
+for this – full checkouts that share objects with the original repository.
+Minimal disk overhead, full git functionality, true independence.&lt;/p&gt;
+
+&lt;p&gt;The orchestrator tells each agent to fork the repo before starting work.
+When the agent is done, the changes get merged back. Simple, reliable,
+scales to any number of agents.&lt;/p&gt;
+
+&lt;h2 id=&quot;mcp-steroid-integration&quot;&gt;MCP Steroid Integration&lt;/h2&gt;
+
+&lt;p&gt;The framework works well with &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;MCP Steroid&lt;/a&gt;
+for IDE-level quality gates. Before any commit lands, agents must pass through
+real IDE inspections – no new warnings, no new errors, compilation must succeed.
+The combination of multi-agent orchestration and IDE integration is where things
+get really powerful.&lt;/p&gt;
+
+&lt;p&gt;An orchestrator can spawn a review agent that opens the project in IntelliJ via
+MCP Steroid, runs inspections, and posts the results back to the message bus.
+If the review finds issues, the orchestrator spawns a fix agent. The loop
+continues until the code is clean.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;THE_PROMPT_v5.md&lt;/code&gt; is already at version 5 – the workflow keeps evolving
+as I learn what works and what doesn’t with real projects. The next areas I’m
+exploring are better conflict resolution when multiple implementation agents
+touch the same files, and tighter integration between the message bus and IDE
+quality gates.&lt;/p&gt;
+
+&lt;p&gt;The code is on &lt;a href=&quot;https://github.com/jonnyzzz/run-agent&quot;&gt;GitHub&lt;/a&gt;. Try it on a
+real project and see what a swarm of AI agents can do.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;strong&gt;Questions? Want to share how you’re orchestrating AI agents?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;Follow me on LinkedIn&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Follow me on X (Twitter)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/ai/&quot;&gt;More AI agent patterns&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="workflow" />
+  
+    <category term="dev-tools" />
+  
+    <category term="orchestration" />
+  
+    <summary type="html">How I built a shell-based orchestration framework that launches dozens of AI agents in parallel to research, implement, review, and test code changes</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Git Fork Pattern: Full Checkouts Without the Bloat</title>
@@ -2627,264 +2848,6 @@ Rating: 8.5/10
     <category term="developer-experience" />
   
     <summary type="html">Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">MCP Steroid: An IntelliJ MCP Server with Vision</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/" rel="alternate" type="text/html" title="MCP Steroid: An IntelliJ MCP Server with Vision" />
-    <published>2026-01-04T00:00:00+00:00</published>
-    <updated>2026-01-04T00:00:00+00:00</updated>
-    <id>/blog/2026/01/04/mcp-steroids-intellij</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/04/mcp-steroids-intellij/">&lt;p&gt;I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built &lt;strong&gt;&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/mcp-steroid-logo.png&quot; alt=&quot;MCP Steroid logo&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The project grew to 253 commits over a month of intense holiday hacking. It started as a simple Kotlin script executor and evolved into a full MCP server with vision, OCR, and human review gates.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroid: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-mcp-server-inside-intellij&quot;&gt;The MCP Server Inside IntelliJ&lt;/h2&gt;
-
-&lt;p&gt;MCP Steroid runs a Ktor server inside the IDE using.
-I tried the &lt;a href=&quot;https://github.com/modelcontextprotocol/kotlin-sdk&quot;&gt;Kotlin MCP SDK&lt;/a&gt;, but found it
-does not yet support the latest MCP spec version, same as IntelliJ-native MCP Server.
-For the sake of this experiment, I decided to focus on my own implementations.&lt;/p&gt;
-
-&lt;p&gt;It binds to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;127.0.0.1:63150&lt;/code&gt; by default (configurable via registry keys). The core 
-endpoint is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/mcp&lt;/code&gt;, with &lt;a href=&quot;https://agentskills.io&quot;&gt;Agent Skills&lt;/a&gt; discovery at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/skill.md&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;On startup, the plugin writes discovery markers so tools can connect without guessing:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.&amp;lt;pid&amp;gt;.mcp-steroid&lt;/code&gt; in the user home (PID-scoped, cleaned on exit).&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroids.txt&lt;/code&gt; inside each opened project.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;connecting-ai-agents&quot;&gt;Connecting AI Agents&lt;/h3&gt;
-
-&lt;p&gt;The server works with all major AI coding CLIs: Claude Code and Codex.&lt;/p&gt;
-
-&lt;h2 id=&quot;tool-surface-the-ide-as-a-toolbox&quot;&gt;Tool Surface: The IDE as a Toolbox&lt;/h2&gt;
-
-&lt;p&gt;The goal is simple: expose the IDE in a way an agent can actually use. The MCP surface includes:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;&lt;/strong&gt; to run Kotlin snippets inside IntelliJ with full IDE APIs.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project and window discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Capability and action discovery&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_capabilities&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_action_discovery&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Vision + input&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt;) to drive the UI.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt;).&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Each tool is registered via extension points, so the surface can grow without rewriting the server.&lt;/p&gt;
-
-&lt;h3 id=&quot;why-not-just-lsp&quot;&gt;Why Not Just LSP?&lt;/h3&gt;
-
-&lt;p&gt;This is similar to what LSP (Language Server Protocol) provides, but IntelliJ’s native APIs go deeper:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;PSI (Program Structure Interface)&lt;/strong&gt; — richer code understanding than LSP’s syntax trees.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;IDE-specific features&lt;/strong&gt; — inspections, refactorings, intentions, quick-fixes.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Full project model&lt;/strong&gt; — module dependencies, source roots, library references.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Platform indices&lt;/strong&gt; — fast code search across the entire project.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The preference is always IDE APIs over file operations:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Instead of…&lt;/th&gt;
-      &lt;th&gt;Use IntelliJ API&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Reading files with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cat&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;VFS and PSI APIs&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Searching with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;Find Usages, Structural Search&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Manual text replacement&lt;/td&gt;
-      &lt;td&gt;Automated refactorings&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Guessing code structure&lt;/td&gt;
-      &lt;td&gt;Query project model directly&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;The IDE has indexed everything. It knows the code better than any file search.&lt;/p&gt;
-
-&lt;h2 id=&quot;execution-pipeline-with-a-safety-valve&quot;&gt;Execution Pipeline With a Safety Valve&lt;/h2&gt;
-
-&lt;p&gt;Agents submit Kotlin code via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. Scripts must call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;execute { }&lt;/code&gt; to interact with the IDE:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;execute&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nf&quot;&gt;waitForSmartMode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Wait for indexing&lt;/span&gt;
-
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;psiFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;readAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;nc&quot;&gt;PsiManager&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;findFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;virtualFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;nf&quot;&gt;writeAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;document&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setText&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;new content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Done!&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;McpScriptContext&lt;/code&gt; provides built-in helpers: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;readAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;writeAction&lt;/code&gt;, 
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smartReadAction&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findPsiFile&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;progress&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;takeIdeScreenshot&lt;/code&gt;. 
-No imports needed for the common operations.&lt;/p&gt;
-
-&lt;h3 id=&quot;human-review-gate&quot;&gt;Human Review Gate&lt;/h3&gt;
-
-&lt;p&gt;A review gate sits in the middle. The default mode is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;, which opens submitted 
-code in the editor with Approve/Reject buttons. Users can edit the code before 
-approval—the LLM receives the original, the edited version, and a unified diff showing what changed.&lt;/p&gt;
-
-&lt;p&gt;Three modes are available:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ALWAYS&lt;/code&gt;: Every script requires human approval (default)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TRUSTED&lt;/code&gt;: Auto-approve all (trust MCP callers)&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NEVER&lt;/code&gt;: Auto-execute all (development only)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;execution-storage&quot;&gt;Execution Storage&lt;/h3&gt;
-
-&lt;p&gt;All requests are logged to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-run/&lt;/code&gt; with timestamped directories containing
-the script, parameters, output, and any errors. This append-only log is invaluable
-for debugging agent behavior.&lt;/p&gt;
-
-&lt;h2 id=&quot;mcp-resources-built-in-examples&quot;&gt;MCP Resources: Built-in Examples&lt;/h2&gt;
-
-&lt;p&gt;The server exposes pre-built examples through MCP resource APIs. These are runnable 
-Kotlin scripts that agents can load and adapt, avoiding the guesswork of writing IDE code from scratch:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;LSP-like operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://lsp/go-to-definition&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;find-references&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rename&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;code-action&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;signature-help&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;IDE power operations&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://ide/extract-method&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;introduce-variable&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;change-signature&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;safe-delete&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;optimize-imports&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-configuration&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Project lifecycle&lt;/strong&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;intellij://open-project/open-trusted&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;open-with-dialogs&lt;/code&gt;.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Agents call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;list_mcp_resources&lt;/code&gt; to discover available resources, then &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;read_mcp_resource&lt;/code&gt; 
-with the URI to fetch the content. These examples are designed to be plugged directly 
-into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; after configuring file paths and positions.&lt;/p&gt;
-
-&lt;h3 id=&quot;learning-curve-note&quot;&gt;Learning Curve Note&lt;/h3&gt;
-
-&lt;p&gt;Writing working code for IntelliJ APIs may require several attempts. This is 
-expected—the API is vast. The server includes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;printException()&lt;/code&gt; to help debug
-stack traces when errors occur. If the first attempt fails, analyze the error,
-adjust, and try again. The power of direct IDE access is worth the effort.&lt;/p&gt;
-
-&lt;h2 id=&quot;vision--ocr--context-that-sticks&quot;&gt;Vision + OCR = Context That Sticks&lt;/h2&gt;
-
-&lt;p&gt;The vision pipeline is more than a screenshot. A single &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt; call collects:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The PNG image (returned as base64 in the MCP response).&lt;/li&gt;
-  &lt;li&gt;The Swing component tree (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;screenshot-tree.md&lt;/code&gt;) for programmatic inspection.&lt;/li&gt;
-  &lt;li&gt;OCR output when enabled (Tesseract via a bundled helper app).&lt;/li&gt;
-  &lt;li&gt;Window metadata including bounds and focus state.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt; tool then drives the UI using a small grammar:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;click:Left@120,200
-type:Hello World
-press:ENTER
-stick:ALT, delay:400, press:F4
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Coordinates are relative to the screenshot, so agents can click what
-they see. The sequence supports comments (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;#&lt;/code&gt;) and newline separators for readability.&lt;/p&gt;
-
-&lt;h2 id=&quot;demos&quot;&gt;Demos&lt;/h2&gt;
-
-&lt;p&gt;Two short demos show the system in action:&lt;/p&gt;
-
-&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/6p6B5sxgXX8&quot; title=&quot;MCP Steroid demo 1&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
-
-&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/dz95tSD9Z-c&quot; title=&quot;MCP Steroid demo 2&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
-
-&lt;p&gt;The full playlist has 7 videos, from quick CodeDozer demos to two longer “Real Work in Monorepo” sessions.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-status&quot;&gt;The Status&lt;/h2&gt;
-
-&lt;p&gt;This is not a polished product. Some rough edges:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The HTTP transport is JSON-only (SSE requests are rejected as older protocol version).&lt;/li&gt;
-  &lt;li&gt;Modal dialogs can cancel script execution unexpectedly.&lt;/li&gt;
-  &lt;li&gt;Every tool call is subject to IntelliJ’s threading and modality rules.&lt;/li&gt;
-  &lt;li&gt;The vision tools are marked as “heavy endpoints”—prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; for regular automation.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;But it is already useful enough to build real workflows. The 
-integration tests cover Claude Code, Codex, and Gemini CLIs 
-end-to-end, including a full execute→feedback→execute cycle.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-bigger-picture&quot;&gt;The Bigger Picture&lt;/h2&gt;
-
-&lt;p&gt;MCP Steroid is part of my AI-assisted development setup, running 
-alongside &lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore&lt;/a&gt; deployments 
-on my homelab infrastructure.&lt;/p&gt;
-
-&lt;p&gt;The goal is to make the IDE a first-class tool for AI agents—not just a text editor they talk to, 
-but a full development environment they can see, navigate, and operate. There is still a lot to 
-figure out about trust, safety, and useful abstractions, but this is a start.&lt;/p&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7416797295112839168&quot; height=&quot;720&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;
-
-&lt;p&gt;If you are experimenting with agentic tooling inside IDEs, let’s connect and share notes.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Would you like to support the project? Just let me know! via me at jonnyzzz.com&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;full-playlist&quot;&gt;Full Playlist&lt;/h2&gt;
-
-&lt;p&gt;Watch the full playlist on YouTube: &lt;a href=&quot;https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/p&gt;
-
-&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/videoseries?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f&quot; title=&quot;MCP Steroid playlist&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="stevedore" />
-  
-    <category term="mcp" />
-  
-    <category term="intellij" />
-  
-    <category term="ai-coding" />
-  
-    <category term="developer-experience" />
-  
-    <category term="kotlin" />
-  
-    <summary type="html">An IntelliJ MCP server that lets agents run Kotlin inside the IDE, with vision, OCR, and human review.</summary>
   
   </entry>
   
