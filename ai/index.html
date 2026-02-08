@@ -117,7 +117,7 @@ everything, understands every symbol, sees every relationship.</p>
 <p>This page provides the tools to bridge that gap: <strong>MCP Steroid</strong> gives AI agents direct access
 to IntelliJ’s brain, and <strong>prompt skill files</strong> teach agents how to orchestrate complex tasks.</p>
 
-<p><strong>On this page:</strong> <a href="#mcp-steroid">MCP Steroid</a> · <a href="#ai-agent-prompts">AI Agent Prompts</a> · <a href="#connect">Connect</a></p>
+<p><strong>On this page:</strong> <a href="#mcp-steroid">MCP Steroid</a> · <a href="#run-agentsh">run-agent.sh</a> · <a href="#ai-agent-prompts">AI Agent Prompts</a> · <a href="#connect">Connect</a></p>
 
 <hr />
 
@@ -172,6 +172,40 @@ gemini mcp add intellij-steroid <span class="s2">"</span><span class="si">$(</sp
 <a href="https://github.com/jonnyzzz/intellij-mcp-steroid" target="_blank">GitHub</a> ·
 <a href="https://www.youtube.com/@jonnyzzz" target="_blank">More Videos</a>
 Tags: <a href="/tags/#mcp">mcp</a>, <a href="/tags/#intellij">intellij</a>, <a href="/tags/#ai-coding">ai-coding</a></p>
+
+<hr />
+
+<div class="project-title">
+  <img class="project-logo" src="/images/run-agent-logo.png" alt="run-agent.sh logo" />
+  <h2>run-agent.sh</h2>
+</div>
+
+<p>Orchestrate dozens of AI agents from your terminal. run-agent.sh is a shell-based framework
+that launches Claude, Codex, or Gemini agents in parallel – research, implementation, review,
+testing, and debugging agents all working on the same codebase simultaneously.</p>
+
+<p>The entire framework is two files: <strong>run-agent.sh</strong> (a unified runner with full isolation and
+traceability) and <strong>THE_PROMPT_v5.md</strong> (a 13-stage orchestration workflow with 7 agent roles).
+Agents coordinate through a file-based append-only message bus – no databases, no servers.
+Every run is captured: prompts, stdout/stderr, PIDs, exit codes.</p>
+
+<p>The orchestration lives outside your project sources, keeping your codebase clean. Combine with
+MCP Steroid for IDE-level quality gates – real inspections and refactorings before commit.</p>
+
+<p><strong>Quick Start:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Download the runner</span>
+curl <span class="nt">-sO</span> https://run-agent.jonnyzzz.com/run-agent.sh
+<span class="nb">chmod</span> +x run-agent.sh
+
+<span class="c"># Download the orchestration prompt</span>
+curl <span class="nt">-sO</span> https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md
+</code></pre></div></div>
+
+<p><a href="https://run-agent.jonnyzzz.com/" target="_blank">Homepage</a> ·
+<a href="https://github.com/jonnyzzz/run-agent" target="_blank">GitHub</a> ·
+<a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">Blog Post</a>
+Tags: <a href="/tags/#ai-agents">ai-agents</a>, <a href="/tags/#ai-coding">ai-coding</a>, <a href="/tags/#orchestration">orchestration</a>, <a href="/tags/#dev-tools">dev-tools</a></p>
 
 <hr />
 
