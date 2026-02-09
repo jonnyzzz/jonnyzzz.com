@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-08T16:43:47+00:00</updated>
+  <updated>2026-02-09T14:18:21+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,886 @@
   
 
   
+  
+  <entry>
+    <title type="html">The Cost Return of Local AI: When Does Your Hardware Pay for Itself?</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/" rel="alternate" type="text/html" title="The Cost Return of Local AI: When Does Your Hardware Pay for Itself?" />
+    <published>2026-02-09T00:00:00+00:00</published>
+    <updated>2026-02-09T00:00:00+00:00</updated>
+    <id>/blog/2026/02/09/local-ai-cost-return</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/">&lt;p&gt;Should you buy Local AI hardware or rent cloud tokens? I’ve been running local models on an
+&lt;a href=&quot;/blog/2025/11/26/junie-cage-spark/&quot;&gt;NVIDIA DGX Spark&lt;/a&gt; and a MacBook Pro M4 Max with 128GB, orchestrating fleets of
+&lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;AI Agents&lt;/a&gt; against them. The analysis below also covers Mac Studio configurations
+and dual-GPU workstations for comparison. The obvious question: &lt;strong&gt;does it actually save money
+compared to Anthropic and OpenAI APIs?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;We analyzed four popular setups, drawing from published benchmarks and community testing. Then
+we modeled what happens when cloud prices keep falling. The answer is more nuanced – and more
+interesting – than I expected.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Key finding:&lt;/strong&gt; At full utilization, mid-range setups (Mac Studio M4 Max 128GB, DGX Spark)
+can pay for themselves in &lt;strong&gt;1.6–8 months&lt;/strong&gt; when replacing Opus/Sonnet-class API usage – the
+DGX Spark running GPT-OSS 120B breaks even in &lt;strong&gt;under 2 months&lt;/strong&gt;. But cloud API prices are
+falling so fast that your spreadsheet might be wrong before your hardware arrives.&lt;/p&gt;
+
+&lt;p&gt;All calculations below are reproducible. &lt;a href=&quot;/downloads/local-ai-payoff-calculator.py&quot;&gt;Grab the Python calculator&lt;/a&gt; and run it
+yourself with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;uv run local-ai-payoff-calculator.py&lt;/code&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-four-setups&quot;&gt;The Four Setups&lt;/h2&gt;
+
+&lt;p&gt;We selected four configurations representing different price-performance tiers. All suitable
+for Local AI inference in a desktop/office environment. Prices reflect Apple.com configurator
+and NVIDIA retail as of Q1 2026. Electricity costs are &lt;strong&gt;explicitly excluded&lt;/strong&gt; (we address
+them separately below).&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-a-mac-studio-m3-ultra--512gb&quot;&gt;Setup A: Mac Studio M3 Ultra – 512GB&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Spec&lt;/th&gt;
+      &lt;th&gt;Detail&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Chip&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;Apple M3 Ultra, 32-core CPU, 80-core GPU, 32-core Neural Engine&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Memory&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;512GB unified (819 GB/s bandwidth)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Price&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;~$9,500&lt;/strong&gt; (base $3,999 + chip upgrade + 512GB RAM)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;em&gt;Pricing source: &lt;a href=&quot;https://www.apple.com/shop/buy-mac/mac-studio&quot;&gt;Apple Mac Studio configurator&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;The M3 Ultra’s 819 GB/s memory bandwidth is its killer feature. Token generation speed is
+almost entirely memory-bandwidth bound. This is the only desktop-class machine that can run
+600B+ parameter models (like DeepSeek R1 671B) entirely in memory.&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-b-mac-studio-m4-max--128gb&quot;&gt;Setup B: Mac Studio M4 Max – 128GB&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Spec&lt;/th&gt;
+      &lt;th&gt;Detail&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Chip&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;Apple M4 Max, 16-core CPU, 40-core GPU, 16-core Neural Engine&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Memory&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;128GB unified (546 GB/s bandwidth)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Price&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;~$3,500&lt;/strong&gt; (base $1,999 + chip and memory upgrades)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;em&gt;Pricing source: &lt;a href=&quot;https://www.apple.com/shop/buy-mac/mac-studio&quot;&gt;Apple Mac Studio configurator&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Best single-core performance of any Apple chip. Its 546 GB/s bandwidth and 128GB handle
+quantized 70B models comfortably.&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-c-nvidia-dgx-spark--128gb&quot;&gt;Setup C: NVIDIA DGX Spark – 128GB&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Spec&lt;/th&gt;
+      &lt;th&gt;Detail&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Chip&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;NVIDIA GB10 Grace Blackwell Superchip&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Memory&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;128GB LPDDR5x unified (273 GB/s bandwidth)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;AI Compute&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;1 PFLOP FP4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Price&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;$3,999&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;em&gt;Pricing source: &lt;a href=&quot;https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/dgx-spark/&quot;&gt;NVIDIA DGX Spark product page&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Excels at prompt processing (prefill) thanks to Blackwell tensor cores and FP4/NVFP4 support.
+Its relatively lower memory bandwidth (273 GB/s) limits token generation speed, but its
+&lt;a href=&quot;/blog/2025/11/26/junie-cage-spark/&quot;&gt;MoE performance is a standout&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;setup-d-dual-rtx-3090-workstation&quot;&gt;Setup D: Dual RTX 3090 Workstation&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Spec&lt;/th&gt;
+      &lt;th&gt;Detail&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;GPUs&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;2x NVIDIA RTX 3090 (24GB VRAM each = 48GB total)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;GPU Bandwidth&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;936 GB/s per card&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Price&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;~$3,600&lt;/strong&gt; (used 3090s ~$800 each + rest of system)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The price-performance champion for pure inference throughput within its 48GB VRAM limit.
+Models must fit within GPU VRAM; larger models fall back to CPU offloading with severe
+performance penalties.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;models-and-benchmarks&quot;&gt;Models and Benchmarks&lt;/h2&gt;
+
+&lt;p&gt;All benchmarks use 4-bit quantization (Q4_K_M for GGUF, NVFP4 where available) – the
+practical sweet spot for quality vs. performance. Token generation speed is single-user,
+interactive decode using llama.cpp or MLX.&lt;/p&gt;
+
+&lt;h3 id=&quot;token-generation-speed-tokenssecond&quot;&gt;Token Generation Speed (tokens/second)&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Model&lt;/th&gt;
+      &lt;th&gt;A: M3 Ultra&lt;/th&gt;
+      &lt;th&gt;B: M4 Max&lt;/th&gt;
+      &lt;th&gt;C: DGX Spark&lt;/th&gt;
+      &lt;th&gt;D: 2x 3090&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;LLaMA 3.1 8B Q4&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;~85&lt;/td&gt;
+      &lt;td&gt;~70&lt;/td&gt;
+      &lt;td&gt;~38&lt;/td&gt;
+      &lt;td&gt;~120&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;Qwen3 30B Q4&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;~30&lt;/td&gt;
+      &lt;td&gt;~22&lt;/td&gt;
+      &lt;td&gt;~20&lt;/td&gt;
+      &lt;td&gt;~35&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;LLaMA 3.1 70B Q4&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;~14&lt;/td&gt;
+      &lt;td&gt;~8&lt;/td&gt;
+      &lt;td&gt;~6&lt;/td&gt;
+      &lt;td&gt;~13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;GPT-OSS 120B Q4&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;~20&lt;/td&gt;
+      &lt;td&gt;~10&lt;/td&gt;
+      &lt;td&gt;~50&lt;/td&gt;
+      &lt;td&gt;Cannot fit&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;DeepSeek R1 671B Q4&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;~17&lt;/td&gt;
+      &lt;td&gt;–&lt;/td&gt;
+      &lt;td&gt;–&lt;/td&gt;
+      &lt;td&gt;–&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The DGX Spark’s GPT-OSS 120B number stands out: &lt;strong&gt;50 t/s on a $3,999 box&lt;/strong&gt;. This is the MoE
+(Mixture of Experts) sweet spot – only ~20B parameters active per token, but the NVFP4
+tensor cores eat it for breakfast.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Sources: &lt;a href=&quot;https://github.com/ggml-org/llama.cpp/discussions/4167&quot;&gt;llama.cpp Apple Silicon discussion #4167&lt;/a&gt;,
+&lt;a href=&quot;https://lmsys.org/blog/2025-10-13-nvidia-dgx-spark/&quot;&gt;LMSYS DGX Spark review&lt;/a&gt;, &lt;a href=&quot;https://www.hardware-corner.net/first-dgx-spark-llm-benchmarks/&quot;&gt;hardware-corner.net benchmarks&lt;/a&gt;,
+&lt;a href=&quot;https://lmsys.org/blog/2025-11-03-gpt-oss-on-nvidia-dgx-spark/&quot;&gt;LMSYS GPT-OSS on DGX Spark&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;cloud-api-pricing&quot;&gt;Cloud API Pricing&lt;/h2&gt;
+
+&lt;p&gt;We map each local model to a comparable cloud API tier. This mapping is inherently approximate
+– a local LLaMA 70B Q4 doesn’t match Claude Sonnet 4.5 quality. But they serve similar use
+cases at roughly comparable quality levels.&lt;/p&gt;
+
+&lt;h3 id=&quot;output-token-pricing-as-of-q1-2026&quot;&gt;Output Token Pricing (as of Q1 2026)&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Provider&lt;/th&gt;
+      &lt;th&gt;Model&lt;/th&gt;
+      &lt;th&gt;Input $/MTok&lt;/th&gt;
+      &lt;th&gt;Output $/MTok&lt;/th&gt;
+      &lt;th&gt;Comparable Local Model&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;&lt;strong&gt;Anthropic&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;Claude Haiku 4.5&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$1.00&lt;/td&gt;
+      &lt;td&gt;$5.00&lt;/td&gt;
+      &lt;td&gt;LLaMA 3.1 8B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;&lt;strong&gt;Anthropic&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;Claude Sonnet 4.5&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$3.00&lt;/td&gt;
+      &lt;td&gt;$15.00&lt;/td&gt;
+      &lt;td&gt;LLaMA 3.1 70B, Qwen3 30B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;&lt;strong&gt;Anthropic&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;Claude Opus 4.5&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$5.00&lt;/td&gt;
+      &lt;td&gt;$25.00&lt;/td&gt;
+      &lt;td&gt;DeepSeek R1 671B, GPT-OSS&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;&lt;strong&gt;OpenAI&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;GPT-4o&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$2.50&lt;/td&gt;
+      &lt;td&gt;$10.00&lt;/td&gt;
+      &lt;td&gt;LLaMA 3.1 70B, Qwen3 30B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;&lt;strong&gt;OpenAI&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;GPT-4o mini&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$0.15&lt;/td&gt;
+      &lt;td&gt;$0.60&lt;/td&gt;
+      &lt;td&gt;LLaMA 3.1 8B&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;&lt;strong&gt;OpenAI&lt;/strong&gt;&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;GPT-5.1&lt;/a&gt;&lt;/td&gt;
+      &lt;td&gt;$1.25&lt;/td&gt;
+      &lt;td&gt;$10.00&lt;/td&gt;
+      &lt;td&gt;GPT-OSS 120B&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;em&gt;Sources: &lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;Anthropic API pricing&lt;/a&gt;, &lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;OpenAI pricing&lt;/a&gt;,
+&lt;a href=&quot;https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration&quot;&gt;MetaCTO analysis (Dec 2025)&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-payoff-table&quot;&gt;The Payoff Table&lt;/h2&gt;
+
+&lt;p&gt;&lt;strong&gt;Payoff = Hardware Cost / Cloud Cost Per Hour&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;We assume a 70/30 output/input token ratio (typical for interactive use). Weighted price per
+million tokens = 0.7 x output + 0.3 x input. Tokens per hour = tokens/sec x 3600.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Setup + Model&lt;/th&gt;
+      &lt;th&gt;HW Cost&lt;/th&gt;
+      &lt;th&gt;Cloud $/hr&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;Payoff Months&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;C: DGX Spark + GPT-OSS 120B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,999&lt;/td&gt;
+      &lt;td&gt;$3.42&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;1.6&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;D: 2x3090 + LLaMA 8B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,600&lt;/td&gt;
+      &lt;td&gt;$1.64&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;3.0&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;D: 2x3090 + Qwen3 30B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,600&lt;/td&gt;
+      &lt;td&gt;$1.44&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;3.5&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;B: M4 Max + LLaMA 8B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,500&lt;/td&gt;
+      &lt;td&gt;$0.96&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;5.1&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;C: DGX Spark + Qwen3 30B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,999&lt;/td&gt;
+      &lt;td&gt;$0.82&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;6.8&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;B: M4 Max + GPT-OSS 120B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,500&lt;/td&gt;
+      &lt;td&gt;$0.68&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;7.1&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;B: M4 Max + Qwen3 30B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,500&lt;/td&gt;
+      &lt;td&gt;$0.61&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;7.9&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;D: 2x3090 + LLaMA 70B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,600&lt;/td&gt;
+      &lt;td&gt;$0.53&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;9.4&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;A: M3 Ultra + GPT-OSS 120B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$9,500&lt;/td&gt;
+      &lt;td&gt;$1.37&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;9.6&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;A: M3 Ultra + DeepSeek R1 671B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$9,500&lt;/td&gt;
+      &lt;td&gt;$1.16&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;11.3&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;A: M3 Ultra + Qwen3 30B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$9,500&lt;/td&gt;
+      &lt;td&gt;$1.23&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;10.7&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;C: DGX Spark + LLaMA 8B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,999&lt;/td&gt;
+      &lt;td&gt;$0.52&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;10.7&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;A: M3 Ultra + LLaMA 8B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$9,500&lt;/td&gt;
+      &lt;td&gt;$1.16&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;11.3&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;B: M4 Max + LLaMA 70B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,500&lt;/td&gt;
+      &lt;td&gt;$0.33&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;14.8&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;C: DGX Spark + LLaMA 70B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$3,999&lt;/td&gt;
+      &lt;td&gt;$0.25&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;22.6&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;strong&gt;A: M3 Ultra + LLaMA 70B&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;$9,500&lt;/td&gt;
+      &lt;td&gt;$0.57&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;23.0&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;These numbers assume &lt;strong&gt;100% utilization, 24/7&lt;/strong&gt;. Multiply by 2x for 12hr/day usage, 4x for
+6hr/day, 10x for occasional use.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-sweet-spot&quot;&gt;The Sweet Spot&lt;/h2&gt;
+
+&lt;p&gt;Three scenarios stand out:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;DGX Spark + GPT-OSS 120B vs Opus-class pricing: ~1.6 months.&lt;/strong&gt; The Blackwell tensor cores
+combined with MoE efficiency and NVFP4 quantization make this the fastest payoff. At 50%
+utilization it’s 4 months. This is the standout finding – &lt;strong&gt;under 2 months at full
+utilization&lt;/strong&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Dual RTX 3090 + small/medium models: 3–3.5 months.&lt;/strong&gt; Highest raw throughput on models
+that fit in 48GB VRAM. The used GPU market makes this the cheapest entry point.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;M4 Max 128GB + 8B/30B models: 5–8 months.&lt;/strong&gt; The best balance of price, ecosystem
+(MLX), silence, and capability for a single developer.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The M3 Ultra 512GB shows &lt;strong&gt;11.3 months&lt;/strong&gt; payoff for DeepSeek R1 671B (~17 t/s), making it
+competitive with other mid-range scenarios. It’s the only desktop that runs these frontier-scale
+models entirely in memory.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;but-wait--cloud-prices-keep-falling&quot;&gt;But Wait – Cloud Prices Keep Falling&lt;/h2&gt;
+
+&lt;p&gt;Here’s where the story gets uncomfortable. The payoff table above treats cloud prices as
+&lt;strong&gt;constant&lt;/strong&gt;. They are not.&lt;/p&gt;
+
+&lt;p&gt;According to &lt;a href=&quot;https://epoch.ai/data-insights/llm-inference-price-trends&quot;&gt;Epoch AI research (March 2025)&lt;/a&gt;, LLM inference prices have fallen
+between 9x and 900x per year depending on the benchmark, with a median decline of &lt;strong&gt;50x per
+year&lt;/strong&gt;. After January 2024, the median rate accelerated to &lt;strong&gt;200x per year&lt;/strong&gt;. The &lt;a href=&quot;https://aiindex.stanford.edu/report/&quot;&gt;Stanford
+HAI AI Index&lt;/a&gt; puts it starkly: GPT-3.5-level performance cost fell from $20 per
+1M tokens (November 2022) to $0.07 (October 2024) – &lt;strong&gt;280x in 18 months&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;What does that do to our payoff math?&lt;/p&gt;
+
+&lt;h3 id=&quot;risk-adjusted-payoff-months&quot;&gt;Risk-Adjusted Payoff (months)&lt;/h3&gt;
+
+&lt;p&gt;Here’s the DGX Spark + GPT-OSS 120B (the best scenario) under different cloud price decline
+rates and utilization levels:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Utilization&lt;/th&gt;
+      &lt;th&gt;Constant price&lt;/th&gt;
+      &lt;th&gt;25%/yr decline&lt;/th&gt;
+      &lt;th&gt;50%/yr decline&lt;/th&gt;
+      &lt;th&gt;80%/yr decline&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;100% (24/7)&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;50% (12h/d)&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;25% (6h/d)&lt;/td&gt;
+      &lt;td&gt;7&lt;/td&gt;
+      &lt;td&gt;7&lt;/td&gt;
+      &lt;td&gt;8&lt;/td&gt;
+      &lt;td&gt;13&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;10% (2.4h/d)&lt;/td&gt;
+      &lt;td&gt;17&lt;/td&gt;
+      &lt;td&gt;21&lt;/td&gt;
+      &lt;td&gt;42&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;And the M4 Max + Qwen3 30B (a more typical developer scenario):&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Utilization&lt;/th&gt;
+      &lt;th&gt;Constant price&lt;/th&gt;
+      &lt;th&gt;25%/yr decline&lt;/th&gt;
+      &lt;th&gt;50%/yr decline&lt;/th&gt;
+      &lt;th&gt;80%/yr decline&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;100% (24/7)&lt;/td&gt;
+      &lt;td&gt;8&lt;/td&gt;
+      &lt;td&gt;9&lt;/td&gt;
+      &lt;td&gt;11&lt;/td&gt;
+      &lt;td&gt;39&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;50% (12h/d)&lt;/td&gt;
+      &lt;td&gt;16&lt;/td&gt;
+      &lt;td&gt;20&lt;/td&gt;
+      &lt;td&gt;39&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;25% (6h/d)&lt;/td&gt;
+      &lt;td&gt;32&lt;/td&gt;
+      &lt;td&gt;58&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;10% (2.4h/d)&lt;/td&gt;
+      &lt;td&gt;80&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+      &lt;td&gt;never&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;&lt;strong&gt;“Never” means the hardware never pays for itself&lt;/strong&gt; – cumulative cloud savings converge to
+a finite amount that’s less than the hardware cost. Mathematically:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Max lifetime savings = C0 / (1 - m), where m = (1 - annual_decline_rate)^(1/12)&lt;/p&gt;
+
+  &lt;p&gt;If hardware_cost &amp;gt; max_lifetime_savings, payoff = never.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This is the most dangerous finding: &lt;strong&gt;at 80% annual cloud price decline and less than 25%
+utilization, most setups never break even on token economics alone.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;seven-trends-shaping-the-next-18-months&quot;&gt;Seven Trends Shaping the Next 18 Months&lt;/h2&gt;
+
+&lt;p&gt;I track these because they directly affect whether buying Local AI hardware today is smart
+or premature:&lt;/p&gt;
+
+&lt;h3 id=&quot;1-api-price-deflation--the-biggest-threat&quot;&gt;1. API Price Deflation – The Biggest Threat&lt;/h3&gt;
+
+&lt;p&gt;OpenAI moved from GPT-4 ($30/$60 per MTok) to GPT-4 Turbo ($10/$30), then to GPT-4o
+($2.50/$10) – an 83% decline from GPT-4 to GPT-4o. DeepSeek V3.2 hit $0.28/$0.42 per
+MTok – 90% below GPT-4.1. Gartner forecasts that by 2026, AI services cost will become a
+chief competitive factor.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; A payoff period of 8 months today becomes 80 months if prices drop 10x.&lt;/p&gt;
+
+&lt;h3 id=&quot;2-open-source-quality--the-biggest-tailwind&quot;&gt;2. Open-Source Quality – The Biggest Tailwind&lt;/h3&gt;
+
+&lt;p&gt;According to &lt;a href=&quot;https://whatllm.org&quot;&gt;WhatLLM.org&lt;/a&gt; (January 2026), the gap between best open-source and
+proprietary models has narrowed significantly – down from 20+ points in late 2024 to
+single digits in early 2026. Open-source models now win on specific benchmarks outright.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; Closes the “quality discount” in our calculations. A local 30B running in 2026
+might genuinely match GPT-4o quality.&lt;/p&gt;
+
+&lt;h3 id=&quot;3-hardware-depreciation--the-clock-is-ticking&quot;&gt;3. Hardware Depreciation – The Clock Is Ticking&lt;/h3&gt;
+
+&lt;p&gt;Apple M5 launched October 2025 with 30% bandwidth improvement. M5 Ultra &lt;strong&gt;rumored&lt;/strong&gt; for mid-2026
+at ~1,100 GB/s (unconfirmed, no official announcement). RTX 5090 ships at $1,999 MSRP and shows
+significant throughput improvements over RTX 4090 in early community benchmarks.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; A $9,500 M3 Ultra bought today will be outperformed by an M5 Ultra at similar
+price within 6–9 months.&lt;/p&gt;
+
+&lt;h3 id=&quot;4-model-efficiency--smaller-gets-smarter&quot;&gt;4. Model Efficiency – Smaller Gets Smarter&lt;/h3&gt;
+
+&lt;p&gt;Model distillation techniques continue advancing rapidly. Smaller models (8B-30B range) are
+increasingly matching or approaching the quality of previous-generation 70B+ models through
+better training and distillation methods.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; Your hardware gets more capable over time through software alone. The M4 Max
+becomes a better machine next year without changing anything.&lt;/p&gt;
+
+&lt;h3 id=&quot;5-agentic-ai--the-utilization-multiplier&quot;&gt;5. Agentic AI – The Utilization Multiplier&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://www.cbinsights.com/research/ai-agent-market-map-2025/&quot;&gt;CB Insights tracks 170+ AI Agent startups&lt;/a&gt; with billions in funding.
+Gartner forecasts 40% of enterprise apps will have task-specific AI Agents by end of 2026. When I run
+&lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;fleets of AI Agents&lt;/a&gt;, utilization jumps from 25% to 60–80%. That transforms
+the payoff math.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Impact:&lt;/strong&gt; The catch is that local models still struggle with reliable tool calling in
+agentic contexts. Until that matures, the highest-value workloads stay on cloud.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;OpenClaw and Personal AI Assistants:&lt;/strong&gt; One compelling agentic use case is running personal
+AI assistant bots like &lt;a href=&quot;https://openclaw.ai/&quot;&gt;OpenClaw&lt;/a&gt; (formerly ClawdBot/Moltbot). OpenClaw runs locally,
+integrates with messaging services (Signal, Telegram, Discord, WhatsApp), and connects to either
+cloud APIs or local LLMs via Ollama. With &lt;a href=&quot;https://dev.to/mechcloud_academy/unleashing-openclaw-the-ultimate-guide-to-local-ai-agents-for-developers-in-2026-3k0h&quot;&gt;147,000+ GitHub stars and 2 million visitors in a
+week&lt;/a&gt;, it represents the “2026 year of personal agents” trend. Running these bots
+24/7 on local hardware makes the utilization economics much more attractive – a DGX Spark or Mac
+Studio running OpenClaw with a local 70B model is generating value around the clock, not just
+during active coding sessions.&lt;/p&gt;
+
+&lt;h3 id=&quot;6-privacy-and-compliance--the-non-financial-roi&quot;&gt;6. Privacy and Compliance – The Non-Financial ROI&lt;/h3&gt;
+
+&lt;p&gt;For regulated industries, a single data breach can cost millions. That makes the $3,500–$9,500
+hardware investment trivially justified regardless of the break-even math.&lt;/p&gt;
+
+&lt;h3 id=&quot;7-distributed-clustering--exo-labs-changes-everything&quot;&gt;7. Distributed Clustering – EXO Labs Changes Everything&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/exo-explore/exo&quot;&gt;EXO 1.0&lt;/a&gt; with RDMA over Thunderbolt 5 (macOS 26.2) lets multiple Macs pool
+memory. &lt;a href=&quot;https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/&quot;&gt;Jeff Geerling’s benchmarks&lt;/a&gt; on a 4x M3 Ultra cluster (1.5TB total):&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Model&lt;/th&gt;
+      &lt;th&gt;1 Node (t/s)&lt;/th&gt;
+      &lt;th&gt;4 Nodes EXO+RDMA (t/s)&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Qwen3 235B (8-bit)&lt;/td&gt;
+      &lt;td&gt;19.5&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;31.9&lt;/strong&gt; (+64%)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;DeepSeek V3.1 671B (8-bit)&lt;/td&gt;
+      &lt;td&gt;21.1&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;32.5&lt;/strong&gt; (+54%)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Without RDMA, adding nodes actually &lt;strong&gt;decreased&lt;/strong&gt; performance. With RDMA, latency drops from
+~300us to &amp;lt;50us. This means you can start with one $3,500 M4 Max, prove utilization, then add
+machines incrementally – instead of betting $9,500 on a single box.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-decision-framework&quot;&gt;The Decision Framework&lt;/h2&gt;
+
+&lt;p&gt;Combining all trends:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Factor&lt;/th&gt;
+      &lt;th&gt;Direction&lt;/th&gt;
+      &lt;th&gt;Net Effect on Local ROI&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;API price deflation&lt;/td&gt;
+      &lt;td&gt;Hurts local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Strong negative&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Open-source quality gains&lt;/td&gt;
+      &lt;td&gt;Helps local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Strong positive&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Hardware depreciation&lt;/td&gt;
+      &lt;td&gt;Hurts local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Moderate negative&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Model efficiency&lt;/td&gt;
+      &lt;td&gt;Helps local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Strong positive&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Agentic utilization&lt;/td&gt;
+      &lt;td&gt;Helps local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Conditional positive&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Privacy/compliance value&lt;/td&gt;
+      &lt;td&gt;Helps local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Strong positive&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Distributed clustering&lt;/td&gt;
+      &lt;td&gt;Helps local case&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;Strong positive&lt;/strong&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;The two strongest forces – API price deflation and open-source quality gains – partially
+cancel each other out. The decisive variable remains &lt;strong&gt;utilization&lt;/strong&gt;: local hardware wins when
+it runs consistently, and AI Agent fleets may be the catalyst that makes consistent utilization
+the norm.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-practical-rule&quot;&gt;The Practical Rule&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If your setup pays back in &lt;strong&gt;&amp;lt;6 months&lt;/strong&gt; even under 50%/yr cloud price decline + realistic
+utilization: &lt;strong&gt;buy it&lt;/strong&gt;.&lt;/li&gt;
+  &lt;li&gt;If payback is &lt;strong&gt;&amp;gt;18 months&lt;/strong&gt; in the base case: treat local as a bet on &lt;strong&gt;non-price value&lt;/strong&gt;
+(privacy, reliability, independence) – not pure ROI.&lt;/li&gt;
+  &lt;li&gt;If your workload is compatible with cheap/batched/cached cloud: &lt;strong&gt;local ROI risk increases
+substantially&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;my-recommendation&quot;&gt;My Recommendation&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Start with the lowest viable hardware&lt;/strong&gt; – M4 Max at $3,500 or DGX Spark at $3,999. Aim
+for break-even within 6 months at realistic utilization. &lt;strong&gt;Scale by clustering&lt;/strong&gt; – add a
+second machine via EXO/RDMA when utilization proves out, rather than buying the most expensive
+single box upfront.&lt;/p&gt;
+
+&lt;p&gt;Reserve the M3 Ultra 512GB for teams that have already proven sustained utilization on smaller
+hardware and need frontier-scale models that cannot run elsewhere.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;the-calculator&quot;&gt;The Calculator&lt;/h2&gt;
+
+&lt;p&gt;All the numbers in this post come from a single Python program that you can run, modify, and
+extend. It’s a &lt;a href=&quot;/downloads/local-ai-payoff-calculator.py&quot;&gt;uv-compatible script&lt;/a&gt; – no dependencies, just:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;uv run local-ai-payoff-calculator.py
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It computes:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Main payoff table (all setup x model combinations)&lt;/li&gt;
+  &lt;li&gt;Risk-adjusted scenarios (with cloud price decline modeling)&lt;/li&gt;
+  &lt;li&gt;Electricity cost impact analysis&lt;/li&gt;
+  &lt;li&gt;JSON output for further processing&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;a href=&quot;/downloads/local-ai-payoff-calculator.py&quot;&gt;Download the calculator&lt;/a&gt; and plug in your own hardware costs, throughput numbers,
+and cloud pricing. The numbers will be different by the time you read this – that’s the point.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;methodology-notes&quot;&gt;Methodology Notes&lt;/h2&gt;
+
+&lt;p&gt;A few things we explicitly chose to exclude or simplify:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Electricity excluded&lt;/strong&gt;: The dual RTX 3090 at 700W costs ~$0.105/hr – adds 20% to the
+cheapest cloud equivalent. Mac Studio at 200W adds ~5%. Not nothing, but not the main
+driver.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Quality mapping is approximate&lt;/strong&gt;: A quantized 70B model is not Claude Sonnet 4.5.
+Cloud frontier models maintain a quality advantage for many tasks. This analysis assumes
+“good enough” for your use case.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Single-user inference&lt;/strong&gt;: Batched inference (multiple users) changes economics
+dramatically in favor of CUDA hardware.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Maintenance and depreciation excluded&lt;/strong&gt;: Hardware lasts 3–5 years. Resale value not
+factored in.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Benchmark data sources&lt;/strong&gt;: Token speeds are composites from llama.cpp, MLX, Ollama, NVIDIA
+official benchmarks, and Geerling’s repository. Numbers represent typical single-stream
+decode speeds as of Q1 2026. Actual performance varies with context length, quantization
+method, and framework version.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;sources-and-references&quot;&gt;Sources and References&lt;/h2&gt;
+
+&lt;h3 id=&quot;hardware-pricing&quot;&gt;Hardware Pricing&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.apple.com/shop/buy-mac/mac-studio&quot;&gt;Apple.com Mac Studio configurator&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/dgx-spark/&quot;&gt;NVIDIA DGX Spark marketplace ($3,999 MSRP)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.microcenter.com/product/699008/nvidia-dgx-spark&quot;&gt;Micro Center DGX Spark listing&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;inference-benchmarks&quot;&gt;Inference Benchmarks&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/ggml-org/llama.cpp/discussions/4167&quot;&gt;llama.cpp Apple Silicon discussion #4167&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/ggml-org/llama.cpp/discussions/16578&quot;&gt;llama.cpp DGX Spark discussion #16578&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://lmsys.org/blog/2025-10-13-nvidia-dgx-spark/&quot;&gt;LMSYS DGX Spark in-depth review (October 2025)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://lmsys.org/blog/2025-11-03-gpt-oss-on-nvidia-dgx-spark/&quot;&gt;LMSYS GPT-OSS on DGX Spark (November 2025)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.hardware-corner.net/first-dgx-spark-llm-benchmarks/&quot;&gt;hardware-corner.net DGX Spark benchmarks&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://research.aimultiple.com/dgx-spark-alternatives/&quot;&gt;AIMultiple DGX Spark analysis&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/&quot;&gt;Jeff Geerling: Mac Studio RDMA cluster&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://developer.nvidia.com/blog/how-nvidia-dgx-sparks-performance-enables-intensive-ai-tasks/&quot;&gt;NVIDIA Developer Blog: DGX Spark Performance&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://ollama.com/blog/nvidia-spark-performance&quot;&gt;Ollama DGX Spark Performance Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;cloud-api-pricing-1&quot;&gt;Cloud API Pricing&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://platform.claude.com/docs/en/about-claude/pricing&quot;&gt;Anthropic API pricing&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://openai.com/api/pricing/&quot;&gt;OpenAI API pricing&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration&quot;&gt;MetaCTO Claude pricing guide (December 2025)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://costgoat.com/pricing/claude-api&quot;&gt;CostGoat Claude API calculator&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;future-trends&quot;&gt;Future Trends&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://epoch.ai/data-insights/llm-inference-price-trends&quot;&gt;Epoch AI: LLM inference price trends&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://aiindex.stanford.edu/report/&quot;&gt;Stanford HAI AI Index 2025&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/&quot;&gt;Jeff Geerling: 1.5TB VRAM Mac Studio cluster (December 2025)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/exo-explore/exo&quot;&gt;EXO Labs GitHub&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://whatllm.org&quot;&gt;WhatLLM.org model quality analysis&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://arxiv.org/html/2511.23455v1&quot;&gt;SOSP’25 Aegaeon paper: token-level GPU pooling&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;comparative-guides&quot;&gt;Comparative Guides&lt;/h3&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide&quot;&gt;Introl.com: Local LLM Hardware Guide 2025&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://www.ikangai.com/the-complete-guide-to-running-llms-locally-hardware-software-and-performance-essentials/&quot;&gt;ikangai.com: Complete Guide to Running LLMs Locally&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;This analysis should be refreshed quarterly – hardware (M5 Ultra expected mid-2026), API
+pricing (trending sharply downward), and open-source model quality (trending sharply upward)
+are all moving targets.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Disclaimer: Based on publicly available benchmark data and pricing as of Q1 2026. Actual
+performance varies. No financial relationship with any hardware or cloud provider. Not
+financial advice.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Have questions or corrections? Reach out on
+&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
+&lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter/X&lt;/a&gt;. Let’s compare notes.&lt;/em&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="local-ai" />
+  
+    <category term="ai-agents" />
+  
+    <category term="hardware" />
+  
+    <category term="ai-coding" />
+  
+    <category term="llm" />
+  
+    <category term="cost-analysis" />
+  
+    <summary type="html">Should you buy Local AI hardware or rent cloud tokens? We analyzed four popular setups, built a Python calculator, and discovered that the ground is shifting faster than any spreadsheet can keep up.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal</title>
@@ -2753,101 +3633,6 @@ Rating: 8.5/10
     <category term="rlm" />
   
     <summary type="html">Translating academic research into practical AI agent skills through systematic experimentation.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Plugin Hot Reload: A Faster IntelliJ Dev Loop</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/" rel="alternate" type="text/html" title="Plugin Hot Reload: A Faster IntelliJ Dev Loop" />
-    <published>2026-01-05T00:00:00+00:00</published>
-    <updated>2026-01-05T00:00:00+00:00</updated>
-    <id>/blog/2026/01/05/intellij-plugin-hot-reload</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/05/intellij-plugin-hot-reload/">&lt;p&gt;Restarting IntelliJ for every plugin tweak is a productivity tax. The wait breaks flow, and by the time the IDE is back up you’ve lost the tiny detail you were trying to test. I wanted a tighter loop, so I built &lt;strong&gt;intellij-plugin-hot-reload&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;series-holiday-sprint-with-ai&quot;&gt;Series: Holiday Sprint with AI&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;290 AI-Assisted Commits: My Holiday Sprint with Claude and Codex&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroid: An IntelliJ MCP Server with Vision&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;Plugin Hot Reload: A Faster IntelliJ Dev Loop&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone: A Single-Room Call for Home&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-endpoint&quot;&gt;The Endpoint&lt;/h2&gt;
-
-&lt;p&gt;The plugin registers a built-in server handler at:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/api/plugin-hot-reload
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET&lt;/code&gt; returns a Markdown README packaged inside the plugin.&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST&lt;/code&gt; accepts the raw plugin ZIP as the request body.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The handler is strict: it requires &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Authorization: Bearer &amp;lt;token&amp;gt;&lt;/code&gt; and rejects empty uploads. The token changes each IDE run, which keeps the endpoint local and short-lived.&lt;/p&gt;
-
-&lt;h2 id=&quot;discovery-and-auth&quot;&gt;Discovery and Auth&lt;/h2&gt;
-
-&lt;p&gt;On startup, the plugin writes a marker file to the user home directory:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;~/.&amp;lt;pid&amp;gt;.hot-reload
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It contains the POST URL, the bearer token, a timestamp, and a full IDE “About” block. The file disappears on IDE exit and stale marker files are cleaned up automatically. The Gradle &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;deployPlugin&lt;/code&gt; task scans these markers and pushes new ZIPs to running IDEs.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-reload-pipeline&quot;&gt;The Reload Pipeline&lt;/h2&gt;
-
-&lt;p&gt;The reload flow is intentionally explicit:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Read the plugin ZIP and extract the plugin ID (supports nested JAR layouts).&lt;/li&gt;
-  &lt;li&gt;Reject self-reload to avoid unloading the hot-reload plugin itself.&lt;/li&gt;
-  &lt;li&gt;Unload the existing plugin via the dynamic plugin API.&lt;/li&gt;
-  &lt;li&gt;Replace the plugin directory on disk.&lt;/li&gt;
-  &lt;li&gt;Install and load the new plugin descriptor.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;If unload fails, the service can capture an HPROF snapshot and returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;restartRequired = true&lt;/code&gt;. The endpoint always finishes with a final &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SUCCESS&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt; line so callers can automate around it.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-fine-print&quot;&gt;The Fine Print&lt;/h2&gt;
-
-&lt;p&gt;There are some intentional quirks:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;The response is chunked, but progress is buffered and sent once at the end (no streaming updates).&lt;/li&gt;
-  &lt;li&gt;Requests time out after 5 minutes; a timeout still returns &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FAILED&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;A short 5-second delay is added after reload to let background invocables finish.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This is experimental and intentionally tied to IntelliJ internals. It works, but it is not guaranteed to survive major IDE releases without updates.&lt;/p&gt;
-
-&lt;p&gt;If you want the code, it is here: &lt;a href=&quot;https://github.com/jonnyzzz/intellij-plugin-hot-reload&quot;&gt;github.com/jonnyzzz/intellij-plugin-hot-reload&lt;/a&gt;.&lt;/p&gt;
-
-&lt;iframe src=&quot;https://www.linkedin.com/embed/feed/update/urn:li:activity:7407749413877739520&quot; height=&quot;520&quot; width=&quot;504&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; title=&quot;Embedded post&quot;&gt;&lt;/iframe&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="intellij" />
-  
-    <category term="plugin-development" />
-  
-    <category term="hot-reload" />
-  
-    <category term="kotlin" />
-  
-    <category term="developer-experience" />
-  
-    <summary type="html">Hot reload IntelliJ plugins over HTTP with a bearer token and a ZIP upload, without restarting the IDE.</summary>
   
   </entry>
   

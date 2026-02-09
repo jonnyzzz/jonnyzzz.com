@@ -1,0 +1,1130 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The Cost Return of Local AI: When Does Your Hardware Pay for Itself? &#8211; Eugene Petrenko</title>
+<meta name="description" content="Should you buy Local AI hardware or rent cloud tokens? We analyzed four popular setups, built a Python calculator, and discovered that the ground is shifting faster than any spreadsheet can keep up."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, local-ai, ai-agents, hardware, ai-coding, llm, cost-analysis" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="The Cost Return of Local AI: When Does Your Hardware Pay for Itself? -- Eugene Petrenko" />
+<meta name="twitter:description" content="Should you buy Local AI hardware or rent cloud tokens? We analyzed four popular setups, built a Python calculator, and discovered that the ground is shifting faster than any spreadsheet can keep up." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="The Cost Return of Local AI: When Does Your Hardware Pay for Itself? -- Eugene Petrenko" />
+<meta property="og:description" content="Should you buy Local AI hardware or rent cloud tokens? We analyzed four popular setups, built a Python calculator, and discovered that the ground is shifting faster than any spreadsheet can keep up." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="local-ai" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="hardware" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="llm" />
+
+<meta property="article:tag" content="cost-analysis" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#local-ai" title="Pages tagged local-ai">local-ai</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#hardware" title="Pages tagged hardware">hardware</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#llm" title="Pages tagged llm">llm</a></li><li><a href="/tags/#cost-analysis" title="Pages tagged cost-analysis">cost-analysis</a></li>
+        </ul>
+        
+          <h1 class="entry-title">The Cost Return of Local AI: When Does Your Hardware Pay for Itself?</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-02-09T00:00:00+00:00">February 09, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=local-ai,ai-agents,hardware,ai-coding,llm,cost-analysis&amp;text=The%20Cost%20Return%20of%20Local%20AI:%20When%20Does%20Your%20Hardware%20Pay%20for%20Itself?&amp;url=https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/09/local-ai-cost-return/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>Should you buy Local AI hardware or rent cloud tokens? I’ve been running local models on an
+<a href="/blog/2025/11/26/junie-cage-spark/">NVIDIA DGX Spark</a> and a MacBook Pro M4 Max with 128GB, orchestrating fleets of
+<a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">AI Agents</a> against them. The analysis below also covers Mac Studio configurations
+and dual-GPU workstations for comparison. The obvious question: <strong>does it actually save money
+compared to Anthropic and OpenAI APIs?</strong></p>
+
+<p>We analyzed four popular setups, drawing from published benchmarks and community testing. Then
+we modeled what happens when cloud prices keep falling. The answer is more nuanced – and more
+interesting – than I expected.</p>
+
+<p><strong>Key finding:</strong> At full utilization, mid-range setups (Mac Studio M4 Max 128GB, DGX Spark)
+can pay for themselves in <strong>1.6–8 months</strong> when replacing Opus/Sonnet-class API usage – the
+DGX Spark running GPT-OSS 120B breaks even in <strong>under 2 months</strong>. But cloud API prices are
+falling so fast that your spreadsheet might be wrong before your hardware arrives.</p>
+
+<p>All calculations below are reproducible. <a href="/downloads/local-ai-payoff-calculator.py">Grab the Python calculator</a> and run it
+yourself with <code class="language-plaintext highlighter-rouge">uv run local-ai-payoff-calculator.py</code>.</p>
+
+<hr />
+
+<h2 id="the-four-setups">The Four Setups</h2>
+
+<p>We selected four configurations representing different price-performance tiers. All suitable
+for Local AI inference in a desktop/office environment. Prices reflect Apple.com configurator
+and NVIDIA retail as of Q1 2026. Electricity costs are <strong>explicitly excluded</strong> (we address
+them separately below).</p>
+
+<h3 id="setup-a-mac-studio-m3-ultra--512gb">Setup A: Mac Studio M3 Ultra – 512GB</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Spec</th>
+      <th>Detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Chip</strong></td>
+      <td>Apple M3 Ultra, 32-core CPU, 80-core GPU, 32-core Neural Engine</td>
+    </tr>
+    <tr>
+      <td><strong>Memory</strong></td>
+      <td>512GB unified (819 GB/s bandwidth)</td>
+    </tr>
+    <tr>
+      <td><strong>Price</strong></td>
+      <td><strong>~$9,500</strong> (base $3,999 + chip upgrade + 512GB RAM)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Pricing source: <a href="https://www.apple.com/shop/buy-mac/mac-studio">Apple Mac Studio configurator</a></em></p>
+
+<p>The M3 Ultra’s 819 GB/s memory bandwidth is its killer feature. Token generation speed is
+almost entirely memory-bandwidth bound. This is the only desktop-class machine that can run
+600B+ parameter models (like DeepSeek R1 671B) entirely in memory.</p>
+
+<h3 id="setup-b-mac-studio-m4-max--128gb">Setup B: Mac Studio M4 Max – 128GB</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Spec</th>
+      <th>Detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Chip</strong></td>
+      <td>Apple M4 Max, 16-core CPU, 40-core GPU, 16-core Neural Engine</td>
+    </tr>
+    <tr>
+      <td><strong>Memory</strong></td>
+      <td>128GB unified (546 GB/s bandwidth)</td>
+    </tr>
+    <tr>
+      <td><strong>Price</strong></td>
+      <td><strong>~$3,500</strong> (base $1,999 + chip and memory upgrades)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Pricing source: <a href="https://www.apple.com/shop/buy-mac/mac-studio">Apple Mac Studio configurator</a></em></p>
+
+<p>Best single-core performance of any Apple chip. Its 546 GB/s bandwidth and 128GB handle
+quantized 70B models comfortably.</p>
+
+<h3 id="setup-c-nvidia-dgx-spark--128gb">Setup C: NVIDIA DGX Spark – 128GB</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Spec</th>
+      <th>Detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Chip</strong></td>
+      <td>NVIDIA GB10 Grace Blackwell Superchip</td>
+    </tr>
+    <tr>
+      <td><strong>Memory</strong></td>
+      <td>128GB LPDDR5x unified (273 GB/s bandwidth)</td>
+    </tr>
+    <tr>
+      <td><strong>AI Compute</strong></td>
+      <td>1 PFLOP FP4</td>
+    </tr>
+    <tr>
+      <td><strong>Price</strong></td>
+      <td><strong>$3,999</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Pricing source: <a href="https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/dgx-spark/">NVIDIA DGX Spark product page</a></em></p>
+
+<p>Excels at prompt processing (prefill) thanks to Blackwell tensor cores and FP4/NVFP4 support.
+Its relatively lower memory bandwidth (273 GB/s) limits token generation speed, but its
+<a href="/blog/2025/11/26/junie-cage-spark/">MoE performance is a standout</a>.</p>
+
+<h3 id="setup-d-dual-rtx-3090-workstation">Setup D: Dual RTX 3090 Workstation</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Spec</th>
+      <th>Detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>GPUs</strong></td>
+      <td>2x NVIDIA RTX 3090 (24GB VRAM each = 48GB total)</td>
+    </tr>
+    <tr>
+      <td><strong>GPU Bandwidth</strong></td>
+      <td>936 GB/s per card</td>
+    </tr>
+    <tr>
+      <td><strong>Price</strong></td>
+      <td><strong>~$3,600</strong> (used 3090s ~$800 each + rest of system)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The price-performance champion for pure inference throughput within its 48GB VRAM limit.
+Models must fit within GPU VRAM; larger models fall back to CPU offloading with severe
+performance penalties.</p>
+
+<hr />
+
+<h2 id="models-and-benchmarks">Models and Benchmarks</h2>
+
+<p>All benchmarks use 4-bit quantization (Q4_K_M for GGUF, NVFP4 where available) – the
+practical sweet spot for quality vs. performance. Token generation speed is single-user,
+interactive decode using llama.cpp or MLX.</p>
+
+<h3 id="token-generation-speed-tokenssecond">Token Generation Speed (tokens/second)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>A: M3 Ultra</th>
+      <th>B: M4 Max</th>
+      <th>C: DGX Spark</th>
+      <th>D: 2x 3090</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>LLaMA 3.1 8B Q4</strong></td>
+      <td>~85</td>
+      <td>~70</td>
+      <td>~38</td>
+      <td>~120</td>
+    </tr>
+    <tr>
+      <td><strong>Qwen3 30B Q4</strong></td>
+      <td>~30</td>
+      <td>~22</td>
+      <td>~20</td>
+      <td>~35</td>
+    </tr>
+    <tr>
+      <td><strong>LLaMA 3.1 70B Q4</strong></td>
+      <td>~14</td>
+      <td>~8</td>
+      <td>~6</td>
+      <td>~13</td>
+    </tr>
+    <tr>
+      <td><strong>GPT-OSS 120B Q4</strong></td>
+      <td>~20</td>
+      <td>~10</td>
+      <td>~50</td>
+      <td>Cannot fit</td>
+    </tr>
+    <tr>
+      <td><strong>DeepSeek R1 671B Q4</strong></td>
+      <td>~17</td>
+      <td>–</td>
+      <td>–</td>
+      <td>–</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The DGX Spark’s GPT-OSS 120B number stands out: <strong>50 t/s on a $3,999 box</strong>. This is the MoE
+(Mixture of Experts) sweet spot – only ~20B parameters active per token, but the NVFP4
+tensor cores eat it for breakfast.</p>
+
+<p><em>Sources: <a href="https://github.com/ggml-org/llama.cpp/discussions/4167">llama.cpp Apple Silicon discussion #4167</a>,
+<a href="https://lmsys.org/blog/2025-10-13-nvidia-dgx-spark/">LMSYS DGX Spark review</a>, <a href="https://www.hardware-corner.net/first-dgx-spark-llm-benchmarks/">hardware-corner.net benchmarks</a>,
+<a href="https://lmsys.org/blog/2025-11-03-gpt-oss-on-nvidia-dgx-spark/">LMSYS GPT-OSS on DGX Spark</a></em></p>
+
+<hr />
+
+<h2 id="cloud-api-pricing">Cloud API Pricing</h2>
+
+<p>We map each local model to a comparable cloud API tier. This mapping is inherently approximate
+– a local LLaMA 70B Q4 doesn’t match Claude Sonnet 4.5 quality. But they serve similar use
+cases at roughly comparable quality levels.</p>
+
+<h3 id="output-token-pricing-as-of-q1-2026">Output Token Pricing (as of Q1 2026)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Provider</th>
+      <th>Model</th>
+      <th>Input $/MTok</th>
+      <th>Output $/MTok</th>
+      <th>Comparable Local Model</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing"><strong>Anthropic</strong></a></td>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude Haiku 4.5</a></td>
+      <td>$1.00</td>
+      <td>$5.00</td>
+      <td>LLaMA 3.1 8B</td>
+    </tr>
+    <tr>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing"><strong>Anthropic</strong></a></td>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude Sonnet 4.5</a></td>
+      <td>$3.00</td>
+      <td>$15.00</td>
+      <td>LLaMA 3.1 70B, Qwen3 30B</td>
+    </tr>
+    <tr>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing"><strong>Anthropic</strong></a></td>
+      <td><a href="https://platform.claude.com/docs/en/about-claude/pricing">Claude Opus 4.5</a></td>
+      <td>$5.00</td>
+      <td>$25.00</td>
+      <td>DeepSeek R1 671B, GPT-OSS</td>
+    </tr>
+    <tr>
+      <td><a href="https://openai.com/api/pricing/"><strong>OpenAI</strong></a></td>
+      <td><a href="https://openai.com/api/pricing/">GPT-4o</a></td>
+      <td>$2.50</td>
+      <td>$10.00</td>
+      <td>LLaMA 3.1 70B, Qwen3 30B</td>
+    </tr>
+    <tr>
+      <td><a href="https://openai.com/api/pricing/"><strong>OpenAI</strong></a></td>
+      <td><a href="https://openai.com/api/pricing/">GPT-4o mini</a></td>
+      <td>$0.15</td>
+      <td>$0.60</td>
+      <td>LLaMA 3.1 8B</td>
+    </tr>
+    <tr>
+      <td><a href="https://openai.com/api/pricing/"><strong>OpenAI</strong></a></td>
+      <td><a href="https://openai.com/api/pricing/">GPT-5.1</a></td>
+      <td>$1.25</td>
+      <td>$10.00</td>
+      <td>GPT-OSS 120B</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Sources: <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic API pricing</a>, <a href="https://openai.com/api/pricing/">OpenAI pricing</a>,
+<a href="https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration">MetaCTO analysis (Dec 2025)</a></em></p>
+
+<hr />
+
+<h2 id="the-payoff-table">The Payoff Table</h2>
+
+<p><strong>Payoff = Hardware Cost / Cloud Cost Per Hour</strong></p>
+
+<p>We assume a 70/30 output/input token ratio (typical for interactive use). Weighted price per
+million tokens = 0.7 x output + 0.3 x input. Tokens per hour = tokens/sec x 3600.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Setup + Model</th>
+      <th>HW Cost</th>
+      <th>Cloud $/hr</th>
+      <th><strong>Payoff Months</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C: DGX Spark + GPT-OSS 120B</strong></td>
+      <td>$3,999</td>
+      <td>$3.42</td>
+      <td><strong>1.6</strong></td>
+    </tr>
+    <tr>
+      <td><strong>D: 2x3090 + LLaMA 8B</strong></td>
+      <td>$3,600</td>
+      <td>$1.64</td>
+      <td><strong>3.0</strong></td>
+    </tr>
+    <tr>
+      <td><strong>D: 2x3090 + Qwen3 30B</strong></td>
+      <td>$3,600</td>
+      <td>$1.44</td>
+      <td><strong>3.5</strong></td>
+    </tr>
+    <tr>
+      <td><strong>B: M4 Max + LLaMA 8B</strong></td>
+      <td>$3,500</td>
+      <td>$0.96</td>
+      <td><strong>5.1</strong></td>
+    </tr>
+    <tr>
+      <td><strong>C: DGX Spark + Qwen3 30B</strong></td>
+      <td>$3,999</td>
+      <td>$0.82</td>
+      <td><strong>6.8</strong></td>
+    </tr>
+    <tr>
+      <td><strong>B: M4 Max + GPT-OSS 120B</strong></td>
+      <td>$3,500</td>
+      <td>$0.68</td>
+      <td><strong>7.1</strong></td>
+    </tr>
+    <tr>
+      <td><strong>B: M4 Max + Qwen3 30B</strong></td>
+      <td>$3,500</td>
+      <td>$0.61</td>
+      <td><strong>7.9</strong></td>
+    </tr>
+    <tr>
+      <td><strong>D: 2x3090 + LLaMA 70B</strong></td>
+      <td>$3,600</td>
+      <td>$0.53</td>
+      <td><strong>9.4</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A: M3 Ultra + GPT-OSS 120B</strong></td>
+      <td>$9,500</td>
+      <td>$1.37</td>
+      <td><strong>9.6</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A: M3 Ultra + DeepSeek R1 671B</strong></td>
+      <td>$9,500</td>
+      <td>$1.16</td>
+      <td><strong>11.3</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A: M3 Ultra + Qwen3 30B</strong></td>
+      <td>$9,500</td>
+      <td>$1.23</td>
+      <td><strong>10.7</strong></td>
+    </tr>
+    <tr>
+      <td><strong>C: DGX Spark + LLaMA 8B</strong></td>
+      <td>$3,999</td>
+      <td>$0.52</td>
+      <td><strong>10.7</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A: M3 Ultra + LLaMA 8B</strong></td>
+      <td>$9,500</td>
+      <td>$1.16</td>
+      <td><strong>11.3</strong></td>
+    </tr>
+    <tr>
+      <td><strong>B: M4 Max + LLaMA 70B</strong></td>
+      <td>$3,500</td>
+      <td>$0.33</td>
+      <td><strong>14.8</strong></td>
+    </tr>
+    <tr>
+      <td><strong>C: DGX Spark + LLaMA 70B</strong></td>
+      <td>$3,999</td>
+      <td>$0.25</td>
+      <td><strong>22.6</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A: M3 Ultra + LLaMA 70B</strong></td>
+      <td>$9,500</td>
+      <td>$0.57</td>
+      <td><strong>23.0</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>These numbers assume <strong>100% utilization, 24/7</strong>. Multiply by 2x for 12hr/day usage, 4x for
+6hr/day, 10x for occasional use.</p>
+
+<hr />
+
+<h2 id="the-sweet-spot">The Sweet Spot</h2>
+
+<p>Three scenarios stand out:</p>
+
+<ol>
+  <li>
+    <p><strong>DGX Spark + GPT-OSS 120B vs Opus-class pricing: ~1.6 months.</strong> The Blackwell tensor cores
+combined with MoE efficiency and NVFP4 quantization make this the fastest payoff. At 50%
+utilization it’s 4 months. This is the standout finding – <strong>under 2 months at full
+utilization</strong>.</p>
+  </li>
+  <li>
+    <p><strong>Dual RTX 3090 + small/medium models: 3–3.5 months.</strong> Highest raw throughput on models
+that fit in 48GB VRAM. The used GPU market makes this the cheapest entry point.</p>
+  </li>
+  <li>
+    <p><strong>M4 Max 128GB + 8B/30B models: 5–8 months.</strong> The best balance of price, ecosystem
+(MLX), silence, and capability for a single developer.</p>
+  </li>
+</ol>
+
+<p>The M3 Ultra 512GB shows <strong>11.3 months</strong> payoff for DeepSeek R1 671B (~17 t/s), making it
+competitive with other mid-range scenarios. It’s the only desktop that runs these frontier-scale
+models entirely in memory.</p>
+
+<hr />
+
+<h2 id="but-wait--cloud-prices-keep-falling">But Wait – Cloud Prices Keep Falling</h2>
+
+<p>Here’s where the story gets uncomfortable. The payoff table above treats cloud prices as
+<strong>constant</strong>. They are not.</p>
+
+<p>According to <a href="https://epoch.ai/data-insights/llm-inference-price-trends">Epoch AI research (March 2025)</a>, LLM inference prices have fallen
+between 9x and 900x per year depending on the benchmark, with a median decline of <strong>50x per
+year</strong>. After January 2024, the median rate accelerated to <strong>200x per year</strong>. The <a href="https://aiindex.stanford.edu/report/">Stanford
+HAI AI Index</a> puts it starkly: GPT-3.5-level performance cost fell from $20 per
+1M tokens (November 2022) to $0.07 (October 2024) – <strong>280x in 18 months</strong>.</p>
+
+<p>What does that do to our payoff math?</p>
+
+<h3 id="risk-adjusted-payoff-months">Risk-Adjusted Payoff (months)</h3>
+
+<p>Here’s the DGX Spark + GPT-OSS 120B (the best scenario) under different cloud price decline
+rates and utilization levels:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Utilization</th>
+      <th>Constant price</th>
+      <th>25%/yr decline</th>
+      <th>50%/yr decline</th>
+      <th>80%/yr decline</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>100% (24/7)</td>
+      <td>2</td>
+      <td>2</td>
+      <td>2</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>50% (12h/d)</td>
+      <td>4</td>
+      <td>4</td>
+      <td>4</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <td>25% (6h/d)</td>
+      <td>7</td>
+      <td>7</td>
+      <td>8</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <td>10% (2.4h/d)</td>
+      <td>17</td>
+      <td>21</td>
+      <td>42</td>
+      <td>never</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>And the M4 Max + Qwen3 30B (a more typical developer scenario):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Utilization</th>
+      <th>Constant price</th>
+      <th>25%/yr decline</th>
+      <th>50%/yr decline</th>
+      <th>80%/yr decline</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>100% (24/7)</td>
+      <td>8</td>
+      <td>9</td>
+      <td>11</td>
+      <td>39</td>
+    </tr>
+    <tr>
+      <td>50% (12h/d)</td>
+      <td>16</td>
+      <td>20</td>
+      <td>39</td>
+      <td>never</td>
+    </tr>
+    <tr>
+      <td>25% (6h/d)</td>
+      <td>32</td>
+      <td>58</td>
+      <td>never</td>
+      <td>never</td>
+    </tr>
+    <tr>
+      <td>10% (2.4h/d)</td>
+      <td>80</td>
+      <td>never</td>
+      <td>never</td>
+      <td>never</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>“Never” means the hardware never pays for itself</strong> – cumulative cloud savings converge to
+a finite amount that’s less than the hardware cost. Mathematically:</p>
+
+<blockquote>
+  <p>Max lifetime savings = C0 / (1 - m), where m = (1 - annual_decline_rate)^(1/12)</p>
+
+  <p>If hardware_cost &gt; max_lifetime_savings, payoff = never.</p>
+</blockquote>
+
+<p>This is the most dangerous finding: <strong>at 80% annual cloud price decline and less than 25%
+utilization, most setups never break even on token economics alone.</strong></p>
+
+<hr />
+
+<h2 id="seven-trends-shaping-the-next-18-months">Seven Trends Shaping the Next 18 Months</h2>
+
+<p>I track these because they directly affect whether buying Local AI hardware today is smart
+or premature:</p>
+
+<h3 id="1-api-price-deflation--the-biggest-threat">1. API Price Deflation – The Biggest Threat</h3>
+
+<p>OpenAI moved from GPT-4 ($30/$60 per MTok) to GPT-4 Turbo ($10/$30), then to GPT-4o
+($2.50/$10) – an 83% decline from GPT-4 to GPT-4o. DeepSeek V3.2 hit $0.28/$0.42 per
+MTok – 90% below GPT-4.1. Gartner forecasts that by 2026, AI services cost will become a
+chief competitive factor.</p>
+
+<p><strong>Impact:</strong> A payoff period of 8 months today becomes 80 months if prices drop 10x.</p>
+
+<h3 id="2-open-source-quality--the-biggest-tailwind">2. Open-Source Quality – The Biggest Tailwind</h3>
+
+<p>According to <a href="https://whatllm.org">WhatLLM.org</a> (January 2026), the gap between best open-source and
+proprietary models has narrowed significantly – down from 20+ points in late 2024 to
+single digits in early 2026. Open-source models now win on specific benchmarks outright.</p>
+
+<p><strong>Impact:</strong> Closes the “quality discount” in our calculations. A local 30B running in 2026
+might genuinely match GPT-4o quality.</p>
+
+<h3 id="3-hardware-depreciation--the-clock-is-ticking">3. Hardware Depreciation – The Clock Is Ticking</h3>
+
+<p>Apple M5 launched October 2025 with 30% bandwidth improvement. M5 Ultra <strong>rumored</strong> for mid-2026
+at ~1,100 GB/s (unconfirmed, no official announcement). RTX 5090 ships at $1,999 MSRP and shows
+significant throughput improvements over RTX 4090 in early community benchmarks.</p>
+
+<p><strong>Impact:</strong> A $9,500 M3 Ultra bought today will be outperformed by an M5 Ultra at similar
+price within 6–9 months.</p>
+
+<h3 id="4-model-efficiency--smaller-gets-smarter">4. Model Efficiency – Smaller Gets Smarter</h3>
+
+<p>Model distillation techniques continue advancing rapidly. Smaller models (8B-30B range) are
+increasingly matching or approaching the quality of previous-generation 70B+ models through
+better training and distillation methods.</p>
+
+<p><strong>Impact:</strong> Your hardware gets more capable over time through software alone. The M4 Max
+becomes a better machine next year without changing anything.</p>
+
+<h3 id="5-agentic-ai--the-utilization-multiplier">5. Agentic AI – The Utilization Multiplier</h3>
+
+<p><a href="https://www.cbinsights.com/research/ai-agent-market-map-2025/">CB Insights tracks 170+ AI Agent startups</a> with billions in funding.
+Gartner forecasts 40% of enterprise apps will have task-specific AI Agents by end of 2026. When I run
+<a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">fleets of AI Agents</a>, utilization jumps from 25% to 60–80%. That transforms
+the payoff math.</p>
+
+<p><strong>Impact:</strong> The catch is that local models still struggle with reliable tool calling in
+agentic contexts. Until that matures, the highest-value workloads stay on cloud.</p>
+
+<p><strong>OpenClaw and Personal AI Assistants:</strong> One compelling agentic use case is running personal
+AI assistant bots like <a href="https://openclaw.ai/">OpenClaw</a> (formerly ClawdBot/Moltbot). OpenClaw runs locally,
+integrates with messaging services (Signal, Telegram, Discord, WhatsApp), and connects to either
+cloud APIs or local LLMs via Ollama. With <a href="https://dev.to/mechcloud_academy/unleashing-openclaw-the-ultimate-guide-to-local-ai-agents-for-developers-in-2026-3k0h">147,000+ GitHub stars and 2 million visitors in a
+week</a>, it represents the “2026 year of personal agents” trend. Running these bots
+24/7 on local hardware makes the utilization economics much more attractive – a DGX Spark or Mac
+Studio running OpenClaw with a local 70B model is generating value around the clock, not just
+during active coding sessions.</p>
+
+<h3 id="6-privacy-and-compliance--the-non-financial-roi">6. Privacy and Compliance – The Non-Financial ROI</h3>
+
+<p>For regulated industries, a single data breach can cost millions. That makes the $3,500–$9,500
+hardware investment trivially justified regardless of the break-even math.</p>
+
+<h3 id="7-distributed-clustering--exo-labs-changes-everything">7. Distributed Clustering – EXO Labs Changes Everything</h3>
+
+<p><a href="https://github.com/exo-explore/exo">EXO 1.0</a> with RDMA over Thunderbolt 5 (macOS 26.2) lets multiple Macs pool
+memory. <a href="https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/">Jeff Geerling’s benchmarks</a> on a 4x M3 Ultra cluster (1.5TB total):</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Model</th>
+      <th>1 Node (t/s)</th>
+      <th>4 Nodes EXO+RDMA (t/s)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Qwen3 235B (8-bit)</td>
+      <td>19.5</td>
+      <td><strong>31.9</strong> (+64%)</td>
+    </tr>
+    <tr>
+      <td>DeepSeek V3.1 671B (8-bit)</td>
+      <td>21.1</td>
+      <td><strong>32.5</strong> (+54%)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Without RDMA, adding nodes actually <strong>decreased</strong> performance. With RDMA, latency drops from
+~300us to &lt;50us. This means you can start with one $3,500 M4 Max, prove utilization, then add
+machines incrementally – instead of betting $9,500 on a single box.</p>
+
+<hr />
+
+<h2 id="the-decision-framework">The Decision Framework</h2>
+
+<p>Combining all trends:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Factor</th>
+      <th>Direction</th>
+      <th>Net Effect on Local ROI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>API price deflation</td>
+      <td>Hurts local case</td>
+      <td><strong>Strong negative</strong></td>
+    </tr>
+    <tr>
+      <td>Open-source quality gains</td>
+      <td>Helps local case</td>
+      <td><strong>Strong positive</strong></td>
+    </tr>
+    <tr>
+      <td>Hardware depreciation</td>
+      <td>Hurts local case</td>
+      <td><strong>Moderate negative</strong></td>
+    </tr>
+    <tr>
+      <td>Model efficiency</td>
+      <td>Helps local case</td>
+      <td><strong>Strong positive</strong></td>
+    </tr>
+    <tr>
+      <td>Agentic utilization</td>
+      <td>Helps local case</td>
+      <td><strong>Conditional positive</strong></td>
+    </tr>
+    <tr>
+      <td>Privacy/compliance value</td>
+      <td>Helps local case</td>
+      <td><strong>Strong positive</strong></td>
+    </tr>
+    <tr>
+      <td>Distributed clustering</td>
+      <td>Helps local case</td>
+      <td><strong>Strong positive</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The two strongest forces – API price deflation and open-source quality gains – partially
+cancel each other out. The decisive variable remains <strong>utilization</strong>: local hardware wins when
+it runs consistently, and AI Agent fleets may be the catalyst that makes consistent utilization
+the norm.</p>
+
+<h3 id="the-practical-rule">The Practical Rule</h3>
+
+<ul>
+  <li>If your setup pays back in <strong>&lt;6 months</strong> even under 50%/yr cloud price decline + realistic
+utilization: <strong>buy it</strong>.</li>
+  <li>If payback is <strong>&gt;18 months</strong> in the base case: treat local as a bet on <strong>non-price value</strong>
+(privacy, reliability, independence) – not pure ROI.</li>
+  <li>If your workload is compatible with cheap/batched/cached cloud: <strong>local ROI risk increases
+substantially</strong>.</li>
+</ul>
+
+<h3 id="my-recommendation">My Recommendation</h3>
+
+<p><strong>Start with the lowest viable hardware</strong> – M4 Max at $3,500 or DGX Spark at $3,999. Aim
+for break-even within 6 months at realistic utilization. <strong>Scale by clustering</strong> – add a
+second machine via EXO/RDMA when utilization proves out, rather than buying the most expensive
+single box upfront.</p>
+
+<p>Reserve the M3 Ultra 512GB for teams that have already proven sustained utilization on smaller
+hardware and need frontier-scale models that cannot run elsewhere.</p>
+
+<hr />
+
+<h2 id="the-calculator">The Calculator</h2>
+
+<p>All the numbers in this post come from a single Python program that you can run, modify, and
+extend. It’s a <a href="/downloads/local-ai-payoff-calculator.py">uv-compatible script</a> – no dependencies, just:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>uv run local-ai-payoff-calculator.py
+</code></pre></div></div>
+
+<p>It computes:</p>
+<ul>
+  <li>Main payoff table (all setup x model combinations)</li>
+  <li>Risk-adjusted scenarios (with cloud price decline modeling)</li>
+  <li>Electricity cost impact analysis</li>
+  <li>JSON output for further processing</li>
+</ul>
+
+<p><a href="/downloads/local-ai-payoff-calculator.py">Download the calculator</a> and plug in your own hardware costs, throughput numbers,
+and cloud pricing. The numbers will be different by the time you read this – that’s the point.</p>
+
+<hr />
+
+<h2 id="methodology-notes">Methodology Notes</h2>
+
+<p>A few things we explicitly chose to exclude or simplify:</p>
+
+<ol>
+  <li>
+    <p><strong>Electricity excluded</strong>: The dual RTX 3090 at 700W costs ~$0.105/hr – adds 20% to the
+cheapest cloud equivalent. Mac Studio at 200W adds ~5%. Not nothing, but not the main
+driver.</p>
+  </li>
+  <li>
+    <p><strong>Quality mapping is approximate</strong>: A quantized 70B model is not Claude Sonnet 4.5.
+Cloud frontier models maintain a quality advantage for many tasks. This analysis assumes
+“good enough” for your use case.</p>
+  </li>
+  <li>
+    <p><strong>Single-user inference</strong>: Batched inference (multiple users) changes economics
+dramatically in favor of CUDA hardware.</p>
+  </li>
+  <li>
+    <p><strong>Maintenance and depreciation excluded</strong>: Hardware lasts 3–5 years. Resale value not
+factored in.</p>
+  </li>
+  <li>
+    <p><strong>Benchmark data sources</strong>: Token speeds are composites from llama.cpp, MLX, Ollama, NVIDIA
+official benchmarks, and Geerling’s repository. Numbers represent typical single-stream
+decode speeds as of Q1 2026. Actual performance varies with context length, quantization
+method, and framework version.</p>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="sources-and-references">Sources and References</h2>
+
+<h3 id="hardware-pricing">Hardware Pricing</h3>
+<ul>
+  <li><a href="https://www.apple.com/shop/buy-mac/mac-studio">Apple.com Mac Studio configurator</a></li>
+  <li><a href="https://marketplace.nvidia.com/en-us/enterprise/personal-ai-supercomputers/dgx-spark/">NVIDIA DGX Spark marketplace ($3,999 MSRP)</a></li>
+  <li><a href="https://www.microcenter.com/product/699008/nvidia-dgx-spark">Micro Center DGX Spark listing</a></li>
+</ul>
+
+<h3 id="inference-benchmarks">Inference Benchmarks</h3>
+<ul>
+  <li><a href="https://github.com/ggml-org/llama.cpp/discussions/4167">llama.cpp Apple Silicon discussion #4167</a></li>
+  <li><a href="https://github.com/ggml-org/llama.cpp/discussions/16578">llama.cpp DGX Spark discussion #16578</a></li>
+  <li><a href="https://lmsys.org/blog/2025-10-13-nvidia-dgx-spark/">LMSYS DGX Spark in-depth review (October 2025)</a></li>
+  <li><a href="https://lmsys.org/blog/2025-11-03-gpt-oss-on-nvidia-dgx-spark/">LMSYS GPT-OSS on DGX Spark (November 2025)</a></li>
+  <li><a href="https://www.hardware-corner.net/first-dgx-spark-llm-benchmarks/">hardware-corner.net DGX Spark benchmarks</a></li>
+  <li><a href="https://research.aimultiple.com/dgx-spark-alternatives/">AIMultiple DGX Spark analysis</a></li>
+  <li><a href="https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/">Jeff Geerling: Mac Studio RDMA cluster</a></li>
+  <li><a href="https://developer.nvidia.com/blog/how-nvidia-dgx-sparks-performance-enables-intensive-ai-tasks/">NVIDIA Developer Blog: DGX Spark Performance</a></li>
+  <li><a href="https://ollama.com/blog/nvidia-spark-performance">Ollama DGX Spark Performance Analysis</a></li>
+</ul>
+
+<h3 id="cloud-api-pricing-1">Cloud API Pricing</h3>
+<ul>
+  <li><a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic API pricing</a></li>
+  <li><a href="https://openai.com/api/pricing/">OpenAI API pricing</a></li>
+  <li><a href="https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration">MetaCTO Claude pricing guide (December 2025)</a></li>
+  <li><a href="https://costgoat.com/pricing/claude-api">CostGoat Claude API calculator</a></li>
+</ul>
+
+<h3 id="future-trends">Future Trends</h3>
+<ul>
+  <li><a href="https://epoch.ai/data-insights/llm-inference-price-trends">Epoch AI: LLM inference price trends</a></li>
+  <li><a href="https://aiindex.stanford.edu/report/">Stanford HAI AI Index 2025</a></li>
+  <li><a href="https://www.jeffgeerling.com/blog/2025/15-tb-vram-on-mac-studio-rdma-over-thunderbolt-5/">Jeff Geerling: 1.5TB VRAM Mac Studio cluster (December 2025)</a></li>
+  <li><a href="https://github.com/exo-explore/exo">EXO Labs GitHub</a></li>
+  <li><a href="https://whatllm.org">WhatLLM.org model quality analysis</a></li>
+  <li><a href="https://arxiv.org/html/2511.23455v1">SOSP’25 Aegaeon paper: token-level GPU pooling</a></li>
+</ul>
+
+<h3 id="comparative-guides">Comparative Guides</h3>
+<ul>
+  <li><a href="https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide">Introl.com: Local LLM Hardware Guide 2025</a></li>
+  <li><a href="https://www.ikangai.com/the-complete-guide-to-running-llms-locally-hardware-software-and-performance-essentials/">ikangai.com: Complete Guide to Running LLMs Locally</a></li>
+</ul>
+
+<hr />
+
+<p><em>This analysis should be refreshed quarterly – hardware (M5 Ultra expected mid-2026), API
+pricing (trending sharply downward), and open-source model quality (trending sharply upward)
+are all moving targets.</em></p>
+
+<p><em>Disclaimer: Based on publicly available benchmark data and pricing as of Q1 2026. Actual
+performance varies. No financial relationship with any hardware or cloud provider. Not
+financial advice.</em></p>
+
+<p><em>Have questions or corrections? Reach out on
+<a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or
+<a href="https://x.com/jonnyzzz">Twitter/X</a>. Let’s compare notes.</em></p>
+
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/" class="btn" title="run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
