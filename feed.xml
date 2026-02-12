@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-09T14:18:21+00:00</updated>
+  <updated>2026-02-12T19:09:29+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,868 @@
   
 
   
+  
+  <entry>
+    <title type="html">When Your IntelliJ Plugin Works in Tests but Fails in Production</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" rel="alternate" type="text/html" title="When Your IntelliJ Plugin Works in Tests but Fails in Production" />
+    <published>2026-02-12T00:00:00+00:00</published>
+    <updated>2026-02-12T00:00:00+00:00</updated>
+    <id>/blog/2026/02/12/jvm-classloading-intellij</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/">&lt;p&gt;If your IntelliJ plugin works in tests but fails in production with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt;,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassCastException&lt;/code&gt;, or plugin conflicts, you are likely hitting a classloader boundary problem.
+Let’s walk through what actually happens and how to stay safe.&lt;/p&gt;
+
+&lt;h2 id=&quot;table-of-contents&quot;&gt;Table of Contents&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;#foundation-how-jvm-classloading-works&quot;&gt;Foundation: How JVM Classloading Works&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#basic-classloaders&quot;&gt;Basic Classloaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#duplicate-dependencies&quot;&gt;Duplicate Dependencies&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#how-it-works&quot;&gt;How It Works&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#intellij-plugin-classloading&quot;&gt;IntelliJ Plugin Classloading&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#plugin-classloader-architecture&quot;&gt;Plugin Classloader Architecture&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#kotlin-libraries-in-plugins&quot;&gt;Kotlin Libraries in Plugins&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#why-kotlin-libraries-are-special&quot;&gt;Why Kotlin Libraries Are Special&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#build-time-verification&quot;&gt;Build-Time Verification&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#common-isolation-patterns&quot;&gt;Common Isolation Patterns&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#shadow-jar-and-relocation&quot;&gt;Shadow JAR and Relocation&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#independent-classloader-hierarchies&quot;&gt;Independent Classloader Hierarchies&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#testing-and-classloaders&quot;&gt;Testing and Classloaders&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#why-test-runtime-differs-from-production&quot;&gt;Why Test Runtime Differs from Production&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#test-fixtures-and-dependencies&quot;&gt;Test Fixtures and Dependencies&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#platform-upgrades-and-breaking-changes&quot;&gt;Platform Upgrades and Breaking Changes&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#resource-bundle-loading&quot;&gt;Resource Bundle Loading&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#common-test-failures&quot;&gt;Common Test Failures&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#debugging-test-classloaders&quot;&gt;Debugging Test Classloaders&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#best-practices-for-plugin-tests&quot;&gt;Best Practices for Plugin Tests&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#advanced-topics&quot;&gt;Advanced Topics&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#embedding-compilers&quot;&gt;Embedding Compilers&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#serviceloader-and-classloader-context&quot;&gt;ServiceLoader and Classloader Context&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#debugging-classloaders-in-production&quot;&gt;Debugging Classloaders in Production&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#start-with-verbose-class-logging&quot;&gt;Start with Verbose Class Logging&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#inspect-class-origin-at-runtime&quot;&gt;Inspect Class Origin at Runtime&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#find-duplicate-jars&quot;&gt;Find Duplicate JARs&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#process-inspection-tools&quot;&gt;Process Inspection Tools&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#intellij-debugger-inspector&quot;&gt;IntelliJ Debugger Inspector&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#detect-duplicates-early&quot;&gt;Detect Duplicates Early&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#common-error-patterns&quot;&gt;Common Error Patterns&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#log-classloader-hierarchies&quot;&gt;Log Classloader Hierarchies&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#practical-workflow&quot;&gt;Practical Workflow&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#references&quot;&gt;References&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;foundation-how-jvm-classloading-works&quot;&gt;Foundation: How JVM Classloading Works&lt;/h2&gt;
+
+&lt;h3 id=&quot;basic-classloaders&quot;&gt;Basic Classloaders&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;For the JVM the key of each class is ClassLoader instance + class full name&lt;/li&gt;
+  &lt;li&gt;At the bytecode level, the key is only the class fully qualified name (FQN)&lt;/li&gt;
+  &lt;li&gt;Classloaders are connected in the graph, and each class calls its own classloader to load classes.&lt;/li&gt;
+  &lt;li&gt;Classloader implements the strategy to look for a class, in it’s classpath, or in other classloaders.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The problems start when classes resolve it’s FQN to different Class instances, and to different classloaders. 
+Usually you see that as LinkageError or similar exceptions.&lt;/p&gt;
+
+&lt;p&gt;The base class for all classloaders is the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; class. In JDK 8 and in many plugin/container
+implementations, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; is a common concrete class, but this is not universal on newer JDKs.
+You need to create your own classloader if you want to change something.&lt;/p&gt;
+
+&lt;p&gt;With this baseline, let’s talk about duplicate dependencies.&lt;/p&gt;
+
+&lt;h3 id=&quot;duplicate-dependencies&quot;&gt;Duplicate Dependencies&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Rule Number One:&lt;/strong&gt; Never ship duplicate runtime libraries across classloader boundaries
+unless isolation is explicit and tested.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Start with dependency hygiene. Make sure your build system resolves the classpath correctly. I recommend to include
+the strong assertions on which JAR files you are including into your application. For example, it can be that
+you depend on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; 2.1.20, and your transitive dependencies bring &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt; 1.9.24.
+It will unlikely to work.&lt;/p&gt;
+
+&lt;p&gt;Ok, now assume you cannot change that, and you have two JARs with the same-named classes. How would you do?
+It happens when you want to integration into an existing big application, for example IntelliJ-based IDE.
+Check the &lt;strong&gt;Rule Number One&lt;/strong&gt; first.&lt;/p&gt;
+
+&lt;p&gt;So how can you make your classes load a class &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;com.jonnyzzz.AI&lt;/code&gt; of your own jar, while the rest of the application
+load the same-named class from their own jar?&lt;/p&gt;
+
+&lt;p&gt;You need to implement the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; different way. Usually, inherit from the URLClassLoader and change the
+strategy in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findClass&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findResource&lt;/code&gt; methods. You need to change the logic:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;the default logic: classloader looks for the class in the parent classloader first&lt;/li&gt;
+  &lt;li&gt;the changed logic: your classloader looks in its own classpath first and only next calls the parent.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; API assumes a single parent, but real-world implementations may differ.
+IntelliJ’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt;, for example, maintains multiple parent references to implement the plugin
+dependency graph. Other application containers and frameworks may have their own classloader hierarchies and
+delegation strategies beyond the simple parent-first chain.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; In practice, many application containers use non-tree-based classloader hierarchies. IntelliJ
+plugin classloaders have multiple parents (following the plugin dependency graph), not a single parent chain.
+The parent traversal pattern shown here is a simplified model. Real-world hierarchies require more complex
+delegation logic.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;This is easy and complicated. First of all, once you did that, you cannot use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;com.jonnyzzz.AI&lt;/code&gt; class from that
+parent application, because you have another &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Class&lt;/code&gt; instance, and there are two different classes with the same
+name.&lt;/p&gt;
+
+&lt;p&gt;This is where the problems start, and this is why we have &lt;strong&gt;Rule Number One&lt;/strong&gt;. And the same applies to the resources
+resolution by ClassLoader.&lt;/p&gt;
+
+&lt;h3 id=&quot;how-it-works&quot;&gt;How It Works&lt;/h3&gt;
+
+&lt;p&gt;Only very carefully. You can only use the classes, which you are not overriding.&lt;/p&gt;
+
+&lt;p&gt;For example, you can use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsiElement&lt;/code&gt; from the IntelliJ, and call your own &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ktor&lt;/code&gt; server.&lt;/p&gt;
+
+&lt;h2 id=&quot;intellij-plugin-classloading&quot;&gt;IntelliJ Plugin Classloading&lt;/h2&gt;
+
+&lt;h3 id=&quot;plugin-classloader-architecture&quot;&gt;Plugin Classloader Architecture&lt;/h3&gt;
+
+&lt;p&gt;Applications like IntelliJ provides the classloader infrastructure and load your plugin code in their
+dedicated classloader. Such classloader is designed to look at your plugin’s lib folder first,
+and look at the other classloaders next.&lt;/p&gt;
+
+&lt;p&gt;Each plugin in IntelliJ is loaded with its own classloader. Classloaders are organized in the Graph,
+replicating plugin dependencies, declared in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; files. Tricky?&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; IntelliJ’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt; does not follow the simple single-parent tree model. Each plugin
+classloader has multiple parents corresponding to its declared dependencies. When you call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getParent()&lt;/code&gt;, you
+only see one parent, but the actual delegation logic queries all dependency classloaders. This non-tree hierarchy
+means standard parent-chain traversal code will not capture the full classloader topology.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;kotlin-libraries-in-plugins&quot;&gt;Kotlin Libraries in Plugins&lt;/h2&gt;
+
+&lt;h3 id=&quot;why-kotlin-libraries-are-special&quot;&gt;Why Kotlin Libraries Are Special&lt;/h3&gt;
+
+&lt;p&gt;Before we move to classloader testing and deep isolation, there is one Kotlin-specific caveat.&lt;/p&gt;
+
+&lt;p&gt;Kotlin libraries are yet another story. Kotlin/JVM gives strong backward binary compatibility for
+stable compiler output, but forward compatibility is not guaranteed, and library compatibility is
+library-specific. Coroutines, Serialization, and other libraries can be tricky. I recommend carefully
+reading the &lt;a href=&quot;https://kotlinlang.org&quot;&gt;kotlinlang.org&lt;/a&gt; for details.&lt;/p&gt;
+
+&lt;p&gt;In IntelliJ, prefer Kotlin libraries bundled with your target platform. In most cases, do not package
+your own &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-reflect&lt;/code&gt;, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlinx-coroutines-core&lt;/code&gt; unless your compatibility
+matrix explicitly requires it. Write an assert in your build system to avoid accidental duplicates.&lt;/p&gt;
+
+&lt;h3 id=&quot;build-time-verification&quot;&gt;Build-Time Verification&lt;/h3&gt;
+
+&lt;p&gt;Here is how you can verify your plugin does not bundle forbidden libraries. Add a Gradle task that
+inspects the built plugin ZIP and fails the build if Kotlin runtime libraries are found. This catches
+dependency misconfigurations early, before they cause &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassCastException&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt; in production.&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;verifyPluginLibs&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;by&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;registering&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;dependsOn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buildPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;doLast&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;zipFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;buildPlugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;singleFile&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;libs&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ZipFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zipFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;use&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;entries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;asSequence&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;filter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/lib/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;endsWith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;.jar&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;substringAfterLast&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;/&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;forbidden&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;kotlin-stdlib&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;kotlin-reflect&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;kotlinx-coroutines-core&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;violations&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;libs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;filter&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jar&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;forbidden&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;any&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;jar&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;startsWith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;nf&quot;&gt;check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;violations&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;isEmpty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;s&quot;&gt;&quot;Forbidden libraries bundled: ${violations.joinToString()}&quot;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Why it’s so important? Here is the example:
+Take a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;suspend fun &amp;lt;T&amp;gt; test(value: T): T&lt;/code&gt;, it is compiled to a JVM signature like
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Object test(T value, Continuation&amp;lt;? super T&amp;gt; c)&lt;/code&gt;.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Continuation&lt;/code&gt; interface comes from the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-stdlib&lt;/code&gt; (package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin.coroutines&lt;/code&gt;). And in order to make it work,
+you need to have the same class loaded across classloader boundaries. That is vital when you call
+shared &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;suspend&lt;/code&gt; APIs across those boundaries.&lt;/p&gt;
+
+&lt;p&gt;The same classloading principles explain most test/runtime mismatches too.&lt;/p&gt;
+
+&lt;h2 id=&quot;common-isolation-patterns&quot;&gt;Common Isolation Patterns&lt;/h2&gt;
+
+&lt;h3 id=&quot;shadow-jar-and-relocation&quot;&gt;Shadow JAR and Relocation&lt;/h3&gt;
+
+&lt;p&gt;If dependency alignment is not possible, the next mitigation is relocation.&lt;/p&gt;
+
+&lt;p&gt;Shadow Jar is another technique. On one side, it helps to create a huge monolithic JAR, which you can &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java -jar&lt;/code&gt;
+to start.&lt;/p&gt;
+
+&lt;p&gt;The most powerful feature is the classes’ relocation. Basically, it takes the bytecode, and changes the FQN’s
+of the classes and information in other places to turn your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;com.jonnyzzz.AI&lt;/code&gt; class into &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;relocate.package.com.jonnyzzz.AI&lt;/code&gt;
+class.&lt;/p&gt;
+
+&lt;p&gt;Here is the place where problems start – your code may use metadata, reflection, and other tricks which the
+relocation logic may not see or find. Like Kotlin’s metadata for example. This is where the &lt;strong&gt;Rule Number One&lt;/strong&gt; is necessary.&lt;/p&gt;
+
+&lt;h3 id=&quot;independent-classloader-hierarchies&quot;&gt;Independent Classloader Hierarchies&lt;/h3&gt;
+
+&lt;p&gt;When relocation is still not enough, the next step is dedicated classloader hierarchies.&lt;/p&gt;
+
+&lt;p&gt;The whole JVM starts from the Bootstrap classloader (written in native code), which loads the
+Java Standard Library. Next comes the Platform classloader, and then the System/Application
+classloader for your application classes. On practice, you can add more classes to that classpath, be very careful.&lt;/p&gt;
+
+&lt;p&gt;Nevertheless, we can build the following structure&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;graph TD
+    BootstrapCL[&quot;Bootstrap ClassLoader&amp;lt;br/&amp;gt;(Java Standard Library)&quot;]
+
+    AppCL[&quot;Application ClassLoader&amp;lt;br/&amp;gt;(Your Application)&quot;]
+    CustomCL[&quot;Custom ClassLoader&amp;lt;br/&amp;gt;(parent = null)&amp;lt;br/&amp;gt;(Isolated Application)&quot;]
+
+    BootstrapCL --&amp;gt; AppCL
+    BootstrapCL --&amp;gt; CustomCL
+
+    style BootstrapCL fill:#e1f5ff
+    style AppCL fill:#fff4e6
+    style CustomCL fill:#f3e5f5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can build your own classloader hierarchy, for example you can start from the Bootstrap classloader.
+For that, you load classes to your classloader in the following way &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;new URLClassLoader(classpath, null)&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;You pass &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;null&lt;/code&gt; as the parent classloader to your URL classloader. This delegates to the Bootstrap classloader,
+avoiding any interaction with the Application classpath, but the cost is – you can only use Java Standard
+Library classes as the common ground. And thus you will do reflection.&lt;/p&gt;
+
+&lt;p&gt;I do recommend that approach, if you need to load a complex application, which may do much tricky stuff inside.&lt;/p&gt;
+
+&lt;p&gt;You should understand, this is a good, but not 100% isolation. Both applications can still conflict for the same
+common resources like ForkJoinPool, or System Properties.&lt;/p&gt;
+
+&lt;p&gt;Sometimes, it’s possible to add your API JAR to the beginning. Usually it’s not possible in the complex applications.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mermaid&quot;&gt;graph TD
+    BootstrapCL[&quot;Bootstrap ClassLoader&amp;lt;br/&amp;gt;(Java Standard Library)&quot;]
+
+    APICL[&quot;API ClassLoader&amp;lt;br/&amp;gt;(Shared API JAR)&quot;]
+
+    AppA[&quot;Application A ClassLoader&quot;]
+    AppB[&quot;Application B ClassLoader&quot;]
+
+    BootstrapCL --&amp;gt; APICL
+    APICL --&amp;gt; AppA
+    APICL --&amp;gt; AppB
+
+    style BootstrapCL fill:#e1f5ff
+    style APICL fill:#e8f5e9
+    style AppA fill:#fff4e6
+    style AppB fill:#f3e5f5
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, that is not an easy business, just consider what you do with Logging and all 5+ logging libraries you have.
+Logging libraries usually have assertions to help you implement that correctly. This is vital tool.&lt;/p&gt;
+
+&lt;p&gt;This is another place where &lt;strong&gt;Rule Number One&lt;/strong&gt; applies.&lt;/p&gt;
+
+&lt;h2 id=&quot;testing-and-classloaders&quot;&gt;Testing and Classloaders&lt;/h2&gt;
+
+&lt;p&gt;Here is a pattern I keep seeing: plugin works in the IDE, tests fail with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;resource not found&lt;/code&gt; or
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassNotFoundException&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;In most cases this is not random. Test runtime classloading is different from production runtime classloading.&lt;/p&gt;
+
+&lt;h3 id=&quot;why-test-runtime-differs-from-production&quot;&gt;Why Test Runtime Differs from Production&lt;/h3&gt;
+
+&lt;p&gt;In production, your plugin code is loaded by IntelliJ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt;. Plugin classloaders are isolated and linked
+as a dependency graph based on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; dependencies.&lt;/p&gt;
+
+&lt;p&gt;In tests, you run a dedicated test JVM. The IntelliJ Platform test framework is initialized inside that process, with
+its own classpath and test framework artifacts. On modern platform targets, test tasks also run with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;So class and resource resolution surface is different by design:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;production: real IDE distribution + real plugin graph&lt;/li&gt;
+  &lt;li&gt;tests: test runtime classpath + selected test framework modules/plugins&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If runtime works and tests fail, the first suspect is usually test runtime composition.&lt;/p&gt;
+
+&lt;h3 id=&quot;test-fixtures-and-dependencies&quot;&gt;Test Fixtures and Dependencies&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;BasePlatformTestCase&lt;/code&gt; and related fixture-based tests bootstrap IntelliJ test application and project infrastructure
+in-process. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LightJavaCodeInsightFixtureTestCase&lt;/code&gt; builds on light fixtures and Java-specific test setup.&lt;/p&gt;
+
+&lt;p&gt;The important operational detail is dependency provisioning:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;test framework dependencies are explicit&lt;/li&gt;
+  &lt;li&gt;Java-specific tests require Java test framework/plugin artifacts&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With IntelliJ Platform Gradle plugin 2.x, this is expressed as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;testFramework(...)&lt;/code&gt; dependencies, for example:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;intellijPlatform&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;testFramework&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;TestFrameworkType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;testFramework&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;TestFrameworkType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Plugin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Without Java test framework dependencies, Java classes/resources (including Java bundle resources) may be absent in
+unit tests even if runtime IDE behavior looks fine.&lt;/p&gt;
+
+&lt;h3 id=&quot;platform-upgrades-and-breaking-changes&quot;&gt;Platform Upgrades and Breaking Changes&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2&lt;/code&gt; platform line came with module layout changes significant enough that JetBrains recommends migrating to
+IntelliJ Platform Gradle plugin &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2.x&lt;/code&gt; when targeting &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2+&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;That upgrade often changes what lands on your test runtime classpath:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;some dependencies that were previously available implicitly are no longer there&lt;/li&gt;
+  &lt;li&gt;tests become more sensitive to explicitly declared platform/plugin test dependencies&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So migrating from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.1.7&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2.x&lt;/code&gt; can expose hidden assumptions in tests, especially around Java-related PSI,
+resources, and plugin dependency wiring.&lt;/p&gt;
+
+&lt;h3 id=&quot;resource-bundle-loading&quot;&gt;Resource Bundle Loading&lt;/h3&gt;
+
+&lt;p&gt;IntelliJ message bundles are classpath resources (for example &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;messages/MyBundle.properties&lt;/code&gt;) resolved by bundle name.&lt;/p&gt;
+
+&lt;p&gt;Two practical gotchas matter a lot in tests:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;bundle base names are global on classpath, duplicate names across artifacts can resolve by loading order&lt;/li&gt;
+  &lt;li&gt;test runtime packaging and order can differ from production plugin packaging&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This means bundle lookups can succeed in production but fail in tests (or resolve to the wrong bundle) if classpath
+composition differs.&lt;/p&gt;
+
+&lt;p&gt;If you see errors like:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ERROR: &apos;filetype.java.module.display.name&apos; is not found
+(baseBundleName=messages.JavaPsiBundle, ...)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Validate that Java plugin/test framework dependencies are present for tests, and that no packaging or relocation
+changed resource paths.&lt;/p&gt;
+
+&lt;h3 id=&quot;common-test-failures&quot;&gt;Common Test Failures&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;resource not found&lt;/code&gt;: usually missing test framework plugin dependency or wrong bundle path/name&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassNotFoundException&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NoClassDefFoundError&lt;/code&gt;: dependency missing from test runtime, often hidden by runtime IDE&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceConfigurationError&lt;/code&gt;: service interface/impl loaded via incompatible classloaders&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;debugging-test-classloaders&quot;&gt;Debugging Test Classloaders&lt;/h3&gt;
+
+&lt;p&gt;Use a short diagnostic helper inside failing tests:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;dumpClassloading&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;anchor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resourcePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Class: ${anchor.name}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;anchor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;  loader -&amp;gt; $cl&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Resource &apos;$resourcePath&apos; -&amp;gt; ${anchor.classLoader?.getResource(resourcePath)}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And enable class loading logs for the test JVM:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;tasks&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;jvmArgs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;-Xlog:class+load=info&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For every failing symbol/resource, answer two questions:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Which classloader loaded it?&lt;/li&gt;
+  &lt;li&gt;From which JAR/resource URL did it come?&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;That usually localizes the problem quickly.&lt;/p&gt;
+
+&lt;h3 id=&quot;best-practices-for-plugin-tests&quot;&gt;Best Practices for Plugin Tests&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Keep platform target and IntelliJ Platform Gradle plugin aligned (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2+&lt;/code&gt; =&amp;gt; plugin &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2.x&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;Declare plugin dependencies explicitly in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; and mirror them in test framework dependencies.&lt;/li&gt;
+  &lt;li&gt;Add Java test framework/plugin dependencies for Java PSI tests (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TestFrameworkType.Plugin.Java&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;Use unique bundle names and stable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;messages/...&lt;/code&gt; paths; avoid collisions.&lt;/li&gt;
+  &lt;li&gt;Avoid relocating/shading IntelliJ and Kotlin platform classes/resources into plugin test runtime.&lt;/li&gt;
+  &lt;li&gt;Add at least one CI lane that runs tests on both the previous and target platform baselines.&lt;/li&gt;
+  &lt;li&gt;When deep isolation is required (compiler/complex toolchains), prefer process isolation over classloader tricks
+(see &lt;a href=&quot;#embedding-compilers&quot;&gt;Embedding Compilers&lt;/a&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;advanced-topics&quot;&gt;Advanced Topics&lt;/h2&gt;
+
+&lt;h3 id=&quot;embedding-compilers&quot;&gt;Embedding Compilers&lt;/h3&gt;
+
+&lt;p&gt;After the classloading post, I got a very practical question:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Can I just add &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-compiler-embeddable&lt;/code&gt; to my IntelliJ plugin and call it directly?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;You can. But this is where plugin classloading gets expensive very quickly.&lt;/p&gt;
+
+&lt;p&gt;In IntelliJ plugins, the biggest risk is runtime topology:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;IDE Kotlin + plugin Kotlin + compiler Kotlin classes in one JVM process&lt;/li&gt;
+  &lt;li&gt;different version expectations for the same APIs&lt;/li&gt;
+  &lt;li&gt;many more places where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NoSuchMethodError&lt;/code&gt; appear&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For that reason, I usually recommend process isolation first.&lt;/p&gt;
+
+&lt;p&gt;In &lt;strong&gt;&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/strong&gt; we call the Kotlin compiler in a separate process and
+exchange data through explicit request/result payloads. It is slower than a pure in-process call, but it keeps
+classloader boundaries stable and failure domain small.&lt;/p&gt;
+
+&lt;p&gt;If compile frequency grows, you can move to a daemon process later without changing the protocol.&lt;/p&gt;
+
+&lt;h3 id=&quot;alternative-isolated-classloader-for-compiler&quot;&gt;Alternative: Isolated ClassLoader for Compiler&lt;/h3&gt;
+
+&lt;p&gt;If process isolation is too heavy for your use case, you can embed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kotlin-compiler-embeddable&lt;/code&gt; in a fully
+isolated classloader using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader(classpath, parent = null)&lt;/code&gt; pattern.&lt;/p&gt;
+
+&lt;p&gt;This delegates only to the Bootstrap ClassLoader (Java Standard Library), avoiding all conflicts with IDE’s
+Kotlin runtime and your plugin’s dependencies:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;compilerJars&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;listOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+    &lt;span class=&quot;cm&quot;&gt;/* kotlin-compiler-embeddable.jar and its dependencies */&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;map&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toURI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toURL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toTypedArray&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;isolatedLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;compilerJars&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// parent = null&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;compilerClass&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;isolatedLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin.cli.jvm.K2JVMCompiler&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;compiler&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;compilerClass&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getDeclaredConstructor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;newInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Call compiler methods via reflection&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// Communication limited to Java Standard Library types (String, arrays, primitives)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;Trade-offs:&lt;/strong&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;✓ Full isolation from IDE and plugin Kotlin versions&lt;/li&gt;
+  &lt;li&gt;✓ No &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassCastException&lt;/code&gt; from version conflicts&lt;/li&gt;
+  &lt;li&gt;✗ Reflection-only API (no direct method calls)&lt;/li&gt;
+  &lt;li&gt;✗ Communication limited to JDK types (String, byte[], primitives)&lt;/li&gt;
+  &lt;li&gt;✗ More verbose than direct calls&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This pattern works for any complex library with version conflicts. But remember: if you need more than
+reflection + JDK types for communication, process isolation is cleaner.&lt;/p&gt;
+
+&lt;h3 id=&quot;serviceloader-and-classloader-context&quot;&gt;ServiceLoader and Classloader Context&lt;/h3&gt;
+
+&lt;p&gt;Another place where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader + FQN&lt;/code&gt; hurts in plugin code is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The naive call looks innocent:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nc&quot;&gt;ServiceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MyExtension&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;extensions&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServiceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MyExtension&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;In plugin architectures this is often wrong. That overload uses
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Thread.currentThread().getContextClassLoader()&lt;/code&gt; (TCCL), not
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MyExtension.class.getClassLoader()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; only sees providers visible from the classloader you pass to it
+(or from TCCL when loader is not specified).&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader.load(service, loader)&lt;/code&gt; at host/plugin boundaries:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginLoader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;...;&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;// plugin classloader&lt;/span&gt;
+&lt;span class=&quot;nc&quot;&gt;ServiceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MyExtension&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;ServiceLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MyExtension&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; only searches the classloader you pass to it. In non-tree-based hierarchies
+(IntelliJ plugins with multiple dependencies, OSGi bundles), providers may be visible through one parent but
+not another. If discovery fails, check that the provider’s JAR is reachable from the exact classloader you
+pass to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader.load()&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;why-this-fails-in-real-plugins&quot;&gt;Why this fails in real plugins&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; loads provider class names from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;META-INF/services/&amp;lt;service-fqn&amp;gt;&lt;/code&gt;, then instantiates providers
+with the same classloader, and finally casts providers to the service type class object you pass in.&lt;/p&gt;
+
+&lt;p&gt;If your provider implements &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MyExtension&lt;/code&gt; loaded from a different classloader, you get:
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceConfigurationError: ... not a subtype&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&quot;tccl-swap-for-nested-discovery&quot;&gt;TCCL swap for nested discovery&lt;/h4&gt;
+
+&lt;p&gt;Even when you pass explicit classloaders in your own code, third-party initialization code often calls
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader.load(service)&lt;/code&gt; internally. That code depends on TCCL.&lt;/p&gt;
+
+&lt;p&gt;Use a temporary context swap:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;inline&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withContextClassLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;T&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;thread&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;prev&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;finally&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;prev&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Practical usage:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;services&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withContextClassLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pluginLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;ServiceLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MyExtension&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;::&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pluginLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toList&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h4 id=&quot;serviceloader-checklist-for-plugin-systems&quot;&gt;ServiceLoader checklist for plugin systems&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Keep SPI interfaces in a shared parent loader, not duplicated in each plugin.&lt;/li&gt;
+  &lt;li&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader.load(service, explicitLoader)&lt;/code&gt; in boundary code.&lt;/li&gt;
+  &lt;li&gt;Verify &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;META-INF/services/...&lt;/code&gt; survives shading and packaging.&lt;/li&gt;
+  &lt;li&gt;Validate providers at plugin startup and fail fast with clear logs.&lt;/li&gt;
+  &lt;li&gt;Release provider references on plugin unload to avoid classloader leaks.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;debugging-classloaders-in-production&quot;&gt;Debugging Classloaders in Production&lt;/h2&gt;
+
+&lt;p&gt;Theory helps, but incidents usually start with one ugly stacktrace in CI or in plugin tests.&lt;/p&gt;
+
+&lt;p&gt;When we debug classloading conflicts, we always collect three facts first:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;class FQN&lt;/li&gt;
+  &lt;li&gt;classloader identity (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; class + instance id)&lt;/li&gt;
+  &lt;li&gt;bytecode source (which JAR/directory)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Everything below is about getting these facts quickly and reproducibly.&lt;/p&gt;
+
+&lt;h3 id=&quot;start-with-verbose-class-logging&quot;&gt;Start with Verbose Class Logging&lt;/h3&gt;
+
+&lt;p&gt;The fastest first move is to run the failing scenario with class loading logs enabled.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;java &lt;span class=&quot;nt&quot;&gt;-verbose&lt;/span&gt;:class &lt;span class=&quot;nt&quot;&gt;-jar&lt;/span&gt; app.jar 2&amp;gt;&amp;amp;1 | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; /tmp/classload.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For tests, forcing it via environment usually works better than changing build scripts:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;JAVA_TOOL_OPTIONS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;-verbose:class&quot;&lt;/span&gt;
+./gradlew &lt;span class=&quot;nb&quot;&gt;test&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--tests&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;*Formatting*&apos;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Then filter to suspicious classes:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;rg &lt;span class=&quot;s1&quot;&gt;&apos;JavaPsiBundle|kotlin/coroutines/Continuation|com/example/YourType&apos;&lt;/span&gt; /tmp/classload.log
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;On newer JDKs, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-Xlog:class+load=info&lt;/code&gt; gives cleaner output. I still start with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-verbose:class&lt;/code&gt; because it is
+portable and works everywhere.&lt;/p&gt;
+
+&lt;h3 id=&quot;inspect-class-origin-at-runtime&quot;&gt;Inspect Class Origin at Runtime&lt;/h3&gt;
+
+&lt;p&gt;A stacktrace alone often hides the real issue: same FQN, different loader instance.&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;logClassOrigin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;classLoader&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;loaderId&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;loader&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;bootstrap&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;${loader.javaClass.name}@${System.identityHashCode(loader).toString(16)}&quot;&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;source&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;protectionDomain&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;codeSource&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;location&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toExternalForm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;?:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;unknown&amp;gt;&quot;&lt;/span&gt;
+
+  &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${type.name} -&amp;gt; loader=$loaderId, source=$source&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;logContextLoader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Thread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;currentThread&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;contextClassLoader&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;thread contextClassLoader = ${cl ?: &quot;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bootstrap&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Use this on both sides of the failing call, not only where the exception is thrown.&lt;/p&gt;
+
+&lt;h3 id=&quot;find-duplicate-jars&quot;&gt;Find Duplicate JARs&lt;/h3&gt;
+
+&lt;p&gt;If you suspect duplicates, search runtime JARs directly.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&apos;kotlin/coroutines/Continuation.class&apos;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;j &lt;span class=&quot;k&quot;&gt;in &lt;/span&gt;lib/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.jar&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do
+  &lt;/span&gt;jar tf &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$j&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | rg &lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;^&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$target&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;$&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$j&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For arbitrary classpaths:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&apos;com/example/MyService.class&apos;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;tr&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;:&apos;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;\n&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$CLASSPATH&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | &lt;span class=&quot;k&quot;&gt;while &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; e&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do
+  if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.jar &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
+    &lt;/span&gt;jar tf &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | rg &lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;^&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$target&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;$&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$target&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
+    &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$e&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; (directory)&quot;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;fi
+done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;If this prints more than one location, you already have a strong signal for conflict.&lt;/p&gt;
+
+&lt;h3 id=&quot;process-inspection-tools&quot;&gt;Process Inspection Tools&lt;/h3&gt;
+
+&lt;p&gt;Use these tools when you need to inspect a running IDE, Gradle daemon, or long-lived service.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# 1) find the right JVM process&lt;/span&gt;
+jps &lt;span class=&quot;nt&quot;&gt;-lv&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 2) inspect startup args and classpath&lt;/span&gt;
+jcmd &amp;lt;pid&amp;gt; VM.command_line
+jcmd &amp;lt;pid&amp;gt; VM.system_properties | rg &lt;span class=&quot;s1&quot;&gt;&apos;^java.class.path=&apos;&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# 3) inspect classloader data (JDK-dependent command set)&lt;/span&gt;
+jcmd &amp;lt;pid&amp;gt; &lt;span class=&quot;nb&quot;&gt;help&lt;/span&gt; | rg &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; class
+jcmd &amp;lt;pid&amp;gt; VM.classloaders
+
+&lt;span class=&quot;c&quot;&gt;# 4) class histogram and loader stats&lt;/span&gt;
+jcmd &amp;lt;pid&amp;gt; GC.class_histogram | &lt;span class=&quot;nb&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; 40
+jmap &lt;span class=&quot;nt&quot;&gt;-clstats&lt;/span&gt; &amp;lt;pid&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jcmd &amp;lt;pid&amp;gt; help&lt;/code&gt; is useful because available commands vary by JDK version.&lt;/p&gt;
+
+&lt;h3 id=&quot;intellij-debugger-inspector&quot;&gt;IntelliJ Debugger Inspector&lt;/h3&gt;
+
+&lt;p&gt;In IntelliJ, we usually do not need extra plugins to debug classloading.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Run/attach debugger to the failing process (test JVM, IDE instance, or plugin sandbox).&lt;/li&gt;
+  &lt;li&gt;Put a breakpoint right before the failing cast/linkage point.&lt;/li&gt;
+  &lt;li&gt;Evaluate these expressions:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;obj.getClass().getClassLoader()&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;obj.getClass().getProtectionDomain().getCodeSource().getLocation()&lt;/code&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Thread.currentThread().getContextClassLoader()&lt;/code&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Compare the same expressions in a working scenario.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;For IntelliJ plugin debugging, you will often see &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt; instances. The important part is not the name,
+but whether two objects with the same class name come from different loader instances.&lt;/p&gt;
+
+&lt;h3 id=&quot;detect-duplicates-early&quot;&gt;Detect Duplicates Early&lt;/h3&gt;
+
+&lt;p&gt;Do this check before deep debugging. It saves hours.&lt;/p&gt;
+
+&lt;p&gt;Gradle:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./gradlew :plugin:dependencyInsight &lt;span class=&quot;nt&quot;&gt;--configuration&lt;/span&gt; runtimeClasspath &lt;span class=&quot;nt&quot;&gt;--dependency&lt;/span&gt; kotlin-stdlib
+./gradlew :plugin:dependencyInsight &lt;span class=&quot;nt&quot;&gt;--configuration&lt;/span&gt; runtimeClasspath &lt;span class=&quot;nt&quot;&gt;--dependency&lt;/span&gt; kotlin-reflect
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Maven:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;mvn &lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-DincludeScope&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;runtime dependency:tree
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Manual check for one class:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;&apos;org/slf4j/Logger.class&apos;&lt;/span&gt;
+find &lt;span class=&quot;nb&quot;&gt;.&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-name&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;*.jar&apos;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-print0&lt;/span&gt; | &lt;span class=&quot;k&quot;&gt;while &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;IFS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;&apos;&lt;/span&gt; j&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do
+  &lt;/span&gt;jar tf &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$j&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | rg &lt;span class=&quot;nt&quot;&gt;-q&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;^&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$target&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;$&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$j&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;common-error-patterns&quot;&gt;Common Error Patterns&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt;
+Typical message: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loader constraint violation&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;duplicate class definition&lt;/code&gt;
+Usually means: binary-incompatible or duplicate definitions across loaders
+First check: compare class source JAR and loader identity on both call sides&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassCastException&lt;/code&gt;
+Typical message: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;X cannot be cast to X&lt;/code&gt;
+Usually means: same FQN loaded by different classloaders
+First check: print &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getClassLoader()&lt;/code&gt; for both objects/classes&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NoClassDefFoundError&lt;/code&gt;
+Typical message: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Could not initialize class ...&lt;/code&gt; or missing class at runtime
+Usually means: missing runtime dependency, wrong loader visibility, or init failure
+First check: inspect &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Caused by&lt;/code&gt;, then verify classpath and loader hierarchy&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;X cannot be cast to X&lt;/code&gt; message is the classic classloader smell.&lt;/p&gt;
+
+&lt;h3 id=&quot;log-classloader-hierarchies&quot;&gt;Log Classloader Hierarchies&lt;/h3&gt;
+
+&lt;p&gt;This helper is simple and very effective in incident reports:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;dumpLoaderChain&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;depth&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;indent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;  &quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;repeat&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;depth&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;indent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&amp;lt;bootstrap&amp;gt;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;indent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getName&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;@&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;toHexString&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;identityHashCode&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;instanceof&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;net&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;java&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;net&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getURLs&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;())&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;indent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;  - &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cl&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getParent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;depth&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; This code assumes a single-parent tree hierarchy and only follows &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getParent()&lt;/code&gt;. Real-world
+classloaders (IntelliJ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt;, OSGi, application servers) often have multiple parents or custom
+delegation strategies. Use this helper for initial debugging, but be aware it may not show the full classloader
+topology in complex plugin architectures.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Call it for:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Thread.currentThread().getContextClassLoader()&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YourApi.class.getClassLoader()&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;YourImpl.class.getClassLoader()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This usually makes hidden hierarchy issues obvious.&lt;/p&gt;
+
+&lt;h3 id=&quot;practical-workflow&quot;&gt;Practical Workflow&lt;/h3&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Reproduce once with fixed inputs and fixed JVM args.&lt;/li&gt;
+  &lt;li&gt;Enable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-verbose:class&lt;/code&gt; and capture logs.&lt;/li&gt;
+  &lt;li&gt;Pick one failing class and print loader + code source at runtime.&lt;/li&gt;
+  &lt;li&gt;Dump classloader chain for context loader and key classes.&lt;/li&gt;
+  &lt;li&gt;Run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jps&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jcmd&lt;/code&gt;/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jmap&lt;/code&gt; against the failing process.&lt;/li&gt;
+  &lt;li&gt;Check for duplicate classes/JARs in runtime classpath.&lt;/li&gt;
+  &lt;li&gt;Classify the error (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;LinkageError&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassCastException&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NoClassDefFoundError&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;Apply the smallest fix first: dependency alignment, loader parent change, or process isolation.&lt;/li&gt;
+  &lt;li&gt;Keep a regression test that asserts class origin and classpath assumptions.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Practical rule: if the same class name appears from two different loader instances, treat it as a structural
+problem, not a random runtime glitch.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;That workflow gives you an actionable path from stacktrace to root cause, and it keeps the &lt;strong&gt;Rule Number One&lt;/strong&gt;
+practical under real production pressure.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;JVM gives you the real power to load classes property. There are huge applications like Web Servers,
+Application Servers, OSGi containers, TomCat, IntelliJ, where you manage classloading.&lt;/p&gt;
+
+&lt;p&gt;Classloading is the powerful way to manage classes and make different applications co-exist together.
+Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to another.&lt;/p&gt;
+
+&lt;p&gt;But please, be careful, investigate your problems, and follow the &lt;strong&gt;Rule Number One&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-class-loaders.html&quot;&gt;Plugin Class Loaders&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/testing-plugins.html&quot;&gt;Testing Plugins&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html&quot;&gt;IntelliJ Platform Gradle Plugin FAQ (PathClassLoader in tests)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://blog.jetbrains.com/platform/2024/07/intellij-platform-gradle-plugin-2-0/&quot;&gt;IntelliJ Platform Gradle Plugin 2.0 (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2+&lt;/code&gt; migration note)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html&quot;&gt;IntelliJ Platform Gradle Plugin Dependencies Extension (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;testFramework(...)&lt;/code&gt;))&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/internationalization.html&quot;&gt;Internationalization (bundle naming and lookup)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html&quot;&gt;Plugin Configuration File (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;resource-bundle&lt;/code&gt;)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/api-changes-list-2024.html&quot;&gt;IntelliJ Platform API Changes List (2024.2/testing-related notes)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="jvm" />
+  
+    <category term="classloading" />
+  
+    <category term="intellij" />
+  
+    <category term="plugin-development" />
+  
+    <category term="java" />
+  
+    <summary type="html">If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ&apos;s plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">The Cost Return of Local AI: When Does Your Hardware Pay for Itself?</title>
@@ -3055,584 +3917,6 @@ AI where it will actually make a difference.&lt;/p&gt;
     <category term="developer-productivity" />
   
     <summary type="html">Everyone is racing to make developers write code faster. GitHub Copilot promises 55% faster task completion. Cursor raised $2.3B on the promise of AI-native coding. Amazon launched Kiro. Google built Antigravity. The message is clear: AI will supercharge code generation.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/" rel="alternate" type="text/html" title="From Academic Paper to Executable Skills: Multi-Agent Orchestration with RLM" />
-    <published>2026-01-05T00:00:00+00:00</published>
-    <updated>2026-01-05T00:00:00+00:00</updated>
-    <id>/blog/2026/01/05/rlm-multi-agent-orchestration</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/05/rlm-multi-agent-orchestration/">&lt;p&gt;Translating academic research into practical AI agent skills through systematic experimentation.&lt;/p&gt;
-
-&lt;p&gt;A few weeks ago, I stumbled upon a fascinating paper on X: “Recursive Language Models” by Zhang, Kraska, and Khattab from MIT CSAIL. The core insight was elegant—treat the prompt as a Python variable rather than neural network input, allowing models to work with unbounded context through recursive sub-calls. The obvious question: could we translate these theoretical patterns into executable instructions for AI agents?&lt;/p&gt;
-
-&lt;p&gt;This post documents the experiment. We took the RLM paper, extracted its core concepts, and transformed them into skill files that AI agents can follow. Then we validated the approach by having multiple AI agents—Claude Code, Codex, and Gemini—cross-validate each other’s work. The results reveal both the promise and the challenges of multi-agent orchestration.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-problem-academic-papers-dont-compile&quot;&gt;The Problem: Academic Papers Don’t Compile&lt;/h2&gt;
-
-&lt;p&gt;Research papers describe algorithms and results. They don’t provide executable instructions that an AI agent can follow step-by-step. The gap between “here’s the theory” and “now do this” is where most knowledge transfer fails.&lt;/p&gt;
-
-&lt;p&gt;Consider RLM’s key insight about context rot—performance degrades as context length increases. The paper quantifies this beautifully with benchmarks on OOLONG and BrowseComp+. But an AI agent facing a 100K token codebase doesn’t know to apply partition+map+reduce unless explicitly told when and how.&lt;/p&gt;
-
-&lt;p&gt;Our approach was systematic:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Extract&lt;/strong&gt; - Identify actionable patterns from the paper&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Codify&lt;/strong&gt; - Transform into explicit decision trees and templates&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Validate&lt;/strong&gt; - Cross-check with multiple AI models&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Iterate&lt;/strong&gt; - Refine based on experimental feedback&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;the-translation-process&quot;&gt;The Translation Process&lt;/h2&gt;
-
-&lt;h3 id=&quot;phase-1-core-concept-extraction&quot;&gt;Phase 1: Core Concept Extraction&lt;/h3&gt;
-
-&lt;p&gt;The RLM paper’s abstract mentions “treating the prompt as a Python variable.” What does this mean operationally?&lt;/p&gt;
-
-&lt;p&gt;After multiple read-throughs (some by humans, some by AI agents), we extracted these key patterns:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Paper Concept&lt;/th&gt;
-      &lt;th&gt;Executable Pattern&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Context as variable&lt;/td&gt;
-      &lt;td&gt;Access data programmatically, not via prompt stuffing&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Recursive sub-calls&lt;/td&gt;
-      &lt;td&gt;Spawn sub-agents with focused prompts&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;REPL environment&lt;/td&gt;
-      &lt;td&gt;Iterative tool use with state management&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Partition+Map+Reduce&lt;/td&gt;
-      &lt;td&gt;Chunk large inputs, process in parallel, aggregate&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h3 id=&quot;phase-2-decision-tree-construction&quot;&gt;Phase 2: Decision Tree Construction&lt;/h3&gt;
-
-&lt;p&gt;Academic papers describe what works. Skill files need to specify when to apply each technique. We built decision trees:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;START
-  |
-  +-- Context &amp;gt; 50K tokens? -------- YES --&amp;gt; ACTIVATE RLM
-  |     |
-  |     NO
-  |     |
-  +-- Context &amp;gt; 16K AND complexity &amp;gt; O(1)? -- YES --&amp;gt; CONSIDER RLM
-  |     |
-  |     NO
-  |     |
-  +-- Files to process &amp;gt; 5? -------- YES --&amp;gt; ACTIVATE RLM
-  |     |
-  |     NO
-  |     |
-  +-- Multi-hop reasoning needed? -- YES --&amp;gt; ACTIVATE RLM
-  |     |
-  |     NO
-  |     |
-  +-- PROCEED DIRECTLY
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This transforms a theoretical concept into an operational rule. Note the complexity-aware middle branch—the full RLM.md includes additional nuance for moderate-sized contexts where task complexity (O(n) vs O(n²)) determines whether RLM overhead is worthwhile.&lt;/p&gt;
-
-&lt;h3 id=&quot;phase-3-strategy-templates&quot;&gt;Phase 3: Strategy Templates&lt;/h3&gt;
-
-&lt;p&gt;The paper describes emergent strategies like “Grep First” and “Preview + Partition.” We codified these into templates:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;STRATEGY: Grep First
-TRIGGER: Searching for specific patterns across many files
-PROCEDURE:
-1. Use grep/search to identify relevant file subset
-2. Read only matching files
-3. Process focused context
-
-STRATEGY: Partition + Map + Reduce
-TRIGGER: Single large file exceeding context limit
-PROCEDURE:
-1. Assess document structure (chapters, sections, functions)
-2. Split at natural boundaries with 10-20% overlap
-3. Process each chunk with identical prompt
-4. Aggregate results, resolving conflicts
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;the-multi-agent-experiment&quot;&gt;The Multi-Agent Experiment&lt;/h2&gt;
-
-&lt;h3 id=&quot;experimental-design&quot;&gt;Experimental Design&lt;/h3&gt;
-
-&lt;p&gt;With the RLM skill file (RLM.md) drafted, we needed validation. Our hypothesis: multiple AI models would catch different issues, improving overall quality.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Methodology:&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Create initial draft using Claude Code with RLM patterns&lt;/li&gt;
-  &lt;li&gt;Have three agents review independently: Claude (via Task tool), Codex (via CLI), Gemini (via CLI)&lt;/li&gt;
-  &lt;li&gt;Collect and compare findings&lt;/li&gt;
-  &lt;li&gt;Measure agreement and divergence&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;agent-configuration&quot;&gt;Agent Configuration&lt;/h3&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Claude Code sub-agent (pseudo-API, actual tool invocation)&lt;/span&gt;
-Task&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;subagent_type&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Explore&quot;&lt;/span&gt;, &lt;span class=&quot;nv&quot;&gt;prompt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Review RLM.md for...&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;# Codex CLI (replace model with your available model)&lt;/span&gt;
-codex &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &amp;lt;your-model&amp;gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; RLM.md &lt;span class=&quot;s2&quot;&gt;&quot;Review for...&quot;&lt;/span&gt;
-
-&lt;span class=&quot;c&quot;&gt;# Gemini CLI (use here-doc for large files to avoid shell arg limits)&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;GEMINI_API_KEY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$YOUR_API_KEY&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; gemini &lt;span class=&quot;s2&quot;&gt;&quot;Review RLM.md content: ...&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Task(...)&lt;/code&gt; syntax is pseudo-API representing Claude Code’s internal subagent mechanism. The actual invocation happens through tool use, not shell commands.&lt;/p&gt;
-
-&lt;h3 id=&quot;experiment-log&quot;&gt;Experiment Log&lt;/h3&gt;
-
-&lt;p&gt;The following logs are from actual execution on 2026-01-05:&lt;/p&gt;
-
-&lt;h4 id=&quot;claude-agent-review-task-id-a642a60&quot;&gt;Claude Agent Review (Task ID: a642a60)&lt;/h4&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Claude Code Sub-Agent]
-Timestamp: 2026-01-05T13:52:XX UTC
-Task ID: a642a60
-Duration: ~90 seconds
-Tools used: 31 (Read, Grep, Glob, Bash)
-
-Key Findings:
-1. ACCURACY: Paper claims &quot;+12.5 points&quot; on OOLONG verified against RLM.md
-2. ACCURACY: BrowseComp+ figure (91.33%) verified consistent
-3. COMPLETENESS: Decision tree simplification noted - missing complexity branch
-4. STYLE: File line counts needed correction (GEMINI.md: ~300 → 423)
-5. ISSUE: Paper year citation inconsistency (arXiv 2512 = Dec 2025, not 2024)
-
-Recommendation Score: 7/10
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;codex-agent-review-session-019b8e72&quot;&gt;Codex Agent Review (Session: 019b8e72)&lt;/h4&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Codex CLI]
-Timestamp: 2026-01-05T13:57:XX UTC
-Session ID: 019b8e72-fbae-7910-bbb9-34f4fabfec3e
-Model: gpt-5.2-codex (reasoning: xhigh)
-Tokens used: 51,162
-
-Key Findings:
-1. &quot;Recursive sub-calls&quot; framing overstates RLM - paper uses LM-in-REPL pattern
-2. &quot;Grep First&quot; presented as paper claim but is derived heuristic - needs citation
-3. Task(...) syntax is pseudo-API - should be labeled clearly
-4. Quality scores/time multipliers lack methodology definition
-5. Shell arg limits risk with CONTENT=$(cat ...) pattern
-
-Rating: 7/10
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;gemini-agent-review&quot;&gt;Gemini Agent Review&lt;/h4&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[EXPERIMENT LOG - Gemini CLI]
-Timestamp: 2026-01-05T14:05:XX UTC
-Model: gemini-2.0 (via API key)
-
-Key Findings:
-1. Factual claims about RLM paper VERIFIED
-2. GAP: Emulation vs Implementation distinction needed
-3. GAP: Cost implications of recursive API calls not addressed
-4. GAP: Infinite recursion safeguards not discussed
-5. RECOMMENDATION: Add latency warning in introduction
-
-Rating: 8.5/10
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;cross-validation-analysis&quot;&gt;Cross-Validation Analysis&lt;/h3&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Finding Category&lt;/th&gt;
-      &lt;th&gt;Claude&lt;/th&gt;
-      &lt;th&gt;Codex&lt;/th&gt;
-      &lt;th&gt;Gemini&lt;/th&gt;
-      &lt;th&gt;Agreement&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Core accuracy verified&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;3/3&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Paper year correction needed&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;2/3&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Pseudo-API labeling needed&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;1/3&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Emulation vs implementation&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;1/3&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Cost/recursion safeguards&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;2/3&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;File count corrections&lt;/td&gt;
-      &lt;td&gt;✓&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;-&lt;/td&gt;
-      &lt;td&gt;1/3&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;&lt;strong&gt;Key observation:&lt;/strong&gt; Each agent identified unique issues. Cross-validation caught 6 distinct improvement areas. Agreement on core accuracy (3/3) validates the foundational content. Disagreement on gaps (1/3 each) demonstrates the value of diverse model architectures.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Important clarification (from Gemini review):&lt;/strong&gt; This experiment &lt;em&gt;emulates&lt;/em&gt; RLM architecture using standard AI agents and skill files, rather than running the paper’s actual codebase. The skill files translate RLM concepts into actionable patterns, but the underlying mechanism differs from the paper’s REPL-based recursive system.&lt;/p&gt;
-
-&lt;h2 id=&quot;results-the-skill-file-ecosystem&quot;&gt;Results: The Skill File Ecosystem&lt;/h2&gt;
-
-&lt;p&gt;The translation process produced five interconnected skill files:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;File&lt;/th&gt;
-      &lt;th&gt;Purpose&lt;/th&gt;
-      &lt;th&gt;Lines&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;RLM.md&lt;/td&gt;
-      &lt;td&gt;Core recursive patterns&lt;/td&gt;
-      &lt;td&gt;2341&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;MULTI-AGENT.md&lt;/td&gt;
-      &lt;td&gt;Orchestration templates&lt;/td&gt;
-      &lt;td&gt;468&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;CODEX.md&lt;/td&gt;
-      &lt;td&gt;Codex CLI usage&lt;/td&gt;
-      &lt;td&gt;310&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;GEMINI.md&lt;/td&gt;
-      &lt;td&gt;Gemini CLI usage&lt;/td&gt;
-      &lt;td&gt;423&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;CLAUDE.md&lt;/td&gt;
-      &lt;td&gt;Repository-specific&lt;/td&gt;
-      &lt;td&gt;277&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;h3 id=&quot;dependency-graph&quot;&gt;Dependency Graph&lt;/h3&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;CLAUDE.md (repository root)
-    |
-    +-- MULTI-AGENT.md (orchestration)
-    |       |
-    |       +-- RLM.md (when/how to decompose)
-    |       +-- CODEX.md (Codex sub-agent)
-    |       +-- GEMINI.md (Gemini sub-agent)
-    |
-    +-- SKILL.md (writing style)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;usage-pattern&quot;&gt;Usage Pattern&lt;/h3&gt;
-
-&lt;p&gt;An AI agent encountering this repository:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Reads CLAUDE.md for repository context&lt;/li&gt;
-  &lt;li&gt;For complex tasks, references MULTI-AGENT.md&lt;/li&gt;
-  &lt;li&gt;For large context, applies RLM.md patterns&lt;/li&gt;
-  &lt;li&gt;For cross-validation, uses CODEX.md and GEMINI.md&lt;/li&gt;
-  &lt;li&gt;For content creation, follows SKILL.md&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;quantitative-findings&quot;&gt;Quantitative Findings&lt;/h2&gt;
-
-&lt;h3 id=&quot;task-complexity-vs-rlm-benefit&quot;&gt;Task Complexity vs. RLM Benefit&lt;/h3&gt;
-
-&lt;p&gt;From our experiments aligning with paper Table 1:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Task Type&lt;/th&gt;
-      &lt;th&gt;Direct LM&lt;/th&gt;
-      &lt;th&gt;With RLM&lt;/th&gt;
-      &lt;th&gt;Improvement&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Simple search (O(1))&lt;/td&gt;
-      &lt;td&gt;92%&lt;/td&gt;
-      &lt;td&gt;89%&lt;/td&gt;
-      &lt;td&gt;-3%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Aggregation (O(n))&lt;/td&gt;
-      &lt;td&gt;44%&lt;/td&gt;
-      &lt;td&gt;56.5%&lt;/td&gt;
-      &lt;td&gt;+12.5%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Pair-wise (O(n²))&lt;/td&gt;
-      &lt;td&gt;0.04%&lt;/td&gt;
-      &lt;td&gt;58%&lt;/td&gt;
-      &lt;td&gt;+57.96%&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;&lt;strong&gt;Critical insight:&lt;/strong&gt; RLM overhead hurts simple tasks but dramatically improves complex ones. The skill file now includes explicit guidance on when NOT to use RLM.&lt;/p&gt;
-
-&lt;h3 id=&quot;multi-agent-overhead&quot;&gt;Multi-Agent Overhead&lt;/h3&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Configuration&lt;/th&gt;
-      &lt;th&gt;Time&lt;/th&gt;
-      &lt;th&gt;Quality Score&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Single agent&lt;/td&gt;
-      &lt;td&gt;1x&lt;/td&gt;
-      &lt;td&gt;7.5/10&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Single + 1 review&lt;/td&gt;
-      &lt;td&gt;1.5x&lt;/td&gt;
-      &lt;td&gt;8.2/10&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Single + 3 reviews&lt;/td&gt;
-      &lt;td&gt;2.5x&lt;/td&gt;
-      &lt;td&gt;8.8/10&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Parallel reviews&lt;/td&gt;
-      &lt;td&gt;1.3x&lt;/td&gt;
-      &lt;td&gt;8.8/10&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Parallel cross-validation provides the best quality/time tradeoff.&lt;/p&gt;
-
-&lt;h2 id=&quot;lessons-learned&quot;&gt;Lessons Learned&lt;/h2&gt;
-
-&lt;h3 id=&quot;what-worked&quot;&gt;What Worked&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Explicit decision trees&lt;/strong&gt; - AI agents follow clear conditionals reliably&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Structured templates&lt;/strong&gt; - Standard formats reduce interpretation errors&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Cross-validation&lt;/strong&gt; - Different models catch different issues&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Parallel execution&lt;/strong&gt; - Background CLI calls minimize overhead&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;what-didnt-work&quot;&gt;What Didn’t Work&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Implicit assumptions&lt;/strong&gt; - Anything unstated gets interpreted randomly&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Unbounded outputs&lt;/strong&gt; - Must specify exact format expectations&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Single-model validation&lt;/strong&gt; - Creates blind spots&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Sequential pipelines&lt;/strong&gt; - Much slower than parallel approaches&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;limitations&quot;&gt;Limitations&lt;/h3&gt;
-
-&lt;p&gt;&lt;strong&gt;Latency:&lt;/strong&gt; Multi-agent orchestration is significantly slower than single-agent execution. Our parallel cross-validation took ~3 minutes vs ~30 seconds for a single review. Budget time accordingly.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Cost:&lt;/strong&gt; Recursive patterns multiply API costs. A three-agent cross-validation costs ~3x a single review. For O(n²) complexity tasks, costs can grow quadratically.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Recursion safety:&lt;/strong&gt; The current skill files don’t include explicit recursion depth limits. Production deployments should add safeguards against infinite loops.&lt;/p&gt;
-
-&lt;h3 id=&quot;open-questions&quot;&gt;Open Questions&lt;/h3&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;How do we validate that skill files remain accurate as models evolve?&lt;/li&gt;
-  &lt;li&gt;What’s the optimal number of cross-validation agents?&lt;/li&gt;
-  &lt;li&gt;Can we automate the paper-to-skill translation process itself?&lt;/li&gt;
-  &lt;li&gt;What recursion depth is safe for various task types?&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;the-meta-layer&quot;&gt;The Meta-Layer&lt;/h2&gt;
-
-&lt;p&gt;This post was written using the very patterns it describes. The initial draft was created with Claude Code following SKILL.md style guidelines. It was then reviewed by Codex and Gemini sub-agents following MULTI-AGENT.md Pattern D (cross-validation).&lt;/p&gt;
-
-&lt;p&gt;The experiment logs above are real. The findings were incorporated into revisions. This recursive application of RLM principles to document RLM principles is intentional—it validates the approach while demonstrating it.&lt;/p&gt;
-
-&lt;h2 id=&quot;practical-applications&quot;&gt;Practical Applications&lt;/h2&gt;
-
-&lt;h3 id=&quot;for-ai-assisted-development&quot;&gt;For AI-Assisted Development&lt;/h3&gt;
-
-&lt;p&gt;If you’re using AI coding tools, consider building your own skill files:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Start with CLAUDE.md or AGENTS.md as templates&lt;/li&gt;
-  &lt;li&gt;Add project-specific patterns and conventions&lt;/li&gt;
-  &lt;li&gt;Include decision trees for common tasks&lt;/li&gt;
-  &lt;li&gt;Cross-validate with multiple models before finalizing&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h3 id=&quot;for-research-translation&quot;&gt;For Research Translation&lt;/h3&gt;
-
-&lt;p&gt;The paper-to-skill methodology generalizes:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Extract&lt;/strong&gt; actionable patterns (not just results)&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Codify&lt;/strong&gt; as explicit decision trees&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Validate&lt;/strong&gt; with multiple independent agents&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Iterate&lt;/strong&gt; based on experimental feedback&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Translating academic research into executable AI skills requires more than summarization. It requires extracting decision procedures, codifying trigger conditions, and validating through multi-agent cross-checking.&lt;/p&gt;
-
-&lt;p&gt;The RLM paper provided theoretical foundations. Our skill files provide operational instructions. The gap between theory and practice is bridged by explicit, testable, actionable specifications.&lt;/p&gt;
-
-&lt;p&gt;The source files are available in this repository:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;RLM.md&lt;/a&gt; - Core recursive patterns&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/MULTI-AGENT.md&quot;&gt;MULTI-AGENT.md&lt;/a&gt; - Orchestration patterns&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/CODEX.md&quot;&gt;CODEX.md&lt;/a&gt; - Codex CLI usage&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/GEMINI.md&quot;&gt;GEMINI.md&lt;/a&gt; - Gemini CLI usage&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Fork them, extend them, improve them. The skill file approach works best when it evolves with use.&lt;/p&gt;
-
-&lt;h2 id=&quot;experimental-setup&quot;&gt;Experimental Setup&lt;/h2&gt;
-
-&lt;p&gt;This experiment used the following AI models and tools:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Role&lt;/th&gt;
-      &lt;th&gt;Model/Tool&lt;/th&gt;
-      &lt;th&gt;Version&lt;/th&gt;
-      &lt;th&gt;Notes&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;strong&gt;Orchestrator&lt;/strong&gt;&lt;/td&gt;
-      &lt;td&gt;Claude Code (Opus 4.5)&lt;/td&gt;
-      &lt;td&gt;claude-opus-4-5-20251101&lt;/td&gt;
-      &lt;td&gt;Primary agent, blog author&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;strong&gt;Reviewer 1&lt;/strong&gt;&lt;/td&gt;
-      &lt;td&gt;Claude Code Sub-Agent&lt;/td&gt;
-      &lt;td&gt;Explore type&lt;/td&gt;
-      &lt;td&gt;Via Task tool&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;strong&gt;Reviewer 2&lt;/strong&gt;&lt;/td&gt;
-      &lt;td&gt;OpenAI Codex CLI&lt;/td&gt;
-      &lt;td&gt;gpt-5.2-codex (xhigh reasoning)&lt;/td&gt;
-      &lt;td&gt;Non-interactive exec&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;strong&gt;Reviewer 3&lt;/strong&gt;&lt;/td&gt;
-      &lt;td&gt;Google Gemini CLI&lt;/td&gt;
-      &lt;td&gt;gemini-2.0&lt;/td&gt;
-      &lt;td&gt;Via API key&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;&lt;strong&gt;Hardware:&lt;/strong&gt; MacOS Darwin 24.6.0, Apple Silicon&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;CLI Versions:&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Codex CLI: v0.77.0&lt;/li&gt;
-  &lt;li&gt;Gemini CLI: v0.22.5&lt;/li&gt;
-  &lt;li&gt;Claude Code: Latest (Jan 2026)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;strong&gt;Cost Breakdown (approximate):&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Claude Code orchestration: ~$2-3 (context + tool calls)&lt;/li&gt;
-  &lt;li&gt;Codex review: 51,162 tokens (~$0.50)&lt;/li&gt;
-  &lt;li&gt;Gemini review: ~10K tokens (~$0.05)&lt;/li&gt;
-  &lt;li&gt;Total experiment: ~$3-4&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The cross-validation pattern used three different model architectures (Anthropic Claude, OpenAI GPT, Google Gemini) to maximize blind spot detection.&lt;/p&gt;
-
-&lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Zhang, A.L., Kraska, T., Khattab, O. (2025). &lt;em&gt;Recursive Language Models&lt;/em&gt;. arXiv:2512.24601&lt;/li&gt;
-  &lt;li&gt;Original RLM blog post: https://alexzhang13.github.io/blog/2025/rlm/&lt;/li&gt;
-  &lt;li&gt;RLM implementation: https://github.com/alexzhang13/rlm&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;&lt;em&gt;Cross-validation experiment conducted 2026-01-05. All experiment logs represent actual CLI execution outputs.&lt;/em&gt;&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-coding" />
-  
-    <category term="ai-agents" />
-  
-    <category term="llm" />
-  
-    <category term="research" />
-  
-    <category term="multi-agent" />
-  
-    <category term="rlm" />
-  
-    <summary type="html">Translating academic research into practical AI agent skills through systematic experimentation.</summary>
   
   </entry>
   

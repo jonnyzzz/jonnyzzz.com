@@ -1,0 +1,1156 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>When Your IntelliJ Plugin Works in Tests but Fails in Production &#8211; Eugene Petrenko</title>
+<meta name="description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, jvm, classloading, intellij, plugin-development, java" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="When Your IntelliJ Plugin Works in Tests but Fails in Production -- Eugene Petrenko" />
+<meta name="twitter:description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="When Your IntelliJ Plugin Works in Tests but Fails in Production -- Eugene Petrenko" />
+<meta property="og:description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="classloading" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="plugin-development" />
+
+<meta property="article:tag" content="java" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#classloading" title="Pages tagged classloading">classloading</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#plugin-development" title="Pages tagged plugin-development">plugin-development</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li>
+        </ul>
+        
+          <h1 class="entry-title">When Your IntelliJ Plugin Works in Tests but Fails in Production</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=jvm,classloading,intellij,plugin-development,java&amp;text=When%20Your%20IntelliJ%20Plugin%20Works%20in%20Tests%20but%20Fails%20in%20Production&amp;url=https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>If your IntelliJ plugin works in tests but fails in production with <code class="language-plaintext highlighter-rouge">LinkageError</code>,
+<code class="language-plaintext highlighter-rouge">ClassCastException</code>, or plugin conflicts, you are likely hitting a classloader boundary problem.
+Let’s walk through what actually happens and how to stay safe.</p>
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#foundation-how-jvm-classloading-works">Foundation: How JVM Classloading Works</a>
+    <ul>
+      <li><a href="#basic-classloaders">Basic Classloaders</a></li>
+      <li><a href="#duplicate-dependencies">Duplicate Dependencies</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+    </ul>
+  </li>
+  <li><a href="#intellij-plugin-classloading">IntelliJ Plugin Classloading</a>
+    <ul>
+      <li><a href="#plugin-classloader-architecture">Plugin Classloader Architecture</a></li>
+    </ul>
+  </li>
+  <li><a href="#kotlin-libraries-in-plugins">Kotlin Libraries in Plugins</a>
+    <ul>
+      <li><a href="#why-kotlin-libraries-are-special">Why Kotlin Libraries Are Special</a></li>
+      <li><a href="#build-time-verification">Build-Time Verification</a></li>
+    </ul>
+  </li>
+  <li><a href="#common-isolation-patterns">Common Isolation Patterns</a>
+    <ul>
+      <li><a href="#shadow-jar-and-relocation">Shadow JAR and Relocation</a></li>
+      <li><a href="#independent-classloader-hierarchies">Independent Classloader Hierarchies</a></li>
+    </ul>
+  </li>
+  <li><a href="#testing-and-classloaders">Testing and Classloaders</a>
+    <ul>
+      <li><a href="#why-test-runtime-differs-from-production">Why Test Runtime Differs from Production</a></li>
+      <li><a href="#test-fixtures-and-dependencies">Test Fixtures and Dependencies</a></li>
+      <li><a href="#platform-upgrades-and-breaking-changes">Platform Upgrades and Breaking Changes</a></li>
+      <li><a href="#resource-bundle-loading">Resource Bundle Loading</a></li>
+      <li><a href="#common-test-failures">Common Test Failures</a></li>
+      <li><a href="#debugging-test-classloaders">Debugging Test Classloaders</a></li>
+      <li><a href="#best-practices-for-plugin-tests">Best Practices for Plugin Tests</a></li>
+    </ul>
+  </li>
+  <li><a href="#advanced-topics">Advanced Topics</a>
+    <ul>
+      <li><a href="#embedding-compilers">Embedding Compilers</a></li>
+      <li><a href="#serviceloader-and-classloader-context">ServiceLoader and Classloader Context</a></li>
+    </ul>
+  </li>
+  <li><a href="#debugging-classloaders-in-production">Debugging Classloaders in Production</a>
+    <ul>
+      <li><a href="#start-with-verbose-class-logging">Start with Verbose Class Logging</a></li>
+      <li><a href="#inspect-class-origin-at-runtime">Inspect Class Origin at Runtime</a></li>
+      <li><a href="#find-duplicate-jars">Find Duplicate JARs</a></li>
+      <li><a href="#process-inspection-tools">Process Inspection Tools</a></li>
+      <li><a href="#intellij-debugger-inspector">IntelliJ Debugger Inspector</a></li>
+      <li><a href="#detect-duplicates-early">Detect Duplicates Early</a></li>
+      <li><a href="#common-error-patterns">Common Error Patterns</a></li>
+      <li><a href="#log-classloader-hierarchies">Log Classloader Hierarchies</a></li>
+      <li><a href="#practical-workflow">Practical Workflow</a></li>
+    </ul>
+  </li>
+  <li><a href="#conclusion">Conclusion</a></li>
+  <li><a href="#references">References</a></li>
+</ul>
+
+<h2 id="foundation-how-jvm-classloading-works">Foundation: How JVM Classloading Works</h2>
+
+<h3 id="basic-classloaders">Basic Classloaders</h3>
+
+<ul>
+  <li>For the JVM the key of each class is ClassLoader instance + class full name</li>
+  <li>At the bytecode level, the key is only the class fully qualified name (FQN)</li>
+  <li>Classloaders are connected in the graph, and each class calls its own classloader to load classes.</li>
+  <li>Classloader implements the strategy to look for a class, in it’s classpath, or in other classloaders.</li>
+</ul>
+
+<p>The problems start when classes resolve it’s FQN to different Class instances, and to different classloaders. 
+Usually you see that as LinkageError or similar exceptions.</p>
+
+<p>The base class for all classloaders is the <code class="language-plaintext highlighter-rouge">ClassLoader</code> class. In JDK 8 and in many plugin/container
+implementations, <code class="language-plaintext highlighter-rouge">URLClassLoader</code> is a common concrete class, but this is not universal on newer JDKs.
+You need to create your own classloader if you want to change something.</p>
+
+<p>With this baseline, let’s talk about duplicate dependencies.</p>
+
+<h3 id="duplicate-dependencies">Duplicate Dependencies</h3>
+
+<blockquote>
+  <p><strong>Rule Number One:</strong> Never ship duplicate runtime libraries across classloader boundaries
+unless isolation is explicit and tested.</p>
+</blockquote>
+
+<p>Start with dependency hygiene. Make sure your build system resolves the classpath correctly. I recommend to include
+the strong assertions on which JAR files you are including into your application. For example, it can be that
+you depend on <code class="language-plaintext highlighter-rouge">kotlin-stdlib</code> 2.1.20, and your transitive dependencies bring <code class="language-plaintext highlighter-rouge">kotlin-reflect</code> 1.9.24.
+It will unlikely to work.</p>
+
+<p>Ok, now assume you cannot change that, and you have two JARs with the same-named classes. How would you do?
+It happens when you want to integration into an existing big application, for example IntelliJ-based IDE.
+Check the <strong>Rule Number One</strong> first.</p>
+
+<p>So how can you make your classes load a class <code class="language-plaintext highlighter-rouge">com.jonnyzzz.AI</code> of your own jar, while the rest of the application
+load the same-named class from their own jar?</p>
+
+<p>You need to implement the <code class="language-plaintext highlighter-rouge">ClassLoader</code> different way. Usually, inherit from the URLClassLoader and change the
+strategy in the <code class="language-plaintext highlighter-rouge">findClass</code> and <code class="language-plaintext highlighter-rouge">findResource</code> methods. You need to change the logic:</p>
+<ul>
+  <li>the default logic: classloader looks for the class in the parent classloader first</li>
+  <li>the changed logic: your classloader looks in its own classpath first and only next calls the parent.</li>
+</ul>
+
+<blockquote>
+  <p><strong>Note:</strong> The standard <code class="language-plaintext highlighter-rouge">ClassLoader</code> API assumes a single parent, but real-world implementations may differ.
+IntelliJ’s <code class="language-plaintext highlighter-rouge">PluginClassLoader</code>, for example, maintains multiple parent references to implement the plugin
+dependency graph. Other application containers and frameworks may have their own classloader hierarchies and
+delegation strategies beyond the simple parent-first chain.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Warning:</strong> In practice, many application containers use non-tree-based classloader hierarchies. IntelliJ
+plugin classloaders have multiple parents (following the plugin dependency graph), not a single parent chain.
+The parent traversal pattern shown here is a simplified model. Real-world hierarchies require more complex
+delegation logic.</p>
+</blockquote>
+
+<p>This is easy and complicated. First of all, once you did that, you cannot use <code class="language-plaintext highlighter-rouge">com.jonnyzzz.AI</code> class from that
+parent application, because you have another <code class="language-plaintext highlighter-rouge">Class</code> instance, and there are two different classes with the same
+name.</p>
+
+<p>This is where the problems start, and this is why we have <strong>Rule Number One</strong>. And the same applies to the resources
+resolution by ClassLoader.</p>
+
+<h3 id="how-it-works">How It Works</h3>
+
+<p>Only very carefully. You can only use the classes, which you are not overriding.</p>
+
+<p>For example, you can use <code class="language-plaintext highlighter-rouge">PsiElement</code> from the IntelliJ, and call your own <code class="language-plaintext highlighter-rouge">ktor</code> server.</p>
+
+<h2 id="intellij-plugin-classloading">IntelliJ Plugin Classloading</h2>
+
+<h3 id="plugin-classloader-architecture">Plugin Classloader Architecture</h3>
+
+<p>Applications like IntelliJ provides the classloader infrastructure and load your plugin code in their
+dedicated classloader. Such classloader is designed to look at your plugin’s lib folder first,
+and look at the other classloaders next.</p>
+
+<p>Each plugin in IntelliJ is loaded with its own classloader. Classloaders are organized in the Graph,
+replicating plugin dependencies, declared in <code class="language-plaintext highlighter-rouge">plugin.xml</code> files. Tricky?</p>
+
+<blockquote>
+  <p><strong>Warning:</strong> IntelliJ’s <code class="language-plaintext highlighter-rouge">PluginClassLoader</code> does not follow the simple single-parent tree model. Each plugin
+classloader has multiple parents corresponding to its declared dependencies. When you call <code class="language-plaintext highlighter-rouge">getParent()</code>, you
+only see one parent, but the actual delegation logic queries all dependency classloaders. This non-tree hierarchy
+means standard parent-chain traversal code will not capture the full classloader topology.</p>
+</blockquote>
+
+<h2 id="kotlin-libraries-in-plugins">Kotlin Libraries in Plugins</h2>
+
+<h3 id="why-kotlin-libraries-are-special">Why Kotlin Libraries Are Special</h3>
+
+<p>Before we move to classloader testing and deep isolation, there is one Kotlin-specific caveat.</p>
+
+<p>Kotlin libraries are yet another story. Kotlin/JVM gives strong backward binary compatibility for
+stable compiler output, but forward compatibility is not guaranteed, and library compatibility is
+library-specific. Coroutines, Serialization, and other libraries can be tricky. I recommend carefully
+reading the <a href="https://kotlinlang.org">kotlinlang.org</a> for details.</p>
+
+<p>In IntelliJ, prefer Kotlin libraries bundled with your target platform. In most cases, do not package
+your own <code class="language-plaintext highlighter-rouge">kotlin-stdlib</code>, <code class="language-plaintext highlighter-rouge">kotlin-reflect</code>, or <code class="language-plaintext highlighter-rouge">kotlinx-coroutines-core</code> unless your compatibility
+matrix explicitly requires it. Write an assert in your build system to avoid accidental duplicates.</p>
+
+<h3 id="build-time-verification">Build-Time Verification</h3>
+
+<p>Here is how you can verify your plugin does not bundle forbidden libraries. Add a Gradle task that
+inspects the built plugin ZIP and fails the build if Kotlin runtime libraries are found. This catches
+dependency misconfigurations early, before they cause <code class="language-plaintext highlighter-rouge">ClassCastException</code> or <code class="language-plaintext highlighter-rouge">LinkageError</code> in production.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">verifyPluginLibs</span> <span class="k">by</span> <span class="n">tasks</span><span class="p">.</span><span class="nf">registering</span> <span class="p">{</span>
+    <span class="nf">dependsOn</span><span class="p">(</span><span class="n">tasks</span><span class="p">.</span><span class="n">buildPlugin</span><span class="p">)</span>
+    <span class="nf">doLast</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">zipFile</span> <span class="p">=</span> <span class="n">tasks</span><span class="p">.</span><span class="n">buildPlugin</span><span class="p">.</span><span class="k">get</span><span class="p">().</span><span class="n">outputs</span><span class="p">.</span><span class="n">files</span><span class="p">.</span><span class="n">singleFile</span>
+        <span class="kd">val</span> <span class="py">libs</span> <span class="p">=</span> <span class="nc">ZipFile</span><span class="p">(</span><span class="n">zipFile</span><span class="p">).</span><span class="nf">use</span> <span class="p">{</span> <span class="n">zip</span> <span class="p">-&gt;</span>
+            <span class="n">zip</span><span class="p">.</span><span class="nf">entries</span><span class="p">().</span><span class="nf">asSequence</span><span class="p">()</span>
+                <span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">name</span> <span class="p">}</span>
+                <span class="p">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="nf">contains</span><span class="p">(</span><span class="s">"/lib/"</span><span class="p">)</span> <span class="p">&amp;&amp;</span> <span class="n">it</span><span class="p">.</span><span class="nf">endsWith</span><span class="p">(</span><span class="s">".jar"</span><span class="p">)</span> <span class="p">}</span>
+                <span class="p">.</span><span class="nf">map</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="nf">substringAfterLast</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span> <span class="p">}</span>
+                <span class="p">.</span><span class="nf">toList</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="kd">val</span> <span class="py">forbidden</span> <span class="p">=</span> <span class="nf">listOf</span><span class="p">(</span><span class="s">"kotlin-stdlib"</span><span class="p">,</span> <span class="s">"kotlin-reflect"</span><span class="p">,</span> <span class="s">"kotlinx-coroutines-core"</span><span class="p">)</span>
+        <span class="kd">val</span> <span class="py">violations</span> <span class="p">=</span> <span class="n">libs</span><span class="p">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">jar</span> <span class="p">-&gt;</span> <span class="n">forbidden</span><span class="p">.</span><span class="nf">any</span> <span class="p">{</span> <span class="n">jar</span><span class="p">.</span><span class="nf">startsWith</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="p">}</span> <span class="p">}</span>
+
+        <span class="nf">check</span><span class="p">(</span><span class="n">violations</span><span class="p">.</span><span class="nf">isEmpty</span><span class="p">())</span> <span class="p">{</span>
+            <span class="s">"Forbidden libraries bundled: ${violations.joinToString()}"</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Why it’s so important? Here is the example:
+Take a <code class="language-plaintext highlighter-rouge">suspend fun &lt;T&gt; test(value: T): T</code>, it is compiled to a JVM signature like
+<code class="language-plaintext highlighter-rouge">Object test(T value, Continuation&lt;? super T&gt; c)</code>.
+The <code class="language-plaintext highlighter-rouge">Continuation</code> interface comes from the <code class="language-plaintext highlighter-rouge">kotlin-stdlib</code> (package <code class="language-plaintext highlighter-rouge">kotlin.coroutines</code>). And in order to make it work,
+you need to have the same class loaded across classloader boundaries. That is vital when you call
+shared <code class="language-plaintext highlighter-rouge">suspend</code> APIs across those boundaries.</p>
+
+<p>The same classloading principles explain most test/runtime mismatches too.</p>
+
+<h2 id="common-isolation-patterns">Common Isolation Patterns</h2>
+
+<h3 id="shadow-jar-and-relocation">Shadow JAR and Relocation</h3>
+
+<p>If dependency alignment is not possible, the next mitigation is relocation.</p>
+
+<p>Shadow Jar is another technique. On one side, it helps to create a huge monolithic JAR, which you can <code class="language-plaintext highlighter-rouge">java -jar</code>
+to start.</p>
+
+<p>The most powerful feature is the classes’ relocation. Basically, it takes the bytecode, and changes the FQN’s
+of the classes and information in other places to turn your <code class="language-plaintext highlighter-rouge">com.jonnyzzz.AI</code> class into <code class="language-plaintext highlighter-rouge">relocate.package.com.jonnyzzz.AI</code>
+class.</p>
+
+<p>Here is the place where problems start – your code may use metadata, reflection, and other tricks which the
+relocation logic may not see or find. Like Kotlin’s metadata for example. This is where the <strong>Rule Number One</strong> is necessary.</p>
+
+<h3 id="independent-classloader-hierarchies">Independent Classloader Hierarchies</h3>
+
+<p>When relocation is still not enough, the next step is dedicated classloader hierarchies.</p>
+
+<p>The whole JVM starts from the Bootstrap classloader (written in native code), which loads the
+Java Standard Library. Next comes the Platform classloader, and then the System/Application
+classloader for your application classes. On practice, you can add more classes to that classpath, be very careful.</p>
+
+<p>Nevertheless, we can build the following structure</p>
+
+<pre><code class="language-mermaid">graph TD
+    BootstrapCL["Bootstrap ClassLoader&lt;br/&gt;(Java Standard Library)"]
+
+    AppCL["Application ClassLoader&lt;br/&gt;(Your Application)"]
+    CustomCL["Custom ClassLoader&lt;br/&gt;(parent = null)&lt;br/&gt;(Isolated Application)"]
+
+    BootstrapCL --&gt; AppCL
+    BootstrapCL --&gt; CustomCL
+
+    style BootstrapCL fill:#e1f5ff
+    style AppCL fill:#fff4e6
+    style CustomCL fill:#f3e5f5
+</code></pre>
+
+<p>You can build your own classloader hierarchy, for example you can start from the Bootstrap classloader.
+For that, you load classes to your classloader in the following way <code class="language-plaintext highlighter-rouge">new URLClassLoader(classpath, null)</code>.</p>
+
+<p>You pass <code class="language-plaintext highlighter-rouge">null</code> as the parent classloader to your URL classloader. This delegates to the Bootstrap classloader,
+avoiding any interaction with the Application classpath, but the cost is – you can only use Java Standard
+Library classes as the common ground. And thus you will do reflection.</p>
+
+<p>I do recommend that approach, if you need to load a complex application, which may do much tricky stuff inside.</p>
+
+<p>You should understand, this is a good, but not 100% isolation. Both applications can still conflict for the same
+common resources like ForkJoinPool, or System Properties.</p>
+
+<p>Sometimes, it’s possible to add your API JAR to the beginning. Usually it’s not possible in the complex applications.</p>
+
+<pre><code class="language-mermaid">graph TD
+    BootstrapCL["Bootstrap ClassLoader&lt;br/&gt;(Java Standard Library)"]
+
+    APICL["API ClassLoader&lt;br/&gt;(Shared API JAR)"]
+
+    AppA["Application A ClassLoader"]
+    AppB["Application B ClassLoader"]
+
+    BootstrapCL --&gt; APICL
+    APICL --&gt; AppA
+    APICL --&gt; AppB
+
+    style BootstrapCL fill:#e1f5ff
+    style APICL fill:#e8f5e9
+    style AppA fill:#fff4e6
+    style AppB fill:#f3e5f5
+</code></pre>
+
+<p>Again, that is not an easy business, just consider what you do with Logging and all 5+ logging libraries you have.
+Logging libraries usually have assertions to help you implement that correctly. This is vital tool.</p>
+
+<p>This is another place where <strong>Rule Number One</strong> applies.</p>
+
+<h2 id="testing-and-classloaders">Testing and Classloaders</h2>
+
+<p>Here is a pattern I keep seeing: plugin works in the IDE, tests fail with <code class="language-plaintext highlighter-rouge">resource not found</code> or
+<code class="language-plaintext highlighter-rouge">ClassNotFoundException</code>.</p>
+
+<p>In most cases this is not random. Test runtime classloading is different from production runtime classloading.</p>
+
+<h3 id="why-test-runtime-differs-from-production">Why Test Runtime Differs from Production</h3>
+
+<p>In production, your plugin code is loaded by IntelliJ <code class="language-plaintext highlighter-rouge">PluginClassLoader</code>. Plugin classloaders are isolated and linked
+as a dependency graph based on <code class="language-plaintext highlighter-rouge">plugin.xml</code> dependencies.</p>
+
+<p>In tests, you run a dedicated test JVM. The IntelliJ Platform test framework is initialized inside that process, with
+its own classpath and test framework artifacts. On modern platform targets, test tasks also run with
+<code class="language-plaintext highlighter-rouge">-Djava.system.class.loader=com.intellij.util.lang.PathClassLoader</code>.</p>
+
+<p>So class and resource resolution surface is different by design:</p>
+
+<ul>
+  <li>production: real IDE distribution + real plugin graph</li>
+  <li>tests: test runtime classpath + selected test framework modules/plugins</li>
+</ul>
+
+<p>If runtime works and tests fail, the first suspect is usually test runtime composition.</p>
+
+<h3 id="test-fixtures-and-dependencies">Test Fixtures and Dependencies</h3>
+
+<p><code class="language-plaintext highlighter-rouge">BasePlatformTestCase</code> and related fixture-based tests bootstrap IntelliJ test application and project infrastructure
+in-process. <code class="language-plaintext highlighter-rouge">LightJavaCodeInsightFixtureTestCase</code> builds on light fixtures and Java-specific test setup.</p>
+
+<p>The important operational detail is dependency provisioning:</p>
+
+<ul>
+  <li>test framework dependencies are explicit</li>
+  <li>Java-specific tests require Java test framework/plugin artifacts</li>
+</ul>
+
+<p>With IntelliJ Platform Gradle plugin 2.x, this is expressed as <code class="language-plaintext highlighter-rouge">testFramework(...)</code> dependencies, for example:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">intellijPlatform</span> <span class="p">{</span>
+  <span class="nf">testFramework</span><span class="p">(</span><span class="nc">TestFrameworkType</span><span class="p">.</span><span class="nc">Platform</span><span class="p">)</span>
+  <span class="nf">testFramework</span><span class="p">(</span><span class="nc">TestFrameworkType</span><span class="p">.</span><span class="nc">Plugin</span><span class="p">.</span><span class="nc">Java</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Without Java test framework dependencies, Java classes/resources (including Java bundle resources) may be absent in
+unit tests even if runtime IDE behavior looks fine.</p>
+
+<h3 id="platform-upgrades-and-breaking-changes">Platform Upgrades and Breaking Changes</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">2024.2</code> platform line came with module layout changes significant enough that JetBrains recommends migrating to
+IntelliJ Platform Gradle plugin <code class="language-plaintext highlighter-rouge">2.x</code> when targeting <code class="language-plaintext highlighter-rouge">2024.2+</code>.</p>
+
+<p>That upgrade often changes what lands on your test runtime classpath:</p>
+
+<ul>
+  <li>some dependencies that were previously available implicitly are no longer there</li>
+  <li>tests become more sensitive to explicitly declared platform/plugin test dependencies</li>
+</ul>
+
+<p>So migrating from <code class="language-plaintext highlighter-rouge">2024.1.7</code> to <code class="language-plaintext highlighter-rouge">2024.2.x</code> can expose hidden assumptions in tests, especially around Java-related PSI,
+resources, and plugin dependency wiring.</p>
+
+<h3 id="resource-bundle-loading">Resource Bundle Loading</h3>
+
+<p>IntelliJ message bundles are classpath resources (for example <code class="language-plaintext highlighter-rouge">messages/MyBundle.properties</code>) resolved by bundle name.</p>
+
+<p>Two practical gotchas matter a lot in tests:</p>
+
+<ul>
+  <li>bundle base names are global on classpath, duplicate names across artifacts can resolve by loading order</li>
+  <li>test runtime packaging and order can differ from production plugin packaging</li>
+</ul>
+
+<p>This means bundle lookups can succeed in production but fail in tests (or resolve to the wrong bundle) if classpath
+composition differs.</p>
+
+<p>If you see errors like:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ERROR: 'filetype.java.module.display.name' is not found
+(baseBundleName=messages.JavaPsiBundle, ...)
+</code></pre></div></div>
+
+<p>Validate that Java plugin/test framework dependencies are present for tests, and that no packaging or relocation
+changed resource paths.</p>
+
+<h3 id="common-test-failures">Common Test Failures</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">resource not found</code>: usually missing test framework plugin dependency or wrong bundle path/name</li>
+  <li><code class="language-plaintext highlighter-rouge">ClassNotFoundException</code> / <code class="language-plaintext highlighter-rouge">NoClassDefFoundError</code>: dependency missing from test runtime, often hidden by runtime IDE</li>
+  <li><code class="language-plaintext highlighter-rouge">ServiceConfigurationError</code>: service interface/impl loaded via incompatible classloaders</li>
+</ul>
+
+<h3 id="debugging-test-classloaders">Debugging Test Classloaders</h3>
+
+<p>Use a short diagnostic helper inside failing tests:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="k">fun</span> <span class="nf">dumpClassloading</span><span class="p">(</span><span class="n">anchor</span><span class="p">:</span> <span class="nc">Class</span><span class="p">&lt;</span><span class="err">*</span><span class="p">&gt;,</span> <span class="n">resourcePath</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nf">println</span><span class="p">(</span><span class="s">"Class: ${anchor.name}"</span><span class="p">)</span>
+  <span class="kd">var</span> <span class="py">cl</span><span class="p">:</span> <span class="nc">ClassLoader</span><span class="p">?</span> <span class="p">=</span> <span class="n">anchor</span><span class="p">.</span><span class="n">classLoader</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">cl</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nf">println</span><span class="p">(</span><span class="s">"  loader -&gt; $cl"</span><span class="p">)</span>
+    <span class="n">cl</span> <span class="p">=</span> <span class="n">cl</span><span class="p">.</span><span class="n">parent</span>
+  <span class="p">}</span>
+  <span class="nf">println</span><span class="p">(</span><span class="s">"Resource '$resourcePath' -&gt; ${anchor.classLoader?.getResource(resourcePath)}"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And enable class loading logs for the test JVM:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tasks</span><span class="p">.</span><span class="nf">test</span> <span class="p">{</span>
+  <span class="nf">jvmArgs</span><span class="p">(</span><span class="s">"-Xlog:class+load=info"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>For every failing symbol/resource, answer two questions:</p>
+
+<ol>
+  <li>Which classloader loaded it?</li>
+  <li>From which JAR/resource URL did it come?</li>
+</ol>
+
+<p>That usually localizes the problem quickly.</p>
+
+<h3 id="best-practices-for-plugin-tests">Best Practices for Plugin Tests</h3>
+
+<ul>
+  <li>Keep platform target and IntelliJ Platform Gradle plugin aligned (<code class="language-plaintext highlighter-rouge">2024.2+</code> =&gt; plugin <code class="language-plaintext highlighter-rouge">2.x</code>).</li>
+  <li>Declare plugin dependencies explicitly in <code class="language-plaintext highlighter-rouge">plugin.xml</code> and mirror them in test framework dependencies.</li>
+  <li>Add Java test framework/plugin dependencies for Java PSI tests (<code class="language-plaintext highlighter-rouge">TestFrameworkType.Plugin.Java</code>).</li>
+  <li>Use unique bundle names and stable <code class="language-plaintext highlighter-rouge">messages/...</code> paths; avoid collisions.</li>
+  <li>Avoid relocating/shading IntelliJ and Kotlin platform classes/resources into plugin test runtime.</li>
+  <li>Add at least one CI lane that runs tests on both the previous and target platform baselines.</li>
+  <li>When deep isolation is required (compiler/complex toolchains), prefer process isolation over classloader tricks
+(see <a href="#embedding-compilers">Embedding Compilers</a>).</li>
+</ul>
+
+<h2 id="advanced-topics">Advanced Topics</h2>
+
+<h3 id="embedding-compilers">Embedding Compilers</h3>
+
+<p>After the classloading post, I got a very practical question:</p>
+
+<blockquote>
+  <p>Can I just add <code class="language-plaintext highlighter-rouge">kotlin-compiler-embeddable</code> to my IntelliJ plugin and call it directly?</p>
+</blockquote>
+
+<p>You can. But this is where plugin classloading gets expensive very quickly.</p>
+
+<p>In IntelliJ plugins, the biggest risk is runtime topology:</p>
+
+<ul>
+  <li>IDE Kotlin + plugin Kotlin + compiler Kotlin classes in one JVM process</li>
+  <li>different version expectations for the same APIs</li>
+  <li>many more places where <code class="language-plaintext highlighter-rouge">LinkageError</code> or <code class="language-plaintext highlighter-rouge">NoSuchMethodError</code> appear</li>
+</ul>
+
+<p>For that reason, I usually recommend process isolation first.</p>
+
+<p>In <strong><a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a></strong> we call the Kotlin compiler in a separate process and
+exchange data through explicit request/result payloads. It is slower than a pure in-process call, but it keeps
+classloader boundaries stable and failure domain small.</p>
+
+<p>If compile frequency grows, you can move to a daemon process later without changing the protocol.</p>
+
+<h3 id="alternative-isolated-classloader-for-compiler">Alternative: Isolated ClassLoader for Compiler</h3>
+
+<p>If process isolation is too heavy for your use case, you can embed <code class="language-plaintext highlighter-rouge">kotlin-compiler-embeddable</code> in a fully
+isolated classloader using the <code class="language-plaintext highlighter-rouge">URLClassLoader(classpath, parent = null)</code> pattern.</p>
+
+<p>This delegates only to the Bootstrap ClassLoader (Java Standard Library), avoiding all conflicts with IDE’s
+Kotlin runtime and your plugin’s dependencies:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">compilerJars</span> <span class="p">=</span> <span class="nf">listOf</span><span class="p">(</span>
+    <span class="cm">/* kotlin-compiler-embeddable.jar and its dependencies */</span>
+<span class="p">).</span><span class="nf">map</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="nf">toURI</span><span class="p">().</span><span class="nf">toURL</span><span class="p">()</span> <span class="p">}.</span><span class="nf">toTypedArray</span><span class="p">()</span>
+
+<span class="kd">val</span> <span class="py">isolatedLoader</span> <span class="p">=</span> <span class="nc">URLClassLoader</span><span class="p">(</span><span class="n">compilerJars</span><span class="p">,</span> <span class="k">null</span><span class="p">)</span>  <span class="c1">// parent = null</span>
+<span class="kd">val</span> <span class="py">compilerClass</span> <span class="p">=</span> <span class="n">isolatedLoader</span><span class="p">.</span><span class="nf">loadClass</span><span class="p">(</span><span class="s">"org.jetbrains.kotlin.cli.jvm.K2JVMCompiler"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">compiler</span> <span class="p">=</span> <span class="n">compilerClass</span><span class="p">.</span><span class="nf">getDeclaredConstructor</span><span class="p">().</span><span class="nf">newInstance</span><span class="p">()</span>
+
+<span class="c1">// Call compiler methods via reflection</span>
+<span class="c1">// Communication limited to Java Standard Library types (String, arrays, primitives)</span>
+</code></pre></div></div>
+
+<p><strong>Trade-offs:</strong></p>
+
+<ul>
+  <li>✓ Full isolation from IDE and plugin Kotlin versions</li>
+  <li>✓ No <code class="language-plaintext highlighter-rouge">LinkageError</code> or <code class="language-plaintext highlighter-rouge">ClassCastException</code> from version conflicts</li>
+  <li>✗ Reflection-only API (no direct method calls)</li>
+  <li>✗ Communication limited to JDK types (String, byte[], primitives)</li>
+  <li>✗ More verbose than direct calls</li>
+</ul>
+
+<p>This pattern works for any complex library with version conflicts. But remember: if you need more than
+reflection + JDK types for communication, process isolation is cleaner.</p>
+
+<h3 id="serviceloader-and-classloader-context">ServiceLoader and Classloader Context</h3>
+
+<p>Another place where <code class="language-plaintext highlighter-rouge">ClassLoader + FQN</code> hurts in plugin code is <code class="language-plaintext highlighter-rouge">ServiceLoader</code>.</p>
+
+<p>The naive call looks innocent:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">ServiceLoader</span><span class="o">&lt;</span><span class="nc">MyExtension</span><span class="o">&gt;</span> <span class="n">extensions</span> <span class="o">=</span> <span class="nc">ServiceLoader</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="nc">MyExtension</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p>In plugin architectures this is often wrong. That overload uses
+<code class="language-plaintext highlighter-rouge">Thread.currentThread().getContextClassLoader()</code> (TCCL), not
+<code class="language-plaintext highlighter-rouge">MyExtension.class.getClassLoader()</code>.</p>
+
+<blockquote>
+  <p><code class="language-plaintext highlighter-rouge">ServiceLoader</code> only sees providers visible from the classloader you pass to it
+(or from TCCL when loader is not specified).</p>
+</blockquote>
+
+<p>Use <code class="language-plaintext highlighter-rouge">ServiceLoader.load(service, loader)</code> at host/plugin boundaries:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">ClassLoader</span> <span class="n">pluginLoader</span> <span class="o">=</span> <span class="o">...;</span> <span class="c1">// plugin classloader</span>
+<span class="nc">ServiceLoader</span><span class="o">&lt;</span><span class="nc">MyExtension</span><span class="o">&gt;</span> <span class="n">loader</span> <span class="o">=</span>
+    <span class="nc">ServiceLoader</span><span class="o">.</span><span class="na">load</span><span class="o">(</span><span class="nc">MyExtension</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">pluginLoader</span><span class="o">);</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Warning:</strong> <code class="language-plaintext highlighter-rouge">ServiceLoader</code> only searches the classloader you pass to it. In non-tree-based hierarchies
+(IntelliJ plugins with multiple dependencies, OSGi bundles), providers may be visible through one parent but
+not another. If discovery fails, check that the provider’s JAR is reachable from the exact classloader you
+pass to <code class="language-plaintext highlighter-rouge">ServiceLoader.load()</code>.</p>
+</blockquote>
+
+<h3 id="why-this-fails-in-real-plugins">Why this fails in real plugins</h3>
+
+<p><code class="language-plaintext highlighter-rouge">ServiceLoader</code> loads provider class names from <code class="language-plaintext highlighter-rouge">META-INF/services/&lt;service-fqn&gt;</code>, then instantiates providers
+with the same classloader, and finally casts providers to the service type class object you pass in.</p>
+
+<p>If your provider implements <code class="language-plaintext highlighter-rouge">MyExtension</code> loaded from a different classloader, you get:
+<code class="language-plaintext highlighter-rouge">ServiceConfigurationError: ... not a subtype</code>.</p>
+
+<h4 id="tccl-swap-for-nested-discovery">TCCL swap for nested discovery</h4>
+
+<p>Even when you pass explicit classloaders in your own code, third-party initialization code often calls
+<code class="language-plaintext highlighter-rouge">ServiceLoader.load(service)</code> internally. That code depends on TCCL.</p>
+
+<p>Use a temporary context swap:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">inline</span> <span class="k">fun</span> <span class="p">&lt;</span><span class="nc">T</span><span class="p">&gt;</span> <span class="nf">withContextClassLoader</span><span class="p">(</span><span class="n">loader</span><span class="p">:</span> <span class="nc">ClassLoader</span><span class="p">,</span> <span class="n">block</span><span class="p">:</span> <span class="p">()</span> <span class="p">-&gt;</span> <span class="nc">T</span><span class="p">):</span> <span class="nc">T</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">thread</span> <span class="p">=</span> <span class="nc">Thread</span><span class="p">.</span><span class="nf">currentThread</span><span class="p">()</span>
+  <span class="kd">val</span> <span class="py">prev</span> <span class="p">=</span> <span class="n">thread</span><span class="p">.</span><span class="n">contextClassLoader</span>
+  <span class="n">thread</span><span class="p">.</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">loader</span>
+  <span class="k">return</span> <span class="k">try</span> <span class="p">{</span>
+    <span class="nf">block</span><span class="p">()</span>
+  <span class="p">}</span> <span class="k">finally</span> <span class="p">{</span>
+    <span class="n">thread</span><span class="p">.</span><span class="n">contextClassLoader</span> <span class="p">=</span> <span class="n">prev</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Practical usage:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">services</span> <span class="p">=</span> <span class="nf">withContextClassLoader</span><span class="p">(</span><span class="n">pluginLoader</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nc">ServiceLoader</span><span class="p">.</span><span class="nf">load</span><span class="p">(</span><span class="nc">MyExtension</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">,</span> <span class="n">pluginLoader</span><span class="p">).</span><span class="nf">toList</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h4 id="serviceloader-checklist-for-plugin-systems">ServiceLoader checklist for plugin systems</h4>
+
+<ul>
+  <li>Keep SPI interfaces in a shared parent loader, not duplicated in each plugin.</li>
+  <li>Use <code class="language-plaintext highlighter-rouge">ServiceLoader.load(service, explicitLoader)</code> in boundary code.</li>
+  <li>Verify <code class="language-plaintext highlighter-rouge">META-INF/services/...</code> survives shading and packaging.</li>
+  <li>Validate providers at plugin startup and fail fast with clear logs.</li>
+  <li>Release provider references on plugin unload to avoid classloader leaks.</li>
+</ul>
+
+<h2 id="debugging-classloaders-in-production">Debugging Classloaders in Production</h2>
+
+<p>Theory helps, but incidents usually start with one ugly stacktrace in CI or in plugin tests.</p>
+
+<p>When we debug classloading conflicts, we always collect three facts first:</p>
+
+<ul>
+  <li>class FQN</li>
+  <li>classloader identity (<code class="language-plaintext highlighter-rouge">ClassLoader</code> class + instance id)</li>
+  <li>bytecode source (which JAR/directory)</li>
+</ul>
+
+<p>Everything below is about getting these facts quickly and reproducibly.</p>
+
+<h3 id="start-with-verbose-class-logging">Start with Verbose Class Logging</h3>
+
+<p>The fastest first move is to run the failing scenario with class loading logs enabled.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java <span class="nt">-verbose</span>:class <span class="nt">-jar</span> app.jar 2&gt;&amp;1 | <span class="nb">tee</span> /tmp/classload.log
+</code></pre></div></div>
+
+<p>For tests, forcing it via environment usually works better than changing build scripts:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">JAVA_TOOL_OPTIONS</span><span class="o">=</span><span class="s2">"-verbose:class"</span>
+./gradlew <span class="nb">test</span> <span class="nt">--tests</span> <span class="s1">'*Formatting*'</span>
+</code></pre></div></div>
+
+<p>Then filter to suspicious classes:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rg <span class="s1">'JavaPsiBundle|kotlin/coroutines/Continuation|com/example/YourType'</span> /tmp/classload.log
+</code></pre></div></div>
+
+<p>On newer JDKs, <code class="language-plaintext highlighter-rouge">-Xlog:class+load=info</code> gives cleaner output. I still start with <code class="language-plaintext highlighter-rouge">-verbose:class</code> because it is
+portable and works everywhere.</p>
+
+<h3 id="inspect-class-origin-at-runtime">Inspect Class Origin at Runtime</h3>
+
+<p>A stacktrace alone often hides the real issue: same FQN, different loader instance.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="nf">logClassOrigin</span><span class="p">(</span><span class="n">type</span><span class="p">:</span> <span class="nc">Class</span><span class="p">&lt;</span><span class="err">*</span><span class="p">&gt;)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">loader</span> <span class="p">=</span> <span class="n">type</span><span class="p">.</span><span class="n">classLoader</span>
+  <span class="kd">val</span> <span class="py">loaderId</span> <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">loader</span> <span class="p">==</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+    <span class="s">"bootstrap"</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="s">"${loader.javaClass.name}@${System.identityHashCode(loader).toString(16)}"</span>
+  <span class="p">}</span>
+
+  <span class="kd">val</span> <span class="py">source</span> <span class="p">=</span> <span class="n">type</span><span class="p">.</span><span class="n">protectionDomain</span>
+    <span class="o">?.</span><span class="n">codeSource</span>
+    <span class="o">?.</span><span class="n">location</span>
+    <span class="o">?.</span><span class="nf">toExternalForm</span><span class="p">()</span>
+    <span class="o">?:</span> <span class="s">"&lt;unknown&gt;"</span>
+
+  <span class="nf">println</span><span class="p">(</span><span class="s">"${type.name} -&gt; loader=$loaderId, source=$source"</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="k">fun</span> <span class="nf">logContextLoader</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">cl</span> <span class="p">=</span> <span class="nc">Thread</span><span class="p">.</span><span class="nf">currentThread</span><span class="p">().</span><span class="n">contextClassLoader</span>
+  <span class="nf">println</span><span class="p">(</span><span class="s">"thread contextClassLoader = ${cl ?: "</span><span class="n">bootstrap</span><span class="s">"}"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Use this on both sides of the failing call, not only where the exception is thrown.</p>
+
+<h3 id="find-duplicate-jars">Find Duplicate JARs</h3>
+
+<p>If you suspect duplicates, search runtime JARs directly.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">target</span><span class="o">=</span><span class="s1">'kotlin/coroutines/Continuation.class'</span>
+<span class="k">for </span>j <span class="k">in </span>lib/<span class="k">*</span>.jar<span class="p">;</span> <span class="k">do
+  </span>jar tf <span class="s2">"</span><span class="nv">$j</span><span class="s2">"</span> | rg <span class="nt">-q</span> <span class="s2">"^</span><span class="nv">$target</span><span class="s2">$"</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$j</span><span class="s2">"</span>
+<span class="k">done</span>
+</code></pre></div></div>
+
+<p>For arbitrary classpaths:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">target</span><span class="o">=</span><span class="s1">'com/example/MyService.class'</span>
+<span class="nb">tr</span> <span class="s1">':'</span> <span class="s1">'\n'</span> <span class="o">&lt;&lt;&lt;</span> <span class="s2">"</span><span class="nv">$CLASSPATH</span><span class="s2">"</span> | <span class="k">while </span><span class="nb">read</span> <span class="nt">-r</span> e<span class="p">;</span> <span class="k">do
+  if</span> <span class="o">[[</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2">"</span> <span class="o">&amp;&amp;</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2">"</span> <span class="o">==</span> <span class="k">*</span>.jar <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span>jar tf <span class="s2">"</span><span class="nv">$e</span><span class="s2">"</span> | rg <span class="nt">-q</span> <span class="s2">"^</span><span class="nv">$target</span><span class="s2">$"</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2">"</span>
+  <span class="k">elif</span> <span class="o">[[</span> <span class="nt">-d</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2">"</span> <span class="o">&amp;&amp;</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2">/</span><span class="nv">$target</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nb">echo</span> <span class="s2">"</span><span class="nv">$e</span><span class="s2"> (directory)"</span>
+  <span class="k">fi
+done</span>
+</code></pre></div></div>
+
+<p>If this prints more than one location, you already have a strong signal for conflict.</p>
+
+<h3 id="process-inspection-tools">Process Inspection Tools</h3>
+
+<p>Use these tools when you need to inspect a running IDE, Gradle daemon, or long-lived service.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1) find the right JVM process</span>
+jps <span class="nt">-lv</span>
+
+<span class="c"># 2) inspect startup args and classpath</span>
+jcmd &lt;pid&gt; VM.command_line
+jcmd &lt;pid&gt; VM.system_properties | rg <span class="s1">'^java.class.path='</span>
+
+<span class="c"># 3) inspect classloader data (JDK-dependent command set)</span>
+jcmd &lt;pid&gt; <span class="nb">help</span> | rg <span class="nt">-i</span> class
+jcmd &lt;pid&gt; VM.classloaders
+
+<span class="c"># 4) class histogram and loader stats</span>
+jcmd &lt;pid&gt; GC.class_histogram | <span class="nb">head</span> <span class="nt">-n</span> 40
+jmap <span class="nt">-clstats</span> &lt;pid&gt;
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">jcmd &lt;pid&gt; help</code> is useful because available commands vary by JDK version.</p>
+
+<h3 id="intellij-debugger-inspector">IntelliJ Debugger Inspector</h3>
+
+<p>In IntelliJ, we usually do not need extra plugins to debug classloading.</p>
+
+<ol>
+  <li>Run/attach debugger to the failing process (test JVM, IDE instance, or plugin sandbox).</li>
+  <li>Put a breakpoint right before the failing cast/linkage point.</li>
+  <li>Evaluate these expressions:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">obj.getClass().getClassLoader()</code></li>
+      <li><code class="language-plaintext highlighter-rouge">obj.getClass().getProtectionDomain().getCodeSource().getLocation()</code></li>
+      <li><code class="language-plaintext highlighter-rouge">Thread.currentThread().getContextClassLoader()</code></li>
+    </ul>
+  </li>
+  <li>Compare the same expressions in a working scenario.</li>
+</ol>
+
+<p>For IntelliJ plugin debugging, you will often see <code class="language-plaintext highlighter-rouge">PluginClassLoader</code> instances. The important part is not the name,
+but whether two objects with the same class name come from different loader instances.</p>
+
+<h3 id="detect-duplicates-early">Detect Duplicates Early</h3>
+
+<p>Do this check before deep debugging. It saves hours.</p>
+
+<p>Gradle:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew :plugin:dependencyInsight <span class="nt">--configuration</span> runtimeClasspath <span class="nt">--dependency</span> kotlin-stdlib
+./gradlew :plugin:dependencyInsight <span class="nt">--configuration</span> runtimeClasspath <span class="nt">--dependency</span> kotlin-reflect
+</code></pre></div></div>
+
+<p>Maven:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mvn <span class="nt">-q</span> <span class="nt">-DincludeScope</span><span class="o">=</span>runtime dependency:tree
+</code></pre></div></div>
+
+<p>Manual check for one class:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">target</span><span class="o">=</span><span class="s1">'org/slf4j/Logger.class'</span>
+find <span class="nb">.</span> <span class="nt">-name</span> <span class="s1">'*.jar'</span> <span class="nt">-print0</span> | <span class="k">while </span><span class="nv">IFS</span><span class="o">=</span> <span class="nb">read</span> <span class="nt">-r</span> <span class="nt">-d</span> <span class="s1">''</span> j<span class="p">;</span> <span class="k">do
+  </span>jar tf <span class="s2">"</span><span class="nv">$j</span><span class="s2">"</span> | rg <span class="nt">-q</span> <span class="s2">"^</span><span class="nv">$target</span><span class="s2">$"</span> <span class="o">&amp;&amp;</span> <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$j</span><span class="s2">"</span>
+<span class="k">done</span>
+</code></pre></div></div>
+
+<h3 id="common-error-patterns">Common Error Patterns</h3>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">LinkageError</code>
+Typical message: <code class="language-plaintext highlighter-rouge">loader constraint violation</code> or <code class="language-plaintext highlighter-rouge">duplicate class definition</code>
+Usually means: binary-incompatible or duplicate definitions across loaders
+First check: compare class source JAR and loader identity on both call sides</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">ClassCastException</code>
+Typical message: <code class="language-plaintext highlighter-rouge">X cannot be cast to X</code>
+Usually means: same FQN loaded by different classloaders
+First check: print <code class="language-plaintext highlighter-rouge">getClassLoader()</code> for both objects/classes</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">NoClassDefFoundError</code>
+Typical message: <code class="language-plaintext highlighter-rouge">Could not initialize class ...</code> or missing class at runtime
+Usually means: missing runtime dependency, wrong loader visibility, or init failure
+First check: inspect <code class="language-plaintext highlighter-rouge">Caused by</code>, then verify classpath and loader hierarchy</p>
+  </li>
+</ul>
+
+<p>The <code class="language-plaintext highlighter-rouge">X cannot be cast to X</code> message is the classic classloader smell.</p>
+
+<h3 id="log-classloader-hierarchies">Log Classloader Hierarchies</h3>
+
+<p>This helper is simple and very effective in incident reports:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">static</span> <span class="kt">void</span> <span class="nf">dumpLoaderChain</span><span class="o">(</span><span class="nc">ClassLoader</span> <span class="n">start</span><span class="o">)</span> <span class="o">{</span>
+  <span class="kt">int</span> <span class="n">depth</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+  <span class="nc">ClassLoader</span> <span class="n">cl</span> <span class="o">=</span> <span class="n">start</span><span class="o">;</span>
+
+  <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+    <span class="nc">String</span> <span class="n">indent</span> <span class="o">=</span> <span class="s">"  "</span><span class="o">.</span><span class="na">repeat</span><span class="o">(</span><span class="n">depth</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">cl</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+      <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">indent</span> <span class="o">+</span> <span class="s">"&lt;bootstrap&gt;"</span><span class="o">);</span>
+      <span class="k">return</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span>
+      <span class="n">indent</span> <span class="o">+</span> <span class="n">cl</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getName</span><span class="o">()</span> <span class="o">+</span> <span class="s">"@"</span> <span class="o">+</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">toHexString</span><span class="o">(</span><span class="nc">System</span><span class="o">.</span><span class="na">identityHashCode</span><span class="o">(</span><span class="n">cl</span><span class="o">))</span>
+    <span class="o">);</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">cl</span> <span class="k">instanceof</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">URLClassLoader</span><span class="o">)</span> <span class="o">{</span>
+      <span class="k">for</span> <span class="o">(</span><span class="kt">var</span> <span class="n">url</span> <span class="o">:</span> <span class="o">((</span><span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">URLClassLoader</span><span class="o">)</span> <span class="n">cl</span><span class="o">).</span><span class="na">getURLs</span><span class="o">())</span> <span class="o">{</span>
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">indent</span> <span class="o">+</span> <span class="s">"  - "</span> <span class="o">+</span> <span class="n">url</span><span class="o">);</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span><span class="o">.</span><span class="na">getParent</span><span class="o">();</span>
+    <span class="n">depth</span><span class="o">++;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Warning:</strong> This code assumes a single-parent tree hierarchy and only follows <code class="language-plaintext highlighter-rouge">getParent()</code>. Real-world
+classloaders (IntelliJ <code class="language-plaintext highlighter-rouge">PluginClassLoader</code>, OSGi, application servers) often have multiple parents or custom
+delegation strategies. Use this helper for initial debugging, but be aware it may not show the full classloader
+topology in complex plugin architectures.</p>
+</blockquote>
+
+<p>Call it for:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Thread.currentThread().getContextClassLoader()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">YourApi.class.getClassLoader()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">YourImpl.class.getClassLoader()</code></li>
+</ul>
+
+<p>This usually makes hidden hierarchy issues obvious.</p>
+
+<h3 id="practical-workflow">Practical Workflow</h3>
+
+<ol>
+  <li>Reproduce once with fixed inputs and fixed JVM args.</li>
+  <li>Enable <code class="language-plaintext highlighter-rouge">-verbose:class</code> and capture logs.</li>
+  <li>Pick one failing class and print loader + code source at runtime.</li>
+  <li>Dump classloader chain for context loader and key classes.</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">jps</code>/<code class="language-plaintext highlighter-rouge">jcmd</code>/<code class="language-plaintext highlighter-rouge">jmap</code> against the failing process.</li>
+  <li>Check for duplicate classes/JARs in runtime classpath.</li>
+  <li>Classify the error (<code class="language-plaintext highlighter-rouge">LinkageError</code>, <code class="language-plaintext highlighter-rouge">ClassCastException</code>, <code class="language-plaintext highlighter-rouge">NoClassDefFoundError</code>).</li>
+  <li>Apply the smallest fix first: dependency alignment, loader parent change, or process isolation.</li>
+  <li>Keep a regression test that asserts class origin and classpath assumptions.</li>
+</ol>
+
+<blockquote>
+  <p>Practical rule: if the same class name appears from two different loader instances, treat it as a structural
+problem, not a random runtime glitch.</p>
+</blockquote>
+
+<p>That workflow gives you an actionable path from stacktrace to root cause, and it keeps the <strong>Rule Number One</strong>
+practical under real production pressure.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>JVM gives you the real power to load classes property. There are huge applications like Web Servers,
+Application Servers, OSGi containers, TomCat, IntelliJ, where you manage classloading.</p>
+
+<p>Classloading is the powerful way to manage classes and make different applications co-exist together.
+Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to another.</p>
+
+<p>But please, be careful, investigate your problems, and follow the <strong>Rule Number One</strong>.</p>
+
+<h2 id="references">References</h2>
+
+<ul>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/plugin-class-loaders.html">Plugin Class Loaders</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/testing-plugins.html">Testing Plugins</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html">IntelliJ Platform Gradle Plugin FAQ (PathClassLoader in tests)</a></li>
+  <li><a href="https://blog.jetbrains.com/platform/2024/07/intellij-platform-gradle-plugin-2-0/">IntelliJ Platform Gradle Plugin 2.0 (<code class="language-plaintext highlighter-rouge">2024.2+</code> migration note)</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html">IntelliJ Platform Gradle Plugin Dependencies Extension (<code class="language-plaintext highlighter-rouge">testFramework(...)</code>))</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/internationalization.html">Internationalization (bundle naming and lookup)</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html">Plugin Configuration File (<code class="language-plaintext highlighter-rouge">resource-bundle</code>)</a></li>
+  <li><a href="https://plugins.jetbrains.com/docs/intellij/api-changes-list-2024.html">IntelliJ Platform API Changes List (2024.2/testing-related notes)</a></li>
+</ul>
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/02/09/local-ai-cost-return/" class="btn" title="The Cost Return of Local AI: When Does Your Hardware Pay for Itself?">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

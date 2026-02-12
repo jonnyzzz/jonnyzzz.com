@@ -48,6 +48,10 @@
 
 <!-- For all browsers -->
 <link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
@@ -114,6 +118,8 @@
   <li><article><a href="/talks/">My Talks</a></article></li>
 
 
+  <li><article><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production <span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></article></li>
+
   <li><article><a href="/blog/2026/02/09/local-ai-cost-return/">The Cost Return of Local AI: When Does Your Hardware Pay for Itself? <span class="entry-date"><time datetime="2026-02-09T00:00:00+00:00">February 09, 2026</time></span></a></article></li>
 
   <li><article><a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal <span class="entry-date"><time datetime="2026-02-06T00:00:00+00:00">February 06, 2026</time></span></a></article></li>
@@ -121,8 +127,6 @@
   <li><article><a href="/blog/2026/02/02/git-fork-pattern/">Git Fork Pattern: Full Checkouts Without the Bloat <span class="entry-date"><time datetime="2026-02-02T00:00:00+00:00">February 02, 2026</time></span></a></article></li>
 
   <li><article><a href="/blog/2026/02/01/russian-loto-ai-voices/">Russian Loto with AI Celebrity Voices <span class="entry-date"><time datetime="2026-02-01T00:00:00+00:00">February 01, 2026</time></span></a></article></li>
-
-  <li><article><a href="/blog/2026/01/30/orchestrating-ai-fleets/">Orchestrating AI Fleets: When Agents Manage Agents <span class="entry-date"><time datetime="2026-01-30T00:00:00+00:00">January 30, 2026</time></span></a></article></li>
 
   <li><article><a href="/blog/">and more...</a></article></li>
 </ul>
@@ -208,6 +212,47 @@
 
 
 
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
 
 <!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
 <script>

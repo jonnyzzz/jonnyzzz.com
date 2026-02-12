@@ -48,6 +48,10 @@
 
 <!-- For all browsers -->
 <link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
 <link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
 <link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
@@ -268,6 +272,9 @@
     <li><a href="#classloaders">classloaders <span>2</span></a></li>
   
     
+    <li><a href="#classloading">classloading <span>1</span></a></li>
+  
+    
     <li><a href="#claude-code">claude-code <span>1</span></a></li>
   
     
@@ -466,13 +473,13 @@
     <li><a href="#integration tests">integration tests <span>1</span></a></li>
   
     
-    <li><a href="#intellij">intellij <span>5</span></a></li>
+    <li><a href="#intellij">intellij <span>6</span></a></li>
   
     
     <li><a href="#intellij IDEA">intellij IDEA <span>1</span></a></li>
   
     
-    <li><a href="#java">java <span>33</span></a></li>
+    <li><a href="#java">java <span>34</span></a></li>
   
     
     <li><a href="#java9">java9 <span>2</span></a></li>
@@ -508,7 +515,7 @@
     <li><a href="#junit">junit <span>1</span></a></li>
   
     
-    <li><a href="#jvm">jvm <span>19</span></a></li>
+    <li><a href="#jvm">jvm <span>20</span></a></li>
   
     
     <li><a href="#keys">keys <span>1</span></a></li>
@@ -664,7 +671,7 @@
     <li><a href="#plugin">plugin <span>9</span></a></li>
   
     
-    <li><a href="#plugin-development">plugin-development <span>1</span></a></li>
+    <li><a href="#plugin-development">plugin-development <span>2</span></a></li>
   
     
     <li><a href="#powershell">powershell <span>1</span></a></li>
@@ -1452,6 +1459,13 @@
   
   </ul>
 
+<h2 id="classloading">classloading</h2>
+<ul class="post-list">
+  
+    <li><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production<span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></li>
+  
+  </ul>
+
 <h2 id="claude-code">claude-code</h2>
 <ul class="post-list">
   
@@ -2111,6 +2125,8 @@
 <h2 id="intellij">intellij</h2>
 <ul class="post-list">
   
+    <li><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production<span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></li>
+  
     <li><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop<span class="entry-date"><time datetime="2026-01-05T00:00:00+00:00">January 05, 2026</time></span></a></li>
   
     <li><a href="/blog/2026/01/04/mcp-steroids-intellij/">MCP Steroid: An IntelliJ MCP Server with Vision<span class="entry-date"><time datetime="2026-01-04T00:00:00+00:00">January 04, 2026</time></span></a></li>
@@ -2132,6 +2148,8 @@
 
 <h2 id="java">java</h2>
 <ul class="post-list">
+  
+    <li><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production<span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></li>
   
     <li><a href="/blog/2026/01/19/kotlin-dsl-2026/">Kotlin DSLs in 2026: Patterns That Stood the Test of Time<span class="entry-date"><time datetime="2026-01-19T00:00:00+00:00">January 19, 2026</time></span></a></li>
   
@@ -2300,6 +2318,8 @@
 
 <h2 id="jvm">jvm</h2>
 <ul class="post-list">
+  
+    <li><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production<span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></li>
   
     <li><a href="/blog/2024/09/17/Eugene-20-years/">Celebrating 20 Years at JetBrains: A Journey from Junior Developer to Department Lead<span class="entry-date"><time datetime="2024-09-17T00:00:00+00:00">September 17, 2024</time></span></a></li>
   
@@ -3018,6 +3038,8 @@
 
 <h2 id="plugin-development">plugin-development</h2>
 <ul class="post-list">
+  
+    <li><a href="/blog/2026/02/12/jvm-classloading-intellij/">When Your IntelliJ Plugin Works in Tests but Fails in Production<span class="entry-date"><time datetime="2026-02-12T00:00:00+00:00">February 12, 2026</time></span></a></li>
   
     <li><a href="/blog/2026/01/05/intellij-plugin-hot-reload/">Plugin Hot Reload: A Faster IntelliJ Dev Loop<span class="entry-date"><time datetime="2026-01-05T00:00:00+00:00">January 05, 2026</time></span></a></li>
   
@@ -3855,6 +3877,47 @@
 
 
 
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
 
 <!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
 <script>
