@@ -1,4 +1,4 @@
-# When Your IntelliJ Plugin Works in Tests but Fails in Production
+# JVM ClassLoaders & IntelliJ: When it fails in production
 
 **Date:** February 12, 2026  
 **Author:** Eugene Petrenko  

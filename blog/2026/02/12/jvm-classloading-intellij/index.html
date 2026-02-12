@@ -2,13 +2,13 @@
 <html class="no-js" lang="en">
 <head>
 <meta charset="utf-8" />
-<title>When Your IntelliJ Plugin Works in Tests but Fails in Production &#8211; Eugene Petrenko</title>
+<title>JVM ClassLoaders & IntelliJ: When it fails in production &#8211; Eugene Petrenko</title>
 <meta name="description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments."/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, jvm, classloading, intellij, plugin-development, java" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="When Your IntelliJ Plugin Works in Tests but Fails in Production -- Eugene Petrenko" />
+<meta name="twitter:title" content="JVM ClassLoaders & IntelliJ: When it fails in production -- Eugene Petrenko" />
 <meta name="twitter:description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments." />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
@@ -19,7 +19,7 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="When Your IntelliJ Plugin Works in Tests but Fails in Production -- Eugene Petrenko" />
+<meta property="og:title" content="JVM ClassLoaders & IntelliJ: When it fails in production -- Eugene Petrenko" />
 <meta property="og:description" content="If your IntelliJ plugin works in tests but fails in production with LinkageError, ClassCastException, or plugin conflicts, you are likely hitting a classloader boundary problem. This post walks through JVM classloading fundamentals, IntelliJ's plugin classloader architecture, and practical debugging patterns to keep your plugins stable across test and runtime environments." />
 <meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
@@ -123,7 +123,7 @@
           <li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#classloading" title="Pages tagged classloading">classloading</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#plugin-development" title="Pages tagged plugin-development">plugin-development</a></li><li><a href="/tags/#java" title="Pages tagged java">java</a></li>
         </ul>
         
-          <h1 class="entry-title">When Your IntelliJ Plugin Works in Tests but Fails in Production</h1>
+          <h1 class="entry-title">JVM ClassLoaders & IntelliJ: When it fails in production</h1>
         
       </header>
       <footer class="entry-meta">
@@ -136,7 +136,7 @@
         
         
         <span class="social-share-x">
-  <a href="https://x.com/intent/tweet?hashtags=jvm,classloading,intellij,plugin-development,java&amp;text=When%20Your%20IntelliJ%20Plugin%20Works%20in%20Tests%20but%20Fails%20in%20Production&amp;url=https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+  <a href="https://x.com/intent/tweet?hashtags=jvm,classloading,intellij,plugin-development,java&amp;text=JVM%20ClassLoaders%20&amp;%20IntelliJ:%20When%20it%20fails%20in%20production&amp;url=https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-facebook">
   <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/12/jvm-classloading-intellij/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
