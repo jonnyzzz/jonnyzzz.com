@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-12T19:25:26+00:00</updated>
+  <updated>2026-02-14T10:03:17+00:00</updated>
   <id>/</id>
 
   
@@ -55,6 +55,15 @@ Let’s walk through what actually happens and how to stay safe.&lt;/p&gt;
       &lt;li&gt;&lt;a href=&quot;#independent-classloader-hierarchies&quot;&gt;Independent Classloader Hierarchies&lt;/a&gt;&lt;/li&gt;
     &lt;/ul&gt;
   &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#implementing-a-child-first-classloader&quot;&gt;Implementing a Child-First ClassLoader&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#classpath-scanning-and-reflection&quot;&gt;Classpath Scanning and Reflection&lt;/a&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href=&quot;#spring-and-runtime-scanning&quot;&gt;Spring and Runtime Scanning&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#alternatives-to-runtime-scanning&quot;&gt;Alternatives to Runtime Scanning&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href=&quot;#intellij-no-classpath-scanning&quot;&gt;IntelliJ: No Classpath Scanning&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#a-note-on-java-modules-jigsaw&quot;&gt;A Note on Java Modules (Jigsaw)&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;#testing-and-classloaders&quot;&gt;Testing and Classloaders&lt;/a&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;a href=&quot;#why-test-runtime-differs-from-production&quot;&gt;Why Test Runtime Differs from Production&lt;/a&gt;&lt;/li&gt;
@@ -88,6 +97,11 @@ Let’s walk through what actually happens and how to stay safe.&lt;/p&gt;
   &lt;li&gt;&lt;a href=&quot;#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;#references&quot;&gt;References&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Updated 2026-02-14.&lt;/strong&gt; Added: child-first classloader implementation with compilable example,
+classpath scanning and reflection (Spring, ServiceLoader, Byte Buddy, IntelliJ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt;),
+Java Modules (Jigsaw) acknowledgement. See &lt;a href=&quot;https://github.com/jonnyzzz/clazz-loaderz&quot;&gt;clazz-loaderz&lt;/a&gt; for the full
+child-first library.&lt;/p&gt;
 
 &lt;h2 id=&quot;foundation-how-jvm-classloading-works&quot;&gt;Foundation: How JVM Classloading Works&lt;/h2&gt;
 
@@ -129,24 +143,20 @@ Check the &lt;strong&gt;Rule Number One&lt;/strong&gt; first.&lt;/p&gt;
 load the same-named class from their own jar?&lt;/p&gt;
 
 &lt;p&gt;You need to implement the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; different way. Usually, inherit from the URLClassLoader and change the
-strategy in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findClass&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;findResource&lt;/code&gt; methods. You need to change the logic:&lt;/p&gt;
+strategy in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loadClass&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getResource&lt;/code&gt; methods. You need to change the logic:&lt;/p&gt;
 &lt;ul&gt;
-  &lt;li&gt;the default logic: classloader looks for the class in the parent classloader first&lt;/li&gt;
-  &lt;li&gt;the changed logic: your classloader looks in its own classpath first and only next calls the parent.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;parent-first&lt;/strong&gt; (default): classloader delegates to the parent classloader first, only looks at its own
+classpath if the parent cannot find the class&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;child-first&lt;/strong&gt;: your classloader looks in its own classpath first and only delegates to the parent if
+the class is not found locally&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;blockquote&gt;
-  &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; API assumes a single parent, but real-world implementations may differ.
-IntelliJ’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt;, for example, maintains multiple parent references to implement the plugin
-dependency graph. Other application containers and frameworks may have their own classloader hierarchies and
-delegation strategies beyond the simple parent-first chain.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; In practice, many application containers use non-tree-based classloader hierarchies. IntelliJ
-plugin classloaders have multiple parents (following the plugin dependency graph), not a single parent chain.
-The parent traversal pattern shown here is a simplified model. Real-world hierarchies require more complex
-delegation logic.&lt;/p&gt;
+  &lt;p&gt;&lt;strong&gt;Note:&lt;/strong&gt; The standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; API assumes a single parent, but real-world implementations
+often differ. IntelliJ’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginClassLoader&lt;/code&gt;, for example, maintains multiple parent references
+following the plugin dependency graph — not a single parent chain. Other application containers
+(OSGi, Tomcat) have their own non-tree hierarchies. The parent-first / child-first model
+described here is a simplified view; real-world delegation logic can be more complex.&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;This is easy and complicated. First of all, once you did that, you cannot use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;com.jonnyzzz.AI&lt;/code&gt; class from that
@@ -308,6 +318,181 @@ common resources like ForkJoinPool, or System Properties.&lt;/p&gt;
 Logging libraries usually have assertions to help you implement that correctly. This is vital tool.&lt;/p&gt;
 
 &lt;p&gt;This is another place where &lt;strong&gt;Rule Number One&lt;/strong&gt; applies.&lt;/p&gt;
+
+&lt;h2 id=&quot;implementing-a-child-first-classloader&quot;&gt;Implementing a Child-First ClassLoader&lt;/h2&gt;
+
+&lt;p&gt;Sometimes you need your child classloader’s JARs to win when there is a conflict, but still
+fall back to the parent for everything else. That is the &lt;strong&gt;child-first&lt;/strong&gt; delegation strategy.&lt;/p&gt;
+
+&lt;p&gt;The standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; is parent-first. To flip the order, override &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;loadClass&lt;/code&gt; and
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getResource&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.net.URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;java.net.URLClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ChildFirstClassLoader&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;extends&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;URLClassLoader&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ChildFirstClassLoader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ClassLoader&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;urls&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;parent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+      &lt;span class=&quot;kd&quot;&gt;throws&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ClassNotFoundException&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;getClassLoadingLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;Class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;lt;?&amp;gt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;findLoadedClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+      &lt;span class=&quot;c1&quot;&gt;// child-first: try own classpath, then parent&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;findClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resolveClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ClassNotFoundException&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ignored&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+      &lt;span class=&quot;c1&quot;&gt;// we do a bit extra work in a negative scenario for the sake of simplicity&lt;/span&gt;
+      &lt;span class=&quot;c1&quot;&gt;// you can copy the super method and simplify otherwise&lt;/span&gt;
+      &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;loadClass&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;nd&quot;&gt;@Override&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;URL&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getResource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;no&quot;&gt;URL&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;findResource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;url&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getResource&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The JVM prefix check (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java.*&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;javax.*&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jdk.*&lt;/code&gt;) is important — if your child classpath
+accidentally contains JDK classes from an old compatibility JAR, loading them child-first
+will break the JVM. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getResource&lt;/code&gt; override matters too: many libraries use
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader.getResource()&lt;/code&gt; to find configuration files. A production implementation
+would also override &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getResources()&lt;/code&gt; (used by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt;) and call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;close()&lt;/code&gt; when
+the classloader is no longer needed.&lt;/p&gt;
+
+&lt;p&gt;For a battle-tested implementation that also supports packed resources and configurable
+delegation strategy, see my &lt;a href=&quot;https://github.com/jonnyzzz/clazz-loaderz&quot;&gt;clazz-loaderz&lt;/a&gt; library.&lt;/p&gt;
+
+&lt;h2 id=&quot;classpath-scanning-and-reflection&quot;&gt;Classpath Scanning and Reflection&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Rule Number Two:&lt;/strong&gt; The best classpath scanning is no classpath scanning.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;There is no standard JVM API to scan the classpath for annotated classes or components. The JVM loads
+classes on demand — it does not provide a directory listing of what is available.&lt;/p&gt;
+
+&lt;p&gt;Libraries like &lt;a href=&quot;https://github.com/ronmamo/reflections&quot;&gt;Reflections&lt;/a&gt; and &lt;a href=&quot;https://github.com/classgraph/classgraph&quot;&gt;ClassGraph&lt;/a&gt; solve this by discovering
+the classpath and walking through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.jar&lt;/code&gt; files and class directories themselves. They use two main sources:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java.class.path&lt;/code&gt; system property.&lt;/strong&gt; The JVM stores the application classpath
+(from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-cp&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-classpath&lt;/code&gt;) in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;System.getProperty(&quot;java.class.path&quot;)&lt;/code&gt;. On JDK 8 and
+earlier, there is also &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sun.boot.class.path&lt;/code&gt; for the bootstrap classpath (JDK core
+classes). Split either with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;System.getProperty(&quot;path.separator&quot;)&lt;/code&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;:&lt;/code&gt; on Unix, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;;&lt;/code&gt; on
+Windows) — each entry is either a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.jar&lt;/code&gt; file or a directory.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader.getURLs()&lt;/code&gt;.&lt;/strong&gt; When the classloader is a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt;, libraries
+call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getURLs()&lt;/code&gt; to discover the classpath programmatically. This works for any
+classloader in the hierarchy, not just the system one.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;This is why inheriting from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; matters for custom classloaders. If your
+child-first classloader extends plain &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; instead, classpath scanning libraries
+will not see its entries and annotation discovery will silently miss classes. The
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ChildFirstClassLoader&lt;/code&gt; example above inherits from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; for exactly this
+reason.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Caveat for JDK 9+:&lt;/strong&gt; the module system changed several things at once. The system
+classloader is no longer a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; (it is now
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jdk.internal.loader.ClassLoaders$AppClassLoader&lt;/code&gt;), and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sun.boot.class.path&lt;/code&gt; was removed
+entirely — the bootstrap classpath is replaced by the module graph. Modern scanning
+libraries fall back to parsing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java.class.path&lt;/code&gt; in this case, but your own custom
+classloaders should still extend &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; when possible.&lt;/p&gt;
+
+&lt;h3 id=&quot;spring-and-runtime-scanning&quot;&gt;Spring and Runtime Scanning&lt;/h3&gt;
+
+&lt;p&gt;Spring Framework is the most well-known user of runtime classpath scanning. When you
+annotate a class with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@ComponentScan&lt;/code&gt;, Spring calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader.getResources()&lt;/code&gt; to
+enumerate package directories, then walks through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.class&lt;/code&gt; files looking for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@Component&lt;/code&gt;
+and its specializations (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@Service&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@Repository&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@Controller&lt;/code&gt;). Under the hood, it
+uses &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PathMatchingResourcePatternResolver&lt;/code&gt; with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;classpath*:&lt;/code&gt; prefix.&lt;/p&gt;
+
+&lt;p&gt;This works because Spring reads &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.class&lt;/code&gt; files as resources — it does not load them
+into the JVM. It parses annotation metadata from bytecode using ASM. But the discovery
+step still depends on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader.getResources()&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader.getURLs()&lt;/code&gt;, so
+the same classloader visibility rules apply: if your classloader does not expose its
+entries, Spring will not find your components. Remember &lt;strong&gt;Rule Number Two&lt;/strong&gt; — if you
+can declare components explicitly, you avoid these classloader pitfalls entirely.&lt;/p&gt;
+
+&lt;h3 id=&quot;alternatives-to-runtime-scanning&quot;&gt;Alternatives to Runtime Scanning&lt;/h3&gt;
+
+&lt;p&gt;Runtime classpath scanning is expensive and fragile. There are lighter approaches:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt;&lt;/strong&gt; (JDK built-in). Register implementations in
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;META-INF/services/&amp;lt;interface-fqn&amp;gt;&lt;/code&gt; files. The JVM discovers them without scanning —
+it reads a known file path. This is the standard approach for plugin-style extension
+points (see the &lt;a href=&quot;#serviceloader-and-classloader-context&quot;&gt;ServiceLoader section&lt;/a&gt; below
+for classloader caveats).&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Annotation processors and Byte Buddy.&lt;/strong&gt; Instead of scanning at runtime, generate
+the registry at compile time. Annotation processors (JSR 269) can emit
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;META-INF/services&lt;/code&gt; files or index files at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;javac&lt;/code&gt; time. &lt;a href=&quot;https://bytebuddy.net/&quot;&gt;Byte Buddy&lt;/a&gt;
+can generate and transform classes during the build. Both approaches eliminate
+runtime scanning entirely.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;ClassGraph&lt;/strong&gt; and &lt;strong&gt;Reflections&lt;/strong&gt;. When you do need runtime scanning,
+&lt;a href=&quot;https://github.com/classgraph/classgraph&quot;&gt;ClassGraph&lt;/a&gt; works at the bytecode level without loading classes
+into the JVM. &lt;a href=&quot;https://github.com/ronmamo/reflections&quot;&gt;Reflections&lt;/a&gt; takes a similar approach. Both handle
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;java.class.path&lt;/code&gt;, and JDK 9+ module paths.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The general advice: prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; or compile-time generation when you control
+the build. Use runtime scanning only when you must discover arbitrary user-provided
+classes (frameworks, plugin hosts).&lt;/p&gt;
+
+&lt;h3 id=&quot;intellij-no-classpath-scanning&quot;&gt;IntelliJ: No Classpath Scanning&lt;/h3&gt;
+
+&lt;p&gt;For plugin extension discovery, IntelliJ-based IDEs avoid runtime classpath scanning
+entirely. Instead, plugins declare their extension points and implementations in
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; files. The platform
+reads these XML descriptors at startup — no bytecode scanning, no reflection.&lt;/p&gt;
+
+&lt;p&gt;This is worth noting because IntelliJ also uses its own classloader,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;com.intellij.util.lang.UrlClassLoader&lt;/code&gt;, which extends &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ClassLoader&lt;/code&gt; directly (not
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt;). It exposes classpath via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getUrls()&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getFiles()&lt;/code&gt; methods, but
+the API is different from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader.getURLs()&lt;/code&gt;. Libraries that assume
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; will not see IntelliJ plugin classes through standard scanning.&lt;/p&gt;
+
+&lt;p&gt;That is by design — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; registry replaces classpath scanning. See the
+&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html&quot;&gt;IntelliJ Platform SDK documentation on plugin extensions&lt;/a&gt; for details.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-note-on-java-modules-jigsaw&quot;&gt;A Note on Java Modules (Jigsaw)&lt;/h2&gt;
+
+&lt;p&gt;Java 9 introduced the module system (Project Jigsaw), which adds another layer of
+encapsulation on top of classloaders. Modules control which packages are exported,
+which are open for reflection, and which services are provided or consumed.&lt;/p&gt;
+
+&lt;p&gt;This post does not cover modules. The classloading patterns discussed here — delegation
+strategies, child-first loaders, classpath scanning, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; — all predate the
+module system and remain relevant for the vast majority of real-world applications.
+Most plugin systems (IntelliJ, Gradle, application servers) still rely on classloader
+hierarchies rather than modules for isolation.&lt;/p&gt;
+
+&lt;p&gt;If you need module-level encapsulation, the JDK documentation on
+&lt;a href=&quot;https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ModuleLayer&lt;/code&gt;&lt;/a&gt; is the starting point. But in practice, you will likely
+deal with classloader boundaries long before you deal with module boundaries.&lt;/p&gt;
 
 &lt;h2 id=&quot;testing-and-classloaders&quot;&gt;Testing and Classloaders&lt;/h2&gt;
 
@@ -849,10 +1034,18 @@ Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to an
   &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/testing-plugins.html&quot;&gt;Testing Plugins&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-faq.html&quot;&gt;IntelliJ Platform Gradle Plugin FAQ (PathClassLoader in tests)&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://blog.jetbrains.com/platform/2024/07/intellij-platform-gradle-plugin-2-0/&quot;&gt;IntelliJ Platform Gradle Plugin 2.0 (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2024.2+&lt;/code&gt; migration note)&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html&quot;&gt;IntelliJ Platform Gradle Plugin Dependencies Extension (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;testFramework(...)&lt;/code&gt;))&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html&quot;&gt;IntelliJ Platform Gradle Plugin Dependencies Extension (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;testFramework(...)&lt;/code&gt;)&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/internationalization.html&quot;&gt;Internationalization (bundle naming and lookup)&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html&quot;&gt;Plugin Configuration File (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;resource-bundle&lt;/code&gt;)&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/api-changes-list-2024.html&quot;&gt;IntelliJ Platform API Changes List (2024.2/testing-related notes)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/jonnyzzz/clazz-loaderz&quot;&gt;clazz-loaderz — child-first classloader library (JetBrains internal tooling)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2016/08/29/classloader-proxy/&quot;&gt;Proxy calls between classloaders&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.spring.io/spring-framework/reference/core/beans/classpath-scanning.html&quot;&gt;Spring Component Scanning&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html&quot;&gt;IntelliJ Plugin Extensions&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://bytebuddy.net/&quot;&gt;Byte Buddy&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/classgraph/classgraph&quot;&gt;ClassGraph&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://github.com/ronmamo/reflections&quot;&gt;Reflections&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ModuleLayer.html&quot;&gt;ModuleLayer (JDK 17)&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;</content>
 
   
