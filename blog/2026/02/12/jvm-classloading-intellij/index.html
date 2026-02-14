@@ -579,9 +579,9 @@ into the JVM. <a href="https://github.com/ronmamo/reflections">Reflections</a> t
   </li>
 </ul>
 
-<p>The general advice: prefer <code class="language-plaintext highlighter-rouge">ServiceLoader</code> or compile-time generation when you control
-the build. Use runtime scanning only when you must discover arbitrary user-provided
-classes (frameworks, plugin hosts).</p>
+<p>The general advice follows <strong>Rule Number Two</strong>: prefer <code class="language-plaintext highlighter-rouge">ServiceLoader</code> or compile-time
+generation when you control the build. Use runtime scanning only when you must discover
+arbitrary user-provided classes (frameworks, plugin hosts).</p>
 
 <h3 id="intellij-no-classpath-scanning">IntelliJ: No Classpath Scanning</h3>
 
@@ -596,8 +596,9 @@ reads these XML descriptors at startup — no bytecode scanning, no reflection.<
 the API is different from <code class="language-plaintext highlighter-rouge">URLClassLoader.getURLs()</code>. Libraries that assume
 <code class="language-plaintext highlighter-rouge">URLClassLoader</code> will not see IntelliJ plugin classes through standard scanning.</p>
 
-<p>That is by design — the <code class="language-plaintext highlighter-rouge">plugin.xml</code> registry replaces classpath scanning. See the
-<a href="https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html">IntelliJ Platform SDK documentation on plugin extensions</a> for details.</p>
+<p>That is by design — IntelliJ follows <strong>Rule Number Two</strong> to the letter. The <code class="language-plaintext highlighter-rouge">plugin.xml</code>
+registry replaces classpath scanning. See the <a href="https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html">IntelliJ Platform SDK documentation on
+plugin extensions</a> for details.</p>
 
 <h2 id="a-note-on-java-modules-jigsaw">A Note on Java Modules (Jigsaw)</h2>
 
@@ -1146,7 +1147,8 @@ Application Servers, OSGi containers, TomCat, IntelliJ, where you manage classlo
 <p>Classloading is the powerful way to manage classes and make different applications co-exist together.
 Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to another.</p>
 
-<p>But please, be careful, investigate your problems, and follow the <strong>Rule Number One</strong>.</p>
+<p>But please, be careful, investigate your problems, and follow the <strong>Rule Number One</strong>
+and <strong>Rule Number Two</strong>.</p>
 
 <h2 id="references">References</h2>
 

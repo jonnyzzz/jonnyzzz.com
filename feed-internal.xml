@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-14T10:03:17+00:00</updated>
+  <updated>2026-02-14T10:05:17+00:00</updated>
   <id>/</id>
 
   
@@ -458,9 +458,9 @@ into the JVM. &lt;a href=&quot;https://github.com/ronmamo/reflections&quot;&gt;R
   &lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;The general advice: prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; or compile-time generation when you control
-the build. Use runtime scanning only when you must discover arbitrary user-provided
-classes (frameworks, plugin hosts).&lt;/p&gt;
+&lt;p&gt;The general advice follows &lt;strong&gt;Rule Number Two&lt;/strong&gt;: prefer &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ServiceLoader&lt;/code&gt; or compile-time
+generation when you control the build. Use runtime scanning only when you must discover
+arbitrary user-provided classes (frameworks, plugin hosts).&lt;/p&gt;
 
 &lt;h3 id=&quot;intellij-no-classpath-scanning&quot;&gt;IntelliJ: No Classpath Scanning&lt;/h3&gt;
 
@@ -475,8 +475,9 @@ reads these XML descriptors at startup — no bytecode scanning, no reflection.&
 the API is different from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader.getURLs()&lt;/code&gt;. Libraries that assume
 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLClassLoader&lt;/code&gt; will not see IntelliJ plugin classes through standard scanning.&lt;/p&gt;
 
-&lt;p&gt;That is by design — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt; registry replaces classpath scanning. See the
-&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html&quot;&gt;IntelliJ Platform SDK documentation on plugin extensions&lt;/a&gt; for details.&lt;/p&gt;
+&lt;p&gt;That is by design — IntelliJ follows &lt;strong&gt;Rule Number Two&lt;/strong&gt; to the letter. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt;
+registry replaces classpath scanning. See the &lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/plugin-extensions.html&quot;&gt;IntelliJ Platform SDK documentation on
+plugin extensions&lt;/a&gt; for details.&lt;/p&gt;
 
 &lt;h2 id=&quot;a-note-on-java-modules-jigsaw&quot;&gt;A Note on Java Modules (Jigsaw)&lt;/h2&gt;
 
@@ -1025,7 +1026,8 @@ Application Servers, OSGi containers, TomCat, IntelliJ, where you manage classlo
 &lt;p&gt;Classloading is the powerful way to manage classes and make different applications co-exist together.
 Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to another.&lt;/p&gt;
 
-&lt;p&gt;But please, be careful, investigate your problems, and follow the &lt;strong&gt;Rule Number One&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;But please, be careful, investigate your problems, and follow the &lt;strong&gt;Rule Number One&lt;/strong&gt;
+and &lt;strong&gt;Rule Number Two&lt;/strong&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;references&quot;&gt;References&lt;/h2&gt;
 

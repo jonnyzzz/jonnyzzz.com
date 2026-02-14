@@ -402,9 +402,9 @@ Runtime classpath scanning is expensive and fragile. There are lighter approache
   into the JVM. [Reflections][reflections-lib] takes a similar approach. Both handle
   `URLClassLoader`, `java.class.path`, and JDK 9+ module paths.
 
-The general advice: prefer `ServiceLoader` or compile-time generation when you control
-the build. Use runtime scanning only when you must discover arbitrary user-provided
-classes (frameworks, plugin hosts).
+The general advice follows **Rule Number Two**: prefer `ServiceLoader` or compile-time
+generation when you control the build. Use runtime scanning only when you must discover
+arbitrary user-provided classes (frameworks, plugin hosts).
 
 ### IntelliJ: No Classpath Scanning
 
@@ -419,8 +419,9 @@ This is worth noting because IntelliJ also uses its own classloader,
 the API is different from `URLClassLoader.getURLs()`. Libraries that assume
 `URLClassLoader` will not see IntelliJ plugin classes through standard scanning.
 
-That is by design — the `plugin.xml` registry replaces classpath scanning. See the
-[IntelliJ Platform SDK documentation on plugin extensions][ij-extensions] for details.
+That is by design — IntelliJ follows **Rule Number Two** to the letter. The `plugin.xml`
+registry replaces classpath scanning. See the [IntelliJ Platform SDK documentation on
+plugin extensions][ij-extensions] for details.
 
 [reflections-lib]: https://github.com/ronmamo/reflections
 [classgraph-lib]: https://github.com/classgraph/classgraph
@@ -950,7 +951,8 @@ Application Servers, OSGi containers, TomCat, IntelliJ, where you manage classlo
 Classloading is the powerful way to manage classes and make different applications co-exist together.
 Sometimes you can even use java.lang.reflect.Proxy to bind one classloader to another.
 
-But please, be careful, investigate your problems, and follow the **Rule Number One**.
+But please, be careful, investigate your problems, and follow the **Rule Number One**
+and **Rule Number Two**.
 
 ## References
 
