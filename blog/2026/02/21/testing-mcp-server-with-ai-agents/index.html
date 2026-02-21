@@ -1,0 +1,723 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Testing Your MCP Server with Real AI Agents in Docker &#8211; Eugene Petrenko</title>
+<meta name="description" content="The only way to know your MCP server actually works is to run a real AI agent against it. Here is how we built integration tests that spin up Claude Code, Codex, and Gemini CLI in Docker containers -- all talking to the same live MCP server during the test run.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, mcp, testing, developer-experience, docker" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Testing Your MCP Server with Real AI Agents in Docker -- Eugene Petrenko" />
+<meta name="twitter:description" content="The only way to know your MCP server actually works is to run a real AI agent against it. Here is how we built integration tests that spin up Claude Code, Codex, and Gemini CLI in Docker containers -- all talking to the same live MCP server during the test run.
+" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Testing Your MCP Server with Real AI Agents in Docker -- Eugene Petrenko" />
+<meta property="og:description" content="The only way to know your MCP server actually works is to run a real AI agent against it. Here is how we built integration tests that spin up Claude Code, Codex, and Gemini CLI in Docker containers -- all talking to the same live MCP server during the test run.
+" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="mcp" />
+
+<meta property="article:tag" content="testing" />
+
+<meta property="article:tag" content="developer-experience" />
+
+<meta property="article:tag" content="docker" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <ul>
+      
+		    <li><a href="/" >Home</a></li>
+		  
+		    <li><a href="/about/" >About</a></li>
+		  
+		    <li><a href="/blog/" >Blog</a></li>
+		  
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+	    </ul>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#testing" title="Pages tagged testing">testing</a></li><li><a href="/tags/#developer-experience" title="Pages tagged developer-experience">developer-experience</a></li><li><a href="/tags/#docker" title="Pages tagged docker">docker</a></li>
+        </ul>
+        
+          <h1 class="entry-title">Testing Your MCP Server with Real AI Agents in Docker</h1>
+        
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-02-21T00:00:00+00:00">February 21, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?hashtags=ai-agents,ai-coding,mcp,testing,developer-experience,docker&amp;text=Testing%20Your%20MCP%20Server%20with%20Real%20AI%20Agents%20in%20Docker&amp;url=https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/&amp;via=jonnyzzz" title="Share on X" itemprop="X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-facebook">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/" title="Share on Facebook" itemprop="Facebook" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg> Like</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>The only way to know your MCP server actually works is to test it with a real AI Agent.</p>
+
+<p>Unit tests can tell you whether a JSON schema is valid.
+Mock tests can verify your handler returns the right bytes, and can deviate from the logic.
+But none of them tell you whether an AI Agent will actually discover your tool,
+call it correctly, and do something useful with the result.</p>
+
+<p>The core insight that drove our testing approach:</p>
+
+<blockquote>
+  <p><strong>Tests should be assertions about the agentic loop itself</strong> – not just about
+individual functions. A test that passes only when a real agent, starting from
+a cold container, successfully discovers and calls your tool is the only test
+that proves the contract is real.</p>
+</blockquote>
+
+<p>We built this for <a href="https://mcp-steroid.jonnyzzz.com">mcp-steroid</a>, an MCP server that gives AI Agents deep
+access to IntelliJ IDEA. The server has dozens of tools. Each agent CLI handles
+MCP registration, tool discovery, and streaming output differently. The only way to catch
+regressions was to test with real agents.</p>
+
+<p>So we did.</p>
+
+<h2 id="the-architecture">The Architecture</h2>
+
+<p>The test setup has three moving parts:</p>
+
+<ul>
+  <li><strong>The MCP server</strong> runs inside the IntelliJ test process on the host machine,
+listening on random port, say <code class="language-plaintext highlighter-rouge">0.0.0.0:17820</code></li>
+  <li><strong>The AI Agent</strong> runs inside a Docker container</li>
+  <li><strong>Docker networking</strong> connects them: <code class="language-plaintext highlighter-rouge">host.docker.internal</code> resolves to the host from inside
+any container</li>
+</ul>
+
+<p>When the test starts, it binds the MCP server to all interfaces (not just <code class="language-plaintext highlighter-rouge">localhost</code>),
+so it is reachable from the Docker network. The container gets started with
+<code class="language-plaintext highlighter-rouge">--add-host=host.docker.internal:host-gateway</code>, which maps that hostname to the
+host gateway address. The test then translates the MCP URL from <code class="language-plaintext highlighter-rouge">localhost:17820</code>
+to <code class="language-plaintext highlighter-rouge">http://host.docker.internal:17820</code> before handing it to the agent.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>┌──────────────────────────────────────────────────────┐
+│  Host machine                                        │
+│                                                      │
+│  JVM test process                                    │
+│  ┌──────────────────────────────────────────────┐    │
+│  │  IntelliJ test framework                     │    │
+│  │  MCP server: 0.0.0.0:17820                   │    │
+│  └──────────────────────────────────────────────┘    │
+│                              ▲                       │
+│                              │ host.docker.internal  │
+└──────────────────────────────┼───────────────────────┘
+                               │
+┌──────────────────────────────┼───────────────────────┐
+│  Docker container            │                       │
+│                              │ HTTP/SSE              │
+│  AI Agent CLI ───────────────┘                       │
+│  (Claude / Codex / Gemini)                           │
+└──────────────────────────────────────────────────────┘
+</code></pre></div></div>
+
+<p>The test class wires this together before each test:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">override</span> <span class="k">fun</span> <span class="nf">setUp</span><span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// Bind server to all interfaces, not just localhost</span>
+    <span class="nc">System</span><span class="p">.</span><span class="nf">setProperty</span><span class="p">(</span><span class="s">"mcp.steroid.server.host"</span><span class="p">,</span> <span class="s">"0.0.0.0"</span><span class="p">)</span>
+    <span class="nc">System</span><span class="p">.</span><span class="nf">setProperty</span><span class="p">(</span><span class="s">"mcp.steroid.server.port"</span><span class="p">,</span> <span class="s">"17820"</span><span class="p">)</span>
+    <span class="k">super</span><span class="p">.</span><span class="nf">setUp</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="k">private</span> <span class="k">fun</span> <span class="nf">resolveDockerUrl</span><span class="p">():</span> <span class="nc">String</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">mcpUrl</span> <span class="p">=</span> <span class="nc">SteroidsMcpServer</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">().</span><span class="nf">getSseUrl</span><span class="p">()</span>
+    <span class="c1">// Replace localhost with the Docker-accessible hostname</span>
+    <span class="k">return</span> <span class="n">mcpUrl</span>
+        <span class="p">.</span><span class="nf">replace</span><span class="p">(</span><span class="s">"localhost"</span><span class="p">,</span> <span class="s">"host.docker.internal"</span><span class="p">)</span>
+        <span class="p">.</span><span class="nf">replace</span><span class="p">(</span><span class="s">"127.0.0.1"</span><span class="p">,</span> <span class="s">"host.docker.internal"</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Each agent session lives inside a Docker container. The container starts once, receives
+the MCP registration command, and then runs prompts via <code class="language-plaintext highlighter-rouge">docker exec</code>. The container
+is reused across calls within a single test.</p>
+
+<p>Basically, each AI Agent container starts with <code class="language-plaintext highlighter-rouge">sleep infinity</code> command as the entrypoint, 
+and we use <code class="language-plaintext highlighter-rouge">docker exec</code> commands to start various processes inside, even IntelliJ IDEA or Git.</p>
+
+<h3 id="api-keys">API Keys</h3>
+
+<p>The agent containers need API keys to talk to their respective model providers.
+We pass them as environment variables when running commands inside the container.
+The test harness reads the key from the environment and creates environment
+variables internally – <code class="language-plaintext highlighter-rouge">ANTHROPIC_API_KEY</code>, <code class="language-plaintext highlighter-rouge">OPENAI_API_KEY</code>, <code class="language-plaintext highlighter-rouge">GEMINI_API_KEY</code>.
+The key is injected only into the <code class="language-plaintext highlighter-rouge">docker exec</code> call, never stored in the image.
+We also redact the key from all log output so it doesn’t leak into CI logs.</p>
+
+<h2 id="claude-code----verbose-or-you-are-flying-blind">Claude Code – <code class="language-plaintext highlighter-rouge">--verbose</code> or You Are Flying Blind</h2>
+
+<h3 id="the-dockerfiles">The Dockerfiles</h3>
+
+<p>All three containers follow the same structure: Node.js 20 base, install the agent CLI,
+non-root user. The only difference is the npm package name.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> debian:bookworm-slim</span>
+
+<span class="c"># ── Node.js 20 via NodeSource</span>
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
+</span>        curl ca-certificates gnupg <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">mkdir</span> <span class="nt">-p</span> /etc/apt/keyrings <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    curl <span class="nt">-fsSL</span> https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | <span class="se">\
+</span>        gpg <span class="nt">--dearmor</span> <span class="nt">-o</span> /etc/apt/keyrings/nodesource.gpg <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">echo</span> <span class="s2">"deb [signed-by=/etc/apt/keyrings/nodesource.gpg] </span><span class="se">\
+</span><span class="s2">          https://deb.nodesource.com/node_20.x nodistro main"</span> <span class="se">\
+</span>        <span class="o">&gt;</span> /etc/apt/sources.list.d/nodesource.list <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get update <span class="o">&amp;&amp;</span> apt-get <span class="nb">install</span> <span class="nt">-y</span> nodejs <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="c"># ── Agent CLI -- swap this line per agent</span>
+<span class="k">RUN </span>npm <span class="nb">install</span> <span class="nt">-g</span> @anthropic-ai/claude-code   <span class="c"># Claude Code</span>
+<span class="k">RUN </span>npm <span class="nb">install</span> <span class="nt">-g</span> @openai/codex               <span class="c"># Codex</span>
+<span class="k">RUN </span>npm <span class="nb">install</span> <span class="nt">-g</span> @google/gemini-cli          <span class="c"># Gemini</span>
+
+<span class="c"># ── Non-root user for isolation</span>
+<span class="k">RUN </span>useradd <span class="nt">-m</span> <span class="nt">-s</span> /bin/bash agent
+<span class="k">USER</span><span class="s"> agent</span>
+<span class="k">WORKDIR</span><span class="s"> /home/agent</span>
+
+<span class="c"># ── Keep the container alive; commands run via docker exec</span>
+<span class="k">CMD</span><span class="s"> ["sleep", "infinity"]</span>
+</code></pre></div></div>
+
+<p>The container starts with <code class="language-plaintext highlighter-rouge">sleep infinity</code> and stays alive.
+All commands run via <code class="language-plaintext highlighter-rouge">docker exec</code> – the container is never restarted between calls.</p>
+
+<h3 id="mcp-registration">MCP Registration</h3>
+
+<p>Before running any prompt, we register the MCP server:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>claude mcp add --transport http intellij http://host.docker.internal:17820
+</code></pre></div></div>
+
+<h3 id="running-a-prompt">Running a Prompt</h3>
+
+<p>Claude Code has a non-interactive mode (<code class="language-plaintext highlighter-rouge">-p</code>) with streaming JSON output:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>claude \
+  --permission-mode bypassPermissions \
+  --tools default \
+  --input-format text \
+  --output-format stream-json \
+  --verbose \
+  -p "List the MCP tools and call steroid_list_projects"
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">--output-format stream-json --verbose</code> flags are essential.
+Without them, Claude only emits the final text response after the agent finishes.
+We want to see if the Claude process is alive, and thus the verbose output with
+progress messages is very essential.
+With them, every event streams to stdout as NDJSON (one JSON object per line)
+in real time: assistant messages, tool calls, tool results, token usage.
+This is what makes debugging tests tractable – you see exactly what the agent did.</p>
+
+<h3 id="parsing-the-json-output">Parsing the JSON Output</h3>
+
+<p>Claude Code’s <code class="language-plaintext highlighter-rouge">stream-json</code> format is event-driven. Tool calls are nested inside
+<code class="language-plaintext highlighter-rouge">assistant</code> message events (in the current format), and the final <code class="language-plaintext highlighter-rouge">result</code> event
+carries cost and timing:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"assistant"</span><span class="p">,</span><span class="nl">"message"</span><span class="p">:{</span><span class="nl">"role"</span><span class="p">:</span><span class="s2">"assistant"</span><span class="p">,</span><span class="nl">"content"</span><span class="p">:[{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"text"</span><span class="p">,</span><span class="nl">"text"</span><span class="p">:</span><span class="s2">"I'll list..."</span><span class="p">}]}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"assistant"</span><span class="p">,</span><span class="nl">"message"</span><span class="p">:{</span><span class="nl">"content"</span><span class="p">:[{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"tool_use"</span><span class="p">,</span><span class="nl">"name"</span><span class="p">:</span><span class="s2">"steroid_list_projects"</span><span class="p">,</span><span class="nl">"input"</span><span class="p">:{}}]}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"user"</span><span class="p">,</span><span class="nl">"message"</span><span class="p">:{</span><span class="nl">"content"</span><span class="p">:[{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"tool_result"</span><span class="p">,</span><span class="nl">"tool_use_id"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">,</span><span class="nl">"content"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">}]}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"result"</span><span class="p">,</span><span class="nl">"cost_usd"</span><span class="p">:</span><span class="mf">0.0042</span><span class="p">,</span><span class="nl">"duration_ms"</span><span class="p">:</span><span class="mi">3200</span><span class="p">,</span><span class="nl">"num_turns"</span><span class="p">:</span><span class="mi">2</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>We parse this with a streaming NDJSON loop that routes on <code class="language-plaintext highlighter-rouge">type</code>.
+Tool calls render as <code class="language-plaintext highlighter-rouge">&gt;&gt; steroid_list_projects</code>, tool results as <code class="language-plaintext highlighter-rouge">&lt;&lt; steroid_list_projects</code>,
+assistant text prints as-is, and cost appears at the end.
+We never buffer the full output – lines are processed as they arrive.</p>
+
+<h2 id="codex--stderr-will-fool-you">Codex – stderr Will Fool You</h2>
+
+<h3 id="mcp-registration-1">MCP Registration</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>codex mcp add intellij --url http://host.docker.internal:17820
+</code></pre></div></div>
+
+<h3 id="running-a-prompt-1">Running a Prompt</h3>
+
+<p>Codex uses the <code class="language-plaintext highlighter-rouge">exec</code> subcommand for non-interactive batch mode:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>codex exec \
+  --dangerously-bypass-approvals-and-sandbox \
+  --skip-git-repo-check \
+  --json \
+  "List the MCP tools and call steroid_list_projects"
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">--json</code> flag makes Codex emit NDJSON to stdout.
+Without it, you get the interactive terminal UI – not useful inside a test.
+The <code class="language-plaintext highlighter-rouge">--dangerously-bypass-approvals-and-sandbox</code> flag disables safety confirmation
+prompts so the agent can run without blocking on human input.</p>
+
+<h3 id="parsing-the-json-output-1">Parsing the JSON Output</h3>
+
+<p>Codex’s format uses <code class="language-plaintext highlighter-rouge">item</code> events:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"item.started"</span><span class="p">,</span><span class="nl">"item"</span><span class="p">:{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"mcp_tool_call"</span><span class="p">,</span><span class="nl">"name"</span><span class="p">:</span><span class="s2">"steroid_list_projects"</span><span class="p">}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"item.completed"</span><span class="p">,</span><span class="nl">"item"</span><span class="p">:{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"agent_message"</span><span class="p">,</span><span class="nl">"text"</span><span class="p">:</span><span class="s2">"I found the following tools..."</span><span class="p">}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"item.completed"</span><span class="p">,</span><span class="nl">"item"</span><span class="p">:{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"mcp_tool_call"</span><span class="p">,</span><span class="nl">"name"</span><span class="p">:</span><span class="s2">"steroid_list_projects"</span><span class="p">,</span><span class="nl">"output"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"turn.completed"</span><span class="p">,</span><span class="nl">"usage"</span><span class="p">:{</span><span class="nl">"input_tokens"</span><span class="p">:</span><span class="mi">400</span><span class="p">,</span><span class="nl">"output_tokens"</span><span class="p">:</span><span class="mi">200</span><span class="p">}}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>We route on <code class="language-plaintext highlighter-rouge">item.type</code>. The <code class="language-plaintext highlighter-rouge">mcp_tool_call</code> items show us tool invocations.
+The <code class="language-plaintext highlighter-rouge">agent_message</code> items (with a flat <code class="language-plaintext highlighter-rouge">text</code> field) give us the assistant’s text.
+<code class="language-plaintext highlighter-rouge">turn.completed</code> shows token usage.</p>
+
+<p>One thing that burned us early: <strong>Codex writes to stderr in some modes and stdout in others</strong>.
+In <code class="language-plaintext highlighter-rouge">--json</code> mode, structured events go to stdout and plain diagnostic messages go to stderr.
+We spent a week thinking our output filter was broken before we realized we were reading
+the wrong stream. We now capture both streams separately and only parse stdout as NDJSON.</p>
+
+<h2 id="gemini--exit-code-137-is-actually-fine">Gemini – Exit Code 137 Is Actually Fine</h2>
+
+<h3 id="mcp-registration-2">MCP Registration</h3>
+
+<p>Gemini’s registration syntax is the most verbose. It requires <code class="language-plaintext highlighter-rouge">--type http</code>,
+<code class="language-plaintext highlighter-rouge">--scope user</code>, and <code class="language-plaintext highlighter-rouge">--trust</code> to avoid interactive confirmation:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini mcp add intellij \
+  --type http \
+  http://host.docker.internal:17820 \
+  --scope user \
+  --trust
+</code></pre></div></div>
+
+<h3 id="running-a-prompt-2">Running a Prompt</h3>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gemini \
+  --screen-reader true \
+  --sandbox-mode none \
+  --approval-mode yolo \
+  --output-format stream-json \
+  --prompt "List the MCP tools and call steroid_list_projects"
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">--approval-mode yolo</code> disables tool-use confirmation prompts.
+The <code class="language-plaintext highlighter-rouge">--screen-reader true</code> flag suppresses ANSI terminal formatting.</p>
+
+<p>Note: newer Gemini CLI versions replaced <code class="language-plaintext highlighter-rouge">--sandbox-mode none</code> with <code class="language-plaintext highlighter-rouge">--sandbox false</code>.
+We handle this with a simple retry – if the first attempt fails with
+<code class="language-plaintext highlighter-rouge">unknown arguments: sandbox-mode</code>, we retry with <code class="language-plaintext highlighter-rouge">--sandbox false</code>.
+This keeps the tests passing across CLI version bumps without needing to pin an exact version.</p>
+
+<h3 id="parsing-the-json-output-2">Parsing the JSON Output</h3>
+
+<p>Gemini’s format uses typed events with field names that differ from Claude’s:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"message"</span><span class="p">,</span><span class="nl">"role"</span><span class="p">:</span><span class="s2">"assistant"</span><span class="p">,</span><span class="nl">"content"</span><span class="p">:</span><span class="s2">"I'll start by listing..."</span><span class="p">,</span><span class="nl">"delta"</span><span class="p">:</span><span class="kc">true</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"tool_use"</span><span class="p">,</span><span class="nl">"tool_name"</span><span class="p">:</span><span class="s2">"steroid_list_projects"</span><span class="p">,</span><span class="nl">"tool_id"</span><span class="p">:</span><span class="s2">"tool-1"</span><span class="p">,</span><span class="nl">"parameters"</span><span class="p">:{}}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"tool_result"</span><span class="p">,</span><span class="nl">"tool_id"</span><span class="p">:</span><span class="s2">"tool-1"</span><span class="p">,</span><span class="nl">"tool_name"</span><span class="p">:</span><span class="s2">"steroid_list_projects"</span><span class="p">,</span><span class="nl">"status"</span><span class="p">:</span><span class="s2">"success"</span><span class="p">,</span><span class="nl">"output"</span><span class="p">:</span><span class="s2">"..."</span><span class="p">}</span><span class="w">
+</span><span class="p">{</span><span class="nl">"type"</span><span class="p">:</span><span class="s2">"result"</span><span class="p">,</span><span class="nl">"status"</span><span class="p">:</span><span class="s2">"success"</span><span class="p">,</span><span class="nl">"stats"</span><span class="p">:{</span><span class="nl">"input_tokens"</span><span class="p">:</span><span class="mi">800</span><span class="p">,</span><span class="nl">"output_tokens"</span><span class="p">:</span><span class="mi">400</span><span class="p">,</span><span class="nl">"tool_calls"</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span><span class="nl">"duration_ms"</span><span class="p">:</span><span class="mi">1200</span><span class="p">}}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>A few quirks worth knowing:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">message.content</code> is a plain string, not an array – unlike Claude’s format</li>
+  <li>Tool calls use <code class="language-plaintext highlighter-rouge">tool_name</code> and <code class="language-plaintext highlighter-rouge">parameters</code>, not <code class="language-plaintext highlighter-rouge">name</code> and <code class="language-plaintext highlighter-rouge">input</code></li>
+  <li>The <code class="language-plaintext highlighter-rouge">result</code> stats have separate <code class="language-plaintext highlighter-rouge">input_tokens</code> and <code class="language-plaintext highlighter-rouge">output_tokens</code>, not a combined total</li>
+</ul>
+
+<p>One more surprise: <strong>Gemini CLI occasionally exits with code 137 (SIGKILL) even after
+successfully completing a request</strong>. We detect this by checking the raw NDJSON for
+<code class="language-plaintext highlighter-rouge">"status":"success"</code> and treating exit code 137 as success when that signal is present.
+Without this guard, valid runs fail spuriously about 5% of the time.</p>
+
+<p>The Gemini API also drops the socket mid-stream on transient errors
+(<code class="language-plaintext highlighter-rouge">UND_ERR_SOCKET</code>, <code class="language-plaintext highlighter-rouge">terminated</code>). We retry once when we see these patterns.
+Transient infrastructure failures shouldn’t count as test failures.</p>
+
+<h2 id="what-a-passing-test-looks-like">What a Passing Test Looks Like</h2>
+
+<p>The test prompts the agent with explicit instructions and then asserts on the output:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="nf">testDiscoversSteroidTools</span><span class="p">()</span> <span class="p">=</span> <span class="nf">timeoutRunBlocking</span><span class="p">(</span><span class="mi">300</span><span class="p">.</span><span class="n">seconds</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">session</span><span class="p">.</span><span class="nf">runPrompt</span><span class="p">(</span><span class="s">"""
+        List all MCP tools starting with "steroid_" and print each as:
+        TOOL: &lt;name&gt; - &lt;description&gt;
+
+        Then call steroid_list_projects exactly once and print the result as:
+        PROJECTS: &lt;raw JSON&gt;
+    """</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">assertExitCode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"prompt"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nf">assertNoErrorsInOutput</span><span class="p">(</span><span class="n">message</span> <span class="p">=</span> <span class="s">"prompt"</span><span class="p">)</span>
+
+    <span class="nf">assertTrue</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">output</span><span class="p">.</span><span class="nf">contains</span><span class="p">(</span><span class="s">"PROJECTS:"</span><span class="p">))</span>
+    <span class="nf">assertTrue</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">output</span><span class="p">.</span><span class="nf">contains</span><span class="p">(</span><span class="n">project</span><span class="p">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="nf">assertTrue</span><span class="p">(</span><span class="n">result</span><span class="p">.</span><span class="n">output</span><span class="p">.</span><span class="nf">contains</span><span class="p">(</span><span class="n">project</span><span class="p">.</span><span class="n">basePath</span><span class="p">.</span><span class="nf">toString</span><span class="p">()))</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The structured output format (<code class="language-plaintext highlighter-rouge">TOOL:</code>, <code class="language-plaintext highlighter-rouge">PROJECTS:</code>) makes assertions mechanical.
+The test fails if the agent hallucinates a tool call, misreads the MCP response,
+or doesn’t actually invoke the tool. That is precisely the contract we want to enforce.</p>
+
+<p>We run all three agents against the same test cases. This has surfaced real differences:
+tools with ambiguous descriptions that Claude calls correctly but Gemini mis-calls,
+JSON response shapes that Codex handles but another rejects, and timeout boundaries
+that only appear under real container-to-host network latency.</p>
+
+<h2 id="the-development-loop">The Development Loop</h2>
+
+<p>Before we had these tests, adding a new MCP tool meant:</p>
+<ol>
+  <li>Implement the tool handler</li>
+  <li>Start IntelliJ manually, open Claude Code, hope the tool showed up</li>
+  <li>Try a prompt and see if it worked</li>
+  <li>Debug output format issues in the UI</li>
+  <li>Repeat – usually four or five times</li>
+</ol>
+
+<p>With integration tests, the loop is:</p>
+<ol>
+  <li>Implement the tool handler</li>
+  <li>Run <code class="language-plaintext highlighter-rouge">./gradlew :ij-plugin:test --tests "*CliClaudeIntegrationTest*"</code></li>
+  <li>Read the test output – the full NDJSON-filtered agent transcript is there</li>
+  <li>Fix what’s broken, re-run</li>
+</ol>
+
+<p>Faster. Reproducible. And it runs in CI without any human in the loop. It runs inside
+Agentic loop too.</p>
+
+<blockquote>
+  <p>Having real end-to-end tests with real AI Agents is the fastest feedback loop
+we have found for MCP server development. The 60 seconds it takes to spin up
+a Docker container is cheaper than the 10 minutes of manual testing it replaces.</p>
+</blockquote>
+
+<h2 id="container-lifecycle">Container Lifecycle</h2>
+
+<p>One infrastructure detail worth mentioning: we use a lightweight reaper container
+to handle cleanup. When the test JVM exits or gets killed with SIGKILL, we need
+all agent containers cleaned up. The reaper registers containers via a simple
+TCP socket protocol (<code class="language-plaintext highlighter-rouge">container=&lt;id&gt;</code> messages) and kills them all when the
+connection drops.</p>
+
+<p>This means test runs don’t leave orphaned Docker containers even when the process
+is forcibly terminated during development or in CI.</p>
+
+<h2 id="what-this-enables">What This Enables</h2>
+
+<p>This approach enables the <strong>Agentic Loop</strong>, the way to make your coding
+agents receive instant feedback from the tests. My AI Agents broke these
+tests multiple times, and thanks to the tests, we were able to recover/rollaback,
+without breaking the real production. Integration tests, and the testing itself,
+is the vital building block, especially when AI Agents write the most of the code.</p>
+
+<p>The test harness is part of <a href="https://mcp-steroid.jonnyzzz.com">mcp-steroid</a>. If you want to build
+your own MCP server for IntelliJ, the same infrastructure is available.
+You can write a test that starts the real IDE, registers your server,
+and runs a real AI Agent against it – all from a single <code class="language-plaintext highlighter-rouge">./gradlew test</code> command.</p>
+
+<p>We’ve used this to test over 20 distinct tools across three agent CLIs,
+catching dozens of issues that would have been invisible in unit tests:
+tools with ambiguous descriptions that agents mis-call, JSON response shapes
+one CLI handles but another rejects, and timeout boundaries that only show up
+under real network latency between host and container.</p>
+
+<p>While writing tests for every tool, we also noticed something else. Some tools were
+so simple that the agents could have called them just as well through a shell command.
+That observation turned into a broader question.</p>
+
+<h2 id="mcp-is-one-way">MCP Is One Way</h2>
+
+<p>MCP Server is not the only way to give AI Agents access to your tools.</p>
+
+<p>In a <a href="/blog/2026/02/20/cli-tools-for-ai-agents/">recent post about CLI tools for AI Agents</a>, I wrote about how well-designed
+command-line interfaces are often sufficient. Agents already know how to run shell commands,
+parse text output, and chain calls. If your tool has a good CLI, you may not need
+an MCP server at all.</p>
+
+<p>For <a href="https://mcp-steroid.jonnyzzz.com">mcp-steroid</a>, MCP made sense: we need structured tool calls,
+streaming data, and tight IDE integration that a CLI cannot provide. But for many tools –
+build systems, package managers, code search, deployment pipelines – a CLI
+is simpler to build, simpler to test, and works with every agent out of the box.</p>
+
+<p>The question to ask is not “should I build an MCP server?” but “what interface
+does an AI Agent need to use this tool reliably?” Sometimes that is MCP.
+Sometimes it is a shell command. And sometimes it is both.</p>
+
+<p>If you are building an MCP server and want to share how you tested it, I’d like to hear
+about it – reach out on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://twitter.com/jonnyzzz">Twitter</a>.</p>
+
+
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+    <nav class="pagination" role="navigation">
+      
+        <a href="/blog/2026/02/20/cli-tools-for-ai-agents/" class="btn" title="CLI Is the New API and MCP: Building Agent-Ready Tools for Enterprise Teams">Previous</a>
+      
+      
+    </nav><!-- /.pagination -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  <br />
+  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
+  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

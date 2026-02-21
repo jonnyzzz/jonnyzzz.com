@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-02-20T15:27:59+00:00</updated>
+  <updated>2026-02-21T16:53:10+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,431 @@
   
 
   
+  
+  <entry>
+    <title type="html">Testing Your MCP Server with Real AI Agents in Docker</title>
+    <link href="https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/" rel="alternate" type="text/html" title="Testing Your MCP Server with Real AI Agents in Docker" />
+    <published>2026-02-21T00:00:00+00:00</published>
+    <updated>2026-02-21T00:00:00+00:00</updated>
+    <id>/blog/2026/02/21/testing-mcp-server-with-ai-agents</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/21/testing-mcp-server-with-ai-agents/">&lt;p&gt;The only way to know your MCP server actually works is to test it with a real AI Agent.&lt;/p&gt;
+
+&lt;p&gt;Unit tests can tell you whether a JSON schema is valid.
+Mock tests can verify your handler returns the right bytes, and can deviate from the logic.
+But none of them tell you whether an AI Agent will actually discover your tool,
+call it correctly, and do something useful with the result.&lt;/p&gt;
+
+&lt;p&gt;The core insight that drove our testing approach:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;strong&gt;Tests should be assertions about the agentic loop itself&lt;/strong&gt; – not just about
+individual functions. A test that passes only when a real agent, starting from
+a cold container, successfully discovers and calls your tool is the only test
+that proves the contract is real.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;We built this for &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;mcp-steroid&lt;/a&gt;, an MCP server that gives AI Agents deep
+access to IntelliJ IDEA. The server has dozens of tools. Each agent CLI handles
+MCP registration, tool discovery, and streaming output differently. The only way to catch
+regressions was to test with real agents.&lt;/p&gt;
+
+&lt;p&gt;So we did.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-architecture&quot;&gt;The Architecture&lt;/h2&gt;
+
+&lt;p&gt;The test setup has three moving parts:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;The MCP server&lt;/strong&gt; runs inside the IntelliJ test process on the host machine,
+listening on random port, say &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0.0.0.0:17820&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;The AI Agent&lt;/strong&gt; runs inside a Docker container&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Docker networking&lt;/strong&gt; connects them: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;host.docker.internal&lt;/code&gt; resolves to the host from inside
+any container&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;When the test starts, it binds the MCP server to all interfaces (not just &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;localhost&lt;/code&gt;),
+so it is reachable from the Docker network. The container gets started with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--add-host=host.docker.internal:host-gateway&lt;/code&gt;, which maps that hostname to the
+host gateway address. The test then translates the MCP URL from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;localhost:17820&lt;/code&gt;
+to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;http://host.docker.internal:17820&lt;/code&gt; before handing it to the agent.&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;┌──────────────────────────────────────────────────────┐
+│  Host machine                                        │
+│                                                      │
+│  JVM test process                                    │
+│  ┌──────────────────────────────────────────────┐    │
+│  │  IntelliJ test framework                     │    │
+│  │  MCP server: 0.0.0.0:17820                   │    │
+│  └──────────────────────────────────────────────┘    │
+│                              ▲                       │
+│                              │ host.docker.internal  │
+└──────────────────────────────┼───────────────────────┘
+                               │
+┌──────────────────────────────┼───────────────────────┐
+│  Docker container            │                       │
+│                              │ HTTP/SSE              │
+│  AI Agent CLI ───────────────┘                       │
+│  (Claude / Codex / Gemini)                           │
+└──────────────────────────────────────────────────────┘
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The test class wires this together before each test:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;override&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setUp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Bind server to all interfaces, not just localhost&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;mcp.steroid.server.host&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;0.0.0.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;mcp.steroid.server.port&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;17820&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;setUp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;resolveDockerUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;mcpUrl&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;SteroidsMcpServer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getSseUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// Replace localhost with the Docker-accessible hostname&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mcpUrl&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;replace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;localhost&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;host.docker.internal&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;replace&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;127.0.0.1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;host.docker.internal&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Each agent session lives inside a Docker container. The container starts once, receives
+the MCP registration command, and then runs prompts via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt;. The container
+is reused across calls within a single test.&lt;/p&gt;
+
+&lt;p&gt;Basically, each AI Agent container starts with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sleep infinity&lt;/code&gt; command as the entrypoint, 
+and we use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; commands to start various processes inside, even IntelliJ IDEA or Git.&lt;/p&gt;
+
+&lt;h3 id=&quot;api-keys&quot;&gt;API Keys&lt;/h3&gt;
+
+&lt;p&gt;The agent containers need API keys to talk to their respective model providers.
+We pass them as environment variables when running commands inside the container.
+The test harness reads the key from the environment and creates environment
+variables internally – &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ANTHROPIC_API_KEY&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OPENAI_API_KEY&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GEMINI_API_KEY&lt;/code&gt;.
+The key is injected only into the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; call, never stored in the image.
+We also redact the key from all log output so it doesn’t leak into CI logs.&lt;/p&gt;
+
+&lt;h2 id=&quot;claude-code----verbose-or-you-are-flying-blind&quot;&gt;Claude Code – &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--verbose&lt;/code&gt; or You Are Flying Blind&lt;/h2&gt;
+
+&lt;h3 id=&quot;the-dockerfiles&quot;&gt;The Dockerfiles&lt;/h3&gt;
+
+&lt;p&gt;All three containers follow the same structure: Node.js 20 base, install the agent CLI,
+non-root user. The only difference is the npm package name.&lt;/p&gt;
+
+&lt;div class=&quot;language-dockerfile highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; debian:bookworm-slim&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# ── Node.js 20 via NodeSource&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;apt-get update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    apt-get &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--no-install-recommends&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        curl ca-certificates gnupg &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; /etc/apt/keyrings &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    curl &lt;span class=&quot;nt&quot;&gt;-fsSL&lt;/span&gt; https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        gpg &lt;span class=&quot;nt&quot;&gt;--dearmor&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-o&lt;/span&gt; /etc/apt/keyrings/nodesource.gpg &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;deb [signed-by=/etc/apt/keyrings/nodesource.gpg] &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;          https://deb.nodesource.com/node_20.x nodistro main&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /etc/apt/sources.list.d/nodesource.list &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    apt-get update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; apt-get &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; nodejs &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-rf&lt;/span&gt; /var/lib/apt/lists/&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# ── Agent CLI -- swap this line per agent&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;npm &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; @anthropic-ai/claude-code   &lt;span class=&quot;c&quot;&gt;# Claude Code&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;npm &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; @openai/codex               &lt;span class=&quot;c&quot;&gt;# Codex&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;npm &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; @google/gemini-cli          &lt;span class=&quot;c&quot;&gt;# Gemini&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# ── Non-root user for isolation&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;useradd &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; /bin/bash agent
+&lt;span class=&quot;k&quot;&gt;USER&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; agent&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;WORKDIR&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; /home/agent&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# ── Keep the container alive; commands run via docker exec&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CMD&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; [&quot;sleep&quot;, &quot;infinity&quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The container starts with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sleep infinity&lt;/code&gt; and stays alive.
+All commands run via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; – the container is never restarted between calls.&lt;/p&gt;
+
+&lt;h3 id=&quot;mcp-registration&quot;&gt;MCP Registration&lt;/h3&gt;
+
+&lt;p&gt;Before running any prompt, we register the MCP server:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;claude mcp add --transport http intellij http://host.docker.internal:17820
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;running-a-prompt&quot;&gt;Running a Prompt&lt;/h3&gt;
+
+&lt;p&gt;Claude Code has a non-interactive mode (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-p&lt;/code&gt;) with streaming JSON output:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;claude \
+  --permission-mode bypassPermissions \
+  --tools default \
+  --input-format text \
+  --output-format stream-json \
+  --verbose \
+  -p &quot;List the MCP tools and call steroid_list_projects&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--output-format stream-json --verbose&lt;/code&gt; flags are essential.
+Without them, Claude only emits the final text response after the agent finishes.
+We want to see if the Claude process is alive, and thus the verbose output with
+progress messages is very essential.
+With them, every event streams to stdout as NDJSON (one JSON object per line)
+in real time: assistant messages, tool calls, tool results, token usage.
+This is what makes debugging tests tractable – you see exactly what the agent did.&lt;/p&gt;
+
+&lt;h3 id=&quot;parsing-the-json-output&quot;&gt;Parsing the JSON Output&lt;/h3&gt;
+
+&lt;p&gt;Claude Code’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stream-json&lt;/code&gt; format is event-driven. Tool calls are nested inside
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;assistant&lt;/code&gt; message events (in the current format), and the final &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;result&lt;/code&gt; event
+carries cost and timing:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;assistant&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;message&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;role&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;assistant&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;I&apos;ll list...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}]}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;assistant&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;message&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool_use&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;steroid_list_projects&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;input&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{}}]}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;user&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;message&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:[{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool_result&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_use_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}]}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;result&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;cost_usd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.0042&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;duration_ms&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;num_turns&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We parse this with a streaming NDJSON loop that routes on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;type&lt;/code&gt;.
+Tool calls render as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt;&amp;gt; steroid_list_projects&lt;/code&gt;, tool results as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;&amp;lt; steroid_list_projects&lt;/code&gt;,
+assistant text prints as-is, and cost appears at the end.
+We never buffer the full output – lines are processed as they arrive.&lt;/p&gt;
+
+&lt;h2 id=&quot;codex--stderr-will-fool-you&quot;&gt;Codex – stderr Will Fool You&lt;/h2&gt;
+
+&lt;h3 id=&quot;mcp-registration-1&quot;&gt;MCP Registration&lt;/h3&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;codex mcp add intellij --url http://host.docker.internal:17820
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;running-a-prompt-1&quot;&gt;Running a Prompt&lt;/h3&gt;
+
+&lt;p&gt;Codex uses the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;exec&lt;/code&gt; subcommand for non-interactive batch mode:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;codex exec \
+  --dangerously-bypass-approvals-and-sandbox \
+  --skip-git-repo-check \
+  --json \
+  &quot;List the MCP tools and call steroid_list_projects&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--json&lt;/code&gt; flag makes Codex emit NDJSON to stdout.
+Without it, you get the interactive terminal UI – not useful inside a test.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--dangerously-bypass-approvals-and-sandbox&lt;/code&gt; flag disables safety confirmation
+prompts so the agent can run without blocking on human input.&lt;/p&gt;
+
+&lt;h3 id=&quot;parsing-the-json-output-1&quot;&gt;Parsing the JSON Output&lt;/h3&gt;
+
+&lt;p&gt;Codex’s format uses &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;item&lt;/code&gt; events:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;item.started&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;item&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mcp_tool_call&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;steroid_list_projects&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;item.completed&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;item&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;agent_message&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;text&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;I found the following tools...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;item.completed&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;item&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;mcp_tool_call&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;steroid_list_projects&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;output&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;turn.completed&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;usage&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;input_tokens&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;output_tokens&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We route on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;item.type&lt;/code&gt;. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp_tool_call&lt;/code&gt; items show us tool invocations.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;agent_message&lt;/code&gt; items (with a flat &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;text&lt;/code&gt; field) give us the assistant’s text.
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;turn.completed&lt;/code&gt; shows token usage.&lt;/p&gt;
+
+&lt;p&gt;One thing that burned us early: &lt;strong&gt;Codex writes to stderr in some modes and stdout in others&lt;/strong&gt;.
+In &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--json&lt;/code&gt; mode, structured events go to stdout and plain diagnostic messages go to stderr.
+We spent a week thinking our output filter was broken before we realized we were reading
+the wrong stream. We now capture both streams separately and only parse stdout as NDJSON.&lt;/p&gt;
+
+&lt;h2 id=&quot;gemini--exit-code-137-is-actually-fine&quot;&gt;Gemini – Exit Code 137 Is Actually Fine&lt;/h2&gt;
+
+&lt;h3 id=&quot;mcp-registration-2&quot;&gt;MCP Registration&lt;/h3&gt;
+
+&lt;p&gt;Gemini’s registration syntax is the most verbose. It requires &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--type http&lt;/code&gt;,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--scope user&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--trust&lt;/code&gt; to avoid interactive confirmation:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gemini mcp add intellij \
+  --type http \
+  http://host.docker.internal:17820 \
+  --scope user \
+  --trust
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;running-a-prompt-2&quot;&gt;Running a Prompt&lt;/h3&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;gemini \
+  --screen-reader true \
+  --sandbox-mode none \
+  --approval-mode yolo \
+  --output-format stream-json \
+  --prompt &quot;List the MCP tools and call steroid_list_projects&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--approval-mode yolo&lt;/code&gt; disables tool-use confirmation prompts.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--screen-reader true&lt;/code&gt; flag suppresses ANSI terminal formatting.&lt;/p&gt;
+
+&lt;p&gt;Note: newer Gemini CLI versions replaced &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--sandbox-mode none&lt;/code&gt; with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--sandbox false&lt;/code&gt;.
+We handle this with a simple retry – if the first attempt fails with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unknown arguments: sandbox-mode&lt;/code&gt;, we retry with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--sandbox false&lt;/code&gt;.
+This keeps the tests passing across CLI version bumps without needing to pin an exact version.&lt;/p&gt;
+
+&lt;h3 id=&quot;parsing-the-json-output-2&quot;&gt;Parsing the JSON Output&lt;/h3&gt;
+
+&lt;p&gt;Gemini’s format uses typed events with field names that differ from Claude’s:&lt;/p&gt;
+
+&lt;div class=&quot;language-json highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;message&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;role&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;assistant&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;content&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;I&apos;ll start by listing...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;delta&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool_use&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;steroid_list_projects&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool-1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;parameters&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool_result&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_id&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;tool-1&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_name&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;steroid_list_projects&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;status&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;success&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;output&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;...&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;type&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;result&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;status&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;success&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;stats&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:{&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;input_tokens&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;800&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;output_tokens&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;tool_calls&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;&quot;duration_ms&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}}&lt;/span&gt;&lt;span class=&quot;w&quot;&gt;
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;A few quirks worth knowing:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;message.content&lt;/code&gt; is a plain string, not an array – unlike Claude’s format&lt;/li&gt;
+  &lt;li&gt;Tool calls use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tool_name&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;parameters&lt;/code&gt;, not &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;name&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;input&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;result&lt;/code&gt; stats have separate &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;input_tokens&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;output_tokens&lt;/code&gt;, not a combined total&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;One more surprise: &lt;strong&gt;Gemini CLI occasionally exits with code 137 (SIGKILL) even after
+successfully completing a request&lt;/strong&gt;. We detect this by checking the raw NDJSON for
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&quot;status&quot;:&quot;success&quot;&lt;/code&gt; and treating exit code 137 as success when that signal is present.
+Without this guard, valid runs fail spuriously about 5% of the time.&lt;/p&gt;
+
+&lt;p&gt;The Gemini API also drops the socket mid-stream on transient errors
+(&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;UND_ERR_SOCKET&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;terminated&lt;/code&gt;). We retry once when we see these patterns.
+Transient infrastructure failures shouldn’t count as test failures.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-a-passing-test-looks-like&quot;&gt;What a Passing Test Looks Like&lt;/h2&gt;
+
+&lt;p&gt;The test prompts the agent with explicit instructions and then asserts on the output:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;testDiscoversSteroidTools&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;timeoutRunBlocking&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;300&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;seconds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;session&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;runPrompt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        List all MCP tools starting with &quot;steroid_&quot; and print each as:
+        TOOL: &amp;lt;name&amp;gt; - &amp;lt;description&amp;gt;
+
+        Then call steroid_list_projects exactly once and print the result as:
+        PROJECTS: &amp;lt;raw JSON&amp;gt;
+    &quot;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;assertExitCode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;prompt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;assertNoErrorsInOutput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;message&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;prompt&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;nf&quot;&gt;assertTrue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;PROJECTS:&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;assertTrue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;assertTrue&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;contains&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;basePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toString&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The structured output format (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TOOL:&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROJECTS:&lt;/code&gt;) makes assertions mechanical.
+The test fails if the agent hallucinates a tool call, misreads the MCP response,
+or doesn’t actually invoke the tool. That is precisely the contract we want to enforce.&lt;/p&gt;
+
+&lt;p&gt;We run all three agents against the same test cases. This has surfaced real differences:
+tools with ambiguous descriptions that Claude calls correctly but Gemini mis-calls,
+JSON response shapes that Codex handles but another rejects, and timeout boundaries
+that only appear under real container-to-host network latency.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-development-loop&quot;&gt;The Development Loop&lt;/h2&gt;
+
+&lt;p&gt;Before we had these tests, adding a new MCP tool meant:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Implement the tool handler&lt;/li&gt;
+  &lt;li&gt;Start IntelliJ manually, open Claude Code, hope the tool showed up&lt;/li&gt;
+  &lt;li&gt;Try a prompt and see if it worked&lt;/li&gt;
+  &lt;li&gt;Debug output format issues in the UI&lt;/li&gt;
+  &lt;li&gt;Repeat – usually four or five times&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;With integration tests, the loop is:&lt;/p&gt;
+&lt;ol&gt;
+  &lt;li&gt;Implement the tool handler&lt;/li&gt;
+  &lt;li&gt;Run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./gradlew :ij-plugin:test --tests &quot;*CliClaudeIntegrationTest*&quot;&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;Read the test output – the full NDJSON-filtered agent transcript is there&lt;/li&gt;
+  &lt;li&gt;Fix what’s broken, re-run&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Faster. Reproducible. And it runs in CI without any human in the loop. It runs inside
+Agentic loop too.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Having real end-to-end tests with real AI Agents is the fastest feedback loop
+we have found for MCP server development. The 60 seconds it takes to spin up
+a Docker container is cheaper than the 10 minutes of manual testing it replaces.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;container-lifecycle&quot;&gt;Container Lifecycle&lt;/h2&gt;
+
+&lt;p&gt;One infrastructure detail worth mentioning: we use a lightweight reaper container
+to handle cleanup. When the test JVM exits or gets killed with SIGKILL, we need
+all agent containers cleaned up. The reaper registers containers via a simple
+TCP socket protocol (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;container=&amp;lt;id&amp;gt;&lt;/code&gt; messages) and kills them all when the
+connection drops.&lt;/p&gt;
+
+&lt;p&gt;This means test runs don’t leave orphaned Docker containers even when the process
+is forcibly terminated during development or in CI.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-this-enables&quot;&gt;What This Enables&lt;/h2&gt;
+
+&lt;p&gt;This approach enables the &lt;strong&gt;Agentic Loop&lt;/strong&gt;, the way to make your coding
+agents receive instant feedback from the tests. My AI Agents broke these
+tests multiple times, and thanks to the tests, we were able to recover/rollaback,
+without breaking the real production. Integration tests, and the testing itself,
+is the vital building block, especially when AI Agents write the most of the code.&lt;/p&gt;
+
+&lt;p&gt;The test harness is part of &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;mcp-steroid&lt;/a&gt;. If you want to build
+your own MCP server for IntelliJ, the same infrastructure is available.
+You can write a test that starts the real IDE, registers your server,
+and runs a real AI Agent against it – all from a single &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;./gradlew test&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;p&gt;We’ve used this to test over 20 distinct tools across three agent CLIs,
+catching dozens of issues that would have been invisible in unit tests:
+tools with ambiguous descriptions that agents mis-call, JSON response shapes
+one CLI handles but another rejects, and timeout boundaries that only show up
+under real network latency between host and container.&lt;/p&gt;
+
+&lt;p&gt;While writing tests for every tool, we also noticed something else. Some tools were
+so simple that the agents could have called them just as well through a shell command.
+That observation turned into a broader question.&lt;/p&gt;
+
+&lt;h2 id=&quot;mcp-is-one-way&quot;&gt;MCP Is One Way&lt;/h2&gt;
+
+&lt;p&gt;MCP Server is not the only way to give AI Agents access to your tools.&lt;/p&gt;
+
+&lt;p&gt;In a &lt;a href=&quot;/blog/2026/02/20/cli-tools-for-ai-agents/&quot;&gt;recent post about CLI tools for AI Agents&lt;/a&gt;, I wrote about how well-designed
+command-line interfaces are often sufficient. Agents already know how to run shell commands,
+parse text output, and chain calls. If your tool has a good CLI, you may not need
+an MCP server at all.&lt;/p&gt;
+
+&lt;p&gt;For &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;mcp-steroid&lt;/a&gt;, MCP made sense: we need structured tool calls,
+streaming data, and tight IDE integration that a CLI cannot provide. But for many tools –
+build systems, package managers, code search, deployment pipelines – a CLI
+is simpler to build, simpler to test, and works with every agent out of the box.&lt;/p&gt;
+
+&lt;p&gt;The question to ask is not “should I build an MCP server?” but “what interface
+does an AI Agent need to use this tool reliably?” Sometimes that is MCP.
+Sometimes it is a shell command. And sometimes it is both.&lt;/p&gt;
+
+&lt;p&gt;If you are building an MCP server and want to share how you tested it, I’d like to hear
+about it – reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="mcp" />
+  
+    <category term="testing" />
+  
+    <category term="developer-experience" />
+  
+    <category term="docker" />
+  
+    <summary type="html">The only way to know your MCP server actually works is to run a real AI agent against it. Here is how we built integration tests that spin up Claude Code, Codex, and Gemini CLI in Docker containers -- all talking to the same live MCP server during the test run.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">CLI Is the New API and MCP: Building Agent-Ready Tools for Enterprise Teams</title>
@@ -4136,167 +4561,6 @@ this gets interesting.&lt;/p&gt;</content>
     <category term="rlm" />
   
     <summary type="html">We interviewed 7 AI agents about our documentation. After 16 agents and honest feedback - 39% shorter, 15% higher quality, 5x faster to use.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Kotlin DSLs in 2026: Patterns That Stood the Test of Time</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/19/kotlin-dsl-2026/" rel="alternate" type="text/html" title="Kotlin DSLs in 2026: Patterns That Stood the Test of Time" />
-    <published>2026-01-19T00:00:00+00:00</published>
-    <updated>2026-01-19T00:00:00+00:00</updated>
-    <id>/blog/2026/01/19/kotlin-dsl-2026</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/19/kotlin-dsl-2026/">&lt;p&gt;Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. 
-Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration 
-files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived 
-but have become fundamental to how we build modern JVM applications.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-core-idea-that-never-changed&quot;&gt;The Core Idea That Never Changed&lt;/h2&gt;
-
-&lt;p&gt;The fundamental insight remains: Kotlin’s language features–extension functions, lambdas 
-with receivers, and operator overloading–turn any API into a potential DSL.&lt;/p&gt;
-
-&lt;p&gt;Consider the classic Java builder problem:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Traditional Java builder usage - verbose and error-prone&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;// Easy to copy-paste errors!&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The solution I proposed in 2018 still works perfectly:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Any&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;B&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;token&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JWT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withIssuer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ISSUER&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;userId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;userId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;withX&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serviceId&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;withClaim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;serviceId&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;sign&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;algorithm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;what-has-evolved-scope-control&quot;&gt;What Has Evolved: Scope Control&lt;/h2&gt;
-
-&lt;p&gt;Kotlin introduced &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; for better scope control in DSLs:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@DslMarker&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;annotation&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ConfigDsl&lt;/span&gt;
-
-&lt;span class=&quot;nd&quot;&gt;@ConfigDsl&lt;/span&gt;
-&lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;lateinit&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;
-    
-    &lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;database&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;DatabaseConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;server&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Unit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;
-    &lt;span class=&quot;nc&quot;&gt;ServerConfig&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;block&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt; annotation prevents accidentally calling outer scope functions from inner blocks.&lt;/p&gt;
-
-&lt;h2 id=&quot;build-systems-gradle-kotlin-dsl-matured&quot;&gt;Build Systems: Gradle Kotlin DSL Matured&lt;/h2&gt;
-
-&lt;p&gt;The patterns for ad-hoc plugins and code reuse have become standard:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// buildSrc/src/main/kotlin/service-conventions.gradle.kts&lt;/span&gt;
-&lt;span class=&quot;nf&quot;&gt;plugins&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nf&quot;&gt;kotlin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;jvm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;application&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;nf&quot;&gt;dependencies&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;org.jetbrains.kotlin:kotlin-bom&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;nf&quot;&gt;implementation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;io.ktor:ktor-server-core:2.3.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The trick of using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$id:$id.gradle.plugin:$version&lt;/code&gt; to include plugin dependencies 
-in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;buildSrc&lt;/code&gt; remains the key insight for sharing complex build logic.&lt;/p&gt;
-
-&lt;h2 id=&quot;configuration-as-code-the-dsl-way&quot;&gt;Configuration as Code: The DSL Way&lt;/h2&gt;
-
-&lt;p&gt;The concept of transforming configuration files into executable Kotlin code has proven durable:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Parse the original format (properties, YAML, XML)&lt;/li&gt;
-  &lt;li&gt;Generate readable Kotlin DSL code&lt;/li&gt;
-  &lt;li&gt;Execute the DSL to produce the original format&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// Instead of log4j.properties&lt;/span&gt;
-&lt;span class=&quot;nf&quot;&gt;log4j&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;console&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;appender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;ConsoleAppender&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;console&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;layout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;PatternLayout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-            &lt;span class=&quot;n&quot;&gt;conversionPattern&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;%d{ISO8601} [%t] %-5p %c - %m%n&quot;&lt;/span&gt;
-        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    
-    &lt;span class=&quot;nf&quot;&gt;rootLogger&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;level&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ERROR&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;appenders&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;console&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Variable references enable find-usages and rename refactoring. The type system catches invalid configurations at compile time.&lt;/p&gt;
-
-&lt;h2 id=&quot;modern-use-cases&quot;&gt;Modern Use Cases&lt;/h2&gt;
-
-&lt;p&gt;Beyond build systems, Kotlin DSLs have found homes in:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;API Client Generation&lt;/strong&gt;: Ktor uses DSLs for routing and request handling&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Infrastructure as Code&lt;/strong&gt;: Kotlin DSLs for Terraform or Pulumi&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Data Pipelines&lt;/strong&gt;: Spark and Flink wrappers&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;UI Frameworks&lt;/strong&gt;: Compose is fundamentally a Kotlin DSL&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;practical-guidelines-for-dsl-design&quot;&gt;Practical Guidelines for DSL Design&lt;/h2&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Start with the usage site&lt;/strong&gt;: Write how you want the DSL to look first&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;@DslMarker&lt;/code&gt;&lt;/strong&gt;: Always add scope control&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Prefer extension functions&lt;/strong&gt;: Keep core interfaces clean&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Make illegal states unrepresentable&lt;/strong&gt;: Use the type system&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Provide escape hatches&lt;/strong&gt;: Sometimes users need the underlying API&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
-
-&lt;p&gt;Kotlin DSLs have moved from a clever technique to an essential tool in the JVM ecosystem. 
-The patterns established years ago remain the foundation. What has changed is the tooling
-maturity and breadth of applications.&lt;/p&gt;
-
-&lt;p&gt;If you are still writing verbose Java builder code or maintaining error-prone configuration 
-files, consider whether a thin Kotlin DSL layer could transform your development experience.&lt;/p&gt;
-
-&lt;p&gt;The best programs remain immutable programs. And the best configurations are the ones that fail
-at compile time, not in production.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="kotlin" />
-  
-    <category term="java" />
-  
-    <category term="dsl" />
-  
-    <summary type="html">Eight years ago, I wrote about using Kotlin higher-order functions to simplify Java builders. Around the same time, I explored ad-hoc Gradle plugins and “The DSL Way”–replacing configuration files with type-safe Kotlin code. Looking back from 2026, these patterns have not only survived but have become fundamental to how we build modern JVM applications.</summary>
   
   </entry>
   
