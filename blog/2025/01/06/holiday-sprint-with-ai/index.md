@@ -16,7 +16,7 @@ Let me start with the raw data. Here's what the git logs show:
 
 | Project | AI-Assisted Commits | Focus |
 |---------|---------------------|-------|
-| intellij-mcp-steroids | 134 | MCP server with OCR, vision |
+| mcp-steroid | 134 | MCP server with OCR, vision |
 | stevedore | 48 | Docker deployment automation |
 | stevedore-dyndns | 35 | Dynamic DNS with Cloudflare |
 | intellij-plugin-hot-reload | 25 | Plugin development workflow |
@@ -32,7 +32,7 @@ Every single one of these commits has `Co-Authored-By: Claude` or similar in the
 
 The [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) has been getting a lot of attention. Anthropic released it as a way for AI assistants to interact with external tools. I wanted to see what happens when you take MCP seriously inside an IDE.
 
-The result is [intellij-mcp-steroids](https://github.com/jonnyzzz/intellij-mcp-steroids)—an IntelliJ plugin
+The result is [MCP Steroid](https://mcp-steroid.jonnyzzz.com/)—an IntelliJ plugin
 that exposes the IDE's full power through MCP. Full write-up:
 [MCP Steroid: An IntelliJ MCP Server with Vision]({% post_url blog/2026-01-04-mcp-steroids-intellij %}).
 Project homepage: [mcp-steroid.jonnyzzz.com](https://mcp-steroid.jonnyzzz.com/).
@@ -241,7 +241,7 @@ Three weeks. Nine projects. One intense holiday sprint.
 
 Want to try these tools yourself?
 
-- [intellij-mcp-steroids](https://github.com/jonnyzzz/intellij-mcp-steroids) - MCP integration for IntelliJ
+- [MCP Steroid](https://mcp-steroid.jonnyzzz.com/) - MCP integration for IntelliJ
 - [stevedore](https://github.com/jonnyzzz/stevedore) - Docker deployment automation
 - [intellij-plugin-hot-reload](https://github.com/jonnyzzz/intellij-plugin-hot-reload) - Faster plugin development
 

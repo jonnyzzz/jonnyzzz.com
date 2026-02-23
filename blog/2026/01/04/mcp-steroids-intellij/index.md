@@ -32,7 +32,7 @@ endpoint is `/mcp`, with [Agent Skills](https://agentskills.io) discovery at `/s
 On startup, the plugin writes discovery markers so tools can connect without guessing:
 
 - `~/.<pid>.mcp-steroid` in the user home (PID-scoped, cleaned on exit).
-- `.idea/mcp-steroids.txt` inside each opened project.
+- `.idea/mcp-steroid.md` inside each opened project.
 
 ### Connecting AI Agents
 
