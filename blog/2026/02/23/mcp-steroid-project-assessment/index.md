@@ -27,7 +27,7 @@ the IDE's JVM -- a much more flexible, powerful, and minimalistic API an AI Agen
 | Test Kotlin LOC            | 110,482                    |
 | Test-to-production ratio   | 4:1                        |
 | Gradle submodules          | 8                          |
-| Releases                   | 2 tagged (0.87.0, 0.88.0)  |
+| Releases                   | 3 (0.87.0, 0.88.0, 0.89.0) |
 
 The 4:1 test-to-production ratio is not an accident. The Docker-based integration tests
 launch a full IntelliJ IDE in a container, connect real AI Agents (Claude Code, Codex,
@@ -85,14 +85,67 @@ Multi-IDE support is already underway (GoLand, WebStorm). The NPX proxy aggregat
 multiple IDE instances. The arena benchmarking framework measures agent quality across
 curated project scenarios. Enterprise deployment works via a custom plugin repository.
 
-## Read the full assessment
+## Update: v0.89.0 released
 
-The complete project assessment with detailed architecture analysis, commit theme
-breakdown, competitive positioning, and executive vision is published on the
-MCP Steroid documentation site:
+Three days after this assessment, version 0.89.0 shipped -- 361 commits since 0.88.0.
 
-[**Project Assessment -- 2026-02-22**](https://mcp-steroid.jonnyzzz.com/docs/project-assessment-2026-02-22/)
+Key highlights:
 
-If you are building with AI Agents and want to give them the full IDE,
-[get started with MCP Steroid](https://mcp-steroid.jonnyzzz.com/docs/getting-started/)
-or [join the Slack community](https://join.slack.com/t/mcp-steroid/shared_invite/zt-3p3oq91kx-BXJng8GSXveqncFVYWUcpQ).
+- **Codex agent output support** -- full NDJSON format handling for OpenAI Codex,
+  including `mcp_tool_call` items, structured results, and `reasoning` blocks.
+  Raw and decoded agent logs are saved per prompt run.
+- **Prompt system overhaul** -- all prompt articles migrated to single-file `.md`
+  format with auto-generated TOC and per-article read tests.
+- **DPAIA arena testing** -- Docker-based A/B comparison framework that measures
+  agent effectiveness with and without MCP Steroid on curated project scenarios.
+- **Settings UI** -- new project settings page under Tools > MCP Steroid with
+  copy buttons and structured connection info.
+- **Claude Code 2.1.x compatibility** -- handles both old streaming and new
+  structured event formats.
+- **Stability fixes** -- resolved an 8-minute startup deadlock in Docker containers,
+  fixed onboarding dialogs blocking test runs, and several NPE fixes.
+
+Full release notes: [v0.89.0 on the MCP Steroid site][release-089].
+
+## AI Agents can debug now
+
+The debugger integration is what sets MCP Steroid apart from every other AI coding
+tool. No other product gives AI Agents access to breakpoints, step-over, variable
+inspection, and expression evaluation inside a real IDE debugger.
+
+Here is Codex debugging an application in IntelliJ IDEA, powered by MCP Steroid:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HtDDNyAoLak" title="Codex Debugs in IntelliJ IDEA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+And a shorter demo showing the debugger workflow -- setting breakpoints, stepping
+through code, evaluating expressions:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/8MjogrpfXLU" title="MCP Steroid & IntelliJ Debugger" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+## Try MCP Steroid
+
+If you are building with AI Agents and want to give them the full IDE -- not just
+file access, but compilation, inspections, refactorings, debugging, and visual
+understanding -- give MCP Steroid a try.
+
+**Get started:**
+- [Install the plugin][getting-started] -- works with Claude Code, Codex, Gemini CLI,
+  Cursor, and any MCP-compatible agent
+- [Download v0.89.0][release-089] or add the
+  [custom plugin repository](https://mcp-steroid.jonnyzzz.com/updatePlugins.xml)
+  for automatic updates
+
+**Support the development:**
+- [Sponsor on GitHub](https://github.com/sponsors/jonnyzzz) -- this project needs
+  funding to continue development, testing, and infrastructure
+- [Join the Slack community][slack] to discuss ideas and report issues
+- Star the [GitHub repository](https://github.com/jonnyzzz/mcp-steroid)
+
+**Read more:**
+- [Full project assessment][assessment] with architecture analysis, commit theme
+  breakdown, and competitive positioning
+
+[release-089]: https://mcp-steroid.jonnyzzz.com/releases/0.89.0/
+[getting-started]: https://mcp-steroid.jonnyzzz.com/docs/getting-started/
+[assessment]: https://mcp-steroid.jonnyzzz.com/docs/project-assessment-2026-02-22/
+[slack]: https://join.slack.com/t/mcp-steroid/shared_invite/zt-3p3oq91kx-BXJng8GSXveqncFVYWUcpQ
