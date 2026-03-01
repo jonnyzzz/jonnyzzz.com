@@ -6,7 +6,7 @@
 
 ---
 
-I've been working with multiple AI agents on the same codebase, and `git worktree` kept getting in the way.
+I've been working with multiple AI Agents on the same codebase, and `git worktree` kept getting in the way.
 The same branch can't be checked out in multiple worktrees. Some git operations don't work well with worktrees.
 **So I stopped using worktrees entirely.** Instead, I'm using full git checkouts that share objects with the
 original repository. **Full git functionality, minimal disk usage.**
@@ -16,7 +16,7 @@ original repository. **Full git functionality, minimal disk usage.**
 ## The Problem with Git Worktree
 
 Git worktree is useful for quick parallel work, but it has limitations that become painful when you're
-orchestrating multiple AI agents or just need full git flexibility:
+orchestrating multiple AI Agents or just need full git flexibility:
 
 - **Can't checkout the same branch twice** - Want two agents working on `main`? Can't do it with worktrees.
 - **Limited git operations** - Some rebase operations, submodules, and other features behave differently.
@@ -129,7 +129,7 @@ complete repository, **plus** access to both local and remote changes.
 
 ## AI Agent Integration
 
-This pattern works exceptionally well with AI agents. When I orchestrate multiple agents on the
+This pattern works exceptionally well with AI Agents. When I orchestrate multiple agents on the
 same codebase, I just tell them:
 
 ```
@@ -193,7 +193,7 @@ fully functional, and agents know how to create them.
 
 ## Why This Matters
 
-The git fork pattern enables true parallel development with AI agents. Instead of carefully
+The git fork pattern enables true parallel development with AI Agents. Instead of carefully
 orchestrating which agent works where and managing worktree constraints, I just:
 
 - Spin up agent with its own fork
@@ -220,7 +220,7 @@ The complete pattern is in [GIT-FORK.md](https://jonnyzzz.com/GIT-FORK.md) - jus
 4. Add remote and fetch
 5. Checkout branch
 
-If you're working with AI agents, just reference GIT-FORK.md and they'll implement it. If you're
+If you're working with AI Agents, just reference GIT-FORK.md and they'll implement it. If you're
 doing it manually, the commands are straightforward - see the doc for exact syntax.
 
 ----
@@ -230,11 +230,11 @@ doing it manually, the commands are straightforward - see the doc for exact synt
 I'm now exploring how to chain forks - creating a fork from a fork. This could enable interesting
 multi-level agent hierarchies where parent agents spawn child agents, each with their own workspace.
 
-The git alternates mechanism has been in git for years, but it's not widely used. With AI agents
+The git alternates mechanism has been in git for years, but it's not widely used. With AI Agents
 becoming primary users of development tools, patterns like this become more important. **Tools must
 now be optimized for agentic consumption.**
 
-If you're orchestrating AI agents or just want more flexibility than git worktree provides, try the
+If you're orchestrating AI Agents or just want more flexibility than git worktree provides, try the
 git fork pattern. It's what I use every day now.
 
 ----
@@ -243,4 +243,4 @@ git fork pattern. It's what I use every day now.
 
 - [Follow me on LinkedIn](https://www.linkedin.com/in/jonnyzzz/)
 - [Follow me on X (Twitter)](https://twitter.com/jonnyzzz)
-- [Check out more AI agent patterns](https://jonnyzzz.com/ai/)
+- [Check out more AI Agent patterns](https://jonnyzzz.com/ai/)

@@ -7,7 +7,7 @@
 ---
 
 About a year ago, I was wondering when programming would move to natural languages, and what it would look like.
-**Now I know**. For the last two months, English has become my main coding language to instruct AI agents,
+**Now I know**. For the last two months, English has become my main coding language to instruct AI Agents,
 build pipelines, and architect systems. **I'm coding in English to make AI Agents code in code.**
 
 ----
@@ -23,7 +23,7 @@ so instead of a bash or Python loop, we put a managing agent at the top who will
 the outcomes and decide on the next step.
 
 The whole agentic development process starts to look like an agentic waterflow workflow of many activities, each of which
-is done my various AI agents, or even multiple agents, with multiple various 
+is done my various AI Agents, or even multiple agents, with multiple various 
 agentic roles, repeats, and cycles. Should something go wrong, it should restart. 
 I created a ~10-step instruction locally for a 25-year-old monorepo and keep testing it to see how
 it goes. Agents tend to use the native sub-agent implementation instead of running the console 
@@ -57,7 +57,7 @@ now be optimized for agentic consumption — APIs first, GUIs second.
 ---- 
 
 About a year ago, I was wondering when programming would move to natural languages, and what it would look like.
-**Now I know**. For the last two months, English has become my main coding language to instruct AI agents,
+**Now I know**. For the last two months, English has become my main coding language to instruct AI Agents,
 build pipelines, and architect systems. **I'm coding in English to make AI Agents code in code.**
 
 **I'm coding in English to make AI Agents code in code.** 
@@ -74,7 +74,7 @@ with the rise of powerful AI models, the most important programming language mig
 ### The Shift from Syntax to Semantics
 
 Traditionally, developers acted as translators, converting human intent into machine-readable 
-code. AI agents are now taking over this translation layer.
+code. AI Agents are now taking over this translation layer.
 
 ### Prompt Engineering as the New Coding
 

@@ -6,17 +6,17 @@
 
 ---
 
-Translating academic research into practical AI agent skills through systematic experimentation.
+Translating academic research into practical AI Agent skills through systematic experimentation.
 
-A few weeks ago, I stumbled upon a fascinating paper on X: "Recursive Language Models" by Zhang, Kraska, and Khattab from MIT CSAIL. The core insight was elegant—treat the prompt as a Python variable rather than neural network input, allowing models to work with unbounded context through recursive sub-calls. The obvious question: could we translate these theoretical patterns into executable instructions for AI agents?
+A few weeks ago, I stumbled upon a fascinating paper on X: "Recursive Language Models" by Zhang, Kraska, and Khattab from MIT CSAIL. The core insight was elegant—treat the prompt as a Python variable rather than neural network input, allowing models to work with unbounded context through recursive sub-calls. The obvious question: could we translate these theoretical patterns into executable instructions for AI Agents?
 
-This post documents the experiment. We took the RLM paper, extracted its core concepts, and transformed them into skill files that AI agents can follow. Then we validated the approach by having multiple AI agents—Claude Code, Codex, and Gemini—cross-validate each other's work. The results reveal both the promise and the challenges of multi-agent orchestration.
+This post documents the experiment. We took the RLM paper, extracted its core concepts, and transformed them into skill files that AI Agents can follow. Then we validated the approach by having multiple AI Agents—Claude Code, Codex, and Gemini—cross-validate each other's work. The results reveal both the promise and the challenges of multi-agent orchestration.
 
 ## The Problem: Academic Papers Don't Compile
 
-Research papers describe algorithms and results. They don't provide executable instructions that an AI agent can follow step-by-step. The gap between "here's the theory" and "now do this" is where most knowledge transfer fails.
+Research papers describe algorithms and results. They don't provide executable instructions that an AI Agent can follow step-by-step. The gap between "here's the theory" and "now do this" is where most knowledge transfer fails.
 
-Consider RLM's key insight about context rot—performance degrades as context length increases. The paper quantifies this beautifully with benchmarks on OOLONG and BrowseComp+. But an AI agent facing a 100K token codebase doesn't know to apply partition+map+reduce unless explicitly told when and how.
+Consider RLM's key insight about context rot—performance degrades as context length increases. The paper quantifies this beautifully with benchmarks on OOLONG and BrowseComp+. But an AI Agent facing a 100K token codebase doesn't know to apply partition+map+reduce unless explicitly told when and how.
 
 Our approach was systematic:
 
@@ -31,7 +31,7 @@ Our approach was systematic:
 
 The RLM paper's abstract mentions "treating the prompt as a Python variable." What does this mean operationally?
 
-After multiple read-throughs (some by humans, some by AI agents), we extracted these key patterns:
+After multiple read-throughs (some by humans, some by AI Agents), we extracted these key patterns:
 
 | Paper Concept | Executable Pattern |
 |---------------|-------------------|
@@ -188,7 +188,7 @@ Rating: 8.5/10
 
 **Key observation:** Each agent identified unique issues. Cross-validation caught 6 distinct improvement areas. Agreement on core accuracy (3/3) validates the foundational content. Disagreement on gaps (1/3 each) demonstrates the value of diverse model architectures.
 
-**Important clarification (from Gemini review):** This experiment *emulates* RLM architecture using standard AI agents and skill files, rather than running the paper's actual codebase. The skill files translate RLM concepts into actionable patterns, but the underlying mechanism differs from the paper's REPL-based recursive system.
+**Important clarification (from Gemini review):** This experiment *emulates* RLM architecture using standard AI Agents and skill files, rather than running the paper's actual codebase. The skill files translate RLM concepts into actionable patterns, but the underlying mechanism differs from the paper's REPL-based recursive system.
 
 ## Results: The Skill File Ecosystem
 
@@ -218,7 +218,7 @@ CLAUDE.md (repository root)
 
 ### Usage Pattern
 
-An AI agent encountering this repository:
+An AI Agent encountering this repository:
 
 1. Reads CLAUDE.md for repository context
 2. For complex tasks, references MULTI-AGENT.md
@@ -255,7 +255,7 @@ Parallel cross-validation provides the best quality/time tradeoff.
 
 ### What Worked
 
-1. **Explicit decision trees** - AI agents follow clear conditionals reliably
+1. **Explicit decision trees** - AI Agents follow clear conditionals reliably
 2. **Structured templates** - Standard formats reduce interpretation errors
 3. **Cross-validation** - Different models catch different issues
 4. **Parallel execution** - Background CLI calls minimize overhead

@@ -6,7 +6,7 @@
 
 ---
 
-I've been running AI agents on codebases for a while now. One agent is useful.
+I've been running AI Agents on codebases for a while now. One agent is useful.
 Two agents can review each other's work. But **dozens of agents working in parallel**
 on the same codebase -- that's where things get interesting. That's what
 [run-agent.sh](https://run-agent.jonnyzzz.com/) does.
@@ -17,15 +17,15 @@ on the same codebase -- that's where things get interesting. That's what
 
 ## The Problem
 
-When you run a single AI agent on a task, you get one perspective, one approach,
+When you run a single AI Agent on a task, you get one perspective, one approach,
 one shot at getting it right. The agent finishes, you review the output, and if
 it missed something you start over.
 
-What I wanted was a **development team made of AI agents** -- one that researches
+What I wanted was a **development team made of AI Agents** -- one that researches
 the codebase, another that implements changes, a third that reviews the code, and
 a fourth that runs tests. All working simultaneously. All coordinated.
 
-The challenge: AI agents don't naturally coordinate. Each one starts fresh with
+The challenge: AI Agents don't naturally coordinate. Each one starts fresh with
 no knowledge of what the others are doing. They overwrite each other's changes.
 They duplicate work. They have no way to say "I found a blocker" or "this task
 is done."
@@ -131,7 +131,7 @@ project repo stays clean -- no orchestration artifacts mixed in.
 
 ## Quick Start
 
-Give this prompt to any AI agent (Claude, Codex, or Gemini):
+Give this prompt to any AI Agent (Claude, Codex, or Gemini):
 
 ```
 Download and follow the orchestration workflow from:
@@ -184,12 +184,12 @@ touch the same files, and tighter integration between the message bus and IDE
 quality gates.
 
 The code is on [GitHub](https://github.com/jonnyzzz/run-agent). Try it on a
-real project and see what a swarm of AI agents can do.
+real project and see what a swarm of AI Agents can do.
 
 ----
 
-**Questions? Want to share how you're orchestrating AI agents?**
+**Questions? Want to share how you're orchestrating AI Agents?**
 
 - [Follow me on LinkedIn](https://www.linkedin.com/in/jonnyzzz/)
 - [Follow me on X (Twitter)](https://twitter.com/jonnyzzz)
-- [More AI agent patterns](https://jonnyzzz.com/ai/)
+- [More AI Agent patterns](https://jonnyzzz.com/ai/)

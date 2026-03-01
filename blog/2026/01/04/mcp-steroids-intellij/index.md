@@ -6,7 +6,7 @@
 
 ---
 
-I wanted my AI agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built **[MCP Steroid](https://mcp-steroid.jonnyzzz.com/)**.
+I wanted my AI Agent to act like a real teammate inside IntelliJ: open a project, run inspections, click through dialogs, and keep enough context to avoid guessing. Text-only tools were not enough. So I built **[MCP Steroid](https://mcp-steroid.jonnyzzz.com/)**.
 
 ![MCP Steroid logo]({{ site.url }}/images/mcp-steroid-logo.png)
 
@@ -181,7 +181,7 @@ MCP Steroid is part of my AI-assisted development setup, running
 alongside [Stevedore]({% post_url blog/2025-12-24-introducing-stevedore %}) deployments 
 on my homelab infrastructure.
 
-The goal is to make the IDE a first-class tool for AI agents—not just a text editor they talk to, 
+The goal is to make the IDE a first-class tool for AI Agents—not just a text editor they talk to, 
 but a full development environment they can see, navigate, and operate. There is still a lot to 
 figure out about trust, safety, and useful abstractions, but this is a start.
 

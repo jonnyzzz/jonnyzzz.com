@@ -2,7 +2,7 @@
 
 **Date:** February 01, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai, tts, python, qwen, voice-cloning
+**Tags:** ai, tts, python, qwen, voice-cloning, LocalAI
 
 ---
 

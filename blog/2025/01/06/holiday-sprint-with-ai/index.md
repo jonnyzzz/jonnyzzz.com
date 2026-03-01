@@ -165,7 +165,7 @@ Between building features, I spent time documenting the patterns we discovered.
 
 ### RLM.md: Recursive Language Models
 
-The [RLM paper](https://arxiv.org/abs/2512.24601) describes how to handle context that exceeds model limits. I wrote a practical implementation guide that AI agents can follow:
+The [RLM paper](https://arxiv.org/abs/2512.24601) describes how to handle context that exceeds model limits. I wrote a practical implementation guide that AI Agents can follow:
 
 ```
 PROTOCOL:

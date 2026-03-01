@@ -11,7 +11,7 @@ After several agentic improvements, the root prompt does the following steps:
 
 - Instructs an agent to copy and adjust the prompt for their task
 - Instructs to use the standard `run-agent.sh` start agents, log outputs
-- Clearly states that the AI agent should use the script, not the embedded feature
+- Clearly states that the AI Agent should use the script, not the embedded feature
 - Starts the agent at any working folder
 - One more secret ingredient to make it work, or two
 

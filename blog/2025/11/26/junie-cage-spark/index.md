@@ -1,4 +1,4 @@
-# Magic Cable for Nvidia Spark
+# Magic Cable for NVIDIA Spark
 
 **Date:** November 26, 2025  
 **Author:** Eugene Petrenko  
@@ -40,7 +40,7 @@ Many teams live under constraints like:
 * flat usage plans (you own the hardware, you use it 100% of the time)
 
 For those teams, “send code to an external model endpoint” is not an option.  
-[Nvidia DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/) gives a different model:
+[NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/) gives a different model:
 * AI hardware is **on the desk** or **on-prem**
 * the box can be configured with **no direct internet access**
 * all prompts, code, embeddings, and models stay **inside the company perimeter**
@@ -73,7 +73,7 @@ In real corporate networks, we hit the usual obstacles:
 * Broken flow (instead of trying, you're configuring and rebuilding for hours)
 
 We want a different experience:
-1. We unbox Nvidia DGX Spark.
+1. We unbox NVIDIA DGX Spark.
 2. We connect one cable.
 3. IntelliJ quietly detects a device and offers to use it for AI and heavy tasks.
 
@@ -113,7 +113,7 @@ Answer: **a regular network adapter**.
 The design we ended up with is almost disappointingly simple:
 
 > Use two standard Ethernet adapters connected by a short cable, one on the
-> Nvidia DGX Spark side, one on the developer machine. Both go into USB-C.
+> NVIDIA DGX Spark side, one on the developer machine. Both go into USB-C.
 
 Diagram version:
 
@@ -129,12 +129,12 @@ Diagram version:
                                          USB-C
                                            |
                                            v
-                                  [NVidia DGX Spark]
+                                  [NVIDIA DGX Spark]
 ```
 
 <iframe src="https://www.linkedin.com/embed/feed/update/urn:li:share:7398855051676471296" height="639" width="504" frameborder="0" allowfullscreen="" title="Embedded post"></iframe>
 
-And this setup is working greatly! We make the Nvidia DGX Spark run as DHCP and DNS for the network interface,
+And this setup is working greatly! We make the NVIDIA DGX Spark run as DHCP and DNS for the network interface,
 so it means it will assign the developer machine the specific IP address. The software (say an IntelliJ plugin)
 will know about the port, or it will even look up it via DNS or either way. 
 
@@ -168,8 +168,9 @@ There are many areas were we definitely need to look in at, for example
 * Making the cable smarter to support us with all of that
 
 The magic cable itself appears to have much of the potential, I'm looking forward
-to sharing more with you. We are going to post more, stay tuned, or reach
-out in DMs for more details.
+to sharing more with you. The cable sources are available on
+[GitHub](https://github.com/JetBrains/UniEDC). We are going to post more,
+stay tuned, or reach out in DMs for more details.
 
 # New World & AWS re:Invent 2025
 
@@ -177,7 +178,12 @@ There are so many ideas that we have and found working on this project, stay tun
 and let me know (via LinkedIn) what you think or would expect from us. I will update. 
 
 **I'll be deming the solution, the JetCable at AWS re:Invent this year,
-stop by at JetBrains booth, and let's talk about the local AI. See ya!**
-Drop me align via [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or [Twitter](https://x.com/jonnyzzz) to stay in touch.
+stop by at JetBrains booth, and let's talk about LocalAI. See ya!**
+Drop me a line via [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or [Twitter](https://x.com/jonnyzzz) to stay in touch.
 
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Gearing up for Las Vegas? ✈️<br><br>I’ll be at AWS re:Invent next week, and I&#39;m looking forward to connecting with you and discussing the future trends. Passionate about Local LLMs, AI, Coding Agents, Developer Experience, and JetBrains&#39; new products?<br><br>Stop by the JetBrains booth to… <a href="https://t.co/JAPiDcux6m">pic.twitter.com/JAPiDcux6m</a></p>&mdash; Eugene Petrenko (@jonnyzzz) <a href="https://twitter.com/jonnyzzz/status/1993702449450713154?ref_src=twsrc%5Etfw">November 26, 2025</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+Here is the demo from AWS re:Invent 2025:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/kvZDkvm96sg"
+ title="JetBrains AI working Local AI with NVIDIA DGX Spark" frameborder="0"
+ allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+ allowfullscreen></iframe>

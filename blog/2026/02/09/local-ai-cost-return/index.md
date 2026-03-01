@@ -2,7 +2,7 @@
 
 **Date:** February 09, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** local-ai, ai-agents, hardware, ai-coding, llm, cost-analysis
+**Tags:** LocalAI, ai-agents, hardware, ai-coding, llm, cost-analysis
 
 ---
 

@@ -7,16 +7,16 @@
 ---
 
 I've been documenting multi-agent orchestration patterns for months, and I had no idea how bad our docs had become
-until I asked our customers --- AI agents, and they were brutally honest.
+until I asked our customers --- AI Agents, and they were brutally honest.
 
 Our documentation had grown to 2,648 lines across four files. The most important commands were buried at line 91 of
 CLAUDE-CODE.md, after 90 lines of introductions, explanations, and edge cases. We'd duplicated entire sections across
-three CLI docs. And when AI agents tried to use these docs to spawn other AI agents, they struggled.
+three CLI docs. And when AI Agents tried to use these docs to spawn other AI Agents, they struggled.
 
 Here's the recursive twist: I sent agents to interview agents about documentation for spawning agents. We used
 multi-agent orchestration to fix documentation about multi-agent orchestration. The tools improved themselves.
 
-This is the story of how 16 AI agents helped us refactor documentation that was both about them and for them. This was
+This is the story of how 16 AI Agents helped us refactor documentation that was both about them and for them. This was
 attempt #3, and we finally got it right by doing something simple: we stopped guessing and started asking.
 
 ## The Bigger Picture
@@ -33,19 +33,19 @@ teaches agents how to spawn agents. The documentation problem was its own soluti
 multi-agent orchestration, so we used multi-agent orchestration to improve those docs. The methodology ate its own
 dogfood and came out stronger.
 
-The fact that 16 AI agents could analyze, interview, implement, and validate better than I could alone? That changes
+The fact that 16 AI Agents could analyze, interview, implement, and validate better than I could alone? That changes
 how I think about engineering workflows. But more importantly, the agents-spawning-agents-to-fix-agent-docs approach
 proved the recursive viability of the entire pattern.
 
 We spawned 16 agents across four distinct phases. We ran them in parallel when possible, sequentially when necessary.
-We treated AI agents as actual customers and conducted structured interviews to understand their needs. We validated
+We treated AI Agents as actual customers and conducted structured interviews to understand their needs. We validated
 the results with fresh agents who had no prior context. Some of those interview agents spawned their own sub-agents to
 dig deeper into specific sections.
 
 The outcome? Measurable improvements: 39% shorter documentation, 15% higher quality ratings, 5x faster navigation to
-key commands. Production-ready output that both humans and AI agents can use effectively.
+key commands. Production-ready output that both humans and AI Agents can use effectively.
 
-But the bigger lesson is about treating AI agents as customers. They can't be polite out of social obligation. They
+But the bigger lesson is about treating AI Agents as customers. They can't be polite out of social obligation. They
 won't pretend to understand confusing documentation. They'll tell you exactly where you buried the lead, what's
 missing, and what's duplicated. They're brutally honest feedback machines. And when they give feedback about their own
 operational instructions? That's when the recursion gets really interesting.
@@ -57,9 +57,9 @@ operational instructions? That's when the recursion gets really interesting.
 We'd written 2,648 lines of documentation across four files: CLAUDE-CODE.md, CODEX.md, GEMINI.md, and MULTI-AGENT.md. 
 Standard developer docs, right? Not quite.
 
-The twist: this documentation was both **about** AI agents and **for** AI agents. Human developers would read it to 
-learn how to spawn sub-agents. But more importantly, the AI agents themselves would read these docs when they needed to 
-spawn other AI agents. An agent working on your behalf would need to parse these instructions, understand the patterns, 
+The twist: this documentation was both **about** AI Agents and **for** AI Agents. Human developers would read it to 
+learn how to spawn sub-agents. But more importantly, the AI Agents themselves would read these docs when they needed to 
+spawn other AI Agents. An agent working on your behalf would need to parse these instructions, understand the patterns, 
 and correctly invoke another agent with the right commands and flags.
 
 If the documentation was confusing, ambiguous, or poorly structured, the AI wouldn't just get frustrated and ask for 
@@ -69,7 +69,7 @@ documentation quality directly impacted whether agent-to-agent orchestration act
 
 ### Why AI Agents Care About Documentation Quality
 
-AI agents aren't just slower readers than humans - they have fundamentally different constraints:
+AI Agents aren't just slower readers than humans - they have fundamentally different constraints:
 
 **Token costs are real.** Reading 2,648 lines of documentation translates to roughly 40,000 tokens. Every time an agent 
 needed to spawn a sub-agent, it would load these docs into context. That's not just slow, it's expensive. Token costs 
@@ -80,9 +80,9 @@ to process, the slower it responds and the more likely it is to miss crucial det
 
 **Precision matters more than style.** Ambiguity that humans can resolve through intuition becomes a hallucination risk 
 for AI. When documentation says three commands are "RECOMMENDED" with no clear priority, humans might make an educated 
-guess. AI agents will pick the first one they see, or worse, combine flags in creative ways that don't work.
+guess. AI Agents will pick the first one they see, or worse, combine flags in creative ways that don't work.
 
-**Navigation is harder.** Humans can Ctrl+F for keywords or skim section headers. AI agents must parse the document 
+**Navigation is harder.** Humans can Ctrl+F for keywords or skim section headers. AI Agents must parse the document 
 sequentially, building a mental model as they go. If the most important information is at line 91, they've already 
 spent 90 lines of processing budget on preliminaries.
 
@@ -96,7 +96,7 @@ One validator put it perfectly:
 
 > "Strong operational doc. With recommended command moved to top and error handling added, would be 9/10."
 
-That quote came from an AI agent evaluating the documentation. And it nailed exactly what was missing: quick access to 
+That quote came from an AI Agent evaluating the documentation. And it nailed exactly what was missing: quick access to 
 the essential commands and proper error handling patterns.
 
 This was our third attempt. The first two? We tested on agents, and improved with agents with various prompts. 
@@ -104,7 +104,7 @@ Each next iteration creates a more improved outcome. But I would not run it too 
 from the main focus. I'd optimized for completeness over usability, documenting every option and edge case
 while forgetting to answer the only question that mattered: "What command do I run right now?"
 
-What changed? We stopped assuming we knew what good documentation looked like and started treating AI agents as actual 
+What changed? We stopped assuming we knew what good documentation looked like and started treating AI Agents as actual 
 customers who could tell us. They knew what they needed better than I did.
 
 ## What the Interviews Revealed
@@ -147,7 +147,7 @@ Command-line interface for spawning Claude Code sub-agents.
 claude -p --tools default --permission-mode dontAsk "prompt" 2>&1
 ```
 
-**Impact:** Time-to-command dropped from 60-90 seconds to 10-15 seconds. For an AI agent reading sequentially, that's a 
+**Impact:** Time-to-command dropped from 60-90 seconds to 10-15 seconds. For an AI Agent reading sequentially, that's a 
 5x improvement. For a human developer scanning the page, it's the difference between finding what you need and giving 
 up.
 
@@ -280,7 +280,7 @@ codex --full-auto exec "prompt" 2>&1
 codex --tools default --full-auto exec "prompt" 2>&1
 ```
 
-Three "recommended" commands means zero recommended commands. An AI agent parsing this has to guess which one we 
+Three "recommended" commands means zero recommended commands. An AI Agent parsing this has to guess which one we 
 actually want them to use.
 
 **The fix in CODEX.md:**
@@ -309,7 +309,7 @@ Before I explain how we fixed everything, let me introduce the pattern that made
 
 RLM, [Recursive Language Model](https://arxiv.org/abs/2512.24601), is a workflow for breaking large 
 tasks into parallel agent work. If you've used 
-MapReduce for data processing, RLM is the same concept applied to AI agents:
+MapReduce for data processing, RLM is the same concept applied to AI Agents:
 
 **PARTITION:** Divide work into independent tasks with clear boundaries. The rule: no inter-task dependencies. Each 
 agent must be able to complete its work without waiting for another agent's output. For this project, we partitioned by 
@@ -476,7 +476,7 @@ The `wait` command is critical - it ensures all background processes finish befo
 After implementation, we had a problem: how do we know the refactored documentation is actually better? We couldn't 
 grade our own work. So we brought in external reviewers.
 
-Except our external reviewers were AI agents.
+Except our external reviewers were AI Agents.
 
 We spawned 3 brand new agents with zero context. No memory of the interviews. No knowledge of what changed. Just: 
 "Here's the documentation. Evaluate it."
@@ -567,7 +567,7 @@ better scores.
 I spent two full versions guessing what was wrong. Version 1.0.6? Not idea. Version 1.0.7? Still not good enough. 
 One round of structured interviews revealed what users actually needed better than months of my assumptions.
 
-AI agents are surprisingly good at articulating what makes documentation effective. They can't be polite out of social 
+AI Agents are surprisingly good at articulating what makes documentation effective. They can't be polite out of social 
 obligation --- if it's confusing, they'll tell you.
 
 The practical takeaway: don't assume, ask. Spawn 5-10 agents with structured questions, collect ratings, prioritize by 
@@ -673,7 +673,7 @@ All production files and research artifacts are available at [jonnyzzz.com](http
 ## Let's Connect
 
 Share your results. Try this with your team's documentation - I want to see your before/after metrics. Tag me on
-[LinkedIn at @jonnyzzz](https://www.linkedin.com/in/jonnyzzz/) with your quality scores. Bonus points if your AI agents
+[LinkedIn at @jonnyzzz](https://www.linkedin.com/in/jonnyzzz/) with your quality scores. Bonus points if your AI Agents
 are as brutally honest as mine were.
 
 Find a bug in the refactored docs? Submit PRs if you improve the patterns, let me know!
@@ -701,7 +701,7 @@ sections, adding cost benchmark examples, making version requirements more speci
 improvements, not blockers, but they're documented and ready for v1.0.9.
 
 I'm already thinking about the next iteration. Can we use this pattern for code refactoring? For test generation? For
-architecture decisions? The interviews proved AI agents can articulate quality issues. The parallel implementation
+architecture decisions? The interviews proved AI Agents can articulate quality issues. The parallel implementation
 proved they can fix those issues. That's powerful.
 
 Next quarter, we're applying this to actual codebase refactoring. The documentation was the proof of concept. The real

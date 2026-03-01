@@ -76,7 +76,7 @@ different AI extensions. Each has strengths, and I ended up using all of them at
 
 What surprised me was how well this workflow scaled. The project has proper OAuth2 compliance,
 handles edge cases correctly, and includes both HTTP and HTTPS server implementations with comprehensive
-testing. Most of this code was written by AI agents following specifications. Some specifications
+testing. Most of this code was written by AI Agents following specifications. Some specifications
 were improved with AI.
 
 ### What Worked
@@ -89,7 +89,7 @@ Integration tests were crucial. OAuth2 has well-defined behavior –- authorizat
 refresh tokens work across sessions, JWKS endpoints return proper public keys. Tests caught the
 places where AI-generated code deviated from the specification.
 
-Code review remained essential. AI agents are excellent at translating specifications into code,
+Code review remained essential. AI Agents are excellent at translating specifications into code,
 but they make subtle mistakes. They might use the wrong cryptographic primitive, mishandle an error
 case, or implement OAuth2 flow slightly wrongly. Having tests helped catch these, but human review was
 the final safeguard.
@@ -113,7 +113,7 @@ who happens to have a swift team that needs detailed guidance.
 
 Never let a part of the system or tests be implemented without your control. That is so easy to
 give up reviewing, say on integration tests. And if that happens, it's much cheaper to ask
-an AI agent to re-write these tests in a more digestible manner, instead of manually refactoring
+an AI Agent to re-write these tests in a more digestible manner, instead of manually refactoring
 that code again. With the current tools, code-generation turns out to be very inexpensive, and the main
 problem is to get the right code written.
 
@@ -125,7 +125,7 @@ Apache 2.0 licensed -– fork it, extend it, use it however you need. I will app
 or/and pull requests with your improvements.
 
 But there's a bigger point here. This project demonstrates a new development workflow. Specifications
-drive implementation. AI agents handle the mechanical work. Tests verify correctness. 
+drive implementation. AI Agents handle the mechanical work. Tests verify correctness. 
 Humans provide judgment and architecture.
 
 We're at an inflection point in software development. The tools are good enough to be genuinely
@@ -140,7 +140,7 @@ algorithms to specifying behavior, from debugging line by line to designing comp
 
 I want to make this educational. The OAuth2-bro codebase is publicly available 
 at [github.com/jonnyzzz/oauth2-bro](https://github.com/jonnyzzz/oauth2-bro). Most of it was written 
-with AI assistance. Some of it probably contains subtle bugs that an AI agent introduced because
+with AI assistance. Some of it probably contains subtle bugs that an AI Agent introduced because
 my specification wasn't quite right.
 
 **Here's a challenge**: dive into the code and find AI-generated bugs. Look for places where the

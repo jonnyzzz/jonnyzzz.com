@@ -77,21 +77,50 @@
 
 <div class="navigation-wrapper">
 	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
 	    <ul>
       
+        
+        
 		    <li><a href="/" >Home</a></li>
 		  
+        
+        
 		    <li><a href="/about/" >About</a></li>
 		  
+        
+        
 		    <li><a href="/blog/" >Blog</a></li>
 		  
+        
+        
 		    <li><a href="/projects/" >Projects</a></li>
 		  
-		    <li><a href="/talks/" >Talks</a></li>
+        
+        
+		    <li><a href="/talks/" class="active">Talks</a></li>
 		  
+        
+        
 		    <li><a href="/tags/" >Tags</a></li>
 		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
 	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
 	</nav>
 </div><!-- /.navigation-wrapper -->
 
@@ -108,30 +137,46 @@
   <article class="entry">
     
     <div class="entry-wrapper">
+      
+      
       <header class="entry-header">
         <h1 class="entry-title">Talks</h1>
       </header>
+      
       <div class="entry-content">
         
 <p>Here goes the list of events, <em>talks</em> and <em>workshops</em>
 I’ve performed in the recent years.
-<strong>Need a speaker?</strong> Eugene is happy to speak at your event, training, or workshop.
-Reach him via <a href="https://twitter.com/jonnyzzz">twitter</a> or email “me” at jonnyzzz.com.</p>
+<strong>Need a speaker?</strong> I’m happy to speak at your event, training, or workshop.
+Reach me via <a href="https://twitter.com/jonnyzzz">twitter</a> or email “me” at jonnyzzz.com.</p>
 
 
 <p style="font-weight: bold">
 In total, I've made
-51 presentations:
+52 presentations:
 1 interview, 
 3 keynotes, 
-42 talks, 
+43 talks, 
 5 workshops.
 </p>
 
 <p>You may also check my
 <a href="../contrib">contributions to open source</a> or <a href="../projects">projects</a>.</p>
+
+<p><strong>YouTube Podcast:</strong>
+<a href="https://www.youtube.com/playlist?list=PLitZWClhc4QhGOVWlmOgO7wKcI9sVnofY">Eugene codes with multiple AI agents, Local and Cloud</a>
+— screencasts of agentic experiments with frontier and local LLMs (19 episodes).</p>
+
+<p>Follow me on <a href="https://www.youtube.com/@jonnyzzz">YouTube</a>,
+<a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a>,
+<a href="https://twitter.com/jonnyzzz">X</a>, and
+<a href="https://github.com/jonnyzzz">GitHub</a>
+for more talks, demos, and live coding sessions.</p>
 <p>
 
+  <a href="#2025">2025</a>
+   | 
+  
   <a href="#2022">2022</a>
    | 
   
@@ -154,6 +199,56 @@ In total, I've made
   
   
 </p>
+<h1 id="2025" style="font-weight: bold; margin-bottom: 4px">2025</h1>
+<p style="font-weight: bold; margin-top: 0">
+
+In the year I've made
+
+1 presentation.
+
+</p>
+
+
+
+<h2><a href="/talks/2025-12-18-aws-reinvent/">AWS re:Invent 2025</a></h2>
+
+
+
+<a id="aws-reinvent-2025"></a>
+<script type="application/javascript">
+  if (window.location.hash === '#aws-reinvent-2025') {
+    window.location.href = '/talks/2025-12-18-aws-reinvent/';
+  }
+</script>
+
+
+<h4><a href="/talks/2025-12-18-aws-reinvent/">JetBrains AI working Local AI with NVIDIA DGX Spark</a></h4>
+
+
+
+
+<blockquote>
+  <p>In this demo, Eugene demonstrates an experimental setup of using
+NVIDIA DGX Spark (the powerful LocalAI computer) with IntelliJ IDEA,
+AI Assistant, JetBrains Junie, and Koog.ai.</p>
+
+</blockquote>
+
+
+
+
+
+<div class="talk-links">
+  <a href="/talks/2025-12-18-aws-reinvent/" class="talk-link-btn">More</a>
+  
+  <a href="https://youtu.be/kvZDkvm96sg" class="talk-link-btn" target="_blank">YouTube</a>
+  
+</div>
+
+
+  
+  
+
 <h1 id="2022" style="font-weight: bold; margin-bottom: 4px">2022</h1>
 <p style="font-weight: bold; margin-top: 0">
 
@@ -240,18 +335,14 @@ and related topics</p>
 
 
 
-<p>
-  | <a href="/talks/2021-10-29-android/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2021-10-29-android/" class="talk-link-btn">More</a>
   
-  <a href="https://www.facebook.com/events/172024561769382/?ti=ls" target="_blank">Facebook
-  </a>
-  |
+  <a href="https://www.facebook.com/events/172024561769382/?ti=ls" class="talk-link-btn" target="_blank">Facebook</a>
   
-  <a href="https://www.youtube.com/watch?v=xJKff0QUd3c" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=xJKff0QUd3c" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -291,22 +382,16 @@ and related topics</p>
 
 
 
-<p>
-  | <a href="/talks/2021-02-26-ij20/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2021-02-26-ij20/" class="talk-link-btn">More</a>
   
-  <a href="https://www.jetbrains.com/lp/intellijidea-20-anniversary" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.jetbrains.com/lp/intellijidea-20-anniversary" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/19U0nacgfhVTIM4blYQR8RhjrttSywkOLcyiQOFHxWFw" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/19U0nacgfhVTIM4blYQR8RhjrttSywkOLcyiQOFHxWFw" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=xJKff0QUd3c" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=xJKff0QUd3c" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -345,26 +430,18 @@ the power of <code class="language-plaintext highlighter-rouge">inline</code> fu
 
 
 
-<p>
-  | <a href="/talks/2021-01-28-ktug-munich-inline-fun/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2021-01-28-ktug-munich-inline-fun/" class="talk-link-btn">More</a>
   
-  <a href="https://twitter.com/KTUGMunich/status/1353669653038473216?s=20" target="_blank">Link
-  </a>
-  |
+  <a href="https://twitter.com/KTUGMunich/status/1353669653038473216?s=20" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://www.meetup.com/en-AU/Kotlin-User-Group-Munich/events/275573397/" target="_blank">Meetup
-  </a>
-  |
+  <a href="https://www.meetup.com/en-AU/Kotlin-User-Group-Munich/events/275573397/" class="talk-link-btn" target="_blank">Meetup</a>
   
-  <a href="https://docs.google.com/presentation/d/13SE0daJaOzoOs76ESgnnu8eEzaXkvYIeSztKDEein_E" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/13SE0daJaOzoOs76ESgnnu8eEzaXkvYIeSztKDEein_E" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://youtu.be/R5eR9ptA11E?t=2304" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/R5eR9ptA11E?t=2304" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -418,18 +495,14 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2020-09-16-gotopia-kotlin-facts/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2020-09-16-gotopia-kotlin-facts/" class="talk-link-btn">More</a>
   
-  <a href="https://gotopia.eu/2020/sessions/1448/facts-you-may-not-know-about-kotlin" target="_blank">Link
-  </a>
-  |
+  <a href="https://gotopia.eu/2020/sessions/1448/facts-you-may-not-know-about-kotlin" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://www.youtube.com/watch?v=XwzStZaDpH0" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=XwzStZaDpH0" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -481,22 +554,16 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-11-06-devoxx-be-coroutines/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-11-06-devoxx-be-coroutines/" class="talk-link-btn">More</a>
   
-  <a href="https://devoxx.be/talk/?id=47001" target="_blank">Link
-  </a>
-  |
+  <a href="https://devoxx.be/talk/?id=47001" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/192JLr64isB5WCmeqo4Fvf3snsDLWxrfkZ7A2nsNxb84/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/192JLr64isB5WCmeqo4Fvf3snsDLWxrfkZ7A2nsNxb84/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://youtu.be/wBpKAv4i8Ug" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/wBpKAv4i8Ug" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -535,22 +602,16 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-11-06-devoxx-be-kotlin-facts/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-11-06-devoxx-be-kotlin-facts/" class="talk-link-btn">More</a>
   
-  <a href="https://devoxx.be/talk/?id=47003" target="_blank">Link
-  </a>
-  |
+  <a href="https://devoxx.be/talk/?id=47003" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1fszsKHr69JwsVLWfazB3WAEGapY0Fe0k6GFZDD-4AB0/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1fszsKHr69JwsVLWfazB3WAEGapY0Fe0k6GFZDD-4AB0/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://youtu.be/NURkLq6BzLE" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/NURkLq6BzLE" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -585,22 +646,16 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-11-01-devoxx-ua-coroutines/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-11-01-devoxx-ua-coroutines/" class="talk-link-btn">More</a>
   
-  <a href="https://devoxx.com.ua/speaker-details/?id=51501" target="_blank">Link
-  </a>
-  |
+  <a href="https://devoxx.com.ua/speaker-details/?id=51501" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1hdi9RmnoRZugDopNcfM1Qf-hqLaZ8et4df9wkeWYbVM/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1hdi9RmnoRZugDopNcfM1Qf-hqLaZ8et4df9wkeWYbVM/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://youtu.be/TZuenr6LIRU" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/TZuenr6LIRU" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -635,26 +690,18 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-09-18-code-one-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-09-18-code-one-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://events.rainfocus.com/widget/oracle/oow19/catalogcodeone19?search=petrenko" target="_blank">Link
-  </a>
-  |
+  <a href="https://events.rainfocus.com/widget/oracle/oow19/catalogcodeone19?search=petrenko" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1lMXS6lnTEurh7LI3CTnQB04gtuSsSwE_1L_JoOXXW7A/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1lMXS6lnTEurh7LI3CTnQB04gtuSsSwE_1L_JoOXXW7A/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-demo" target="_blank">Demo
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-demo" class="talk-link-btn" target="_blank">Demo</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" target="_blank">Game Of Life
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" class="talk-link-btn" target="_blank">Game Of Life</a>
   
-</p>
+</div>
 
 
   
@@ -693,30 +740,20 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-07-09-ktugspb-kotlin-native/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-07-09-ktugspb-kotlin-native/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/St-Petersburg-Kotlin-User-Group/events/262838640/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/St-Petersburg-Kotlin-User-Group/events/262838640/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1nl0BvLNZGs_C9_teHKZONLmWMUvDCW2h65dDUyI3Tu4/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1nl0BvLNZGs_C9_teHKZONLmWMUvDCW2h65dDUyI3Tu4/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-native-mpp-template" target="_blank">Kotlin/Native MPP Templates
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-native-mpp-template" class="talk-link-btn" target="_blank">Kotlin/Native MPP Templates</a>
   
-  <a href="https://www.youtube.com/watch?v=XsVMz94LGNc&feature=youtu.be" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=XsVMz94LGNc&feature=youtu.be" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -752,26 +789,18 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-06-28-jboenday-kotlin-facts/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-06-28-jboenday-kotlin-facts/" class="talk-link-btn">More</a>
   
-  <a href="https://habr.com/ru/company/JetBrains/blog/452952/" target="_blank">Link
-  </a>
-  |
+  <a href="https://habr.com/ru/company/JetBrains/blog/452952/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://youtu.be/qxg1pGptND0?t=13928" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/qxg1pGptND0?t=13928" class="talk-link-btn" target="_blank">YouTube</a>
   
-  <a href="https://docs.google.com/presentation/d/145fZs_vnzR-rkh6LkNrTiHa0r_iAakCK3E9szNNBExU/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/145fZs_vnzR-rkh6LkNrTiHa0r_iAakCK3E9szNNBExU/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" class="talk-link-btn" target="_blank">GitHub</a>
   
-</p>
+</div>
 
 
   
@@ -793,22 +822,16 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2019-06-15-tum-introduction-to-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-06-15-tum-introduction-to-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://web.facebook.com/events/414482072738425/" target="_blank">Link
-  </a>
-  |
+  <a href="https://web.facebook.com/events/414482072738425/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1em09XPO9L2S0j_dp3BYDnTym57p8ERM81gA4jqQ9J1I" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1em09XPO9L2S0j_dp3BYDnTym57p8ERM81gA4jqQ9J1I" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-demo" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-demo" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -874,30 +897,20 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-06-07-kotlinters-kotlin-facts/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-06-07-kotlinters-kotlin-facts/" class="talk-link-btn">More</a>
   
-  <a href="https://www.conferenceforkotliners.com/kotliners-conference-2019/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.conferenceforkotliners.com/kotliners-conference-2019/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://twitter.com/kotliners/status/1136642079172546561?s=20" target="_blank">Announce
-  </a>
-  |
+  <a href="https://twitter.com/kotliners/status/1136642079172546561?s=20" class="talk-link-btn" target="_blank">Announce</a>
   
-  <a href="https://docs.google.com/presentation/d/1ATRhpjDcyfiH9LBR_2ch9dRI4Y-oFb9Jkp-9NlU0AT8/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1ATRhpjDcyfiH9LBR_2ch9dRI4Y-oFb9Jkp-9NlU0AT8/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-game-of-life" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://youtu.be/nrBQXDSKw94" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/nrBQXDSKw94" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -945,22 +958,16 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-17-voxxed-sydney-expressive-apis/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-17-voxxed-sydney-expressive-apis/" class="talk-link-btn">More</a>
   
-  <a href="https://australia.voxxeddays.com/" target="_blank">Link
-  </a>
-  |
+  <a href="https://australia.voxxeddays.com/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1SyhFWtz7ypmSM_BMSpS1Y5DfgVQdPYax6oGWNtKGBLk/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1SyhFWtz7ypmSM_BMSpS1Y5DfgVQdPYax6oGWNtKGBLk/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-demo" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-demo" class="talk-link-btn" target="_blank">GitHub</a>
   
-</p>
+</div>
 
 
   
@@ -1001,26 +1008,18 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-14-voxxed-melbourne-expressive-apis/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-14-voxxed-melbourne-expressive-apis/" class="talk-link-btn">More</a>
   
-  <a href="https://australia.voxxeddays.com/" target="_blank">Link
-  </a>
-  |
+  <a href="https://australia.voxxeddays.com/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1SyhFWtz7ypmSM_BMSpS1Y5DfgVQdPYax6oGWNtKGBLk/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1SyhFWtz7ypmSM_BMSpS1Y5DfgVQdPYax6oGWNtKGBLk/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-demo" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-demo" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://youtu.be/TK4C7YadRo0" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://youtu.be/TK4C7YadRo0" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -1064,18 +1063,14 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-16-voxxed-sydney-kotlin-workshop/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-16-voxxed-sydney-kotlin-workshop/" class="talk-link-btn">More</a>
   
-  <a href="https://australia.voxxeddays.com/" target="_blank">Link
-  </a>
-  |
+  <a href="https://australia.voxxeddays.com/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://medium.com/shinto/why-we-moved-amaterasu-to-kotlin-and-what-the-future-holds-6f2659472885" target="_blank">Migration to Kotlin
-  </a>
-  |
+  <a href="https://medium.com/shinto/why-we-moved-amaterasu-to-kotlin-and-what-the-future-holds-6f2659472885" class="talk-link-btn" target="_blank">Migration to Kotlin</a>
   
-</p>
+</div>
 
 
   
@@ -1119,18 +1114,14 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-13-voxxed-melbourne-kotlin-workshop/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-13-voxxed-melbourne-kotlin-workshop/" class="talk-link-btn">More</a>
   
-  <a href="https://australia.voxxeddays.com/" target="_blank">Link
-  </a>
-  |
+  <a href="https://australia.voxxeddays.com/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://medium.com/shinto/why-we-moved-amaterasu-to-kotlin-and-what-the-future-holds-6f2659472885" target="_blank">Migration to Kotlin
-  </a>
-  |
+  <a href="https://medium.com/shinto/why-we-moved-amaterasu-to-kotlin-and-what-the-future-holds-6f2659472885" class="talk-link-btn" target="_blank">Migration to Kotlin</a>
   
-</p>
+</div>
 
 
   
@@ -1175,26 +1166,18 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-15-ktug-sydney-kotlin-native/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-15-ktug-sydney-kotlin-native/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/sydney-kotlin/events/260071331/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/sydney-kotlin/events/260071331/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/10NiH_7igAad1I3Ve42gWHL-HWF7ZpOwibgqlTTUKxYk/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/10NiH_7igAad1I3Ve42gWHL-HWF7ZpOwibgqlTTUKxYk/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-native-mpp-template" target="_blank">Kotlin/Native MPP Templates
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-native-mpp-template" class="talk-link-btn" target="_blank">Kotlin/Native MPP Templates</a>
   
-</p>
+</div>
 
 
   
@@ -1229,14 +1212,12 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-05-10-ktug-melbourne-kotlin-native/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-05-10-ktug-melbourne-kotlin-native/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/260079692/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/260079692/" class="talk-link-btn" target="_blank">Link</a>
   
-</p>
+</div>
 
 
   
@@ -1284,14 +1265,12 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-04-27-ktug-munich-workshop/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-04-27-ktug-munich-workshop/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Melbourne-Kotlin-Meetup/events/mxtlpqyzhbmb/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Melbourne-Kotlin-Meetup/events/mxtlpqyzhbmb/" class="talk-link-btn" target="_blank">Link</a>
   
-</p>
+</div>
 
 
   
@@ -1347,22 +1326,16 @@ in Munich</p>
 
 
 
-<p>
-  | <a href="/talks/2019-03-18-jass-kotlin-workshop/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-03-18-jass-kotlin-workshop/" class="talk-link-btn">More</a>
   
-  <a href="https://ase.in.tum.de/lehrstuhl_1/projects/all-projects/1045-jass-2019" target="_blank">Link
-  </a>
-  |
+  <a href="https://ase.in.tum.de/lehrstuhl_1/projects/all-projects/1045-jass-2019" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://ase.in.tum.de/lehrstuhl_1/images/projects/JASS_19/videos/04-kotlin-workshop.mp4" target="_blank">Video
-  </a>
-  |
+  <a href="https://ase.in.tum.de/lehrstuhl_1/images/projects/JASS_19/videos/04-kotlin-workshop.mp4" class="talk-link-btn" target="_blank">Video</a>
   
-  <a href="https://docs.google.com/presentation/d/1lw01V2h0cIZBr5t6DhE4awbNVUEoLRkg04Rw7uJENeY/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1lw01V2h0cIZBr5t6DhE4awbNVUEoLRkg04Rw7uJENeY/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -1418,22 +1391,16 @@ Feedback:
 
 
 
-<p>
-  | <a href="/talks/2019-03-16-javaday-instanbul-coroutines/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-03-16-javaday-instanbul-coroutines/" class="talk-link-btn">More</a>
   
-  <a href="https://2019.javaday.istanbul/speaker/eugene-petrenko/" target="_blank">Link
-  </a>
-  |
+  <a href="https://2019.javaday.istanbul/speaker/eugene-petrenko/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1duI5h7ZMHEon4XVBOEBBLim3wDOALYbH1ilnZx_7-7o/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1duI5h7ZMHEon4XVBOEBBLim3wDOALYbH1ilnZx_7-7o/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=nubcdiSG3MY" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=nubcdiSG3MY" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -1470,26 +1437,18 @@ Join us to learn about native development new Kotlin/Native, code reuse between 
 
 
 
-<p>
-  | <a href="/talks/2019-02-26-ktug-munich-kotlin-native/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2019-02-26-ktug-munich-kotlin-native/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/258699342/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/258699342/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1ygi6Pqc4S7-dhZ3kHYPP3iFyOmiX1Mf1ITWkfB2uEJw/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1ygi6Pqc4S7-dhZ3kHYPP3iFyOmiX1Mf1ITWkfB2uEJw/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-native-clipboard" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://www.pscp.tv/w/1OdKrRqdbaYKX" target="_blank">Video
-  </a>
-  |
+  <a href="https://www.pscp.tv/w/1OdKrRqdbaYKX" class="talk-link-btn" target="_blank">Video</a>
   
-</p>
+</div>
 
 
   
@@ -1542,22 +1501,16 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2018-11-14-devoxx-oops/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-11-14-devoxx-oops/" class="talk-link-btn">More</a>
   
-  <a href="https://dvbe18.confinabox.com/talk/UQE-1794/Opsless_DevOps" target="_blank">Link
-  </a>
-  |
+  <a href="https://dvbe18.confinabox.com/talk/UQE-1794/Opsless_DevOps" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1FAd7LCyAlKJxedhzfBJXoGxPAk3bAhU7bqXZR3W82Fw/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1FAd7LCyAlKJxedhzfBJXoGxPAk3bAhU7bqXZR3W82Fw/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=HpzQuLykl4I" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=HpzQuLykl4I" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -1596,34 +1549,22 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2018-11-13-devoxx-kotlin-deep-dive/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-11-13-devoxx-kotlin-deep-dive/" class="talk-link-btn">More</a>
   
-  <a href="https://dvbe18.confinabox.com/talk/QCM-9359/Kotlin_Deep_Dive" target="_blank">Link
-  </a>
-  |
+  <a href="https://dvbe18.confinabox.com/talk/QCM-9359/Kotlin_Deep_Dive" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1UwSs0v79hQE7JR_knGwUvbA5F7befT7GMrFxprr78Ww/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1UwSs0v79hQE7JR_knGwUvbA5F7befT7GMrFxprr78Ww/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub-1
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub-1</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" target="_blank">GitHub-2
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" class="talk-link-btn" target="_blank">GitHub-2</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-mpp-mobile" target="_blank">GitHub-3
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-mpp-mobile" class="talk-link-btn" target="_blank">GitHub-3</a>
   
-  <a href="https://www.youtube.com/watch?v=RCQl5fZhtTU" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=RCQl5fZhtTU" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -1645,18 +1586,14 @@ In the year I've made
 
 
 
-<p>
-  | <a href="/talks/2018-09-22-codeone-microservices/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-09-22-codeone-microservices/" class="talk-link-btn">More</a>
   
-  <a href="https://oracle.rainfocus.com/widget/oracle/oow18/catalogcodeone18?search=%22eugene%20petrenko%22" target="_blank">Link
-  </a>
-  |
+  <a href="https://oracle.rainfocus.com/widget/oracle/oow18/catalogcodeone18?search=%22eugene%20petrenko%22" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1fkGRKlewFdlFm0cANB7dL9Qf-gM_8VFeSN0V0k_Nlp8/edit#slide=id.p" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1fkGRKlewFdlFm0cANB7dL9Qf-gM_8VFeSN0V0k_Nlp8/edit#slide=id.p" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -1683,14 +1620,12 @@ a comparison to Java and Project Amber.</p>
 
 
 
-<p>
-  | <a href="/talks/2018-09-22-codeone-bowl/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-09-22-codeone-bowl/" class="talk-link-btn">More</a>
   
-  <a href="https://oracle.rainfocus.com/widget/oracle/oow18/catalogcodeone18?search=rags" target="_blank">Link
-  </a>
-  |
+  <a href="https://oracle.rainfocus.com/widget/oracle/oow18/catalogcodeone18?search=rags" class="talk-link-btn" target="_blank">Link</a>
   
-</p>
+</div>
 
 
   
@@ -1719,14 +1654,12 @@ Covered basics in a live-coding environment.</p>
 
 
 
-<p>
-  | <a href="/talks/2018-08-08-webinar/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-08-08-webinar/" class="talk-link-btn">More</a>
   
-  <a href="https://docs.google.com/presentation/d/14NTgqkuyjlRQW2tIv7Kux0jPH1dBl4H2Su4HIFvgTUE/edit#slide=id.p" target="_blank">Link
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/14NTgqkuyjlRQW2tIv7Kux0jPH1dBl4H2Su4HIFvgTUE/edit#slide=id.p" class="talk-link-btn" target="_blank">Link</a>
   
-</p>
+</div>
 
 
   
@@ -1755,26 +1688,18 @@ Covered basics in a live-coding environment.</p>
 
 
 
-<p>
-  | <a href="/talks/2018-06-15-mdevcamp-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-06-15-mdevcamp-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://mdevcamp.eu/2018/schedule.html" target="_blank">Link
-  </a>
-  |
+  <a href="https://mdevcamp.eu/2018/schedule.html" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1OXoOGdUaCO2gDYPrDzP5NcXyZ3mpT5Vp6_zWgSZYITQ/edit#slide=id.p" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1OXoOGdUaCO2gDYPrDzP5NcXyZ3mpT5Vp6_zWgSZYITQ/edit#slide=id.p" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://slideslive.com/38908254/multiplatform-kotlin-in-42-minutes" target="_blank">Video
-  </a>
-  |
+  <a href="https://slideslive.com/38908254/multiplatform-kotlin-in-42-minutes" class="talk-link-btn" target="_blank">Video</a>
   
-</p>
+</div>
 
 
   
@@ -1803,26 +1728,18 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-06-14-czjug-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-06-14-czjug-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://twitter.com/JetBrainsCZ/status/1007314191605170176" target="_blank">Link
-  </a>
-  |
+  <a href="https://twitter.com/JetBrainsCZ/status/1007314191605170176" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://docs.google.com/presentation/d/1V6S_1qc67_7xguppbs5638CuENI794ZsMzYi1lIOBH4/edit" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1V6S_1qc67_7xguppbs5638CuENI794ZsMzYi1lIOBH4/edit" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://slideslive.com/38908827/kotlin-dsls-in-42-minutes" target="_blank">Video
-  </a>
-  |
+  <a href="https://slideslive.com/38908827/kotlin-dsls-in-42-minutes" class="talk-link-btn" target="_blank">Video</a>
   
-</p>
+</div>
 
 
   
@@ -1853,22 +1770,16 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-06-13-ktug-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-06-13-ktug-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://twitter.com/KotlinCzech/status/1003700533583065093" target="_blank">Link
-  </a>
-  |
+  <a href="https://twitter.com/KotlinCzech/status/1003700533583065093" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://docs.google.com/presentation/d/1NQMASLtc_nUusv7gpPW_TCyMchb9yDQkVBIW4XfXPGQ/edit" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1NQMASLtc_nUusv7gpPW_TCyMchb9yDQkVBIW4XfXPGQ/edit" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -1893,14 +1804,12 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-06-13-ktug-interview/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-06-13-ktug-interview/" class="talk-link-btn">More</a>
   
-  <a href="https://www.youtube.com/watch?v=ksdhBK4bTNQ" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=ksdhBK4bTNQ" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -1931,26 +1840,18 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-06-06-passau-kotlin/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-06-06-passau-kotlin/" class="talk-link-btn">More</a>
   
-  <a href="https://twitter.com/StefanSeegers/status/1004263913117057025" target="_blank">Link
-  </a>
-  |
+  <a href="https://twitter.com/StefanSeegers/status/1004263913117057025" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1gYH556RdEBJHcGpmznkhneex9dnkokt9zXCtsRSyjlM/edit" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1gYH556RdEBJHcGpmznkhneex9dnkokt9zXCtsRSyjlM/edit" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-demo-spring" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-demo-spring" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub-2
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub-2</a>
   
-</p>
+</div>
 
 
   
@@ -1981,26 +1882,18 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-05-29-voxxed-minsk/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-05-29-voxxed-minsk/" class="talk-link-btn">More</a>
   
-  <a href="https://voxxeddays.com/minsk/" target="_blank">Link
-  </a>
-  |
+  <a href="https://voxxeddays.com/minsk/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1n5xELE_MwdlpaFiujSTAvXhnBQX_dk-_BibD69X-nVI/edit" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1n5xELE_MwdlpaFiujSTAvXhnBQX_dk-_BibD69X-nVI/edit" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://www.youtube.com/watch?v=waOsthbgQaQ" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=waOsthbgQaQ" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -2031,22 +1924,16 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-05-22-ktug-munich/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-05-22-ktug-munich/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/250028449/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/250028449/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1x5w7xObnE9DC2orNlxSCCGxDyIKqklcfOKuJf1_EtSM/edit" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1x5w7xObnE9DC2orNlxSCCGxDyIKqklcfOKuJf1_EtSM/edit" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-fractals" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-fractals" class="talk-link-btn" target="_blank">GitHub</a>
   
-</p>
+</div>
 
 
   
@@ -2080,22 +1967,16 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-05-09-ndc-minnesota/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-05-09-ndc-minnesota/" class="talk-link-btn">More</a>
   
-  <a href="https://ndcminnesota.com/talk/kotlin-for-curious-c-developers/" target="_blank">Link
-  </a>
-  |
+  <a href="https://ndcminnesota.com/talk/kotlin-for-curious-c-developers/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1BBxyOOc1DrkFU56igg9ClcYxjQd7I2HjgCN9g_UzaB8/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1BBxyOOc1DrkFU56igg9ClcYxjQd7I2HjgCN9g_UzaB8/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/maartenba/kotlin-curious-csharp" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/maartenba/kotlin-curious-csharp" class="talk-link-btn" target="_blank">GitHub</a>
   
-</p>
+</div>
 
 
   
@@ -2117,22 +1998,16 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-03-28-linz/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-03-28-linz/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Enterprise-Java-User-Group-Austria/events/248023580/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Enterprise-Java-User-Group-Austria/events/248023580/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/18mZznaha22xHDNe1zMdBTQlBJrr4sAlLOWwqdvNFhRU/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/18mZznaha22xHDNe1zMdBTQlBJrr4sAlLOWwqdvNFhRU/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://youtu.be/P5rLORbLxtI" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://youtu.be/P5rLORbLxtI" class="talk-link-btn" target="_blank">GitHub</a>
   
-</p>
+</div>
 
 
   
@@ -2154,18 +2029,14 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-03-08-ktug-munich/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-03-08-ktug-munich/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/246722558/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/246722558/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1zBRG2-XZwlRWdZ526UOsrNxzfqPoDKNRXmTXg5naV2M/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1zBRG2-XZwlRWdZ526UOsrNxzfqPoDKNRXmTXg5naV2M/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2187,18 +2058,14 @@ it easier for the audience with less of no Kotlin experience</p>
 
 
 
-<p>
-  | <a href="/talks/2018-02-02-cesium/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2018-02-02-cesium/" class="talk-link-btn">More</a>
   
-  <a href="http://seium.org/" target="_blank">Link
-  </a>
-  |
+  <a href="http://seium.org/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1NLDCoPvvH0dfonG_YsgGXJXgC5sAHmk03u0LPcQ-J0o/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1NLDCoPvvH0dfonG_YsgGXJXgC5sAHmk03u0LPcQ-J0o/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2244,18 +2111,14 @@ containers into smaller ones to reduce the complexity.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-12-13-codeeurope-tools/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-12-13-codeeurope-tools/" class="talk-link-btn">More</a>
   
-  <a href="https://www.codeeurope.pl/en/speakers/eugene-petrenko" target="_blank">Site
-  </a>
-  |
+  <a href="https://www.codeeurope.pl/en/speakers/eugene-petrenko" class="talk-link-btn" target="_blank">Site</a>
   
-  <a href="https://docs.google.com/presentation/d/1p_Xk75biEg9PH5JkZLyCENfa8iHUXn6qE3m7OnyGP7k/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1p_Xk75biEg9PH5JkZLyCENfa8iHUXn6qE3m7OnyGP7k/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2288,18 +2151,14 @@ containers into smaller ones to reduce the complexity.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-12-12-codeeurope-spring/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-12-12-codeeurope-spring/" class="talk-link-btn">More</a>
   
-  <a href="https://www.codeeurope.pl/en/speakers/eugene-petrenko" target="_blank">Site
-  </a>
-  |
+  <a href="https://www.codeeurope.pl/en/speakers/eugene-petrenko" class="talk-link-btn" target="_blank">Site</a>
   
-  <a href="https://docs.google.com/presentation/d/1XrlLMCxQ-3q9CmFMq7M2Hs1GOmCvjpqQHRxuUz6cgFU/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1XrlLMCxQ-3q9CmFMq7M2Hs1GOmCvjpqQHRxuUz6cgFU/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2331,18 +2190,14 @@ Kotlin experience and several open source projects I created with it.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-12-09-coimbra/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-12-09-coimbra/" class="talk-link-btn">More</a>
   
-  <a href="https://devfest2017.gdgcoimbra.xyz/" target="_blank">Link
-  </a>
-  |
+  <a href="https://devfest2017.gdgcoimbra.xyz/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1wKAUppwF-dLF9gmezf5flHVi1tJ88Kf1FFFYAiBsOxg/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1wKAUppwF-dLF9gmezf5flHVi1tJ88Kf1FFFYAiBsOxg/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2374,18 +2229,14 @@ Kotlin experience and several open source projects I created with it.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-11-30-devfest-bayern/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-11-30-devfest-bayern/" class="talk-link-btn">More</a>
   
-  <a href="https://bayern.devfest.de/" target="_blank">Link
-  </a>
-  |
+  <a href="https://bayern.devfest.de/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1tj7f6cLXOznqPJorOdyJvoujb2fReLyw0eXOchmi-qM/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1tj7f6cLXOznqPJorOdyJvoujb2fReLyw0eXOchmi-qM/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2420,26 +2271,18 @@ side and more.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-11-02-ktug/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-11-02-ktug/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/244174864/" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Munich/events/244174864/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://www.meetup.com/GDG-Munich-Android/events/244174937/" target="_blank">Link-2
-  </a>
-  |
+  <a href="https://www.meetup.com/GDG-Munich-Android/events/244174937/" class="talk-link-btn" target="_blank">Link-2</a>
   
-  <a href="https://docs.google.com/presentation/d/1jUDER00L0IJ-LvX7TgkU0Q_w7lpbi6Q1aYAC8bzhSEg/edit#slide=id.p" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1jUDER00L0IJ-LvX7TgkU0Q_w7lpbi6Q1aYAC8bzhSEg/edit#slide=id.p" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.pscp.tv/KTUGMunich/1MnxngoewWMKO" target="_blank">Periscope
-  </a>
-  |
+  <a href="https://www.pscp.tv/KTUGMunich/1MnxngoewWMKO" class="talk-link-btn" target="_blank">Periscope</a>
   
-</p>
+</div>
 
 
   
@@ -2471,22 +2314,16 @@ DSLs in Kotlin.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-10-22-devoxx/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-10-22-devoxx/" class="talk-link-btn">More</a>
   
-  <a href="https://docs.google.com/presentation/d/1TZwnfyzFMfMnJy48DxSJCKoznB3yJXpEKeJjQvdJBng/edit#slide=id.p" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1TZwnfyzFMfMnJy48DxSJCKoznB3yJXpEKeJjQvdJBng/edit#slide=id.p" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" target="_blank">GitHub
-  </a>
-  |
+  <a href="https://github.com/jonnyzzz/kotlin-dsl-demo" class="talk-link-btn" target="_blank">GitHub</a>
   
-  <a href="https://www.youtube.com/watch?v=gPH9XnvpoXE" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=gPH9XnvpoXE" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -2515,18 +2352,14 @@ module graph and so on. It was live demo.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-10-02-javaone/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-10-02-javaone/" class="talk-link-btn">More</a>
   
-  <a href="https://www.youtube.com/watch?v=UNg9lmk60sg&feature=youtu.be&t=6903" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=UNg9lmk60sg&feature=youtu.be&t=6903" class="talk-link-btn" target="_blank">YouTube</a>
   
-  <a href="https://photos.app.goo.gl/qQmw63WVvKFPV3U63" target="_blank">On Stage
-  </a>
-  |
+  <a href="https://photos.app.goo.gl/qQmw63WVvKFPV3U63" class="talk-link-btn" target="_blank">On Stage</a>
   
-</p>
+</div>
 
 
   
@@ -2558,22 +2391,16 @@ Kotlin experience and several open source projects I created with it.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-06-07-ktug-helsinki/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-06-07-ktug-helsinki/" class="talk-link-btn">More</a>
   
-  <a href="https://www.meetup.com/Kotlin-User-Group-Helsinki/events/240264904" target="_blank">Link
-  </a>
-  |
+  <a href="https://www.meetup.com/Kotlin-User-Group-Helsinki/events/240264904" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1gpxQD3uhbzuhlRAZwUmCK6QfDXYrIu_9swH5Mgi001c/edit#slide=id.p" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1gpxQD3uhbzuhlRAZwUmCK6QfDXYrIu_9swH5Mgi001c/edit#slide=id.p" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=rFlndpcjy3k" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=rFlndpcjy3k" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -2612,22 +2439,16 @@ containers into smaller ones.</p>
 
 
 
-<p>
-  | <a href="/talks/2017-05-22-spring-io/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2017-05-22-spring-io/" class="talk-link-btn">More</a>
   
-  <a href="http://2017.springio.net/" target="_blank">Link
-  </a>
-  |
+  <a href="http://2017.springio.net/" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1CRjAKdQEvVNi9JzuudEKlnncJffKi5k8Lw0J335IYMk/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1CRjAKdQEvVNi9JzuudEKlnncJffKi5k8Lw0J335IYMk/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=Ek7XD3bjlc8" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=Ek7XD3bjlc8" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -2669,18 +2490,14 @@ as semantics, tests, project models, and refactorings.</p>
 
 
 
-<p>
-  | <a href="/talks/2016-09-22-javaone/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2016-09-22-javaone/" class="talk-link-btn">More</a>
   
-  <a href="https://oracle.rainfocus.com/scripts/catalog/oow16.jsp?event=javaone&search=petrenko&search.event=javaone" target="_blank">Link
-  </a>
-  |
+  <a href="https://oracle.rainfocus.com/scripts/catalog/oow16.jsp?event=javaone&search=petrenko&search.event=javaone" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1pgzNnA4R3LU4hPnx0KTvQ0NFj23rPyq-ROr8kOiaxlM/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1pgzNnA4R3LU4hPnx0KTvQ0NFj23rPyq-ROr8kOiaxlM/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-</p>
+</div>
 
 
   
@@ -2716,22 +2533,16 @@ specific toolset into a easy-to-use self-contained piece of software</p>
 
 
 
-<p>
-  | <a href="/talks/2016-06-22-gradle-summit/">More</a> |
+<div class="talk-links">
+  <a href="/talks/2016-06-22-gradle-summit/" class="talk-link-btn">More</a>
   
-  <a href="https://gradlesummit.wpengine.com/schedule/building-self-contained-toolset-with-gradle" target="_blank">Link
-  </a>
-  |
+  <a href="https://gradlesummit.wpengine.com/schedule/building-self-contained-toolset-with-gradle" class="talk-link-btn" target="_blank">Link</a>
   
-  <a href="https://docs.google.com/presentation/d/1GjPO0dY9VKC5xl7PzAQZCsHFCwh8NLxcCWh80V9Q0fk/edit?usp=sharing" target="_blank">Slides
-  </a>
-  |
+  <a href="https://docs.google.com/presentation/d/1GjPO0dY9VKC5xl7PzAQZCsHFCwh8NLxcCWh80V9Q0fk/edit?usp=sharing" class="talk-link-btn" target="_blank">Slides</a>
   
-  <a href="https://www.youtube.com/watch?v=ehTL4DiHguo" target="_blank">YouTube
-  </a>
-  |
+  <a href="https://www.youtube.com/watch?v=ehTL4DiHguo" class="talk-link-btn" target="_blank">YouTube</a>
   
-</p>
+</div>
 
 
   
@@ -2753,9 +2564,6 @@ specific toolset into a easy-to-use self-contained piece of software</p>
   <br />
   Unless otherwise noted, the content on the website is licensed under a
   <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
-  <br />
-  Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> using
-  the <a href="https://mademistakes.com/work/so-simple-jekyll-theme/" rel="nofollow">So Simple Theme</a>.
 </span>
 <div class="social-icons">
   <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>

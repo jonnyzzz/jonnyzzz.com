@@ -89,7 +89,7 @@ natural pall and helper in the review process. Build it to make it to complete
 
 ## The Future Reviewer
 
-Given we have automated code reviews, where an AI agents can comment on the review,
+Given we have automated code reviews, where an AI Agents can comment on the review,
 they can propose suggested improvements, and humans for help. 
 
 Such AI Agents need to learn from your existing code reviews, so you build skill and
