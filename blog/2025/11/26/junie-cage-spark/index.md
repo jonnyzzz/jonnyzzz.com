@@ -1,8 +1,8 @@
-# Magic Cable for NVIDIA Spark
+# NVIDIA DGX Spark + IntelliJ: LocalAI Demo at AWS re:Invent 2025
 
 **Date:** November 26, 2025  
 **Author:** Eugene Petrenko  
-**Tags:** ai, ollama, gpt-oss, intellij, hardware, ai agent
+**Tags:** ai, ollama, gpt-oss, intellij, hardware, ai-agents, LocalAI, nvidia, spark, aws, reinvent
 
 ---
 
