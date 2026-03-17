@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-03-04T20:29:18+00:00</updated>
+  <updated>2026-03-17T16:16:51+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,292 @@
   
 
   
+  
+  <entry>
+    <title type="html">run-agent.sh v2.0: Hardened Runner with 115 Tests, Random Selection, and Agent Environment Contract</title>
+    <link href="https://jonnyzzz.com/blog/2026/03/17/run-agent-v2-release/" rel="alternate" type="text/html" title="run-agent.sh v2.0: Hardened Runner with 115 Tests, Random Selection, and Agent Environment Contract" />
+    <published>2026-03-17T00:00:00+00:00</published>
+    <updated>2026-03-17T00:00:00+00:00</updated>
+    <id>/blog/2026/03/17/run-agent-v2-release</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/03/17/run-agent-v2-release/">&lt;p&gt;I’ve been running AI Agents in parallel for weeks — Claude Code, Codex, Gemini —
+and the launcher script that ties them together kept accumulating rough edges.
+Stale PID files after crashes. No tests. No help output. And, as three AI reviewers
+independently discovered, a command injection vulnerability hiding in plain sight.&lt;/p&gt;
+
+&lt;p&gt;Today I’m releasing &lt;a href=&quot;https://github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&quot;&gt;run-agent.sh v2.0&lt;/a&gt; — a major rewrite that fixes all of that.&lt;/p&gt;
+
+&lt;p&gt;The script started as a quick 95-line wrapper. It now weighs in at 211 lines,
+backed by 115 acceptance tests, random agent selection, and a proper environment
+contract for every spawned agent.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-is-run-agentsh&quot;&gt;What is run-agent.sh?&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; enables you agents to start more agent processes for sub-tasks.
+That plays nice with Recursive Language Models (&lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;RLM.md&lt;/a&gt;),
+or &lt;a href=&quot;https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md&quot;&gt;THE_PROMPT_v5.md&lt;/a&gt; swarms,
+where you use more agents. In simple words, running multiple agents allows each
+agent to do fewer things at once via delegation, delivering better outcomes, while avoiding the
+context rot or overflow.&lt;/p&gt;
+
+&lt;p&gt;As an example, use the prompt like&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Here is the task
+
+In order to deliver on the task, you should use https://run-agent.jonnyzzz.com/run-agent.sh script
+to start more tasks. You should follow the https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md and
+other files relative to it as the main process. Your purpose is to orchestrate and delegate
+the work to other run-agent&apos;s which you start, you must not do the work yourself.
+So create /loop when necessary to monitor the process. Never stop unless the work is completed.
+
+All your promots should use the https://run-agent.jonnyzzz.com/MESSAGE-BUS.md as the key
+communication principle. 
+
+Make sure you download the files locally and use the full paths to the files below.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.sh&lt;/a&gt; is a unified shell script that launches AI coding agents
+in isolated sub-processes, with selected current directories. Each invocation creates a timestamped folder with
+the prompt copy, captured stdout/stderr, process metadata, and a copy of the
+runner itself — full traceability for every agent execution.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;This is the tool for AI Agents to help consolidate and coupe with the work more effectively&lt;/strong&gt;&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh claude ~/Work/project ./task-prompt.md
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It powers the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;marinade&lt;/code&gt; agentic orchestration framework, where a root
+AI Agent spawns sub-agents in parallel.&lt;/p&gt;
+
+&lt;h2 id=&quot;random-agent-selection&quot;&gt;Random agent selection&lt;/h2&gt;
+
+&lt;p&gt;One thing I noticed while orchestrating multi-agent runs: I kept manually
+rotating between agents to diversify the results. That felt like a job for the
+script, not for me.&lt;/p&gt;
+
+&lt;p&gt;The default agent is now &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;any&lt;/code&gt; — the script picks a random agent from the
+available pool:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh any ~/Work/project ./prompt.md
+&lt;span class=&quot;c&quot;&gt;# AGENT_SELECTED=gemini&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# RUN_ID=run_20260317-134514-27961&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# RUN_DIR=./runs/run_20260317-134514-27961&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This is useful when you want to let agents compete or diversify across runs.
+When combined with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_AGENT_AGENTS&lt;/code&gt;, the random selection respects the
+restricted pool:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Set at the environment level&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,codex
+
+&lt;span class=&quot;c&quot;&gt;# The actual call&lt;/span&gt;
+./run-agent.sh any ~/Work/project ./prompt.md
+&lt;span class=&quot;c&quot;&gt;# Never picks gemini&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;agent-availability-control&quot;&gt;Agent availability control&lt;/h2&gt;
+
+&lt;p&gt;A new environment variable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_AGENT_AGENTS&lt;/code&gt; controls which agents are
+available. Agents not in the list are rejected and hidden from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Only claude and codex are available&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,codex ./run-agent.sh gemini ...
+&lt;span class=&quot;c&quot;&gt;# stderr: Unknown agent: gemini&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# stderr: Known agents: claude,codex&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# exit 2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Invalid names in the list are caught at startup:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,fakename ./run-agent.sh claude ...
+&lt;span class=&quot;c&quot;&gt;# stderr: RUN_AGENT_AGENTS: unknown agent &apos;fakename&apos;. Built-in agents: codex,claude,gemini&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# exit 2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;environment-contract&quot;&gt;Environment contract&lt;/h2&gt;
+
+&lt;p&gt;Before this release, agents had to guess paths or rely on convention.
+Now every agent gets four exported environment variables — no guesswork:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Variable&lt;/th&gt;
+      &lt;th&gt;Value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUNS_DIR&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Absolute path to the runs directory&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE_BUS&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Absolute path to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE-BUS.md&lt;/code&gt; (now inside &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUNS_DIR&lt;/code&gt;)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_ID&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Unique run identifier (e.g., &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run_20260317-134514-27961&lt;/code&gt;)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROMPT&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;Absolute path to the copied prompt file&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Every agent knows exactly where it is, where to write messages,
+and what run it belongs to.&lt;/p&gt;
+
+&lt;p&gt;Additionally, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CLAUDECODE&lt;/code&gt; is explicitly &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unset&lt;/code&gt; before spawning —
+preventing nested Claude Code runtime context from leaking into
+sub-agents. I learned this the hard way: a Claude Code sub-agent
+was picking up its parent’s runtime state and behaving differently
+than when launched standalone.&lt;/p&gt;
+
+&lt;h2 id=&quot;115-acceptance-tests-zero-api-keys&quot;&gt;115 acceptance tests, zero API keys&lt;/h2&gt;
+
+&lt;p&gt;The test suite uses mock agent stubs — small bash scripts that simulate
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;claude&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;codex&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gemini&lt;/code&gt; without making any API calls. The full
+suite runs in under 10 seconds:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;bash tests/test-run-agent.sh
+&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; run-agent.sh Acceptance Tests &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt; Test 1: Script structure &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;
+  PASS: run-agent.sh is executable
+  PASS: run-agent.sh has bash shebang
+  PASS: run-agent.sh uses &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-euo&lt;/span&gt; pipefail
+...
+&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; Test Results &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;
+  PASSED: 115
+  FAILED: 0
+RESULT: PASS &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;all 115 tests passed&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The tests cover what matters:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Prompt delivery&lt;/strong&gt;: a mock agent that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cat&lt;/code&gt;s stdin, verifying prompt
+content reaches the agent&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;CLI arguments&lt;/strong&gt;: a mock that echoes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&quot;$@&quot;&lt;/code&gt;, verifying
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--permission-mode&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-C&lt;/code&gt;, etc.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;CWD with spaces&lt;/strong&gt;: creates a directory with spaces, runs an agent,
+checks &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pwd&lt;/code&gt; output&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Injection rejection&lt;/strong&gt;: passes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$(echo pwned)&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foo;bar&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;../etc&lt;/code&gt;
+as agent names — all exit 2&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Environment exports&lt;/strong&gt;: mock agents print &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$RUN_ID&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$PROMPT&lt;/code&gt;,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$MESSAGE_BUS&lt;/code&gt; — verified against expected values&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;CLAUDECODE sanitization&lt;/strong&gt;: sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CLAUDECODE=should_be_removed&lt;/code&gt;,
+verifies agent sees it unset&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;cwd.txt correctness&lt;/strong&gt;: checks not just key presence but actual values
+(absolute paths, numeric PID, matching RUN_ID)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Help side effects&lt;/strong&gt;: verifies &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt; creates no run directories&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The three-agent review also identified tests that were “vacuously true” —
+tests that would pass even if the behavior they claimed to test was broken.
+For example, test 15 originally grepped the script source for
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;export MESSAGE_BUS&lt;/code&gt; instead of verifying the agent process actually
+received the variable. That is the kind of bug that hides in plain sight
+until someone (or some agent) asks the right question.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-exit-code-bug&quot;&gt;The exit code bug&lt;/h2&gt;
+
+&lt;p&gt;This one was subtle. The original script had &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -euo pipefail&lt;/code&gt; and then:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$AGENT_PID&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$?&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PID_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EXIT_CODE=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$EXIT_CODE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$CWD_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When an agent exited non-zero, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -e&lt;/code&gt; caused the script to bail at
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wait&lt;/code&gt; before cleaning up &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pid.txt&lt;/code&gt; or recording &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EXIT_CODE&lt;/code&gt;. Monitoring
+scripts that checked &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pid.txt&lt;/code&gt; would think the agent was still running.
+I spent more time than I’d like to admit debugging “zombie” agents that
+were actually long dead. The fix:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
+&lt;span class=&quot;nb&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$AGENT_PID&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$?&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PID_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EXIT_CODE=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$EXIT_CODE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$CWD_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|| EXIT_CODE=$?&lt;/code&gt; captures the non-zero exit code without triggering
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -e&lt;/code&gt;. Standard bash idiom, but easy to miss when you write the happy
+path first.&lt;/p&gt;
+
+&lt;h2 id=&quot;cicd&quot;&gt;CI/CD&lt;/h2&gt;
+
+&lt;p&gt;Two GitHub Actions workflows keep the project honest:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Tests&lt;/strong&gt; — runs all 115 acceptance tests on every push&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Deploy&lt;/strong&gt; — syncs static files, builds the site, deploys to GitHub Pages&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Every push to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; makes the latest &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; available at
+&lt;a href=&quot;https://run-agent.jonnyzzz.com/run-agent.sh&quot;&gt;run-agent.jonnyzzz.com/run-agent.sh&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s next&lt;/h2&gt;
+
+&lt;p&gt;The script is battle-tested for the orchestration use case, but I want to
+push it into real, established projects — not just greenfield AI experiments.
+That will likely surface new requirements and rough edges.&lt;/p&gt;
+
+&lt;p&gt;Concrete plans:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Integration tests with real agents&lt;/strong&gt; — mock stubs catch regressions,
+but they cannot catch API-level breakage. I want a CI job that actually
+calls each agent with a trivial prompt and verifies end-to-end behavior.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Streaming output&lt;/strong&gt; — right now stdout/stderr are captured to files.
+For long-running agents, tailing the output and progress would help to 
+tell a suck agent from a thinking one.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;More agents&lt;/strong&gt; — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;case&lt;/code&gt; statement makes it trivial to add new ones.
+If you use a different AI coding tool, open a PR.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There’s still so much more we can do. If you run multi-agent orchestration
+or have ideas for what the runner should handle, I would love to hear about
+it. Reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter/X&lt;/a&gt;.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;The release is at &lt;a href=&quot;https://github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&quot;&gt;github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&lt;/a&gt;.
+The script is at &lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.jonnyzzz.com&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="multi-agent" />
+  
+    <category term="orchestration" />
+  
+    <category term="cli" />
+  
+    <category term="testing" />
+  
+    <category term="automation" />
+  
+    <category term="ai-coding" />
+  
+    <category term="dev-tools" />
+  
+    <category term="sub-agent" />
+  
+    <summary type="html">run-agent.sh went from a 95-line launcher to a hardened 211-line agent runner with 115 acceptance tests, random agent selection, and a proper environment contract. Here is what changed, why, and how we found a command injection vulnerability along the way.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">From Voice Memos to Searchable Text with Local Whisper on macOS</title>
@@ -4725,84 +5011,6 @@ format is simple enough that you can experiment without ML expertise.&lt;/p&gt;
     <category term="LocalAI" />
   
     <summary type="html">Building a Russian Loto announcer with 12 celebrity AI voices using Qwen3-TTS</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Orchestrating AI Fleets: When Agents Manage Agents</title>
-    <link href="https://jonnyzzz.com/blog/2026/01/30/orchestrating-ai-fleets/" rel="alternate" type="text/html" title="Orchestrating AI Fleets: When Agents Manage Agents" />
-    <published>2026-01-30T00:00:00+00:00</published>
-    <updated>2026-01-30T00:00:00+00:00</updated>
-    <id>/blog/2026/01/30/orchestrating-ai-fleets</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/01/30/orchestrating-ai-fleets/">&lt;p&gt;For the last several days, I have made my AI Agents call each other. Claude Code, Codex, and Gemini. 
-After several agentic improvements, the root prompt does the following steps:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Instructs an agent to copy and adjust the prompt for their task&lt;/li&gt;
-  &lt;li&gt;Instructs to use the standard &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; start agents, log outputs&lt;/li&gt;
-  &lt;li&gt;Clearly states that the AI Agent should use the script, not the embedded feature&lt;/li&gt;
-  &lt;li&gt;Starts the agent at any working folder&lt;/li&gt;
-  &lt;li&gt;One more secret ingredient to make it work, or two&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;One AI Agent controls the flow of a fleet of other agents. It is much better than just a bash loop, 
-and I like how it performs and adapts to the task given.&lt;/p&gt;
-
-&lt;p&gt;Today:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Deep research on a product topic was conducted by 16+ agents&lt;/li&gt;
-  &lt;li&gt;Code reading of a big monorepo, so the agent could understand how to implement the REST API client&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Claude Code calling multiple agents on the JetBrains Space reposiotry to mine knowledge from my repositories
-&lt;img src=&quot;/images/posts/2026-01-30-orchestrating-ai-fleets-example.png&quot; alt=&quot;Claude Code orchestrating multiple agents&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;There is more&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;Agent processes never ask me, and bother much less&lt;/li&gt;
-  &lt;li&gt;I manage to make a root AI Agent run for hours unattended&lt;/li&gt;
-  &lt;li&gt;It keeps the context small for each and avoid context rot&lt;/li&gt;
-  &lt;li&gt;One can manage 3-5 such sessions, and I want to grow this number&lt;/li&gt;
-  &lt;li&gt;The baseline is still the &lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;https://jonnyzzz.com/RLM.md&lt;/a&gt;,
-which I based on the outcomes of my multiple experiments&lt;/li&gt;
-  &lt;li&gt;Look what I’ve done &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;What’s next? One part say – do measurements. I will keep experimenting at the first place, 
-and I need a partnership to set it up in a more scientific manner.&lt;/p&gt;
-
-&lt;p&gt;This work builds directly on the success of my previous experiment 
-where &lt;a href=&quot;/blog/2026/01/24/16-ai-agents-documentation-refactor/&quot;&gt;16 AI Agents Fixed Our Documentation Problem&lt;/a&gt;
-and relies heavily on the &lt;a href=&quot;/blog/2026/01/05/rlm-multi-agent-orchestration/&quot;&gt;Recursive Language Model (RLM)&lt;/a&gt;
-methodology I established earlier this year.&lt;/p&gt;
-
-&lt;p&gt;The fleet is busy workin’
-&lt;img src=&quot;/images/posts/2026-01-30-orchestrating-ai-fleets-busy-working.png&quot; alt=&quot;AI Agent fleet busy working&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Happy Friday!&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="multi-agent" />
-  
-    <category term="orchestration" />
-  
-    <category term="automation" />
-  
-    <category term="llm" />
-  
-    <summary type="html">AI Agents call each other by themselves: One controls the flow, others work on the short task</summary>
   
   </entry>
   
