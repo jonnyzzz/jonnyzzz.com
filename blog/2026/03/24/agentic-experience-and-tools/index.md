@@ -137,10 +137,12 @@ is where most of the discussion happens.
 Andrej Karpathy on the [No Priors podcast](https://podcasts.apple.com/us/podcast/no-priors-artificial-intelligence-technology-startups/id1668002688)
 (March 2026): 
 
+> Just I think everything, like so many things, even if they
+> don't work, I think to a large
+> extent you feel like it's a skill issue.
 > It's not that the capability is not there; it's that you
-just haven't found a way to string together what's available. Like, I
-didn't give good enough instructions to the agents.
-
+> just haven't found a way to string together what's available. Like, I
+> didn't give good enough instructions to the agents.
 
 ---
 
