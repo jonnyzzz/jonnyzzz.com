@@ -169,7 +169,7 @@ There are many areas were we definitely need to look in at, for example
 
 The magic cable itself appears to have much of the potential, I'm looking forward
 to sharing more with you. The cable sources are available on
-[GitHub](https://github.com/JetBrains/UniEDC). We are going to post more,
+[GitHub](https://github.com/JetBrains-Hardware/UniEDC). We are going to post more,
 stay tuned, or reach out in DMs for more details.
 
 # New World & AWS re:Invent 2025

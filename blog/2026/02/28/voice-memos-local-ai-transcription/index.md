@@ -170,7 +170,7 @@ tell application "System Events"
         delay 0.3
 
         set btnCount to count of buttons of theGroup
-        set results to {{}}
+        set results to {% raw %}{{}}{% endraw %}
         repeat with i from 1 to btnCount
             set btnRef to button i of theGroup
             set btnName to ""
@@ -524,7 +524,7 @@ tell application "System Events"
         end repeat
         delay 0.3
         set btnCount to count of buttons of theGroup
-        set results to {{}}
+        set results to {% raw %}{{}}{% endraw %}
         repeat with i from 1 to btnCount
             set btnRef to button i of theGroup
             set btnName to ""
