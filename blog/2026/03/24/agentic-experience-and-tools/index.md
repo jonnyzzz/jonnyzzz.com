@@ -9,6 +9,8 @@
 > AI Agents can think. They cannot always act. I build the **bridges** between
 > agent intelligence and the real-world tools that agents cannot reach.
 
+![Agentic Experience and Tools]({{ site.url }}/images/agentic-experience-and-tools.png)
+
 I have spent twenty+ years at [JetBrains](https://jetbrains.com) making software developers more
 productive. I started [IDE Services](https://www.jetbrains.com/ide-services/) from zero, grew 
 it to 500+ enterprise customers, and handed it to the team. I have given fifty-plus [talks](/talks) on developer
