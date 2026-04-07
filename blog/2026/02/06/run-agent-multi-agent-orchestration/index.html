@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <title>run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal &#8211; Eugene Petrenko</title>
 <meta name="description" content="How I built a shell-based orchestration framework that launches dozens of AI Agents in parallel to research, implement, review, and test code changes"/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, workflow, dev-tools, orchestration" />
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, mcp-steroid, workflow, dev-tools, orchestration" />
 
 
 <!-- Twitter Cards -->
@@ -34,6 +34,8 @@
 <meta property="article:tag" content="ai-agents" />
 
 <meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="mcp-steroid" />
 
 <meta property="article:tag" content="workflow" />
 
@@ -152,7 +154,7 @@
           <h1 class="entry-title">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal</h1>
         
         <ul class="entry-tags">
-          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li><li><a href="/tags/#dev-tools" title="Pages tagged dev-tools">dev-tools</a></li><li><a href="/tags/#orchestration" title="Pages tagged orchestration">orchestration</a></li>
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li><li><a href="/tags/#dev-tools" title="Pages tagged dev-tools">dev-tools</a></li><li><a href="/tags/#orchestration" title="Pages tagged orchestration">orchestration</a></li>
         </ul>
       </header>
       <footer class="entry-meta">
@@ -165,10 +167,10 @@
         
         
         <span class="social-share-x">
-  <a href="https://x.com/intent/tweet?text=run-agent.sh%3A+Orchestrating+Dozens+of+AI+Agents+from+Your+Terminal%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/&amp;hashtags=ai-agents,ai-coding,workflow,dev-tools,orchestration" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+  <a href="https://x.com/intent/tweet?text=run-agent.sh%3A+Orchestrating+Dozens+of+AI+Agents+from+Your+Terminal%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/&amp;hashtags=ai-agents,ai-coding,mcp-steroid,workflow,dev-tools,orchestration" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-linkedin">
-  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=run-agent.sh%3A+Orchestrating+Dozens+of+AI+Agents+from+Your+Terminal%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AHow+I+built+a+shell-based+orchestration+framework+that+launches+dozens+of+AI+Agents+in+parallel+to+research%2C+implement%2C+review%2C+and+test+code+changes%0A%0Ahttps://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/%0A%0A%23aiagents%20%23aicoding%20%23workflow%20%23devtools%20%23orchestration" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=run-agent.sh%3A+Orchestrating+Dozens+of+AI+Agents+from+Your+Terminal%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AHow+I+built+a+shell-based+orchestration+framework+that+launches+dozens+of+AI+Agents+in+parallel+to+research%2C+implement%2C+review%2C+and+test+code+changes%0A%0Ahttps://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/%0A%0A%23aiagents%20%23aicoding%20%23mcpsteroid%20%23workflow%20%23devtools%20%23orchestration" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
 </span>
 <!-- /.social-share -->
 

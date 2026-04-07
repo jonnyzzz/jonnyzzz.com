@@ -2,7 +2,7 @@
 
 **Date:** January 06, 2025  
 **Author:** Eugene Petrenko  
-**Tags:** stevedore, ai-coding, mcp, developer-experience, infrastructure, claude-code
+**Tags:** stevedore, ai-coding, mcp, mcp-steroid, developer-experience, infrastructure, claude-code
 
 ---
 

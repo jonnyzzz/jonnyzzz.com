@@ -2,7 +2,7 @@
 
 **Date:** February 21, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, ai-coding, mcp, testing, developer-experience, docker
+**Tags:** ai-agents, ai-coding, mcp, mcp-steroid, testing, developer-experience, docker
 
 ---
 

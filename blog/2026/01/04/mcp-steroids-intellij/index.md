@@ -2,7 +2,7 @@
 
 **Date:** January 04, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** stevedore, mcp, intellij, ai-coding, developer-experience, kotlin
+**Tags:** stevedore, mcp, mcp-steroid, intellij, ai-coding, developer-experience, kotlin
 
 ---
 

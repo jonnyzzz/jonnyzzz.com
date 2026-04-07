@@ -2,7 +2,7 @@
 
 **Date:** February 06, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, ai-coding, workflow, dev-tools, orchestration
+**Tags:** ai-agents, ai-coding, mcp-steroid, workflow, dev-tools, orchestration
 
 ---
 

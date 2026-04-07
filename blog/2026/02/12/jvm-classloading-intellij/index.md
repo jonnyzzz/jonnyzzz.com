@@ -2,7 +2,7 @@
 
 **Date:** February 12, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** jvm, classloading, intellij, plugin-development, java
+**Tags:** jvm, classloading, intellij, mcp-steroid, plugin-development, java
 
 ---
 

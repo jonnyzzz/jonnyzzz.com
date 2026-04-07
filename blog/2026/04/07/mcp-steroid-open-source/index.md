@@ -2,7 +2,7 @@
 
 **Date:** April 07, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** mcp, intellij, android-studio, open-source, agentic-coding
+**Tags:** mcp, mcp-steroid, intellij, android-studio, open-source, agentic-coding
 
 ---
 

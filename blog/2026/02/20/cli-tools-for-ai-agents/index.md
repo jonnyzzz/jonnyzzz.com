@@ -2,7 +2,7 @@
 
 **Date:** February 20, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, ai-coding, developer-experience, mcp, cli, enterprise
+**Tags:** ai-agents, ai-coding, developer-experience, mcp, mcp-steroid, cli, enterprise
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Date:** February 23, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** mcp, intellij, ai-agents, ai-coding, developer-experience, plugin-development
+**Tags:** mcp, mcp-steroid, intellij, ai-agents, ai-coding, developer-experience, plugin-development
 
 ---
 

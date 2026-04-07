@@ -2,7 +2,7 @@
 
 **Date:** January 05, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** intellij, plugin-development, hot-reload, kotlin, developer-experience
+**Tags:** intellij, mcp-steroid, plugin-development, hot-reload, kotlin, developer-experience
 
 ---
 
