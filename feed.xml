@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-04-07T14:33:28+00:00</updated>
+  <updated>2026-04-08T10:08:56+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,168 @@
   
 
   
+  
+  <entry>
+    <title type="html">IntelliJ as a Skill Factory</title>
+    <link href="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/" rel="alternate" type="text/html" title="IntelliJ as a Skill Factory" />
+    <published>2026-04-08T00:00:00+00:00</published>
+    <updated>2026-04-08T00:00:00+00:00</updated>
+    <id>/blog/2026/04/08/mcp-steroid-skill-factory</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/">&lt;p&gt;Every time your agent needs to use an IntelliJ API it hasn’t seen before, it burns tokens figuring
+out PSI trees and threading rules. It tries something, gets a compilation error, tries again, gets
+a wrong result, tries a third time. Eventually it works. Then the next agent – or the same agent
+in a new session – starts the whole cycle over.&lt;/p&gt;
+
+&lt;p&gt;I &lt;a href=&quot;/blog/2026/04/07/mcp-steroid-open-source/&quot;&gt;open-sourced MCP Steroid&lt;/a&gt; yesterday.
+That post covered the what and why. This one is about the pattern that makes the plugin actually
+useful day to day: &lt;strong&gt;skills&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;two-islands&quot;&gt;Two Islands&lt;/h2&gt;
+
+&lt;p&gt;Here’s how I think about the problem. There are
+&lt;a href=&quot;/blog/2026/03/24/agentic-experience-and-tools/&quot;&gt;two islands&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Island one&lt;/strong&gt; is the IDE world. IntelliJ platform has deep code understanding – control flow
+graphs, cross-language refactorings, structural search, a debugger, Gradle integration, Spring Integration, and the long-tail more of the features. 
+It’s an
+extraordinary amount of engineering. But it was all built for humans clicking menus. IntelliJ IDEs
+ship with a built-in MCP server since 2025.2, but it exposes a curated, fixed set of operations –
+file edits, run configurations, basic code actions. A start, but not the full picture.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Island two&lt;/strong&gt; is the agentic world. AI agents that can reason, plan, iterate, and write code –
+but they’re stuck either running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sed&lt;/code&gt;, or limited to predefined tool menus, never
+touching the real depth of what the IDE already knows about the codebase.&lt;/p&gt;
+
+&lt;p&gt;MCP Steroid bridges them fully. An agent sends Kotlin through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;, and that code
+runs inside the IDE’s JVM with full access to everything IntelliJ knows. Not a curated subset.
+Not a fixed menu. The actual APIs that power the IDE’s own features. No abstractions skipped.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-skill-factory&quot;&gt;The Skill Factory&lt;/h2&gt;
+
+&lt;p&gt;Here’s the workflow that changed how I use the plugin.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Phase one: research.&lt;/strong&gt; The agent experiments with IntelliJ APIs via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. It
+tries things, fails, iterates. This phase is messy – maybe 4-8 retries, a lot of tokens spent on
+compilation errors and wrong API assumptions – including
+&lt;a href=&quot;/blog/2026/02/12/jvm-classloading-intellij/&quot;&gt;JVM classloading quirks&lt;/a&gt; that trip up
+even experienced developers. That’s fine. The agent is learning.&lt;/p&gt;
+
+&lt;p&gt;At that phase Agent uses the 60+ resources that are already included into the MCP Steroid package.
+For really complex tasks, I also recommend adding the &lt;a href=&quot;https://github.com/JetBrains/intellij-community&quot;&gt;IntelliJ Community&lt;/a&gt; sources
+and the sources of your thrid-party plugins and ask the agent to conduct the reasearch there as well.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Phase two: encapsulation.&lt;/strong&gt; Once the agent figures out how to solve the problem, the working
+approach gets wrapped into a reusable skill – a Kotlin snippet stored as a markdown document.
+Now any agent can call it without re-discovering the API surface.&lt;/p&gt;
+
+&lt;p&gt;That’s the skill factory. Each solved problem becomes a skill. Skills accumulate. The agent that
+struggled for 8 retries to find deprecated methods with zero usages? Next time it takes one call.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;MCP Steroid repo&lt;/a&gt; ships with built-in articles that
+serve a dual purpose – they’re documentation for you, and reference material that agents read to
+create new skills. When your agent needs to figure out VFS or the debugger API, it reads these
+articles just like you would. Check the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/&quot;&gt;docs&lt;/a&gt; for the
+full set.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-skills-not-plugin-code&quot;&gt;Why Skills, Not Plugin Code&lt;/h2&gt;
+
+&lt;p&gt;Here’s what makes skills compelling: writing a skill is one markdown file with a Kotlin code snippet.
+Writing the same capability as traditional plugin code means a Gradle project, extension points,
+build infrastructure, and a full development cycle. Skills skip all of that – the agent handles
+compilation, threading, and iteration for you. You just need to point it in the right direction.&lt;/p&gt;
+
+&lt;p&gt;This also works well with
+&lt;a href=&quot;/blog/2026/01/30/orchestrating-ai-fleets/&quot;&gt;sub-agent architectures&lt;/a&gt;. A parent agent
+can delegate a specific task to a sub-agent that reads only the relevant skill documentation from
+MCP resources. The sub-agent iterates until it works, and the parent’s context stays clean. This is
+how I run it in practice – the orchestrator picks the skill, the worker executes it.&lt;/p&gt;
+
+&lt;h2 id=&quot;enterprise-your-own-skills&quot;&gt;Enterprise: Your Own Skills&lt;/h2&gt;
+
+&lt;p&gt;Even if you’re behind an enterprise firewall with proprietary IntelliJ plugins and internal APIs,
+you can create skills that wrap your own extensions. Your agent doesn’t need to know the internals
+of your company’s custom inspection plugin – it just calls the skill.&lt;/p&gt;
+
+&lt;p&gt;This is deliberately the same pattern. Open-source skills for the public IntelliJ APIs, private
+skills for your internal tooling. A team can build up a skill library for their specific codebase
+and workflows, and every agent on the team benefits.&lt;/p&gt;
+
+&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
+
+&lt;p&gt;The immediate focus is skill coverage. More documented API patterns, more worked examples, more
+pre-built skills. The goal is to shrink the research phase for common tasks until it’s nearly zero.&lt;/p&gt;
+
+&lt;p&gt;Longer term, I want to explore event-driven skills. IntelliJ already has APIs for subscribing to
+events – a commit happens, a test fails, an inspection fires. An agent that reacts to those events
+automatically, running the right skill in response, would be genuinely useful. The event APIs
+exist. We haven’t wired them into MCP Steroid yet.&lt;/p&gt;
+
+&lt;p&gt;And headless support – running the plugin in Docker containers, in CI – is an active investment.
+We already &lt;a href=&quot;/blog/2026/02/21/testing-mcp-server-with-ai-agents/&quot;&gt;test MCP servers with real agents in Docker&lt;/a&gt;.
+Agents don’t always need a GUI, and we want MCP Steroid to work without one. That requires
+packaging work that JetBrains infrastructure makes possible.&lt;/p&gt;
+
+&lt;h2 id=&quot;get-involved&quot;&gt;Get Involved&lt;/h2&gt;
+
+&lt;p&gt;The best way to contribute to MCP Steroid is to create a skill. Pick an IDE capability you use
+manually – navigate to declaration, find all usages of a deprecated API, list failing tests with
+their stack traces, whatever is useful in your workflow. Point your agent at it. Let it figure
+out the API. When it works, save the Kotlin as a skill file and open a pull request.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Star and fork the repository&lt;/strong&gt; to get started:
+&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;github.com/jonnyzzz/mcp-steroid&lt;/a&gt; (original source) and
+&lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;github.com/JetBrains/mcp-steroid&lt;/a&gt; (JetBrains fork).
+The &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/&quot;&gt;docs&lt;/a&gt; have worked examples, and the
+&lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord&lt;/a&gt; is where the community is building up.&lt;/p&gt;
+
+&lt;p&gt;You don’t need to be an IntelliJ platform expert. The agent does the API exploration. You need to
+know what IDE capability you want to expose – the rest is iteration.&lt;/p&gt;
+
+&lt;h2 id=&quot;try-it&quot;&gt;Try It&lt;/h2&gt;
+
+&lt;p&gt;According to the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/strategy/&quot;&gt;MCP Steroid strategy&lt;/a&gt;, we start
+from an explicit plugin for IntelliJ-based IDEs and Android Studio. The long-term target is a
+headless, self-contained runtime – the IDE for AI agents without the UI. But you can use it today.&lt;/p&gt;
+
+&lt;p&gt;You’ll need any IntelliJ-based IDE or Android Studio (version 2025.3+). Install the plugin from &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid/releases&quot;&gt;GitHub Releases&lt;/a&gt;
+– JetBrains Marketplace listing is coming soon. Once started, the plugin generates
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroid.md&lt;/code&gt; in your project with instructions. Follow those to register the MCP Server
+with your agent. The server uses the Streamable HTTP protocol.&lt;/p&gt;
+
+&lt;h2 id=&quot;poc-program&quot;&gt;PoC Program&lt;/h2&gt;
+
+&lt;p&gt;We’re opening a PoC program for companies that want MCP Steroid customized for their use cases –
+internal skills, proprietary API integrations, team-specific workflows. If that’s interesting,
+reach out to me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mcp" />
+  
+    <category term="mcp-steroid" />
+  
+    <category term="intellij" />
+  
+    <category term="android-studio" />
+  
+    <category term="skills" />
+  
+    <category term="agentic-coding" />
+  
+    <category term="kotlin" />
+  
+    <summary type="html">Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">MCP Steroid Is Now Open Source</title>
@@ -91,7 +253,7 @@ and figure out how to solve your task. Then, turn it as a skill which uses the M
 Eval it.&lt;/p&gt;
 
 &lt;p&gt;I’ve got a dedicated post about the
-skill factory coming next –
+&lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;skill factory&lt;/a&gt; coming next –
 with code examples, the two-phase workflow, and the enterprise angle. For now: think of it as the
 difference between giving an agent a tool and giving it a way to build its own tools.&lt;/p&gt;
 
@@ -135,7 +297,7 @@ join the &lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord
 sooner and enable AI Agents of any kind with the best tools human developers love in
 IntelliJ-based products.&lt;/p&gt;
 
-&lt;p&gt;The skill factory post is coming
+&lt;p&gt;The &lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;skill factory post&lt;/a&gt; is coming
 tomorrow. We’re also opening a proof-of-concept program for
 companies that want to use MCP Steroid for their specific workflows. If that’s interesting,
 reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or in the
@@ -4552,229 +4714,6 @@ financial advice.&lt;/em&gt;&lt;/p&gt;
     <category term="cost-analysis" />
   
     <summary type="html">Should you buy Local AI hardware or rent cloud tokens? We analyzed four popular setups, built a Python calculator, and discovered that the ground is shifting faster than any spreadsheet can keep up.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal</title>
-    <link href="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/" rel="alternate" type="text/html" title="run-agent.sh: Orchestrating Dozens of AI Agents from Your Terminal" />
-    <published>2026-02-06T00:00:00+00:00</published>
-    <updated>2026-02-06T00:00:00+00:00</updated>
-    <id>/blog/2026/02/06/run-agent-multi-agent-orchestration</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/06/run-agent-multi-agent-orchestration/">&lt;p&gt;I’ve been running AI Agents on codebases for a while now. One agent is useful.
-Two agents can review each other’s work. But &lt;strong&gt;dozens of agents working in parallel&lt;/strong&gt;
-on the same codebase – that’s where things get interesting. That’s what
-&lt;a href=&quot;https://run-agent.jonnyzzz.com/&quot;&gt;run-agent.sh&lt;/a&gt; does.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/run-agent-logo.png&quot; alt=&quot;run-agent.sh logo&quot; /&gt;&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;the-problem&quot;&gt;The Problem&lt;/h2&gt;
-
-&lt;p&gt;When you run a single AI Agent on a task, you get one perspective, one approach,
-one shot at getting it right. The agent finishes, you review the output, and if
-it missed something you start over.&lt;/p&gt;
-
-&lt;p&gt;What I wanted was a &lt;strong&gt;development team made of AI Agents&lt;/strong&gt; – one that researches
-the codebase, another that implements changes, a third that reviews the code, and
-a fourth that runs tests. All working simultaneously. All coordinated.&lt;/p&gt;
-
-&lt;p&gt;The challenge: AI Agents don’t naturally coordinate. Each one starts fresh with
-no knowledge of what the others are doing. They overwrite each other’s changes.
-They duplicate work. They have no way to say “I found a blocker” or “this task
-is done.”&lt;/p&gt;
-
-&lt;h2 id=&quot;the-solution-two-files&quot;&gt;The Solution: Two Files&lt;/h2&gt;
-
-&lt;p&gt;The entire framework is two files:&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com/run-agent.sh&quot;&gt;run-agent.sh&lt;/a&gt;&lt;/strong&gt; – a unified
-shell script that launches Claude, Codex, or Gemini with full isolation. Each
-invocation gets its own run folder with the exact prompt, full stdout/stderr,
-PID tracking, and exit codes. Everything is captured. Nothing is lost.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md&quot;&gt;THE_PROMPT_v5.md&lt;/a&gt;&lt;/strong&gt; – a
-project-independent orchestration workflow that defines 13 stages and 7 agent
-roles. This is the playbook that turns raw LLMs into a coordinated team.&lt;/p&gt;
-
-&lt;p&gt;Both files are designed to work &lt;strong&gt;outside your project sources&lt;/strong&gt;. The orchestration
-lives in its own directory – your codebase stays clean.&lt;/p&gt;
-
-&lt;h2 id=&quot;how-it-works&quot;&gt;How It Works&lt;/h2&gt;
-
-&lt;p&gt;The entry point is always an &lt;strong&gt;Orchestrator&lt;/strong&gt; agent. You give it a task and point
-it at your repo. It reads &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;THE_PROMPT_v5.md&lt;/code&gt; and starts spawning sub-agents:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh claude /path/to/your/repo prompt.md
-./run-agent.sh codex /path/to/your/repo prompt.md
-./run-agent.sh gemini /path/to/your/repo prompt.md
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Each agent gets a &lt;strong&gt;fixed role&lt;/strong&gt;:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Research&lt;/strong&gt; – explores the codebase without making changes&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Implementation&lt;/strong&gt; – writes code and tests&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Review&lt;/strong&gt; – performs code review and quality checks&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Test&lt;/strong&gt; – runs tests and verifies changes&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Debug&lt;/strong&gt; – investigates failures and proposes fixes&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Monitor&lt;/strong&gt; – watches for stalled agents and restarts them&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The orchestrator decides which agents to spawn, assigns tasks, and advances
-through the 13 stages: from initial cleanup and research, through implementation
-and quality gates, all the way to commit, push, and code review.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-message-bus&quot;&gt;The Message Bus&lt;/h2&gt;
-
-&lt;p&gt;The key insight that makes multi-agent coordination work is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE-BUS.md&lt;/code&gt; –
-a file-based, &lt;strong&gt;append-only trace log&lt;/strong&gt;. Every agent reads and writes to it.&lt;/p&gt;
-
-&lt;p&gt;No databases. No message queues. No infrastructure. Just a markdown file.&lt;/p&gt;
-
-&lt;p&gt;Agents use structured message types to communicate:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;FACT&lt;/strong&gt; – concrete results (test counts, commit hashes)&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;PROGRESS&lt;/strong&gt; – in-flight status updates&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;DECISION&lt;/strong&gt; – policy choices with rationale&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;REVIEW&lt;/strong&gt; – structured code review feedback&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;ERROR&lt;/strong&gt; – failures that block progress&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The orchestrator reads the bus to decide what to do next. When an implementation
-agent finishes, it posts a FACT. The orchestrator sees it and spawns review agents.
-When reviewers approve, the orchestrator advances to testing. If a test fails,
-an ERROR gets posted, and the orchestrator spawns a debug agent.&lt;/p&gt;
-
-&lt;p&gt;It’s simple, it’s traceable, and it works.&lt;/p&gt;
-
-&lt;h2 id=&quot;full-traceability&quot;&gt;Full Traceability&lt;/h2&gt;
-
-&lt;p&gt;Every agent run creates an isolated folder under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;runs/&lt;/code&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;runs/
-  run_20260206-143000-12345/
-    prompt.md             # exact prompt sent to the agent
-    agent-stdout.txt      # everything the agent produced
-    agent-stderr.txt      # errors and warnings
-    cwd.txt               # working directory, command, exit code
-    run-agent.sh          # copy of the runner for reproducibility
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;When something goes wrong – and with dozens of agents, something always goes
-wrong – you can trace exactly what each agent was told, what it did, and why
-it failed. No “what did the AI do?” mysteries.&lt;/p&gt;
-
-&lt;h2 id=&quot;working-outside-your-project&quot;&gt;Working Outside Your Project&lt;/h2&gt;
-
-&lt;p&gt;A design choice I’m particularly happy with: the orchestration runs in its own
-directory, completely separate from your project sources.&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;projects/
-  my-app/
-    fix-auth-bug/               # task directory
-      THE_PROMPT_v5.md          # orchestration workflow
-      run-agent.sh              # agent runner
-      MESSAGE-BUS.md            # swarm communication
-      runs/                     # all agent runs
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Each task gets its own workspace with independent runs, message bus, and issue
-tracking. You can run multiple tasks on the same project in parallel. Your
-project repo stays clean – no orchestration artifacts mixed in.&lt;/p&gt;
-
-&lt;h2 id=&quot;quick-start&quot;&gt;Quick Start&lt;/h2&gt;
-
-&lt;p&gt;Give this prompt to any AI Agent (Claude, Codex, or Gemini):&lt;/p&gt;
-
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Download and follow the orchestration workflow from:
-- https://run-agent.jonnyzzz.com/run-agent.sh
-- https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md
-
-Apply it to the project at: /path/to/your/repo
-
-Set up the working directory as:
-  projects/&amp;lt;project-name&amp;gt;/&amp;lt;task-name&amp;gt;/
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The agent downloads the files, sets up the workspace, and starts orchestrating.
-All orchestration files are published at
-&lt;a href=&quot;https://run-agent.jonnyzzz.com/&quot;&gt;run-agent.jonnyzzz.com&lt;/a&gt; under the
-Apache License 2.0.&lt;/p&gt;
-
-&lt;h2 id=&quot;agent-isolation-with-git-forks&quot;&gt;Agent Isolation with Git Forks&lt;/h2&gt;
-
-&lt;p&gt;Each agent needs its own workspace to avoid stepping on other agents’ changes.
-I use the &lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;git fork pattern&lt;/a&gt;
-for this – full checkouts that share objects with the original repository.
-Minimal disk overhead, full git functionality, true independence.&lt;/p&gt;
-
-&lt;p&gt;The orchestrator tells each agent to fork the repo before starting work.
-When the agent is done, the changes get merged back. Simple, reliable,
-scales to any number of agents.&lt;/p&gt;
-
-&lt;h2 id=&quot;mcp-steroid-integration&quot;&gt;MCP Steroid Integration&lt;/h2&gt;
-
-&lt;p&gt;The framework works well with &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;MCP Steroid&lt;/a&gt;
-for IDE-level quality gates. Before any commit lands, agents must pass through
-real IDE inspections – no new warnings, no new errors, compilation must succeed.
-The combination of multi-agent orchestration and IDE integration is where things
-get really powerful.&lt;/p&gt;
-
-&lt;p&gt;An orchestrator can spawn a review agent that opens the project in IntelliJ via
-MCP Steroid, runs inspections, and posts the results back to the message bus.
-If the review finds issues, the orchestrator spawns a fix agent. The loop
-continues until the code is clean.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;THE_PROMPT_v5.md&lt;/code&gt; is already at version 5 – the workflow keeps evolving
-as I learn what works and what doesn’t with real projects. The next areas I’m
-exploring are better conflict resolution when multiple implementation agents
-touch the same files, and tighter integration between the message bus and IDE
-quality gates.&lt;/p&gt;
-
-&lt;p&gt;The code is on &lt;a href=&quot;https://github.com/jonnyzzz/run-agent&quot;&gt;GitHub&lt;/a&gt;. Try it on a
-real project and see what a swarm of AI Agents can do.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;&lt;strong&gt;Questions? Want to share how you’re orchestrating AI Agents?&lt;/strong&gt;&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;Follow me on LinkedIn&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Follow me on X (Twitter)&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://jonnyzzz.com/ai/&quot;&gt;More AI Agent patterns&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="ai-coding" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="workflow" />
-  
-    <category term="dev-tools" />
-  
-    <category term="orchestration" />
-  
-    <summary type="html">How I built a shell-based orchestration framework that launches dozens of AI Agents in parallel to research, implement, review, and test code changes</summary>
   
   </entry>
   

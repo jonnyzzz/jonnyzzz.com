@@ -2,15 +2,15 @@
 <html class="no-js" lang="en">
 <head>
 <meta charset="utf-8" />
-<title>MCP Steroid Is Now Open Source &#8211; Eugene Petrenko</title>
-<meta name="description" content="MCP Steroid -- the plugin that gives AI Agents the full IntelliJ IDE runtime -- is now open source under Apache 2.0. Original source at github.com/jonnyzzz/mcp-steroid, transitioning under JetBrains at github.com/JetBrains/mcp-steroid.
+<title>IntelliJ as a Skill Factory &#8211; Eugene Petrenko</title>
+<meta name="description" content="Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE.
 "/>
-<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mcp, mcp-steroid, intellij, android-studio, open-source, agentic-coding" />
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mcp, mcp-steroid, intellij, android-studio, skills, agentic-coding, kotlin" />
 
 
 <!-- Twitter Cards -->
-<meta name="twitter:title" content="MCP Steroid Is Now Open Source -- Eugene Petrenko" />
-<meta name="twitter:description" content="MCP Steroid -- the plugin that gives AI Agents the full IntelliJ IDE runtime -- is now open source under Apache 2.0. Original source at github.com/jonnyzzz/mcp-steroid, transitioning under JetBrains at github.com/JetBrains/mcp-steroid." />
+<meta name="twitter:title" content="IntelliJ as a Skill Factory -- Eugene Petrenko" />
+<meta name="twitter:description" content="Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE." />
 <meta name="twitter:site" content="@jonnyzzz" />
 <meta name="twitter:creator" content="@jonnyzzz" />
 <meta name="twitter:card" content="summary" />
@@ -20,9 +20,9 @@
 
 <meta property="og:type" content="article" />
 <meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
-<meta property="og:title" content="MCP Steroid Is Now Open Source -- Eugene Petrenko" />
-<meta property="og:description" content="MCP Steroid -- the plugin that gives AI Agents the full IntelliJ IDE runtime -- is now open source under Apache 2.0. Original source at github.com/jonnyzzz/mcp-steroid, transitioning under JetBrains at github.com/JetBrains/mcp-steroid." />
-<meta property="og:url" content="https://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/" />
+<meta property="og:title" content="IntelliJ as a Skill Factory -- Eugene Petrenko" />
+<meta property="og:description" content="Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/" />
 <meta property="og:site_name" content="Eugene Petrenko" />
 
 <meta property="article:tag" content="jonnyzzz" />
@@ -40,9 +40,11 @@
 
 <meta property="article:tag" content="android-studio" />
 
-<meta property="article:tag" content="open-source" />
+<meta property="article:tag" content="skills" />
 
 <meta property="article:tag" content="agentic-coding" />
+
+<meta property="article:tag" content="kotlin" />
 
 
 
@@ -52,7 +54,7 @@
 
 
 
-<link rel="canonical" href="https://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/" />
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/" />
 <link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
 
 <meta name="HandheldFriendly" content="True" />
@@ -152,10 +154,10 @@
     <div class="entry-wrapper">
       <header class="entry-header">
         
-          <h1 class="entry-title">MCP Steroid Is Now Open Source</h1>
+          <h1 class="entry-title">IntelliJ as a Skill Factory</h1>
         
         <ul class="entry-tags">
-          <li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#android-studio" title="Pages tagged android-studio">android-studio</a></li><li><a href="/tags/#open-source" title="Pages tagged open-source">open-source</a></li><li><a href="/tags/#agentic-coding" title="Pages tagged agentic-coding">agentic-coding</a></li>
+          <li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#android-studio" title="Pages tagged android-studio">android-studio</a></li><li><a href="/tags/#skills" title="Pages tagged skills">skills</a></li><li><a href="/tags/#agentic-coding" title="Pages tagged agentic-coding">agentic-coding</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li>
         </ul>
       </header>
       <footer class="entry-meta">
@@ -164,135 +166,145 @@
           <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
         
         <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
-        <span class="entry-date date published"><time datetime="2026-04-07T00:00:00+00:00">April 07, 2026</time></span>
+        <span class="entry-date date published"><time datetime="2026-04-08T00:00:00+00:00">April 08, 2026</time></span>
         
         
         <span class="social-share-x">
-  <a href="https://x.com/intent/tweet?text=MCP+Steroid+Is+Now+Open+Source%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/&amp;hashtags=mcp,mcp-steroid,intellij,android-studio,open-source,agentic-coding" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+  <a href="https://x.com/intent/tweet?text=IntelliJ+as+a+Skill+Factory%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/&amp;hashtags=mcp,mcp-steroid,intellij,android-studio,skills,agentic-coding,kotlin" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
 </span>
 <span class="social-share-linkedin">
-  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=MCP+Steroid+Is+Now+Open+Source%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AMCP+Steroid+--+the+plugin+that+gives+AI+Agents+the+full+IntelliJ+IDE+runtime+--+is+now+open+source+under+Apache+2.0.+Original+source+at+github.com%2Fjonnyzzz%2Fmcp-steroid%2C+transitioning+under+JetBrains+at+github.com%2FJetBrains%2Fmcp-steroid.%0A%0Ahttps://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/%0A%0A%23mcp%20%23mcpsteroid%20%23intellij%20%23androidstudio%20%23opensource%20%23agenticcoding" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=IntelliJ+as+a+Skill+Factory%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AEvery+time+your+agent+hits+an+unfamiliar+IntelliJ+API%2C+it+burns+tokens+rediscovering+PSI+trees+and+threading+rules.+MCP+Steroid+turns+that+pain+into+reusable+skills+--+Kotlin+snippets+that+any+agent+can+call+without+re-learning+the+IDE.%0A%0Ahttps://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/%0A%0A%23mcp%20%23mcpsteroid%20%23intellij%20%23androidstudio%20%23skills%20%23agenticcoding%20%23kotlin" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
 </span>
 <!-- /.social-share -->
 
       </footer>
       <div class="entry-content">
-        <p>MCP Steroid is now open source under the Apache 2.0 license. The source is at
-<a href="https://github.com/jonnyzzz/mcp-steroid">github.com/jonnyzzz/mcp-steroid</a>, with the project
-transitioning under JetBrains at <a href="https://github.com/JetBrains/mcp-steroid">github.com/JetBrains/mcp-steroid</a>.</p>
+        <p>Every time your agent needs to use an IntelliJ API it hasn’t seen before, it burns tokens figuring
+out PSI trees and threading rules. It tries something, gets a compilation error, tries again, gets
+a wrong result, tries a third time. Eventually it works. Then the next agent – or the same agent
+in a new session – starts the whole cycle over.</p>
 
-<h2 id="the-bridge">The Bridge</h2>
+<p>I <a href="/blog/2026/04/07/mcp-steroid-open-source/">open-sourced MCP Steroid</a> yesterday.
+That post covered the what and why. This one is about the pattern that makes the plugin actually
+useful day to day: <strong>skills</strong>.</p>
 
-<p>AI Agents can think. They cannot always act. The gap between what agents can reason about and
-what they can actually do inside a codebase – that’s the bottleneck I’ve been working on.</p>
+<h2 id="two-islands">Two Islands</h2>
 
-<p>I build products where the AI Agent is the user. No UI – APIs, CLIs, MCPs. People keep designing
-products for humans with AI bolted on. I’m doing the opposite: we make JetBrains tools available
-for AI agents, not for humans.</p>
+<p>Here’s how I think about the problem. There are
+<a href="/blog/2026/03/24/agentic-experience-and-tools/">two islands</a>.</p>
 
-<p>IntelliJ-based IDEs have shipped with a built-in MCP server since 2025.2 – curated tools for common
-operations like running configurations, file edits, and basic code actions. Useful, but fixed.</p>
+<p><strong>Island one</strong> is the IDE world. IntelliJ platform has deep code understanding – control flow
+graphs, cross-language refactorings, structural search, a debugger, Gradle integration, Spring Integration, and the long-tail more of the features. 
+It’s an
+extraordinary amount of engineering. But it was all built for humans clicking menus. IntelliJ IDEs
+ship with a built-in MCP server since 2025.2, but it exposes a curated, fixed set of operations –
+file edits, run configurations, basic code actions. A start, but not the full picture.</p>
 
-<p>MCP Steroid is different. It gives AI Agents the ability to write and execute arbitrary Kotlin code against
-the full IntelliJ Platform API. Not a predefined menu of operations – the actual APIs that power
-the IDE’s own features: inspections, refactorings, the debugger, PSI trees, screenshots.
-It can access any plugins and third-party extensions too! AI Agents
-get the whole IDE, not a curated subset. On <a href="https://mcp-steroid.jonnyzzz.com/docs/strategy/">DPAI Arena</a>
-benchmarks, agents with MCP Steroid are 20-54% faster on tasks requiring semantic understanding –
-54% on rename-refactoring across 9 files, 20% on multi-layer generation across 15 files. Simple text
-replacements show no improvement, which is expected.</p>
+<p><strong>Island two</strong> is the agentic world. AI agents that can reason, plan, iterate, and write code –
+but they’re stuck either running <code class="language-plaintext highlighter-rouge">grep</code> and <code class="language-plaintext highlighter-rouge">sed</code>, or limited to predefined tool menus, never
+touching the real depth of what the IDE already knows about the codebase.</p>
 
-<p>I wrote more about this framing in
-<a href="/blog/2026/03/24/agentic-experience-and-tools/">Agentic Experience and Tools</a>
-and in the <a href="/blog/2026/01/04/mcp-steroids-intellij/">original MCP Steroid post</a>.</p>
+<p>MCP Steroid bridges them fully. An agent sends Kotlin through <code class="language-plaintext highlighter-rouge">steroid_execute_code</code>, and that code
+runs inside the IDE’s JVM with full access to everything IntelliJ knows. Not a curated subset.
+Not a fixed menu. The actual APIs that power the IDE’s own features. No abstractions skipped.</p>
 
-<h2 id="how-it-got-here">How It Got Here</h2>
+<h2 id="the-skill-factory">The Skill Factory</h2>
 
-<p>I started MCP Steroid in December 2025 as a free-time experiment – one engineer building a Bridge
-between AI Agents and IntelliJ’s APIs. It was built with AI agents. The project uses MCP Steroid
-itself plus a <a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">run-agent.sh</a>
-swarm for development. The main effort went into evals and integration tests – making sure agents
-actually succeed at real tasks, not just compile. MCP Steroid plugin learned from its one development too.</p>
+<p>Here’s the workflow that changed how I use the plugin.</p>
 
-<p>The codebase has 84 prompt markdown files – 37% of production source by line count – that teach
-agents how to navigate IntelliJ APIs: the debugger, refactorings, inspections, test runners, VCS.
-Just like JetBrains IDEs make software developers more professional, these resources make AI agents
-more professional. There are integration tests for Claude Code, Codex, and Gemini, all
-<a href="/blog/2026/02/21/testing-mcp-server-with-ai-agents/">running in Docker</a>
-with full IDE containers.</p>
+<p><strong>Phase one: research.</strong> The agent experiments with IntelliJ APIs via <code class="language-plaintext highlighter-rouge">steroid_execute_code</code>. It
+tries things, fails, iterates. This phase is messy – maybe 4-8 retries, a lot of tokens spent on
+compilation errors and wrong API assumptions – including
+<a href="/blog/2026/02/12/jvm-classloading-intellij/">JVM classloading quirks</a> that trip up
+even experienced developers. That’s fine. The agent is learning.</p>
 
-<p>We validated that AI Agents can write and call Kotlin code to solve specific tasks with the help of IntelliJ.
-This is quality work
-and a real experiment with 1,690 commits over four months, not a rough prototype –
-see the <a href="/blog/2026/02/23/mcp-steroid-project-assessment/">project assessment at 75 days</a>
-for the earlier snapshot.</p>
+<p>At that phase Agent uses the 60+ resources that are already included into the MCP Steroid package.
+For really complex tasks, I also recommend adding the <a href="https://github.com/JetBrains/intellij-community">IntelliJ Community</a> sources
+and the sources of your thrid-party plugins and ask the agent to conduct the reasearch there as well.</p>
 
-<p>In March 2026, we agreed to move the project under JetBrains and start using it internally. The original source is at
-<a href="https://github.com/jonnyzzz/mcp-steroid">github.com/jonnyzzz/mcp-steroid</a>, with the JetBrains fork
-at <a href="https://github.com/JetBrains/mcp-steroid">github.com/JetBrains/mcp-steroid</a>, released under
-Apache 2.0. I’m still the main contributor.</p>
+<p><strong>Phase two: encapsulation.</strong> Once the agent figures out how to solve the problem, the working
+approach gets wrapped into a reusable skill – a Kotlin snippet stored as a markdown document.
+Now any agent can call it without re-discovering the API surface.</p>
 
-<h2 id="skills--a-tease">Skills – a Tease</h2>
+<p>That’s the skill factory. Each solved problem becomes a skill. Skills accumulate. The agent that
+struggled for 8 retries to find deprecated methods with zero usages? Next time it takes one call.</p>
 
-<p>The real value isn’t individual API calls. It’s that solved problems accumulate into reusable skills.
-An agent struggles through IntelliJ’s API once, figures out the working approach, and that approach
-gets wrapped into a skill any agent can call without re-discovering the surface.</p>
+<p>The <a href="https://github.com/JetBrains/mcp-steroid">MCP Steroid repo</a> ships with built-in articles that
+serve a dual purpose – they’re documentation for you, and reference material that agents read to
+create new skills. When your agent needs to figure out VFS or the debugger API, it reads these
+articles just like you would. Check the <a href="https://mcp-steroid.jonnyzzz.com/docs/">docs</a> for the
+full set.</p>
 
-<p>The skill prototyping process has become magnitude times cheaper – 
-make an agent research the <a href="https://github.com/JetBrains/intellij-community">IntelliJ Community</a>
-and figure out how to solve your task. Then, turn it as a skill which uses the MCP Steroid plugin. 
-Eval it.</p>
+<h2 id="why-skills-not-plugin-code">Why Skills, Not Plugin Code</h2>
 
-<p>I’ve got a dedicated post about the
-<a href="/blog/2026/04/08/mcp-steroid-skill-factory/">skill factory</a> coming next –
-with code examples, the two-phase workflow, and the enterprise angle. For now: think of it as the
-difference between giving an agent a tool and giving it a way to build its own tools.</p>
+<p>Here’s what makes skills compelling: writing a skill is one markdown file with a Kotlin code snippet.
+Writing the same capability as traditional plugin code means a Gradle project, extension points,
+build infrastructure, and a full development cycle. Skills skip all of that – the agent handles
+compilation, threading, and iteration for you. You just need to point it in the right direction.</p>
 
-<h2 id="try-it">Try It</h2>
+<p>This also works well with
+<a href="/blog/2026/01/30/orchestrating-ai-fleets/">sub-agent architectures</a>. A parent agent
+can delegate a specific task to a sub-agent that reads only the relevant skill documentation from
+MCP resources. The sub-agent iterates until it works, and the parent’s context stays clean. This is
+how I run it in practice – the orchestrator picks the skill, the worker executes it.</p>
 
-<p>According to our <a href="https://mcp-steroid.jonnyzzz.com/docs/strategy/">strategy</a>, we start from an
-explicit plugin for IntelliJ-based IDEs (including any third-party IDEs, e.g. <strong>Android Studio</strong>).
-The long-term target is a headless
-self-contained runtime – available as SaaS and as an end-user product – the headless 
-<strong>IDE for AI Agents</strong>. The project requires investment into packaging for headless environments, and that’s where
-JetBrains infrastructure matters.</p>
+<h2 id="enterprise-your-own-skills">Enterprise: Your Own Skills</h2>
 
-<p>To get started today: install the MCP Steroid plugin in any IntelliJ-based IDE or Android Studio
-(version 2025.3+). The plugin generates <code class="language-plaintext highlighter-rouge">.idea/mcp-steroid.md</code> in your project with instructions.
-Follow those instructions to register the MCP Server with your agent. The server uses the
-Streamable HTTP protocol.</p>
+<p>Even if you’re behind an enterprise firewall with proprietary IntelliJ plugins and internal APIs,
+you can create skills that wrap your own extensions. Your agent doesn’t need to know the internals
+of your company’s custom inspection plugin – it just calls the skill.</p>
 
-<p>Quick sanity check – ask your agent to run a Kotlin code like <code class="language-plaintext highlighter-rouge">println(project.name)</code> or ask it
-“What do I see in my IDE”</p>
-
-<p>See it in action: <a href="https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f">YouTube playlist</a>,
-and here’s <a href="https://www.youtube.com/watch?v=HtDDNyAoLak">Codex debugging an application in IntelliJ IDEA</a>.</p>
-
-<h2 id="get-involved">Get Involved</h2>
-
-<p>The project is open source, and the community is just getting started. If you’ve explored IntelliJ
-APIs, built agents, or solved IDE automation problems – that knowledge is useful here.</p>
-
-<p><strong>Star and fork the repository.</strong> The original source is at
-<a href="https://github.com/jonnyzzz/mcp-steroid">github.com/jonnyzzz/mcp-steroid</a> and the JetBrains fork
-is at <a href="https://github.com/JetBrains/mcp-steroid">github.com/JetBrains/mcp-steroid</a>. Fork it, experiment with it, write
-a skill, open an issue, improve the docs. Contributions of any kind are welcome.</p>
-
-<p>You can just try the plugin, download it from <a href="https://mcp-steroid.jonnyzzz.com/releases">the website</a>
-or from JetBrains Marketplace (soon). Share what you build, and
-join the <a href="https://discord.com/invite/e9qgQ7NeTC">Discord</a>.</p>
+<p>This is deliberately the same pattern. Open-source skills for the public IntelliJ APIs, private
+skills for your internal tooling. A team can build up a skill library for their specific codebase
+and workflows, and every agent on the team benefits.</p>
 
 <h2 id="whats-next">What’s Next</h2>
 
-<p>With JetBrains infrastructure, support, and investment, I believe MCP Steroid will be delivered
-sooner and enable AI Agents of any kind with the best tools human developers love in
-IntelliJ-based products.</p>
+<p>The immediate focus is skill coverage. More documented API patterns, more worked examples, more
+pre-built skills. The goal is to shrink the research phase for common tasks until it’s nearly zero.</p>
 
-<p>The <a href="/blog/2026/04/08/mcp-steroid-skill-factory/">skill factory post</a> is coming
-tomorrow. We’re also opening a proof-of-concept program for
-companies that want to use MCP Steroid for their specific workflows. If that’s interesting,
-reach out on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or in the
-<a href="https://discord.com/invite/e9qgQ7NeTC">Discord</a>.</p>
+<p>Longer term, I want to explore event-driven skills. IntelliJ already has APIs for subscribing to
+events – a commit happens, a test fails, an inspection fires. An agent that reacts to those events
+automatically, running the right skill in response, would be genuinely useful. The event APIs
+exist. We haven’t wired them into MCP Steroid yet.</p>
+
+<p>And headless support – running the plugin in Docker containers, in CI – is an active investment.
+We already <a href="/blog/2026/02/21/testing-mcp-server-with-ai-agents/">test MCP servers with real agents in Docker</a>.
+Agents don’t always need a GUI, and we want MCP Steroid to work without one. That requires
+packaging work that JetBrains infrastructure makes possible.</p>
+
+<h2 id="get-involved">Get Involved</h2>
+
+<p>The best way to contribute to MCP Steroid is to create a skill. Pick an IDE capability you use
+manually – navigate to declaration, find all usages of a deprecated API, list failing tests with
+their stack traces, whatever is useful in your workflow. Point your agent at it. Let it figure
+out the API. When it works, save the Kotlin as a skill file and open a pull request.</p>
+
+<p><strong>Star and fork the repository</strong> to get started:
+<a href="https://github.com/jonnyzzz/mcp-steroid">github.com/jonnyzzz/mcp-steroid</a> (original source) and
+<a href="https://github.com/JetBrains/mcp-steroid">github.com/JetBrains/mcp-steroid</a> (JetBrains fork).
+The <a href="https://mcp-steroid.jonnyzzz.com/docs/">docs</a> have worked examples, and the
+<a href="https://discord.com/invite/e9qgQ7NeTC">Discord</a> is where the community is building up.</p>
+
+<p>You don’t need to be an IntelliJ platform expert. The agent does the API exploration. You need to
+know what IDE capability you want to expose – the rest is iteration.</p>
+
+<h2 id="try-it">Try It</h2>
+
+<p>According to the <a href="https://mcp-steroid.jonnyzzz.com/docs/strategy/">MCP Steroid strategy</a>, we start
+from an explicit plugin for IntelliJ-based IDEs and Android Studio. The long-term target is a
+headless, self-contained runtime – the IDE for AI agents without the UI. But you can use it today.</p>
+
+<p>You’ll need any IntelliJ-based IDE or Android Studio (version 2025.3+). Install the plugin from <a href="https://github.com/JetBrains/mcp-steroid/releases">GitHub Releases</a>
+– JetBrains Marketplace listing is coming soon. Once started, the plugin generates
+<code class="language-plaintext highlighter-rouge">.idea/mcp-steroid.md</code> in your project with instructions. Follow those to register the MCP Server
+with your agent. The server uses the Streamable HTTP protocol.</p>
+
+<h2 id="poc-program">PoC Program</h2>
+
+<p>We’re opening a PoC program for companies that want MCP Steroid customized for their use cases –
+internal skills, proprietary API integrations, team-specific workflows. If that’s interesting,
+reach out to me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a>.</p>
 
         <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
         

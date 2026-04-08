@@ -73,7 +73,7 @@ and figure out how to solve your task. Then, turn it as a skill which uses the M
 Eval it.
 
 I've got a dedicated post about the
-skill factory coming next --
+[skill factory]({% post_url blog/2026-04-08-mcp-steroid-skill-factory %}) coming next --
 with code examples, the two-phase workflow, and the enterprise angle. For now: think of it as the
 difference between giving an agent a tool and giving it a way to build its own tools.
 
@@ -117,7 +117,7 @@ With JetBrains infrastructure, support, and investment, I believe MCP Steroid wi
 sooner and enable AI Agents of any kind with the best tools human developers love in
 IntelliJ-based products.
 
-The skill factory post is coming
+The [skill factory post]({% post_url blog/2026-04-08-mcp-steroid-skill-factory %}) is coming
 tomorrow. We're also opening a proof-of-concept program for
 companies that want to use MCP Steroid for their specific workflows. If that's interesting,
 reach out on [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or in the
