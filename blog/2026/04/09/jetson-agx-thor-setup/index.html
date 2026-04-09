@@ -1,0 +1,753 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Booting NVIDIA Jetson AGX Thor: Headless, from macOS, via Serial Console &#8211; Eugene Petrenko</title>
+<meta name="description" content="Setting up a Jetson AGX Thor Developer Kit headlessly from macOS — no monitor, no Ethernet on day one, just a USB-C cable and picocom. The OOBE wizard has a bug in JetPack 7.0 that silently drops you on the wrong serial port. Here is the working path.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, nvidia, jetson, LocalAI, hardware, cuda" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Booting NVIDIA Jetson AGX Thor: Headless, from macOS, via Serial Console -- Eugene Petrenko" />
+<meta name="twitter:description" content="Setting up a Jetson AGX Thor Developer Kit headlessly from macOS — no monitor, no Ethernet on day one, just a USB-C cable and picocom. The OOBE wizard has a bug in JetPack 7.0 that silently drops you on the wrong serial port. Here is the working path." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Booting NVIDIA Jetson AGX Thor: Headless, from macOS, via Serial Console -- Eugene Petrenko" />
+<meta property="og:description" content="Setting up a Jetson AGX Thor Developer Kit headlessly from macOS — no monitor, no Ethernet on day one, just a USB-C cable and picocom. The OOBE wizard has a bug in JetPack 7.0 that silently drops you on the wrong serial port. Here is the working path." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/04/09/jetson-agx-thor-setup/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="nvidia" />
+
+<meta property="article:tag" content="jetson" />
+
+<meta property="article:tag" content="LocalAI" />
+
+<meta property="article:tag" content="hardware" />
+
+<meta property="article:tag" content="cuda" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/04/09/jetson-agx-thor-setup/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Booting NVIDIA Jetson AGX Thor: Headless, from macOS, via Serial Console</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#nvidia" title="Pages tagged nvidia">nvidia</a></li><li><a href="/tags/#jetson" title="Pages tagged jetson">jetson</a></li><li><a href="/tags/#LocalAI" title="Pages tagged LocalAI">LocalAI</a></li><li><a href="/tags/#hardware" title="Pages tagged hardware">hardware</a></li><li><a href="/tags/#cuda" title="Pages tagged cuda">cuda</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-04-09T00:00:00+00:00">April 09, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Booting+NVIDIA+Jetson+AGX+Thor%3A+Headless%2C+from+macOS%2C+via+Serial+Console%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/04/09/jetson-agx-thor-setup/&amp;hashtags=nvidia,jetson,LocalAI,hardware,cuda" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Booting+NVIDIA+Jetson+AGX+Thor%3A+Headless%2C+from+macOS%2C+via+Serial+Console%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0ASetting+up+a+Jetson+AGX+Thor+Developer+Kit+headlessly+from+macOS+%E2%80%94+no+monitor%2C+no+Ethernet+on+day+one%2C+just+a+USB-C+cable+and+picocom.+The+OOBE+wizard+has+a+bug+in+JetPack+7.0+that+silently+drops+you+on+the+wrong+serial+port.+Here+is+the+working+path.%0A%0Ahttps://jonnyzzz.com/blog/2026/04/09/jetson-agx-thor-setup/%0A%0A%23nvidia%20%23jetson%20%23LocalAI%20%23hardware%20%23cuda" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>A small, heavy box arrived at the desk. Inside: an NVIDIA Jetson AGX Thor Developer Kit.
+No monitor. No keyboard. No display port handy. The task: flash JetPack 7.0, configure it
+headlessly from macOS, and get Docker and Tailscale running. Simple enough on paper.</p>
+
+<p>It turns out there is one non-obvious failure mode that is not well documented. The OOBE
+wizard — the first-boot configuration screen — does not appear on the serial port you expect.
+NVIDIA’s own forum has a thread about it. After hitting the same wall, we worked through the
+workaround. This post is the reference we wish had existed.</p>
+
+<p><img src="/images/posts/2026-04-09-jetson-agx-thor-setup.png" alt="NVIDIA Jetson AGX Thor Developer Kit" /></p>
+
+<h2 id="the-hardware">The Hardware</h2>
+
+<p>The Jetson AGX Thor Developer Kit carries the T5000 SoM with a Blackwell GPU — the same
+architecture as the DGX Spark (GB10). The core specs that matter for AI workloads are
+strikingly close between the two boxes:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Jetson AGX Thor (T5000)</th>
+      <th>DGX Spark (GB10)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GPU architecture</td>
+      <td>Blackwell</td>
+      <td>Grace Blackwell</td>
+    </tr>
+    <tr>
+      <td>Unified memory</td>
+      <td>128 GB LPDDR5x</td>
+      <td>128 GB LPDDR5x</td>
+    </tr>
+    <tr>
+      <td>Memory bandwidth</td>
+      <td>276 GB/s</td>
+      <td>273 GB/s</td>
+    </tr>
+    <tr>
+      <td>AI performance</td>
+      <td>1,035 TOPS (FP8)</td>
+      <td>1,000 TOPS</td>
+    </tr>
+    <tr>
+      <td>CPU</td>
+      <td>14-core Arm Neoverse</td>
+      <td>20-core Arm (Cortex-X925/A725)</td>
+    </tr>
+    <tr>
+      <td>Power</td>
+      <td>40–130 W</td>
+      <td>~60 W</td>
+    </tr>
+    <tr>
+      <td>Price</td>
+      <td>$3,499</td>
+      <td>$4,699</td>
+    </tr>
+    <tr>
+      <td>Primary target</td>
+      <td>Edge / robotics / physical AI</td>
+      <td>Desktop LLM inference</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The 128 GB unified memory is the number that matters most for LLM inference — it determines
+the maximum model size you can load. Both boxes hold the same amount, so they can run
+similarly-sized models. Compute performance is also in the same range.</p>
+
+<p>Where they differ: the <a href="https://docs.nvidia.com/dgx/dgx-spark/hardware.html">DGX Spark</a> has a stronger CPU subsystem and its software stack
+(JetPack included) is more tuned for large model serving out of the box. The Thor is built
+for edge deployment — robotics, physical AI, sensor pipelines — with different peripherals
+(GPIO, camera inputs, QSFP28 networking) and a wider power envelope (up to 130 W peak,
+as low as 40 W idle). Think of the Spark as a desktop inference server; the Thor as a
+compute node that ships inside a robot or a rack at the edge.</p>
+
+<p>For our purposes — running inference workloads on a local GPU node — the Thor is a
+perfectly capable alternative to the Spark, and at $1,200 less.</p>
+
+<p>After the software setup below, the Thor we configured looks like this:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Device</td>
+      <td>NVIDIA Jetson AGX Thor Developer Kit (T5000 SoM)</td>
+    </tr>
+    <tr>
+      <td>OS</td>
+      <td>Ubuntu 24.04.3 LTS</td>
+    </tr>
+    <tr>
+      <td>Kernel</td>
+      <td>6.8.12-tegra</td>
+    </tr>
+    <tr>
+      <td>Jetson Linux (L4T)</td>
+      <td>R38, REVISION 4.0</td>
+    </tr>
+    <tr>
+      <td>NVIDIA Driver</td>
+      <td>580.00</td>
+    </tr>
+    <tr>
+      <td>CUDA</td>
+      <td>13.0</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The I/O side of the board has a row of ports. From left to right (roughly):
+two USB-A 3.2 ports, USB-C 5a (recovery mode, PD Sink 140W), USB-C 5b (data, PD Sink 140W),
+DisplayPort, HDMI, an RJ45 at 5 Gbps, and a QSFP28 quad-port at 25 Gbps each. Behind the
+magnetic lid cover on the top of the device: the <strong>Debug-USB</strong> port, the one with the serial
+console.</p>
+
+<p>That lid cover is where the setup begins.</p>
+
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>USB flash drive, <strong>16 GB or larger</strong> (we used a 61.5 GB SanDisk)</li>
+  <li>Mac with <strong>≥25 GB</strong> free storage</li>
+  <li>USB-C cable (one is enough)</li>
+  <li><code class="language-plaintext highlighter-rouge">picocom</code> installed: <code class="language-plaintext highlighter-rouge">brew install picocom</code></li>
+  <li>The JetPack ISO (3.9 GB download, see below)</li>
+</ul>
+
+<h2 id="step-1-download-the-iso">Step 1: Download the ISO</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-L</span> <span class="nt">-o</span> jetson-thor-r38.4.iso <span class="se">\</span>
+  <span class="s2">"https://developer.nvidia.com/downloads/embedded/L4T/r38_Release_v4.0/release/jetsoninstaller-r38.4.0-2025-12-30-17-00-37-arm64.iso"</span>
+<span class="c"># 3.9 GB, 4,207,276,032 bytes</span>
+</code></pre></div></div>
+
+<p>The ISO is on NVIDIA’s <a href="https://developer.nvidia.com/embedded/jetpack/downloads">JetPack downloads page</a>.</p>
+
+<h2 id="step-2-write-the-iso-to-usb-macos">Step 2: Write the ISO to USB (macOS)</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>diskutil list external  <span class="c"># find your USB drive, e.g. /dev/disk4</span>
+diskutil unmountDisk /dev/disk4
+<span class="nb">sudo dd </span><span class="k">if</span><span class="o">=</span>jetson-thor-r38.4.iso <span class="nv">of</span><span class="o">=</span>/dev/rdisk4 <span class="nv">bs</span><span class="o">=</span>4m
+diskutil eject /dev/disk4
+</code></pre></div></div>
+
+<p>We wrote 4,207,276,032 bytes in 45.7 seconds (~92 MB/s). After <code class="language-plaintext highlighter-rouge">dd</code> completes, macOS will
+show a dialog: <em>“The disk you inserted was not readable.”</em> Click <strong>Eject</strong> or <strong>Ignore</strong> —
+the Jetson ISO9660 filesystem is not macOS-compatible by design. The USB stick is fine.</p>
+
+<h2 id="step-3-connect-the-serial-console">Step 3: Connect the Serial Console</h2>
+
+<p>Open the magnetic lid cover on the top of the Thor (see the picture above). Connect a USB-C cable from your Mac to
+the <strong>Debug-USB port</strong> inside.</p>
+
+<p>macOS exposes <strong>four</strong> serial devices for this port. Different boot stages use different ones:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>macOS device suffix</th>
+      <th>Boot stage</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/dev/cu.usbmodem…B4</code></td>
+      <td>UEFI / GRUB menu</td>
+      <td>This is the interactive one</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/dev/cu.usbmodem…B2</code></td>
+      <td>Kernel dmesg</td>
+      <td>Useful to watch progress</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/dev/cu.usbmodem…B?</code></td>
+      <td>Other subsystems</td>
+      <td>Usually quiet during install</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Open two terminal tabs:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Tab 1 — GRUB and UEFI interaction</span>
+picocom <span class="nt">-b</span> 115200 /dev/cu.usbmodemTOPOA735A12B4
+
+<span class="c"># Tab 2 — kernel messages</span>
+picocom <span class="nt">-b</span> 115200 /dev/cu.usbmodemTOPOA735A12B2
+</code></pre></div></div>
+
+<p>Your device names will differ from ours — the <code class="language-plaintext highlighter-rouge">TOPOA735A12</code> part comes from the board serial
+number. Use <code class="language-plaintext highlighter-rouge">ls /dev/cu.usbmodem*</code> to see what appeared after connecting the cable.</p>
+
+<p>To exit picocom when you are done: <code class="language-plaintext highlighter-rouge">Ctrl-A</code>, then <code class="language-plaintext highlighter-rouge">Ctrl-X</code>. Set your terminal size
+to <strong>242×61</strong> for proper display — especially relevant during the OOBE wizard later.</p>
+
+<p>Two notes from hard experience:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">/dev/cu.debug-console</code> does <strong>not</strong> work for any stage. Ignore it.</li>
+  <li><code class="language-plaintext highlighter-rouge">screen</code> has reliability issues with these devices. Use <code class="language-plaintext highlighter-rouge">picocom</code>.</li>
+</ul>
+
+<h2 id="step-4-boot-from-usb-and-flash-to-nvme">Step 4: Boot from USB and Flash to NVMe</h2>
+
+<ol>
+  <li>Insert the USB stick into one of the <strong>USB-A</strong> ports on the I/O side of the Thor</li>
+  <li>Power on (press the power button)</li>
+  <li>In <strong>Tab 1</strong> (B4): press Enter at the pre-boot prompt, wait for the GRUB menu</li>
+  <li>In the GRUB menu, select:
+<strong>“Flash Jetson AGX Thor Developer Kit on NVMe r38.4.0”</strong></li>
+</ol>
+
+<blockquote>
+  <p>The GRUB menu also offers a “USB” flash target — do not use that. It installs onto
+the USB stick itself, not the internal NVMe SSD.</p>
+</blockquote>
+
+<p>After you confirm the selection, switch to <strong>Tab 2</strong> (B2). The kernel will print boot messages
+for a minute, then go silent. That silence lasts about <strong>10 minutes</strong>. This is the actual
+installation. The installer output goes to <code class="language-plaintext highlighter-rouge">ttyUTC0</code> (a hardware UART, not accessible from
+the USB serial ports), so there is nothing to watch. This is normal. Do not power-cycle.</p>
+
+<p>Installation is complete when Tab 2 shows:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[   12.260117] nvidia-modeset: WARNING: HW supports 8 heads. Limiting to 4 heads
+[   12.260117] Please complete NVIDIA OOBE on the serial port provided by Jetson's USB device mode connection. e.g.
+  /dev/ttyACMx where x can 0, 1, 2 etc.
+</code></pre></div></div>
+
+<p>Note the <code class="language-plaintext highlighter-rouge">ttyACMx</code> hint in the message — that is a Linux device path. On macOS there is no
+<code class="language-plaintext highlighter-rouge">ttyACM</code>. Ignore that hint. The correct macOS device appears after the cable swap below.</p>
+
+<p>Remove the USB stick. Do not power off yet.</p>
+
+<h2 id="step-5-the-oobe-trap">Step 5: The OOBE Trap</h2>
+
+<p>This is the part that caught us. The message above says to complete OOBE on <em>“the serial port
+provided by Jetson’s USB device mode connection.”</em> On the Debug-USB port (the one behind the lid),
+the OOBE wizard does <strong>not</strong> appear. Nothing shows. You wait. Still nothing.</p>
+
+<p>This is a known JetPack 7.0 limitation. NVIDIA has acknowledged it on the developer forum
+(<a href="https://forums.developer.nvidia.com/t/first-boot-headless-mode-asks-for-login-password/351064">thread here</a>) with a fix targeted for 7.1. The workaround:</p>
+
+<ol>
+  <li><strong>Disconnect</strong> the USB-C cable from the Debug-USB port (behind the lid)</li>
+  <li><strong>Reconnect</strong> the same cable to the <strong>USB-C port 5b</strong> on the I/O side (the middle USB-C port,
+next to the two USB-A ports)</li>
+  <li>A new tty device appears on macOS. It keeps the same board-serial prefix as the Debug-USB
+devices but with a different suffix — on our board it was <strong>B6</strong>:
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> /dev/tty.usbmodem<span class="k">*</span>    <span class="c"># find the new device</span>
+picocom <span class="nt">-b</span> 115200 /dev/tty.usbmodemTOPOA735A12B6
+</code></pre></div>    </div>
+  </li>
+  <li>The OOBE wizard appears in <strong>text mode</strong></li>
+</ol>
+
+<p>Step through the wizard:</p>
+<ul>
+  <li>Accept the EULA</li>
+  <li>Create a user account</li>
+  <li>Set the hostname</li>
+  <li>Configure network — select <code class="language-plaintext highlighter-rouge">enP2p1s0</code> for the RJ45 Ethernet</li>
+  <li>Set timezone</li>
+</ul>
+
+<p>After completing OOBE the device reboots into a fresh Ubuntu 24.04.3 system.</p>
+
+<h2 id="step-6-ssh-setup">Step 6: SSH Setup</h2>
+
+<p>Once the device is on the network, set up key-based SSH from macOS so you never need the
+serial console again.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Generate a dedicated key</span>
+ssh-keygen <span class="nt">-t</span> ed25519 <span class="nt">-f</span> ~/.ssh/thor-04 <span class="nt">-N</span> <span class="s2">""</span> <span class="nt">-C</span> <span class="s2">"jonnyzzz@thor-04"</span>
+
+<span class="c"># Upload the key (first time needs the password)</span>
+expect <span class="o">&lt;&lt;</span><span class="sh">'</span><span class="no">EXPECT</span><span class="sh">'
+set pub [exec cat ~/.ssh/thor-04.pub]
+spawn ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no jetbrains@thor-04 </span><span class="se">\</span><span class="sh">
+  "mkdir -p ~/.ssh &amp;&amp; echo '</span><span class="nv">$pub</span><span class="sh">' &gt;&gt; ~/.ssh/authorized_keys &amp;&amp; chmod 700 ~/.ssh &amp;&amp; chmod 600 ~/.ssh/authorized_keys"
+expect "*assword*"
+send "jetbrains</span><span class="se">\r</span><span class="sh">"
+expect eof
+</span><span class="no">EXPECT
+</span></code></pre></div></div>
+
+<p>Add to <code class="language-plaintext highlighter-rouge">~/.ssh/config</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host thor-04 thor-04.local
+    HostName thor-04
+    User jetbrains
+    IdentityFile ~/.ssh/thor-04
+    IdentitiesOnly yes
+</code></pre></div></div>
+
+<p>Test it: <code class="language-plaintext highlighter-rouge">ssh thor-04</code> should land you at a <code class="language-plaintext highlighter-rouge">Linux thor-04 6.8.12-tegra aarch64</code> prompt
+without a password.</p>
+
+<h2 id="step-7-post-install-configuration">Step 7: Post-Install Configuration</h2>
+
+<p>With SSH working, the rest is straightforward over the network:</p>
+
+<p><strong>Passwordless sudo:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh thor-04
+<span class="nb">sudo </span>usermod <span class="nt">-aG</span> <span class="nb">sudo </span>jetbrains
+<span class="nb">echo</span> <span class="s2">"jetbrains ALL=(ALL) NOPASSWD: ALL"</span> | <span class="nb">sudo tee</span> /etc/sudoers.d/jetbrains
+</code></pre></div></div>
+
+<p><strong>Basic tools:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> curl mc vim
+</code></pre></div></div>
+
+<p><strong>Tailscale</strong> (if you want the device on your VPN):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-fsSL</span> https://tailscale.com/install.sh | sh
+</code></pre></div></div>
+
+<p><strong>Docker:</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> docker.io
+<span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker jetbrains
+<span class="nb">sudo </span>systemctl <span class="nb">enable </span>docker <span class="o">&amp;&amp;</span> <span class="nb">sudo </span>systemctl restart docker
+</code></pre></div></div>
+
+<p>After a logout/login cycle, <code class="language-plaintext highlighter-rouge">docker ps</code> works without sudo. We got Docker 29.1.3.</p>
+
+<h2 id="uefi-and-iso-compatibility">UEFI and ISO Compatibility</h2>
+
+<p>One more thing worth knowing before you try to reinstall later. There is a UEFI version
+dependency between the ISO revision and the firmware on the board:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>UEFI Version</th>
+      <th>ISO r38.2</th>
+      <th>ISO r38.4</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>r38.0.0 (factory)</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>No settings change needed</td>
+    </tr>
+    <tr>
+      <td>r38.2.x</td>
+      <td>Yes</td>
+      <td>Yes</td>
+      <td>Enable Display Handoff mode before USB</td>
+    </tr>
+    <tr>
+      <td>r38.4.x</td>
+      <td>No</td>
+      <td>Yes</td>
+      <td>Cannot downgrade to an older ISO</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>If you flashed once with r38.4.x and want to reinstall: you must use the r38.4 ISO.
+Downgrading the UEFI is not supported.</p>
+
+<p>For reinstalls with UEFI r38.2.x, before inserting the USB stick, go into:
+<strong>UEFI → Device Manager → NVIDIA Configuration → Boot Configuration
+→ SOC Display Hand-Off Mode → “Auto”, Method → “efifb”.</strong></p>
+
+<h2 id="what-came-out-the-other-side">What Came Out the Other Side</h2>
+
+<p>After following this path, the Thor is running:</p>
+
+<ul>
+  <li>Ubuntu 24.04.3 LTS, kernel 6.8.12-tegra</li>
+  <li>CUDA 13.0, NVIDIA driver 580.00</li>
+  <li>Docker 29.1.3</li>
+  <li>Tailscale, SSH key auth, passwordless sudo</li>
+</ul>
+
+<p>The device is now a GPU node on our local network. Next: run inference workloads on it.
+The Jetson AGX Thor with its NVIDIA Thor GPU and unified memory is a different beast
+from the DGX Spark we covered in <a href="/blog/2025/11/26/junie-cage-spark/">earlier posts</a> — smaller footprint,
+ARM architecture, different memory model. The setup experience surfaced a few quirks
+specific to JetPack 7.0 that we have not seen documented well elsewhere.</p>
+
+<p>If you run into the OOBE freeze, check the USB-C port. That one confused us for a while.</p>
+
+<p>Questions or corrections: reach me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://x.com/jonnyzzz">X</a>.</p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
