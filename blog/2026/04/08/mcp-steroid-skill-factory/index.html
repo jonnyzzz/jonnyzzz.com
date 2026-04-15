@@ -220,7 +220,7 @@ even experienced developers. That’s fine. The agent is learning.</p>
 
 <p>At that phase Agent uses the 60+ resources that are already included into the MCP Steroid package.
 For really complex tasks, I also recommend adding the <a href="https://github.com/JetBrains/intellij-community">IntelliJ Community</a> sources
-and the sources of your thrid-party plugins and ask the agent to conduct the reasearch there as well.</p>
+and the sources of your third-party plugins and ask the agent to conduct the research there as well.</p>
 
 <p><strong>Phase two: encapsulation.</strong> Once the agent figures out how to solve the problem, the working
 approach gets wrapped into a reusable skill – a Kotlin snippet stored as a markdown document.
@@ -247,6 +247,32 @@ compilation, threading, and iteration for you. You just need to point it in the 
 can delegate a specific task to a sub-agent that reads only the relevant skill documentation from
 MCP resources. The sub-agent iterates until it works, and the parent’s context stays clean. This is
 how I run it in practice – the orchestrator picks the skill, the worker executes it.</p>
+
+<h2 id="example-a-complete-skill">Example: A Complete Skill</h2>
+
+<p>Here’s a working skill that finds all TODO comments in a project:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">com.intellij.psi.search.PsiSearchHelper</span>
+<span class="k">import</span> <span class="nn">com.intellij.psi.search.GlobalSearchScope</span>
+
+<span class="kd">val</span> <span class="py">todoItems</span> <span class="p">=</span> <span class="nf">readAction</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">searchHelper</span> <span class="p">=</span> <span class="nc">PsiSearchHelper</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="kd">val</span> <span class="py">result</span> <span class="p">=</span> <span class="n">mutableListOf</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">&gt;()</span>
+    <span class="n">searchHelper</span><span class="p">.</span><span class="nf">processCommentsContainingIdentifier</span><span class="p">(</span><span class="s">"TODO"</span><span class="p">,</span> <span class="nc">GlobalSearchScope</span><span class="p">.</span><span class="nf">projectScope</span><span class="p">(</span><span class="n">project</span><span class="p">))</span> <span class="p">{</span> <span class="n">comment</span> <span class="p">-&gt;</span>
+        <span class="n">result</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="s">"${comment.containingFile.virtualFile.path}: ${comment.text.trim()}"</span><span class="p">)</span>
+        <span class="k">true</span>
+    <span class="p">}</span>
+    <span class="n">result</span>
+<span class="p">}</span>
+<span class="n">todoItems</span><span class="p">.</span><span class="nf">forEach</span> <span class="p">{</span> <span class="nf">println</span><span class="p">(</span><span class="n">it</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>An agent sends this through <code class="language-plaintext highlighter-rouge">steroid_execute_code</code> and gets back every TODO comment with its file
+path. No plugin development, no Gradle project, no build infrastructure. One snippet, one call.</p>
+
+<p>This is the kind of thing that takes an agent 4-8 retries to discover the first time –
+<code class="language-plaintext highlighter-rouge">PsiSearchHelper</code> isn’t obvious, the <code class="language-plaintext highlighter-rouge">GlobalSearchScope</code> parameter is easy to miss, and
+<code class="language-plaintext highlighter-rouge">readAction</code> is required for PSI access. Once it’s a skill, every future agent gets it in one shot.</p>
 
 <h2 id="enterprise-your-own-skills">Enterprise: Your Own Skills</h2>
 

@@ -1,0 +1,1482 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Building an IntelliJ Plugin That Works Across Multiple IDE Versions: 7 Approaches &#8211; Eugene Petrenko</title>
+<meta name="description" content="Building an IntelliJ plugin that works across IJ 2025.3 and 2026.1 is not a plugin.xml configuration problem. It is a Kotlin version problem, a classpath coupling problem, and a build architecture problem simultaneously. I explored seven approaches, built a PoC, and documented everything that went wrong.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, intellij, kotlin, gradle, plugin-development, mcp-steroid, kotlin-coroutines, jvm, bytebuddy" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Building an IntelliJ Plugin That Works Across Multiple IDE Versions: 7 Approaches -- Eugene Petrenko" />
+<meta name="twitter:description" content="Building an IntelliJ plugin that works across IJ 2025.3 and 2026.1 is not a plugin.xml configuration problem. It is a Kotlin version problem, a classpath coupling problem, and a build architecture problem simultaneously. I explored seven approaches, built a PoC, and documented everything that went wrong." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Building an IntelliJ Plugin That Works Across Multiple IDE Versions: 7 Approaches -- Eugene Petrenko" />
+<meta property="og:description" content="Building an IntelliJ plugin that works across IJ 2025.3 and 2026.1 is not a plugin.xml configuration problem. It is a Kotlin version problem, a classpath coupling problem, and a build architecture problem simultaneously. I explored seven approaches, built a PoC, and documented everything that went wrong." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/04/15/intellij-plugin-multi-version-kotlin/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="gradle" />
+
+<meta property="article:tag" content="plugin-development" />
+
+<meta property="article:tag" content="mcp-steroid" />
+
+<meta property="article:tag" content="kotlin-coroutines" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="bytebuddy" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/04/15/intellij-plugin-multi-version-kotlin/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Building an IntelliJ Plugin That Works Across Multiple IDE Versions: 7 Approaches</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#gradle" title="Pages tagged gradle">gradle</a></li><li><a href="/tags/#plugin-development" title="Pages tagged plugin-development">plugin-development</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#kotlin-coroutines" title="Pages tagged kotlin-coroutines">kotlin-coroutines</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#bytebuddy" title="Pages tagged bytebuddy">bytebuddy</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-04-15T00:00:00+00:00">April 15, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Building+an+IntelliJ+Plugin+That+Works+Across+Multiple+IDE+Versions%3A+7+Approaches%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/04/15/intellij-plugin-multi-version-kotlin/&amp;hashtags=intellij,kotlin,gradle,plugin-development,mcp-steroid,kotlin-coroutines,jvm,bytebuddy" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Building+an+IntelliJ+Plugin+That+Works+Across+Multiple+IDE+Versions%3A+7+Approaches%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0ABuilding+an+IntelliJ+plugin+that+works+across+IJ+2025.3+and+2026.1+is+not+a+plugin.xml+configuration+problem.+It+is+a+Kotlin+version+problem%2C+a+classpath+coupling+problem%2C+and+a+build+architecture+problem+simultaneously.+I+explored+seven+approaches%2C+built+a+PoC%2C+and+documented+everything+that+went+wrong.%0A%0Ahttps://jonnyzzz.com/blog/2026/04/15/intellij-plugin-multi-version-kotlin/%0A%0A%23intellij%20%23kotlin%20%23gradle%20%23plugindevelopment%20%23mcpsteroid%20%23kotlincoroutines%20%23jvm%20%23bytebuddy" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>I have been building <a href="https://github.com/JetBrains/mcp-steroid">MCP Steroid</a> — an IntelliJ plugin
+that gives AI Agents access to the full IntelliJ Platform API at runtime. The plugin needs to work
+across IntelliJ 2025.3 (build 253), 2026.1 (build 261), and the upcoming 2026.2 EAP.</p>
+
+<p>Right now the plugin uses a workaround: pin a specific Kotlin compiler version that happens to be
+binary-compatible one IJ generation before and after the target. It works — but it becomes more
+fragile with every Kotlin release, and with the K2.2 → K2.3 break between IJ 253 and 261,
+it is reaching its limit.</p>
+
+<p>I also cannot just drop support for IJ 253. That version family covers Android Studio forks.
+Dropping it and then needing it back later is expensive — users do not return easily once they are
+forced to an alternative. So 253 stays as the floor, and I need to support everything up through
+the current EAP trunk.</p>
+
+<p>That sounds like a <code class="language-plaintext highlighter-rouge">sinceBuild</code> / <code class="language-plaintext highlighter-rouge">untilBuild</code> problem. It is not.</p>
+
+<p>When I started investigating, I found three separate, deeply entangled problems — and one of them
+has no elegant solution in the current Gradle toolchain. This post is the story of those problems
+and the seven approaches I explored. The PoC for approaches 1 + 5 is at
+<a href="https://github.com/jonnyzzz/ij-multi-version">github.com/jonnyzzz/ij-multi-version</a>.</p>
+
+<hr />
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ul>
+  <li><a href="#the-problem-in-concrete-terms">The Problem in Concrete Terms</a></li>
+  <li><a href="#the-seven-approaches">The Seven Approaches</a>
+    <ul>
+      <li><a href="#option-1-symlinks--multiple-gradle-subprojects">Option 1: Symlinks + Multiple Gradle Subprojects</a></li>
+      <li><a href="#option-2-branch-per-ij-version">Option 2: Branch per IJ Version</a></li>
+      <li><a href="#option-3-reflection">Option 3: Reflection</a></li>
+      <li><a href="#option-4-shims--typed-adapters">Option 4: Shims / Typed Adapters</a></li>
+      <li><a href="#option-5-template-build-scripts">Option 5: Template Build Scripts</a></li>
+      <li><a href="#option-6-simplify-intellijs-api-surface">Option 6: Simplify IntelliJ’s API Surface</a></li>
+      <li><a href="#option-7-docker-based-build-compatibility-tests">Option 7: Docker-based Build Compatibility Tests</a></li>
+    </ul>
+  </li>
+  <li><a href="#the-single-invocation-approach-what-jetbrains-uses-internally">The Single-Invocation Approach: What JetBrains Uses Internally</a></li>
+  <li><a href="#build-time-verification-classfile-reference-checking">Build-time Verification: ClassFile Reference Checking</a></li>
+  <li><a href="#build-issues-i-hit-along-the-way">Build Issues I Hit Along the Way</a></li>
+  <li><a href="#scoring-summary">Scoring Summary</a></li>
+  <li><a href="#what-jetbrains-could-do-better">What JetBrains Could Do Better</a></li>
+  <li><a href="#where-to-start">Where to Start</a></li>
+  <li><a href="#what-i-am-doing-for-mcp-steroid">What I Am Doing for MCP Steroid</a></li>
+</ul>
+
+<hr />
+
+<h2 id="the-problem-in-concrete-terms">The Problem in Concrete Terms</h2>
+
+<h3 id="the-kotlin-version-coupling">The Kotlin Version Coupling</h3>
+
+<p>IntelliJ is built with Kotlin and bundles Kotlin libraries. When your plugin runs inside
+IJ, it uses the IDE’s bundled Kotlin runtime — not the one you compiled against. A plugin
+should try the best to avoid bundinng Kotlin libaries, which are present in the IDE classpath.
+JetBrains documents the version mapping officially on the
+<a href="https://plugins.jetbrains.com/docs/intellij/using-kotlin.html">Configuring Kotlin Support</a> page:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>IJ Version</th>
+      <th>Bundled Kotlin stdlib</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2026.1 (261)</td>
+      <td>2.3.20</td>
+    </tr>
+    <tr>
+      <td>2025.3 (253)</td>
+      <td>2.2.20</td>
+    </tr>
+    <tr>
+      <td>2025.2 (252)</td>
+      <td>2.1.20</td>
+    </tr>
+    <tr>
+      <td>2025.1 (251)</td>
+      <td>2.1.10</td>
+    </tr>
+    <tr>
+      <td>2024.3 (243)</td>
+      <td>2.0.21</td>
+    </tr>
+    <tr>
+      <td>2024.2 (242)</td>
+      <td>1.9.24</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The 2.2.20 → 2.3.20 jump between 253 and 261 is not a routine version bump. JetBrains confirmed
+directly on the platform forum:</p>
+
+<blockquote>
+  <p><em>“unfortunately it’s indeed impossible to use kotlin 2.2.20 anymore for IJ 261.
+2.3.0/2.3.10 should be used instead.”</em>
+— Anna Kozlova (JetBrains), <a href="https://platform.jetbrains.com/t/kotlin-plugin-compiled-with-later-kotlin-version-in-261-21525-39-eap-snapshot/3734">IJ Platform Forum, Feb 2026</a></p>
+</blockquote>
+
+<p>This matters specifically if your plugin uses Kotlin compiler APIs — PSI trees, the Analysis API,
+anything from <code class="language-plaintext highlighter-rouge">org.jetbrains.kotlin.compiler.client.impl</code>. Binary metadata changed between K2.2
+and K2.3 in a way that is not backward-compatible for compiler uses.</p>
+
+<p>Kotlin version dimension: not only must the plugin be compiled against the right Kotlin, but
+the Kotlin compiler it invokes at runtime must also match the bundled version in the running IDE.
+And the Kotlin libraries (such as Kotlin Coroutines) must be compatible.</p>
+
+<p>For <a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a>, which executes
+Kotlin code snippets programmatically, we use the dedicated <code class="language-plaintext highlighter-rouge">kotlinc</code> compiler binary. 
+The version of the compiler is selected specifically to support the 2.2 version in 253, 
+and 2.4.0-beta in the recent versions of IntelliJ. 
+Thanks to the binary backward/forward compatibility, that is possible, and it
+simplifies the plugin’s setup a lot. We are not using the embedded Kotlin compiler 
+because it’s not included in all IntelliJ-based IDEs, e.g., Rider, PyCharm.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">PlatformKotlinVersions</code> map in the IJ Platform Gradle Plugin initially lacked a 261 entry,
+silently defaulting to K2.2.20. This caused cryptic compile failures with no diagnostic. Fixed in
+<a href="https://github.com/JetBrains/intellij-platform-gradle-plugin/blob/main/CHANGELOG.md">IJPGP v2.12.0</a>
+(released 2026-03-06), which mapped 261 → 2.3.10. The final IJ 2026.1 GA ships 2.3.20, as Kotlin
+2.3.20 was released ten days after the IJPGP fix landed.</p>
+
+<p>If your plugin does not use compiler APIs — only pure Kotlin language features — the situation is
+less severe. The <a href="https://github.com/intellij-rust/intellij-rust">intellij-rust</a> plugin handles
+this by pinning <code class="language-plaintext highlighter-rouge">apiVersion.set(KotlinVersion.KOTLIN_1_8)</code> even when the IDE bundles 2.x,
+trading access to newer language features for version-range freedom. A valid strategy if your
+plugin does not need Kotlin 1.9+ features.</p>
+
+<h3 id="you-cannot-parametrize-the-kotlin-compiler-in-gradle">You Cannot Parametrize the Kotlin Compiler in Gradle</h3>
+
+<p>This is the root cause of why all the “just add a flag” solutions fail.</p>
+
+<p>In a standard Gradle build, the Kotlin compiler version is a global property — it comes from
+<code class="language-plaintext highlighter-rouge">plugins { kotlin("jvm") version "X.Y.Z" }</code> in <code class="language-plaintext highlighter-rouge">build.gradle.kts</code>. There is no built-in
+mechanism to compile one subproject with KGP 2.2.x and another with KGP 2.3.x in the same build
+invocation. The IJ Platform Gradle Plugin resolves the target SDK classpath per subproject, but
+the <strong>Kotlin language and API version</strong> is a property of the KGP loaded into Gradle’s script
+classloader — not of the SDK.</p>
+
+<p>One Gradle invocation, one KGP version, period. This is the constraint that drives the entire
+multi-subproject architecture. Any solution to the multi-version problem that requires different
+Kotlin compiler versions <em>must</em> use separate Gradle invocations: separate subprojects,
+separate CI jobs, or Docker containers.</p>
+
+<p>Alternative – use different Kotlin plugin versions in different sibling projects, and
+patent Gradle projects must not have KGP in the classpath. That makes setup even more complicated.</p>
+
+<h3 id="bundled-libraries-change-between-ij-versions">Bundled Libraries Change Between IJ Versions</h3>
+
+<p>It is not just Kotlin. IntelliJ also bundles:</p>
+
+<p><strong><code class="language-plaintext highlighter-rouge">kotlinx.coroutines</code></strong>: Since IJ 2024.2, JetBrains ships a patched fork at
+<a href="https://github.com/JetBrains/intellij-deps-kotlinx.coroutines">github.com/JetBrains/intellij-deps-kotlinx.coroutines</a>
+under the <code class="language-plaintext highlighter-rouge">org.jetbrains.intellij.deps.kotlinx</code> group. If your plugin bundles its own coroutines
+version, you will hit <code class="language-plaintext highlighter-rouge">ClassCastException</code> at runtime when the bundled and shipped versions load
+the same class name through different classloaders. The fix: declare coroutines as <code class="language-plaintext highlighter-rouge">compileOnly</code>
+and set <code class="language-plaintext highlighter-rouge">kotlin.stdlib.default.dependency=false</code>. But that means compiling against the oldest
+bundled version you support.</p>
+
+<p>Pro-Tip: Set up the assertion to verify all the bundled libraries to your plugin. Verify that the
+you are not re-packaging the same libraries into your plugin’s lib folder.</p>
+
+<p>Approximate bundled versions: IJ 252 → <code class="language-plaintext highlighter-rouge">kotlinx-coroutines 1.10.1-intellij-4</code>; IJ 261 →
+<code class="language-plaintext highlighter-rouge">1.10.2-intellij-1</code> (<a href="https://github.com/aws/aws-toolkit-jetbrains/pull/6331">aws-toolkit-jetbrains PR #6331</a>).
+The IJ 253 version is not in the official docs table but follows the same pattern.</p>
+
+<p><strong>Kotlin serialization</strong> and other bundled libraries follow the same pattern.</p>
+
+<h3 id="ij-platform-apis-change-without-a-stability-sla">IJ Platform APIs Change Without a Stability SLA</h3>
+
+<p>JetBrains does not publish a formal API stability SLA. Per-API signals:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">@ApiStatus.ScheduledForRemoval(inVersion="...")</code> — will be removed; the version attribute tells
+you when to act</li>
+  <li><code class="language-plaintext highlighter-rouge">@ApiStatus.Internal</code> — no compatibility promise; may break in a patch release</li>
+  <li><code class="language-plaintext highlighter-rouge">@ApiStatus.Experimental</code> — subject to change without notice</li>
+</ul>
+
+<p>The <a href="https://plugins.jetbrains.com/docs/intellij/api-changes-list-2026.html">API changes list for 2026</a>
+documents what broke. Deprecated APIs are typically removed after 2–4 major versions. Plugin
+Verifier warnings on EAP builds give 1–3 months of lead time — but only if you are running
+Plugin Verifier against those EAP builds.</p>
+
+<p>One concrete 2025.3 change: the unified IJ distribution merged Community and Ultimate, deprecating
+<code class="language-plaintext highlighter-rouge">intellijIdeaCommunity()</code> in the Gradle plugin in favour of <code class="language-plaintext highlighter-rouge">intellijIdea()</code>. The EAP SNAPSHOT
+artifacts still accept the old function call for now, but new plugin projects should use
+<code class="language-plaintext highlighter-rouge">intellijIdea()</code> from the start.</p>
+
+<hr />
+
+<h2 id="the-seven-approaches">The Seven Approaches</h2>
+
+<h3 id="option-1-symlinks--multiple-gradle-subprojects">Option 1: Symlinks + Multiple Gradle Subprojects</h3>
+
+<p>Create one Gradle subproject per target IJ version. Each has its own <code class="language-plaintext highlighter-rouge">build.gradle.kts</code> with the
+correct <code class="language-plaintext highlighter-rouge">kotlinLang</code> and <code class="language-plaintext highlighter-rouge">ijSdk</code> constants. Shared plugin sources live in <code class="language-plaintext highlighter-rouge">src-includes/</code>. Each
+subproject includes the shared sources via <strong>filesystem symlinks</strong> into <code class="language-plaintext highlighter-rouge">src-symlink/</code>.</p>
+
+<p>Why symlinks? IntelliJ IDEA requires that each source root has a unique physical path. Two modules
+pointing to the same directory confuse IDEA’s indexing. Symlinks give each module a unique path
+that points to the same files.</p>
+
+<blockquote>
+  <p><em>“It creates quite a horrible setup on the IntelliJ side… because there is no standard way
+to mount the same sources for multiple modules.”</em></p>
+</blockquote>
+
+<p>The source directory naming convention:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>src-includes/main/
+├── kotlin/          ← always compiled for all versions
+├── java/            ← always compiled
+├── resources/       ← always compiled
+├── src-253/         ← only when ijMajor == 253
+├── src-261/         ← only when ijMajor == 261
+├── src-253-since/   ← when ijMajor &gt;= 253
+└── src-261-until/   ← when ijMajor &lt;= 261
+</code></pre></div></div>
+
+<p>Each subproject resolves which directories to link via a regex:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="nf">folderMatchesMarker</span><span class="p">(</span><span class="n">folderName</span><span class="p">:</span> <span class="nc">String</span><span class="p">):</span> <span class="nc">Boolean</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">folderName</span> <span class="k">in</span> <span class="nf">setOf</span><span class="p">(</span><span class="s">"java"</span><span class="p">,</span> <span class="s">"kotlin"</span><span class="p">,</span> <span class="s">"resources"</span><span class="p">))</span> <span class="k">return</span> <span class="k">true</span>
+    <span class="kd">val</span> <span class="py">m</span> <span class="p">=</span> <span class="nc">Regex</span><span class="p">(</span><span class="s">"""src-(\d{3})(?:-(since|until))?"""</span><span class="p">).</span><span class="nf">matchEntire</span><span class="p">(</span><span class="n">folderName</span><span class="p">)</span>
+        <span class="o">?:</span> <span class="nf">error</span><span class="p">(</span><span class="s">"Unrecognized directory '$folderName' in src-includes/"</span><span class="p">)</span>
+    <span class="kd">val</span> <span class="py">nnn</span> <span class="p">=</span> <span class="n">m</span><span class="p">.</span><span class="n">groupValues</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nf">toInt</span><span class="p">()</span>
+    <span class="k">return</span> <span class="k">when</span> <span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">groupValues</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+        <span class="s">"since"</span> <span class="p">-&gt;</span> <span class="n">ijMajor</span> <span class="p">&gt;=</span> <span class="n">nnn</span>
+        <span class="s">"until"</span> <span class="p">-&gt;</span> <span class="n">ijMajor</span> <span class="p">&lt;=</span> <span class="n">nnn</span>
+        <span class="k">else</span>    <span class="p">-&gt;</span> <span class="n">ijMajor</span> <span class="p">==</span> <span class="n">nnn</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The PoC also includes a <code class="language-plaintext highlighter-rouge">checkVersionCoverage</code> task that validates there are no gaps in the
+supported version range. It uses the IJ build-number formula — <code class="language-plaintext highlighter-rouge">(year − 2000) × 10 + quarter</code>,
+with valid quarters 1–3 — to detect if, say, you support 253 and 261 but skipped 262 entirely
+when 262 was required to be listed. Coverage gaps are caught at configuration time.</p>
+
+<p>Adding a new version: create <code class="language-plaintext highlighter-rouge">ij-plugin/ij-NNN-kXY/build.gradle.kts</code> (copy from existing, change
+three constants at the top), add to <code class="language-plaintext highlighter-rouge">gradle/ij-builds.properties</code>.</p>
+
+<div class="language-properties highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># gradle/ij-builds.properties
+</span><span class="py">combinations</span><span class="p">=</span><span class="s">ij-253-k22,ij-261-k23</span>
+</code></pre></div></div>
+
+<p><strong>Production precedent</strong>: This approach is used in production with the IDE Services plugin, supporting
+two years of IJ versions. It works.</p>
+
+<p><strong>The advantage</strong>: One <code class="language-plaintext highlighter-rouge">./gradlew build</code> compiles all versions. API breakages surface as compiler
+errors immediately across the full version matrix. And the right-click on the selected <code class="language-plaintext highlighter-rouge">runIde</code>
+task would start the debugger with the selected version in the Click.</p>
+
+<p><strong>The cost</strong>: The symlink layer is unfamiliar to most developers. IDEA’s module tree grows with
+the version count. Building all versions locally is slower than building one. Dependency
+resolution will take more time, since you need more heavy IDE packages to download.
+The versioned source folders appears to have more code, one must carefully design and authorize
+and new code added to the folders like <code class="language-plaintext highlighter-rouge">src-251</code>.</p>
+
+<p><strong>Verdict</strong>: Best compile-time safety. Highest build complexity. Proven in production.</p>
+
+<hr />
+
+<h3 id="option-2-branch-per-ij-version">Option 2: Branch per IJ Version</h3>
+
+<p>Maintain a separate Git branch per major IJ version. Build and deploy from the correct branch.</p>
+
+<p>Every bug fix must be cherry-picked to all active branches. If you have three branches — <code class="language-plaintext highlighter-rouge">main</code>,
+<code class="language-plaintext highlighter-rouge">253</code>, <code class="language-plaintext highlighter-rouge">252</code> — a single commit becomes three cherry-picks. Cherry-picks diverge. After six months
+you have three codebases that are supposed to be the same plugin but differ in subtle ways you
+cannot easily diff.</p>
+
+<blockquote>
+  <p><em>“The changes must be cherry-picked to all branches to make it work. And it’s definitely
+quite easy to fail it. We did that before.”</em></p>
+</blockquote>
+
+<p>JetBrains’ SDK documentation acknowledges branches as a last resort: “In certain scenarios where
+fundamental incompatibilities cannot be resolved through conditional logic, maintaining separate
+branches for each major IDE version may be necessary.” Last resort is the right framing.</p>
+
+<p><strong>Verdict</strong>: Simple per-branch build. Terrible long-term maintenance. Hard no.</p>
+
+<p><strong>Agentic</strong> That is easy to implement with AI Agent and clear instructions to follow.</p>
+
+<hr />
+
+<h3 id="option-3-reflection">Option 3: Reflection</h3>
+
+<p>Call version-dependent APIs via Java reflection. Detect the IJ version at startup and
+<code class="language-plaintext highlighter-rouge">Method.invoke()</code> the right implementation.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Do not do this</span>
+<span class="kd">val</span> <span class="py">method</span> <span class="p">=</span> <span class="k">try</span> <span class="p">{</span>
+    <span class="nc">WindowManager</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">.</span><span class="nf">getMethod</span><span class="p">(</span><span class="s">"getAllProjectFrames"</span><span class="p">)</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">e</span><span class="p">:</span> <span class="nc">NoSuchMethodException</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nc">WindowManager</span><span class="o">::</span><span class="k">class</span><span class="p">.</span><span class="n">java</span><span class="p">.</span><span class="nf">getMethod</span><span class="p">(</span><span class="s">"getProjectFrameHelpers"</span><span class="p">)</span> <span class="c1">// renamed in IJ 261</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Reflection turns build-time errors into runtime errors. If JetBrains removes the API entirely,
+you will not know until a user reports a <code class="language-plaintext highlighter-rouge">NoSuchMethodException</code> in production. The IDE cannot
+help you — no autocomplete, no “find usages”, no refactoring support.</p>
+
+<blockquote>
+  <p><em>“The reflection will hide all the potential problems in the future and will create a much more
+problematic approach.”</em></p>
+</blockquote>
+
+<p><strong>Verdict</strong>: Rejected. The ease of implementation does not justify losing compile-time safety.</p>
+
+<hr />
+
+<h3 id="option-4-shims--typed-adapters">Option 4: Shims / Typed Adapters</h3>
+
+<p>Create a thin adapter layer — small modules, one per version-incompatible API surface. Each shim
+implements a shared interface. A selector class picks the right implementation at runtime.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Shared interface</span>
+<span class="kd">interface</span> <span class="nc">WindowLister</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nf">listProjectWindows</span><span class="p">():</span> <span class="nc">List</span><span class="p">&lt;</span><span class="nc">IdeFrame</span><span class="p">&gt;</span>
+<span class="p">}</span>
+
+<span class="c1">// shim-253 — compiled against IJ 253 SDK</span>
+<span class="kd">class</span> <span class="nc">WindowLister253</span> <span class="p">:</span> <span class="nc">WindowLister</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">listProjectWindows</span><span class="p">()</span> <span class="p">=</span>
+        <span class="nc">WindowManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">().</span><span class="nf">getAllProjectFrames</span><span class="p">().</span><span class="nf">toList</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// shim-261 — compiled against IJ 261 SDK</span>
+<span class="kd">class</span> <span class="nc">WindowLister261</span> <span class="p">:</span> <span class="nc">WindowLister</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="k">fun</span> <span class="nf">listProjectWindows</span><span class="p">()</span> <span class="p">=</span>
+        <span class="nc">WindowManager</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">().</span><span class="nf">getProjectFrameHelpers</span><span class="p">().</span><span class="nf">toList</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// Runtime selection</span>
+<span class="kd">val</span> <span class="py">lister</span><span class="p">:</span> <span class="nc">WindowLister</span> <span class="p">=</span> <span class="k">when</span> <span class="p">{</span>
+    <span class="nc">ApplicationInfo</span><span class="p">.</span><span class="nf">getInstance</span><span class="p">().</span><span class="n">build</span><span class="p">.</span><span class="n">baselineVersion</span> <span class="p">&gt;=</span> <span class="mi">261</span> <span class="p">-&gt;</span> <span class="nc">WindowLister261</span><span class="p">()</span>
+    <span class="k">else</span> <span class="p">-&gt;</span> <span class="nc">WindowLister253</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>The <a href="https://github.com/bazelbuild/intellij">bazelbuild/intellij</a> Bazel plugin is the canonical
+production example. They maintain <code class="language-plaintext highlighter-rouge">sdkcompat/v252/</code>, <code class="language-plaintext highlighter-rouge">sdkcompat/v253/</code>, <code class="language-plaintext highlighter-rouge">sdkcompat/v261/</code> —
+supporting two stable versions simultaneously plus one under-development. Their three patterns:
+<strong>Compat</strong> (static utility class), <strong>Adapter</strong> (superclass constructor changed), and <strong>Wrapper</strong>
+(new interface in superclass constructor). Every compat change is marked <code class="language-plaintext highlighter-rouge">// #api252</code> to indicate
+the last version requiring it — makes cleanup obvious when that version is dropped.</p>
+
+<p>The <a href="https://github.com/aws/aws-toolkit-jetbrains">aws-toolkit-jetbrains</a> uses a simpler variant:
+versioned source directories <code class="language-plaintext highlighter-rouge">src-243-253/</code> and <code class="language-plaintext highlighter-rouge">src-261+/</code> within a single Gradle project.
+When <code class="language-plaintext highlighter-rouge">PyAddSdkPanel</code> was removed in IJ 261, its usage moved to <code class="language-plaintext highlighter-rouge">src-243-253/</code> and the replacement
+went into <code class="language-plaintext highlighter-rouge">src-261+/</code>.</p>
+
+<p><strong>The critical discipline constraint</strong>: all classes across version-specific directories must
+expose the <em>same</em> public API surface. You can only change implementations, not add or remove
+methods. This is hard to enforce without tooling and compounds in cost as the number of shimmed
+APIs grows.</p>
+
+<p><strong>What makes this better than reflection</strong>: Shim implementations are compiled. API removal in a
+shim generates a compile error, not a runtime exception. IDE tooling works normally inside shims.</p>
+
+<p><strong>What makes this incomplete</strong>: Main plugin code is still compiled against one SDK only. An API
+removed in a newer IJ generates no compile error unless it is already behind a shim.</p>
+
+<p>The <a href="https://github.com/HaxeFoundation/intellij-haxe">HaxeFoundation/intellij-haxe</a> plugin tried
+this pattern and eventually dropped it: <em>“maintaining a code base that can compile to multiple
+versions is a lot of work.”</em> They now track only the latest IJ version. The discipline required
+is real, and for a small team it compounds quickly.</p>
+
+<p><strong>Verdict</strong>: Right tool for specific known API divergences. Not a whole-project strategy.
+Apply reactively when Option 7 surfaces a specific API break.</p>
+
+<hr />
+
+<h3 id="option-5-template-build-scripts">Option 5: Template Build Scripts</h3>
+
+<p>Each IJ version gets a fully self-contained <code class="language-plaintext highlighter-rouge">build.gradle.kts</code> with all version constants inlined.
+No convention plugins. No shared <code class="language-plaintext highlighter-rouge">buildSrc</code> task classes. Each file can be read top-to-bottom
+and the entire build is understandable.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// ── Version declarations ──────────────────────────────────────────────</span>
+<span class="kd">val</span> <span class="py">ijMajor</span>      <span class="p">=</span> <span class="mi">253</span>                 <span class="c1">// IJ major build number</span>
+<span class="kd">val</span> <span class="py">ijSdk</span>        <span class="p">=</span> <span class="s">"253-EAP-SNAPSHOT"</span>  <span class="c1">// SDK artifact version</span>
+<span class="kd">val</span> <span class="py">kotlinLang</span>   <span class="p">=</span> <span class="s">"2.2"</span>               <span class="c1">// Kotlin language/API level</span>
+<span class="kd">val</span> <span class="py">needsNightly</span> <span class="p">=</span> <span class="k">false</span>               <span class="c1">// true = requires JetBrains VPN</span>
+</code></pre></div></div>
+
+<p>A configuration-time assertion catches obvious mismatches before SDK downloads:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">run</span> <span class="p">{</span>
+    <span class="k">fun</span> <span class="nc">String</span><span class="p">.</span><span class="nf">toMajorMinor</span><span class="p">():</span> <span class="nc">Pair</span><span class="p">&lt;</span><span class="nc">Int</span><span class="p">,</span> <span class="nc">Int</span><span class="p">&gt;</span> <span class="p">{</span>
+        <span class="kd">val</span> <span class="py">p</span> <span class="p">=</span> <span class="nf">split</span><span class="p">(</span><span class="s">"."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="nf">getOrNull</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">?.</span><span class="nf">toIntOrNull</span><span class="p">()</span> <span class="o">?:</span> <span class="mi">0</span><span class="p">)</span> <span class="nf">to</span> <span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="nf">getOrNull</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">?.</span><span class="nf">toIntOrNull</span><span class="p">()</span> <span class="o">?:</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="kd">val</span> <span class="py">kgpVersion</span> <span class="p">=</span> <span class="n">extensions</span><span class="p">.</span><span class="n">getByType</span><span class="p">&lt;</span><span class="nc">KotlinJvmProjectExtension</span><span class="p">&gt;().</span><span class="n">coreLibrariesVersion</span>
+    <span class="kd">val</span> <span class="p">(</span><span class="py">pMaj</span><span class="p">,</span> <span class="py">pMin</span><span class="p">)</span> <span class="p">=</span> <span class="n">kgpVersion</span><span class="p">.</span><span class="nf">toMajorMinor</span><span class="p">()</span>
+    <span class="kd">val</span> <span class="p">(</span><span class="py">lMaj</span><span class="p">,</span> <span class="py">lMin</span><span class="p">)</span> <span class="p">=</span> <span class="n">kotlinLang</span><span class="p">.</span><span class="nf">toMajorMinor</span><span class="p">()</span>
+    <span class="nf">check</span><span class="p">(</span><span class="n">pMaj</span> <span class="p">&gt;</span> <span class="n">lMaj</span> <span class="p">||</span> <span class="p">(</span><span class="n">pMaj</span> <span class="p">==</span> <span class="n">lMaj</span> <span class="p">&amp;&amp;</span> <span class="n">pMin</span> <span class="p">&gt;=</span> <span class="n">lMin</span><span class="p">))</span> <span class="p">{</span>
+        <span class="s">"[ij-$ijMajor] KGP $kgpVersion is older than declared language level $kotlinLang. "</span> <span class="p">+</span>
+        <span class="s">"Raise kotlinJvmPluginVersion in gradle.properties."</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Adding a new version: copy the file, change the three constants. No convention-plugin archaeology.
+New contributors can understand the entire build by reading one file.</p>
+
+<p>This is really an organizational principle for Option 1 — or for the single-invocation CI
+pattern — rather than a standalone multi-version strategy. But it is worth naming explicitly because getting the
+build organization right makes all other options more maintainable.</p>
+
+<p><strong>Verdict</strong>: Essential organizational discipline. Use inside whichever multi-version strategy
+you choose. Works especially well combined with Option 1.</p>
+
+<hr />
+
+<h3 id="option-6-simplify-intellijs-api-surface-long-term">Option 6: Simplify IntelliJ’s API Surface (Long-term)</h3>
+
+<p>For MCP Steroid, the IJ plugin ultimately does two things:</p>
+
+<ol>
+  <li>Execute code: run a Kotlin snippet against the IDE’s JVM at the AI Agent’s request</li>
+  <li>Show a confirmation dialogue when the Agent wants to do something irreversible</li>
+</ol>
+
+<p>If these two APIs were built into IntelliJ Platform itself, the plugin would become trivial.
+All real logic moves to the CLI side. The CLI deals with port discovery, plugin updates, and
+versioning. The plugin just exposes two endpoints.</p>
+
+<p>This is the direction MCP Steroid is already moving. The CLI gets richer; the plugin gets simpler.
+Every feature that migrates from <code class="language-plaintext highlighter-rouge">ij-plugin/</code> to <code class="language-plaintext highlighter-rouge">kotlin-cli/</code> or <code class="language-plaintext highlighter-rouge">mcp-core/</code> removes one class
+of API compatibility problem.</p>
+
+<p>The platform’s RPC layer (<code class="language-plaintext highlighter-rouge">com.intellij.platform.rpc</code>) became public in 2025.3 and 2026.1, but
+it serves the IDE-internal frontend/backend split for remote development — not external CLI
+delegation. There is no announced timeline for a public <code class="language-plaintext highlighter-rouge">POST /execute</code> API. Not before IJ 2026.2,
+which is roughly a year away.</p>
+
+<p><strong>Practical implication</strong>: Architect for this direction now. Every refactoring that moves logic
+out of the IJ plugin is a step in the right direction, regardless of whether Option 6 itself ships.</p>
+
+<p><strong>Verdict</strong>: Correct long-term direction. Not a solution for the next 12 months.</p>
+
+<hr />
+
+<h3 id="option-7-docker-based-build-compatibility-tests">Option 7: Docker-based Build Compatibility Tests</h3>
+
+<p>Keep the main build simple — one version per Gradle invocation, selected by a property. Add a
+separate <code class="language-plaintext highlighter-rouge">test-integration</code> module with JUnit 5 tests that run
+<code class="language-plaintext highlighter-rouge">./gradlew buildPlugin -Pmcp.platform.version=$version</code> inside a Docker container per target IJ version.</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">`build</span> <span class="n">plugin</span> <span class="n">with</span> <span class="nc">IntelliJ</span> <span class="mi">2025_3</span><span class="err">`</span><span class="p">()</span> <span class="p">=</span> <span class="nf">buildPluginWithVersion</span><span class="p">(</span><span class="s">"2025.3"</span><span class="p">)</span>
+
+<span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">`build</span> <span class="n">plugin</span> <span class="n">with</span> <span class="nc">IntelliJ</span> <span class="mi">2026_1</span><span class="err">`</span><span class="p">()</span> <span class="p">=</span> <span class="nf">buildPluginWithVersion</span><span class="p">(</span><span class="s">"2026.1"</span><span class="p">)</span>
+
+<span class="nd">@Test</span>
+<span class="k">fun</span> <span class="nf">`build</span> <span class="n">plugin</span> <span class="n">with</span> <span class="nc">IntelliJ</span> <span class="mi">2026_2</span> <span class="nc">EAP`</span><span class="p">()</span> <span class="p">=</span> <span class="nf">buildPluginWithVersion</span><span class="p">(</span><span class="s">"262-EAP-SNAPSHOT"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>EAP versions use the <strong>3-digit build-number</strong> format (<code class="language-plaintext highlighter-rouge">262-EAP-SNAPSHOT</code>, not <code class="language-plaintext highlighter-rouge">2026.2-EAP-SNAPSHOT</code>),
+resolved from the public <a href="https://github.com/JetBrains/intellij-platform-gradle-plugin/blob/12b993e2a56a66c6fdde72deb0bebb02a1635622/src/main/kotlin/org/jetbrains/intellij/platform/gradle/Constants.kt#L252"><code class="language-plaintext highlighter-rouge">snapshots()</code></a>
+Maven repo (<code class="language-plaintext highlighter-rouge">https://www.jetbrains.com/intellij-repository/snapshots</code>) via <code class="language-plaintext highlighter-rouge">useInstaller = false</code>.
+Nightly builds (<code class="language-plaintext highlighter-rouge">262-SNAPSHOT</code>, or <code class="language-plaintext highlighter-rouge">LATEST-TRUNK-SNAPSHOT</code> for the rolling trunk tip) require the
+<a href="https://github.com/JetBrains/intellij-platform-gradle-plugin/blob/12b993e2a56a66c6fdde72deb0bebb02a1635622/src/main/kotlin/org/jetbrains/intellij/platform/gradle/Constants.kt#L250"><code class="language-plaintext highlighter-rouge">nightly()</code></a>
+repo (<code class="language-plaintext highlighter-rouge">https://www.jetbrains.com/intellij-repository/nightly</code>) and IJPGP ≥ 2.14.0.
+Released versions (<code class="language-plaintext highlighter-rouge">"2025.3"</code>, <code class="language-plaintext highlighter-rouge">"2026.1"</code>) use the default installer mode.</p>
+
+<p><code class="language-plaintext highlighter-rouge">LATEST-TRUNK-SNAPSHOT</code> is particularly valuable: it automatically follows the current trunk
+regardless of major version — when 262 ships and 263 trunk starts, it tracks 263. This gives
+1–3 months of early warning before API breaks appear in a numbered EAP.</p>
+
+<p>Each test:</p>
+<ol>
+  <li>Updates a bare git clone of the current repo into a cached workspace via <code class="language-plaintext highlighter-rouge">git fetch</code></li>
+  <li>Syncs <strong>uncommitted</strong> local changes via <code class="language-plaintext highlighter-rouge">rsync --delete</code> — so local work in progress is
+tested, not just what is committed</li>
+  <li>Runs <code class="language-plaintext highlighter-rouge">./gradlew buildPlugin -Pmcp.platform.version=X</code> inside the container</li>
+  <li>Fails the JUnit test if the build fails</li>
+</ol>
+
+<h3 id="the-caching-layer-is-what-makes-this-practical">The caching layer is what makes this practical</h3>
+
+<p>A cold Docker build downloads a full IJ SDK — roughly 3.3 GB extracted. Slow the first time.
+Three-layer caching makes subsequent runs fast:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Cache layer</th>
+      <th>Host path</th>
+      <th>What is stored</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Bare git clone</td>
+      <td><code class="language-plaintext highlighter-rouge">build/build-compat/repo-cache/</code></td>
+      <td>Updated via <code class="language-plaintext highlighter-rouge">git fetch</code>; fast local clone</td>
+    </tr>
+    <tr>
+      <td>Per-version workspace</td>
+      <td><code class="language-plaintext highlighter-rouge">build/build-compat/workspace/&lt;version&gt;/</code></td>
+      <td>Gradle incremental state</td>
+    </tr>
+    <tr>
+      <td>Shared Gradle home</td>
+      <td><code class="language-plaintext highlighter-rouge">build/build-compat/gradle-cache/</code></td>
+      <td>IJ SDK JARs, dependency downloads</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>With warm caches: <code class="language-plaintext highlighter-rouge">rsync</code> copies only changed files, Gradle runs incrementally, the build
+completes in minutes instead of the initial 10–20 minutes.</p>
+
+<h3 id="why-this-fits-mcp-steroid-best">Why this fits mcp-steroid best</h3>
+
+<ul>
+  <li>The single <code class="language-plaintext highlighter-rouge">ij-plugin/build.gradle.kts</code> already uses <code class="language-plaintext highlighter-rouge">-Pmcp.platform.version=2025.3</code></li>
+  <li>There is already a <code class="language-plaintext highlighter-rouge">test-integration</code> module</li>
+  <li>Adding a new IJ version is one <code class="language-plaintext highlighter-rouge">@Test</code> method</li>
+  <li>The main build stays fast — <code class="language-plaintext highlighter-rouge">./gradlew build</code> is one version, no Docker overhead</li>
+  <li>API breaks surface as build failures in CI, at test time rather than local build time</li>
+  <li>Parallelism is at the JUnit level — multiple containers can run simultaneously</li>
+</ul>
+
+<p><strong>The tradeoff</strong>: Compile errors only appear when running integration tests, not in <code class="language-plaintext highlighter-rouge">./gradlew build</code>.
+For CI this is fine. For local development you rely on the IDE’s inspections and Plugin Verifier.</p>
+
+<p><strong>Key gap vs. Option 1</strong>: Kotlin compiler version is still global. If IJ 261 requires K2.3 and
+the build is configured for K2.2, the Docker test catches it — but not the main local build.
+Mitigated by the <code class="language-plaintext highlighter-rouge">checkBundledKotlinCompatibility</code> task and explicitly pinning <code class="language-plaintext highlighter-rouge">kotlinVersion</code>
+per target platform.</p>
+
+<p><strong>Verdict</strong>: Best fit for mcp-steroid today. Already implemented as a pending change.</p>
+
+<hr />
+
+<h2 id="the-single-invocation-approach-what-jetbrains-uses-internally">The Single-Invocation Approach: What JetBrains Uses Internally</h2>
+
+<p>Some JetBrains plugins use a simpler model: one Gradle invocation builds exactly one IJ version,
+selected by a system property. CI runs N parallel jobs — one per version. This is probably the
+most common internal approach at JetBrains for multi-version plugin builds.</p>
+
+<h3 id="one-version-per-gradle-invocation">One version per Gradle invocation</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew build <span class="nt">-DplatformVersion</span><span class="o">=</span>253
+</code></pre></div></div>
+
+<p>A version config data class carries all version-specific coordinates:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">data class</span> <span class="nc">PluginVersionConfig</span><span class="p">(</span>
+    <span class="kd">val</span> <span class="py">id</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span>          <span class="c1">// "251", "252", "253", "261"</span>
+    <span class="kd">val</span> <span class="py">ideaVersion</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="c1">// e.g. "253.27604" — exact build number</span>
+    <span class="kd">val</span> <span class="py">kotlinVersion</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span>
+    <span class="c1">// ... other SDK/product version fields ...</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>CI runs N parallel jobs — one per version. No symlinks needed, because only one version is built
+per Gradle invocation and IDEA only sees one set of source roots at a time.</p>
+
+<h3 id="source-directory-selection">Source directory selection</h3>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="k">fun</span> <span class="nc">SourceDirectorySet</span><span class="p">.</span><span class="nf">versionedSrcDirs</span><span class="p">(</span><span class="n">basePath</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">when</span> <span class="p">(</span><span class="nf">getCurrentVersion</span><span class="p">().</span><span class="n">id</span><span class="p">)</span> <span class="p">{</span>
+        <span class="s">"253"</span> <span class="p">-&gt;</span> <span class="p">{</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-252-since/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-253-since/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-253/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-253-until/$basePath"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="s">"261"</span> <span class="p">-&gt;</span> <span class="p">{</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-252-since/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-253-since/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-261-since/$basePath"</span><span class="p">)</span>
+            <span class="nf">srcDir</span><span class="p">(</span><span class="s">"src-261/$basePath"</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">else</span> <span class="p">-&gt;</span> <span class="nf">error</span><span class="p">(</span><span class="s">"Unsupported IDE version: ${getCurrentVersion().id}"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="how-it-compares-to-the-multi-subproject-poc">How it compares to the multi-subproject PoC</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Single-invocation approach</th>
+      <th>Multi-subproject PoC</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Versions per Gradle invocation</td>
+      <td>1 (flag-selected)</td>
+      <td>All (one subproject each)</td>
+    </tr>
+    <tr>
+      <td>Symlinks needed</td>
+      <td><strong>No</strong> — single invocation sees one source set</td>
+      <td>Yes — IDEA needs unique paths per module</td>
+    </tr>
+    <tr>
+      <td>Source dir matching</td>
+      <td>Explicit <code class="language-plaintext highlighter-rouge">when</code> switch</td>
+      <td>Regex <code class="language-plaintext highlighter-rouge">src-(\d{3})(?:-(since\|until))?</code></td>
+    </tr>
+    <tr>
+      <td>Version data</td>
+      <td>20+ fields per version</td>
+      <td>3 fields: <code class="language-plaintext highlighter-rouge">ijMajor</code>, <code class="language-plaintext highlighter-rouge">ijSdk</code>, <code class="language-plaintext highlighter-rouge">kotlinLang</code></td>
+    </tr>
+    <tr>
+      <td>New version effort</td>
+      <td>Add <code class="language-plaintext highlighter-rouge">when</code> branch + version config object</td>
+      <td>Copy build file, change 3 constants</td>
+    </tr>
+    <tr>
+      <td>Single-command full matrix</td>
+      <td>Requires N parallel CI jobs</td>
+      <td><code class="language-plaintext highlighter-rouge">./gradlew build</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The intellij-rust plugin used a similar per-version properties file pattern:
+<code class="language-plaintext highlighter-rouge">gradle-252.properties</code>, <code class="language-plaintext highlighter-rouge">gradle-253.properties</code>, etc., with CI passing
+<code class="language-plaintext highlighter-rouge">-PplatformVersion=$</code> to select among them.</p>
+
+<hr />
+
+<h2 id="build-time-verification-classfile-reference-checking">Build-time Verification: ClassFile Reference Checking</h2>
+
+<p>Beyond compilation against the right SDK, there is a verification gap: do all the classes, methods,
+and fields your plugin references actually exist on the IJ classpath at runtime?</p>
+
+<p>The PoC implements a three-tier answer to this, built around a standalone <code class="language-plaintext highlighter-rouge">:check-class-refs</code>
+Gradle application module that uses ByteBuddy’s shaded ASM to inspect compiled bytecode.
+Each tier catches a different category of API change.</p>
+
+<h3 id="tier-1--verifyclassrefs-erased-descriptor-existence-check">Tier 1 — <code class="language-plaintext highlighter-rouge">verifyClassRefs</code>: erased-descriptor existence check</h3>
+
+<p>Walks every <code class="language-plaintext highlighter-rouge">.class</code> file in the compiled plugin. For each method call site, extracts the
+<strong>owner class + method name + full JVM descriptor</strong> (which encodes the erased return type and
+parameter types). Checks that this exact <code class="language-plaintext highlighter-rouge">(owner, name, descriptor)</code> exists somewhere in the
+owner class’s hierarchy on the <code class="language-plaintext highlighter-rouge">compileClasspath</code>.</p>
+
+<p>This catches:</p>
+
+<ul>
+  <li><strong>Class removed</strong>: <code class="language-plaintext highlighter-rouge">com.intellij.MissingClass</code> not on classpath → <code class="language-plaintext highlighter-rouge">NoClassDefFoundError</code></li>
+  <li><strong>Return type changed to a different class</strong>: method <code class="language-plaintext highlighter-rouge">getFrame()</code> changed from returning
+<code class="language-plaintext highlighter-rouge">com.intellij.openapi.util.Pair</code> to <code class="language-plaintext highlighter-rouge">kotlin.Pair</code> — both classes exist, but the JVM
+descriptor changed from <code class="language-plaintext highlighter-rouge">()Lcom/intellij/openapi/util/Pair;</code> to <code class="language-plaintext highlighter-rouge">()Lkotlin/Pair;</code>, so
+the call site’s <code class="language-plaintext highlighter-rouge">INVOKEVIRTUAL</code> finds no matching method → <code class="language-plaintext highlighter-rouge">NoSuchMethodError</code></li>
+  <li><strong>Parameter type changed</strong>: same mechanism, different position in the descriptor</li>
+</ul>
+
+<p>When a method is missing but a same-named method with a different descriptor is found, the
+report shows the alternative:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[verifyClassRefs-261] 1 method(s) not found (descriptor mismatch or removed):
+  - com.intellij.openapi.wm.WindowManager#getAllProjectFrames ()[Lcom/intellij/openapi/wm/IdeFrame;
+      ↳ 'getAllProjectFrames' exists with different descriptor: ()Ljava/util/List;
+</code></pre></div></div>
+
+<h3 id="tier-2--verifyapisignatures-generic-signature-comparison">Tier 2 — <code class="language-plaintext highlighter-rouge">verifyApiSignatures</code>: generic signature comparison</h3>
+
+<p>The erased-descriptor check has a blind spot. Java/Kotlin generics are <strong>erased</strong> at bytecode
+level: <code class="language-plaintext highlighter-rouge">List&lt;OldType&gt;</code> and <code class="language-plaintext highlighter-rouge">List&lt;NewType&gt;</code> both compile to <code class="language-plaintext highlighter-rouge">Ljava/util/List;</code>. The JVM links
+the call successfully in both cases — but the caller may receive elements of an unexpected type
+and get a <code class="language-plaintext highlighter-rouge">ClassCastException</code> later at the use site.</p>
+
+<p><strong>Real-world case — <a href="https://github.com/JetBrains/mcp-steroid/issues/18">mcp-steroid#18</a>:</strong>
+<code class="language-plaintext highlighter-rouge">StatusBarEx.getBackgroundProcessModels()</code> changed its return type from
+<code class="language-plaintext highlighter-rouge">List&lt;com.intellij.openapi.util.Pair&lt;TaskInfo, ProgressModel&gt;&gt;</code> to
+<code class="language-plaintext highlighter-rouge">List&lt;kotlin.Pair&lt;TaskInfo, ProgressModel&gt;&gt;</code> between IJ 261 and IJ 262.
+Both types erase to <code class="language-plaintext highlighter-rouge">()Ljava/util/List;</code> — identical JVM descriptor. The plugin compiled,
+linked, and passed every standard check. At runtime on IJ 262, iterating the list and
+accessing <code class="language-plaintext highlighter-rouge">.first</code>/<code class="language-plaintext highlighter-rouge">.second</code> on elements assumed to be <code class="language-plaintext highlighter-rouge">c.i.o.u.Pair</code> threw a
+<code class="language-plaintext highlighter-rouge">ClassCastException</code>. <strong>Plugin Verifier does not catch this</strong> (confirmed from source at commit <a href="https://github.com/JetBrains/intellij-plugin-verifier/tree/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5"><code class="language-plaintext highlighter-rouge">1d14a2b</code></a>: it
+resolves methods by erased descriptor only; <code class="language-plaintext highlighter-rouge">Signature</code> attributes are parsed for
+display in error messages but never compared for compatibility).</p>
+
+<p>The JVM class file format stores the un-erased generic type in a separate <strong><code class="language-plaintext highlighter-rouge">Signature</code>
+attribute</strong> alongside the descriptor. This attribute is what the Kotlin compiler uses to
+reconstruct generic types for type checking, but the JVM itself ignores it for method
+dispatch.</p>
+
+<p>The solution is a two-phase workflow:</p>
+
+<p><strong>Capture</strong> (run once against the base IJ version, commit the result):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew :ij-plugin:ij-253-k22:captureApiSignatures
+</code></pre></div></div>
+
+<p>For every method and field call site in the plugin, this looks up the member in the IJ 253
+SDK and records its <code class="language-plaintext highlighter-rouge">Signature</code> attribute into <code class="language-plaintext highlighter-rouge">ij-plugin/api-signatures.txt</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>METHOD  com.intellij.util.containers.ContainerUtil#map  (Ljava/util/Collection;...)Ljava/util/List;  (Ljava/util/Collection&lt;TT;&gt;;...)Ljava/util/List&lt;TR;&gt;;
+FIELD   com.intellij.openapi.util.Pair#first             Ljava/lang/Object;                           NONE
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">NONE</code> means no <code class="language-plaintext highlighter-rouge">Signature</code> attribute — a raw or primitive type, nothing to compare.</p>
+
+<p><strong>Verify</strong> (runs on every <code class="language-plaintext highlighter-rouge">./gradlew check</code> for all versions):</p>
+
+<p>For each entry in the snapshot, looks up the same <code class="language-plaintext highlighter-rouge">(owner, name, erased-descriptor)</code> in the
+current SDK and compares <code class="language-plaintext highlighter-rouge">Signature</code> attributes. A change that passes <code class="language-plaintext highlighter-rouge">verifyClassRefs</code>
+(same erased descriptor) but changes the generic parameter is caught here:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[verifyApiSignatures-261] GENERIC SIGNATURE CHANGED:
+  METHOD com.intellij.Foo#getItems ()Ljava/util/List;
+    was : ()Ljava/util/List&lt;Lcom/example/OldType;&gt;;
+    now : ()Ljava/util/List&lt;Ljava/lang/String;&gt;;
+    → METHOD com.intellij.Foo#getItems ()Ljava/util/List;
+</code></pre></div></div>
+
+<p>The last line is the ready-to-paste entry for <code class="language-plaintext highlighter-rouge">signature-exceptions.txt</code> if you have
+verified the change is safe at your call sites. Known-safe changes accumulate there over time;
+everything else is a build failure.</p>
+
+<p>The Gradle wiring in each version subproject:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// ij-NNN-kXY/build.gradle.kts</span>
+<span class="kd">val</span> <span class="py">snapshotFile</span>   <span class="p">=</span> <span class="n">parent</span><span class="o">!!</span><span class="p">.</span><span class="n">projectDir</span><span class="p">.</span><span class="nf">resolve</span><span class="p">(</span><span class="s">"api-signatures.txt"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">exceptionsFile</span> <span class="p">=</span> <span class="n">parent</span><span class="o">!!</span><span class="p">.</span><span class="n">projectDir</span><span class="p">.</span><span class="nf">resolve</span><span class="p">(</span><span class="s">"signature-exceptions.txt"</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">compileCP</span>      <span class="p">=</span> <span class="n">configurations</span><span class="p">.</span><span class="nf">named</span><span class="p">(</span><span class="s">"compileClasspath"</span><span class="p">)</span>
+
+<span class="kd">val</span> <span class="py">verifyApiSignatures</span> <span class="k">by</span> <span class="n">tasks</span><span class="p">.</span><span class="nf">registering</span><span class="p">(</span><span class="nc">JavaExec</span><span class="o">::</span><span class="k">class</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">val</span> <span class="py">reportOut</span> <span class="p">=</span> <span class="n">layout</span><span class="p">.</span><span class="n">buildDirectory</span><span class="p">.</span><span class="nf">file</span><span class="p">(</span><span class="s">"reports/verify-api-signatures-$ijMajor.txt"</span><span class="p">)</span>
+    <span class="n">outputs</span><span class="p">.</span><span class="nf">file</span><span class="p">(</span><span class="n">reportOut</span><span class="p">)</span>
+    <span class="n">argumentProviders</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="nc">CommandLineArgumentProvider</span> <span class="p">{</span>
+        <span class="nf">buildList</span> <span class="p">{</span>
+            <span class="nf">add</span><span class="p">(</span><span class="s">"--mode"</span><span class="p">);</span> <span class="nf">add</span><span class="p">(</span><span class="s">"verify"</span><span class="p">)</span>
+            <span class="n">compileCP</span><span class="p">.</span><span class="k">get</span><span class="p">().</span><span class="n">files</span><span class="p">.</span><span class="nf">forEach</span> <span class="p">{</span> <span class="nf">add</span><span class="p">(</span><span class="s">"--classpath"</span><span class="p">);</span> <span class="nf">add</span><span class="p">(</span><span class="n">it</span><span class="p">.</span><span class="n">absolutePath</span><span class="p">)</span> <span class="p">}</span>
+            <span class="nf">add</span><span class="p">(</span><span class="s">"--snapshot"</span><span class="p">);</span>   <span class="nf">add</span><span class="p">(</span><span class="n">snapshotFile</span><span class="p">.</span><span class="n">absolutePath</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">exceptionsFile</span><span class="p">.</span><span class="nf">exists</span><span class="p">())</span> <span class="p">{</span> <span class="nf">add</span><span class="p">(</span><span class="s">"--exceptions"</span><span class="p">);</span> <span class="nf">add</span><span class="p">(</span><span class="n">exceptionsFile</span><span class="p">.</span><span class="n">absolutePath</span><span class="p">)</span> <span class="p">}</span>
+            <span class="nf">add</span><span class="p">(</span><span class="s">"--report"</span><span class="p">);</span> <span class="nf">add</span><span class="p">(</span><span class="n">reportOut</span><span class="p">.</span><span class="k">get</span><span class="p">().</span><span class="n">asFile</span><span class="p">.</span><span class="n">absolutePath</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+    <span class="nf">onlyIf</span> <span class="p">{</span> <span class="n">snapshotFile</span><span class="p">.</span><span class="nf">exists</span><span class="p">()</span> <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">tasks</span><span class="p">.</span><span class="nf">named</span><span class="p">(</span><span class="s">"check"</span><span class="p">)</span> <span class="p">{</span> <span class="nf">dependsOn</span><span class="p">(</span><span class="n">verifyClassRefs</span><span class="p">,</span> <span class="n">verifyApiSignatures</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong>What this still cannot catch</strong>: a <code class="language-plaintext highlighter-rouge">Signature</code> attribute that was <code class="language-plaintext highlighter-rouge">null</code> in both SDK versions
+(method returning a raw <code class="language-plaintext highlighter-rouge">List</code> with no generics at all). There is nothing to compare. This is
+not a regression — the call was already unchecked by the compiler. The only tool that would
+catch such type changes is recompilation against the new SDK, which is exactly what the
+multi-subproject build (Option 1) provides.</p>
+
+<h3 id="tier-3--plugin-verifier-full-jls-binary-compatibility">Tier 3 — Plugin Verifier: full JLS binary compatibility</h3>
+
+<p>Plugin Verifier (<code class="language-plaintext highlighter-rouge">verifyPlugin</code> task from IJPGP) is the most thorough check. It verifies
+binary compatibility against the full JVM specification: access modifiers, method overrides,
+interface contracts, deprecated/removed members.</p>
+
+<p>It covers cases the bytecode-ASM tiers do not:</p>
+
+<ul>
+  <li><strong>Access narrowed</strong>: a method changed from <code class="language-plaintext highlighter-rouge">public</code> to <code class="language-plaintext highlighter-rouge">protected</code> or <code class="language-plaintext highlighter-rouge">internal</code> — the
+erased descriptor is identical, the <code class="language-plaintext highlighter-rouge">Signature</code> attribute unchanged, but the JVM throws
+<code class="language-plaintext highlighter-rouge">IllegalAccessError</code> at the call site</li>
+  <li><strong>Abstract method added to an interface your plugin implements</strong>: the plugin class is now
+missing a required implementation — <code class="language-plaintext highlighter-rouge">AbstractMethodError</code> at runtime</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">@ApiStatus.ScheduledForRemoval</code> warnings</strong>: flags APIs your plugin uses that will be
+removed in a future IJ version, before they actually disappear</li>
+</ul>
+
+<p><strong>What Plugin Verifier cannot catch — confirmed from source</strong> (cloned at commit <a href="https://github.com/JetBrains/intellij-plugin-verifier/tree/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5"><code class="language-plaintext highlighter-rouge">1d14a2b</code></a>):</p>
+
+<p><a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L160"><code class="language-plaintext highlighter-rouge">MethodResolver.kt</code></a> resolves every method call using <code class="language-plaintext highlighter-rouge">name + erased descriptor</code> only — the
+matching predicate at every call site is <code class="language-plaintext highlighter-rouge">it.name == methodName &amp;&amp; it.descriptor == methodDescriptor</code>
+(lines <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L160">160</a>, <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L172">172</a>, <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L184">184</a>, <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L216">216</a>, <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L381">381</a>, <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/resolution/MethodResolver.kt#L391">391</a>). The JVM <code class="language-plaintext highlighter-rouge">Signature</code> attribute (which
+carries the un-erased generic types) is exposed on the <code class="language-plaintext highlighter-rouge">Method</code> interface but <strong>only ever read
+in <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/results/presentation/LocationsPresentation.kt#L143"><code class="language-plaintext highlighter-rouge">LocationsPresentation.kt</code></a></strong> — to produce human-readable error message text, never to detect
+an incompatibility. <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/intellij-plugin-verifier/verifier-core/src/main/java/com/jetbrains/pluginverifier/verifiers/instruction/TypeInstructionVerifier.kt"><code class="language-plaintext highlighter-rouge">TypeInstructionVerifier.kt</code></a> handles <code class="language-plaintext highlighter-rouge">CHECKCAST</code> by resolving the target
+class for existence only; there is no safety check on what the cast might actually receive.</p>
+
+<p>The companion <code class="language-plaintext highlighter-rouge">ide-diff-builder</code> tool (which computes <code class="language-plaintext highlighter-rouge">@ApiStatus.AvailableSince</code> changelogs
+between two IDE builds) has the same gap: <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/ide-diff-builder/src/main/java/org/jetbrains/ide/diff/builder/api/ApiDiffBuilder.kt#L48"><code class="language-plaintext highlighter-rouge">ApiDiffBuilder.kt</code> line 48</a> keys methods on
+<code class="language-plaintext highlighter-rouge">it.name + it.descriptor</code> — erased descriptor only. <a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/ide-diff-builder/src/main/java/org/jetbrains/ide/diff/builder/api/ApiSignature.kt#L28"><code class="language-plaintext highlighter-rouge">ApiSignature.MethodSignature</code></a> stores the
+generic <code class="language-plaintext highlighter-rouge">signature: String?</code> field, but no <code class="language-plaintext highlighter-rouge">ApiEvent</code> subclass for a signature change exists
+(<a href="https://github.com/JetBrains/intellij-plugin-verifier/blob/1d14a2b114a8d04bc61b2b4a642ad7d8e48d07a5/ide-diff-builder/src/main/java/org/jetbrains/ide/diff/builder/api/ApiEvent.kt"><code class="language-plaintext highlighter-rouge">ApiEvent.kt</code></a>),
+and no code ever compares the field between old and new SDK.</p>
+
+<p>Known pitfall with EAP builds: <code class="language-plaintext highlighter-rouge">pluginVerification { ides { recommended() } }</code> silently resolves to zero IDEs
+when <code class="language-plaintext highlighter-rouge">sinceBuild</code> targets an unreleased platform. IJPGP v2.12.0
+(<a href="https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2090">issue #2090</a>)
+added a warning, but the check is still skipped. Always verify that the resolved IDE list is
+non-empty when running against EAP builds.</p>
+
+<h3 id="comparison">Comparison</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th style="text-align: center"><code class="language-plaintext highlighter-rouge">verifyClassRefs</code></th>
+      <th style="text-align: center"><code class="language-plaintext highlighter-rouge">verifyApiSignatures</code></th>
+      <th style="text-align: center">Plugin Verifier</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Class removed</td>
+      <td style="text-align: center">✓</td>
+      <td style="text-align: center">✓ (via snapshot MISSING)</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td>Method/field removed</td>
+      <td style="text-align: center">✓</td>
+      <td style="text-align: center">✓</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td>Return/param type changed (erased, e.g. <code class="language-plaintext highlighter-rouge">Pair</code>→<code class="language-plaintext highlighter-rouge">kotlin.Pair</code>)</td>
+      <td style="text-align: center">✓</td>
+      <td style="text-align: center">✓</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td>Generic param changed (<code class="language-plaintext highlighter-rouge">List&lt;A&gt;</code>→<code class="language-plaintext highlighter-rouge">List&lt;B&gt;</code>, same erased descriptor)</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✓ ← unique value</td>
+      <td style="text-align: center">✗ (uses erased descriptors only; <code class="language-plaintext highlighter-rouge">Signature</code> attributes read for display, never compared)</td>
+    </tr>
+    <tr>
+      <td>Access modifier narrowed</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td>Abstract method added</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">@ScheduledForRemoval</code> warnings</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✗</td>
+      <td style="text-align: center">✓</td>
+    </tr>
+    <tr>
+      <td>Classpath source</td>
+      <td style="text-align: center">Already-resolved <code class="language-plaintext highlighter-rouge">compileClasspath</code></td>
+      <td style="text-align: center">Already-resolved <code class="language-plaintext highlighter-rouge">compileClasspath</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">local(intellijPlatform.platformPath.toFile())</code> (no extra download) or downloads separate IDE</td>
+    </tr>
+    <tr>
+      <td>Wired to <code class="language-plaintext highlighter-rouge">./gradlew check</code></td>
+      <td style="text-align: center"><strong>Yes</strong></td>
+      <td style="text-align: center"><strong>Yes</strong></td>
+      <td style="text-align: center"><strong>No</strong> (requires explicit <code class="language-plaintext highlighter-rouge">tasks.check { dependsOn("verifyPlugin") }</code>)</td>
+    </tr>
+    <tr>
+      <td>Cold-start speed</td>
+      <td style="text-align: center">Seconds</td>
+      <td style="text-align: center">Seconds</td>
+      <td style="text-align: center">~5–15 s with local SDK; 10–20 min if downloading</td>
+    </tr>
+    <tr>
+      <td>Requires snapshot file</td>
+      <td style="text-align: center">No</td>
+      <td style="text-align: center">Yes (run <code class="language-plaintext highlighter-rouge">captureApiSignatures</code> once against base SDK)</td>
+      <td style="text-align: center">No</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The intended usage: <code class="language-plaintext highlighter-rouge">verifyClassRefs</code> and <code class="language-plaintext highlighter-rouge">verifyApiSignatures</code> run on every build as a fast
+first gate. Plugin Verifier runs in CI pre-release (or on demand) as the thorough audit.
+A failure in the fast gate is a definite bug. A clean fast gate with a Plugin Verifier failure
+means an access or override issue — the rarer category.</p>
+
+<blockquote>
+  <p><strong><a href="https://github.com/JetBrains/mcp-steroid/issues/18#issuecomment-4231291065">mcp-steroid#18</a></strong> is the concrete case that motivated Tier 2: <code class="language-plaintext highlighter-rouge">getBackgroundProcessModels()</code> changing from <code class="language-plaintext highlighter-rouge">List&lt;c.i.o.u.Pair&gt;</code> to <code class="language-plaintext highlighter-rouge">List&lt;kotlin.Pair&gt;</code> passes both <code class="language-plaintext highlighter-rouge">verifyClassRefs</code> and Plugin Verifier (same erased descriptor <code class="language-plaintext highlighter-rouge">()Ljava/util/List;</code>; cast target class still exists). <code class="language-plaintext highlighter-rouge">verifyApiSignatures</code> catches it by comparing <code class="language-plaintext highlighter-rouge">Signature</code> attributes — the unique capability verified against Plugin Verifier source code.</p>
+</blockquote>
+
+<hr />
+
+<h2 id="build-issues-i-hit-along-the-way">Build Issues I Hit Along the Way</h2>
+
+<p>These affect any IJ plugin on IJPGP 2.x with Gradle 9.4. Worth knowing before you hit them.</p>
+
+<p><strong>Missing <code class="language-plaintext highlighter-rouge">mavenCentral()</code> in <code class="language-plaintext highlighter-rouge">repositories {}</code></strong></p>
+
+<p><code class="language-plaintext highlighter-rouge">intellijPlatform { defaultRepositories() }</code> adds JetBrains repositories only. KGP 2.3.0’s
+<code class="language-plaintext highlighter-rouge">kotlin-build-tools-compat</code> and <code class="language-plaintext highlighter-rouge">kotlin-build-tools-impl</code> live on Maven Central. Build fails
+with a confusing message:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Could not resolve kotlin-build-tools-compat:2.3.0.
+No repositories are defined for configuration ':ij-253-k22:compileClasspath'.
+</code></pre></div></div>
+
+<p>Fix: add <code class="language-plaintext highlighter-rouge">mavenCentral()</code> at the outer <code class="language-plaintext highlighter-rouge">repositories {}</code> level, not inside <code class="language-plaintext highlighter-rouge">intellijPlatform {}</code>:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">repositories</span> <span class="p">{</span>
+    <span class="nf">maven</span> <span class="p">{</span> <span class="n">url</span> <span class="p">=</span> <span class="nf">uri</span><span class="p">(</span><span class="s">"https://cache-redirector.jetbrains.com/maven-central"</span><span class="p">)</span> <span class="p">}</span>
+    <span class="nf">mavenCentral</span><span class="p">()</span>
+    <span class="nf">intellijPlatform</span> <span class="p">{</span>
+        <span class="nf">defaultRepositories</span><span class="p">()</span>
+        <span class="nf">snapshots</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong><code class="language-plaintext highlighter-rouge">patchPluginXml</code> → <code class="language-plaintext highlighter-rouge">linkSources</code> dependency missing (Gradle 9.4 strict mode)</strong></p>
+
+<p>The IJ Platform Gradle Plugin’s <code class="language-plaintext highlighter-rouge">patchPluginXml</code> resolves <code class="language-plaintext highlighter-rouge">plugin.xml</code> from source roots that
+are populated by <code class="language-plaintext highlighter-rouge">linkSources</code>. Gradle 9.4 strict task-dependency validation rejects this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Task 'patchPluginXml' uses output of task 'linkSources' without declaring an explicit dependency.
+</code></pre></div></div>
+
+<p>Fix:</p>
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tasks</span><span class="p">.</span><span class="nf">matching</span> <span class="p">{</span> <span class="n">it</span><span class="p">.</span><span class="n">name</span> <span class="p">==</span> <span class="s">"patchPluginXml"</span> <span class="p">}.</span><span class="nf">configureEach</span> <span class="p">{</span> <span class="nf">dependsOn</span><span class="p">(</span><span class="n">linkSources</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p><strong><code class="language-plaintext highlighter-rouge">kotlin.stdlib.default.dependency=false</code> breaks filename-based stdlib detection</strong></p>
+
+<p>This property prevents KGP from adding <code class="language-plaintext highlighter-rouge">kotlin-stdlib-X.Y.Z.jar</code> to <code class="language-plaintext highlighter-rouge">compileClasspath</code> as a
+standalone artifact. It is required for IJ plugins (otherwise you bundle stdlib alongside the
+bundled one), but it breaks any task that finds the Kotlin version by searching <code class="language-plaintext highlighter-rouge">compileClasspath</code>
+for a file matching <code class="language-plaintext highlighter-rouge">kotlin-stdlib*.jar</code>. The stdlib lives inside the bundled Kotlin plugin JARs
+in the IJ SDK — not as a recognizable standalone JAR.</p>
+
+<p>Note: for standalone application modules that are NOT IJ plugins (like <code class="language-plaintext highlighter-rouge">check-class-refs</code>), you
+need <code class="language-plaintext highlighter-rouge">implementation(kotlin("stdlib"))</code> explicitly, because this property applies globally and
+those modules do need their own stdlib.</p>
+
+<hr />
+
+<h2 id="scoring-summary">Scoring Summary</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Approach</th>
+      <th style="text-align: center">Compile Safety</th>
+      <th style="text-align: center">Build Simplicity</th>
+      <th style="text-align: center">CI Speed</th>
+      <th style="text-align: center">Dev Speed</th>
+      <th style="text-align: center">Maintenance</th>
+      <th style="text-align: center">mcp-steroid fit</th>
+      <th style="text-align: center">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1 — Multi-subproject + symlinks</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center"><strong>18</strong></td>
+    </tr>
+    <tr>
+      <td>2 — Branch per version</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center"><strong>16</strong></td>
+    </tr>
+    <tr>
+      <td>3 — Reflection</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center"><strong>19</strong> ❌</td>
+    </tr>
+    <tr>
+      <td>4 — Shims / typed adapters</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center"><strong>20</strong></td>
+    </tr>
+    <tr>
+      <td>5 — Template build scripts</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center"><strong>20</strong></td>
+    </tr>
+    <tr>
+      <td>6 — HTTP API in IJ (long-term)</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center"><strong>27</strong> ⏳</td>
+    </tr>
+    <tr>
+      <td><strong>7 — Docker compat tests</strong></td>
+      <td style="text-align: center"><strong>3</strong></td>
+      <td style="text-align: center"><strong>5</strong></td>
+      <td style="text-align: center"><strong>3</strong></td>
+      <td style="text-align: center"><strong>5</strong></td>
+      <td style="text-align: center"><strong>5</strong></td>
+      <td style="text-align: center"><strong>5</strong></td>
+      <td style="text-align: center"><strong>26</strong> ✅</td>
+    </tr>
+    <tr>
+      <td>single-invocation (JetBrains internal)</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center"><strong>23</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Dimensions scored 1–5: Compile-time safety (do API breakages surface at build time across all
+supported versions?), Build simplicity (cognitive load to add a new IJ version), CI speed on warm
+cache, Dev loop speed for <code class="language-plaintext highlighter-rouge">./gradlew build</code>, Maintenance per new IJ major, and fit for
+MCP Steroid’s current single-project structure.</p>
+
+<hr />
+
+<h2 id="what-jetbrains-could-do-better">What JetBrains Could Do Better</h2>
+
+<p><strong>A prominent, versioned Kotlin compatibility matrix</strong>: The information exists in IJPGP’s
+<code class="language-plaintext highlighter-rouge">PlatformKotlinVersions</code> map and on the
+<a href="https://plugins.jetbrains.com/docs/intellij/using-kotlin.html">using-kotlin.html</a> page, but
+the map was missing 261 until IJPGP v2.12.0 — causing cryptic failures for everyone targeting
+261 EAP. A prominently linked table that stays ahead of each EAP release would save many hours.</p>
+
+<p><strong>A multi-version build template</strong>: The
+<a href="https://github.com/JetBrains/intellij-platform-plugin-template">IntelliJ Platform Plugin Template</a>
+is excellent for single-version plugins. A companion template showing the single-invocation approach or the Docker compat-test approach
+would let teams start from a working multi-version structure rather than improvising from
+scattered blog posts.</p>
+
+<p><strong>Plugin Verifier wired to <code class="language-plaintext highlighter-rouge">check</code> by default</strong>: Plugin Verifier is the most thorough binary compat
+check available, but it requires explicit invocation. The silent failure of <code class="language-plaintext highlighter-rouge">recommended()</code> against
+unreleased platforms — where verification appears to pass but zero IDEs were checked — means
+many plugins ship without ever running the tool. Making it a default-on gate (with the
+resolved-IDEs warning visible) would catch more regressions earlier.</p>
+
+<hr />
+
+<h2 id="where-to-start">Where to Start</h2>
+
+<p>Different teams come to this problem from different starting points.</p>
+
+<p><strong>Building a new plugin from scratch</strong>: Start with Option 7 — Docker build compatibility tests.
+Zero migration cost, CI coverage across your target versions from day one. When tests surface
+a specific API divergence, add an Option 4 shim for that API only. Use Option 5 template build
+scripts to keep each version’s <code class="language-plaintext highlighter-rouge">build.gradle.kts</code> readable top-to-bottom.</p>
+
+<p><strong>Existing single-version plugin expanding to additional IDE versions</strong>: Option 7 is the
+lowest-friction path. The main build stays unchanged — you are adding CI visibility, not
+restructuring the project. Option 4 shims come next, reactively, as Docker tests fail.</p>
+
+<p><strong>Already on a multi-subproject setup</strong>: The PoC documents
+specific gaps worth watching — the <code class="language-plaintext highlighter-rouge">checkVersionCoverage</code> task for version range completeness,
+the ByteBuddy class-ref verifier as a fast <code class="language-plaintext highlighter-rouge">./gradlew check</code> gate, and the Gradle 9.4
+strict-mode dependency issues that affect any multi-project build upgrading to Gradle 9.x.</p>
+
+<hr />
+
+<h2 id="what-i-am-doing-for-mcp-steroid">What I Am Doing for MCP Steroid</h2>
+
+<p>Short-term:</p>
+
+<ol>
+  <li>
+    <p><strong>Ship Option 7</strong> — the Docker compat tests. Already implemented as a pending change. Zero
+migration cost; the main build stays fast; IJ 2025.3, 2026.1, and 2026.2 EAP are covered.</p>
+  </li>
+  <li>
+    <p><strong>Pin K2.3 for IJ 261 builds</strong> — explicitly set <code class="language-plaintext highlighter-rouge">kotlinVersion = "2.3.20"</code> when
+<code class="language-plaintext highlighter-rouge">-Pmcp.platform.version=2026.1</code>. The <code class="language-plaintext highlighter-rouge">checkBundledKotlinCompatibility</code> task catches mismatches.</p>
+  </li>
+  <li>
+    <p><strong>Option 4 reactively</strong> — if the Docker tests surface a specific API break, add a shim for that
+API only. <code class="language-plaintext highlighter-rouge">listProjectWindows</code> is the first candidate. No pre-built shims for hypothetical
+future breaks.</p>
+  </li>
+  <li>
+    <p><strong>Keep moving logic to the CLI</strong> — every feature migrated from <code class="language-plaintext highlighter-rouge">ij-plugin/</code> to <code class="language-plaintext highlighter-rouge">kotlin-cli/</code>
+or <code class="language-plaintext highlighter-rouge">mcp-core/</code> removes a class of version-compatibility problem. The plugin becomes thinner;
+the version-sensitive surface shrinks. Option 6 is a year away, but the architectural direction
+is correct and every step toward it pays off now.</p>
+  </li>
+</ol>
+
+<hr />
+
+<p><em>The multi-version PoC is at <a href="https://github.com/jonnyzzz/ij-multi-version">github.com/jonnyzzz/ij-multi-version</a>.
+MCP Steroid is at <a href="https://github.com/JetBrains/mcp-steroid">github.com/JetBrains/mcp-steroid</a>.</em></p>
+
+<p><em>Building an IJ plugin that spans multiple major IDE versions? I hope this saves you some time.
+Reach out on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://github.com/jonnyzzz">GitHub</a>
+if something here needs correcting, you need my help, or if you have found a better approach.</em></p>
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

@@ -47,7 +47,7 @@ even experienced developers. That's fine. The agent is learning.
 
 At that phase Agent uses the 60+ resources that are already included into the MCP Steroid package.
 For really complex tasks, I also recommend adding the [IntelliJ Community](https://github.com/JetBrains/intellij-community) sources
-and the sources of your thrid-party plugins and ask the agent to conduct the reasearch there as well.
+and the sources of your third-party plugins and ask the agent to conduct the research there as well.
 
 **Phase two: encapsulation.** Once the agent figures out how to solve the problem, the working
 approach gets wrapped into a reusable skill -- a Kotlin snippet stored as a markdown document.
@@ -74,6 +74,33 @@ This also works well with
 can delegate a specific task to a sub-agent that reads only the relevant skill documentation from
 MCP resources. The sub-agent iterates until it works, and the parent's context stays clean. This is
 how I run it in practice -- the orchestrator picks the skill, the worker executes it.
+
+## Example: A Complete Skill
+
+Here's a working skill that finds all TODO comments in a project:
+
+```kotlin
+import com.intellij.psi.search.PsiSearchHelper
+import com.intellij.psi.search.GlobalSearchScope
+
+val todoItems = readAction {
+    val searchHelper = PsiSearchHelper.getInstance(project)
+    val result = mutableListOf<String>()
+    searchHelper.processCommentsContainingIdentifier("TODO", GlobalSearchScope.projectScope(project)) { comment ->
+        result.add("${comment.containingFile.virtualFile.path}: ${comment.text.trim()}")
+        true
+    }
+    result
+}
+todoItems.forEach { println(it) }
+```
+
+An agent sends this through `steroid_execute_code` and gets back every TODO comment with its file
+path. No plugin development, no Gradle project, no build infrastructure. One snippet, one call.
+
+This is the kind of thing that takes an agent 4-8 retries to discover the first time --
+`PsiSearchHelper` isn't obvious, the `GlobalSearchScope` parameter is easy to miss, and
+`readAction` is required for PSI access. Once it's a skill, every future agent gets it in one shot.
 
 ## Enterprise: Your Own Skills
 

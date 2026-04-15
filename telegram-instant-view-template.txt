@@ -1,0 +1,182 @@
+# Telegram Instant View Template for jonnyzzz.com
+#
+# How to use:
+# 1. Go to https://instantview.telegram.org/
+# 2. Log in with your Telegram account
+# 3. Click "My Templates" -> "New Template"
+# 4. Set the domain to: jonnyzzz.com
+# 5. Paste the template rules below (everything after the "---" line)
+# 6. Test with various URLs from jonnyzzz.com
+# 7. Submit for review
+#
+# Supported page types:
+# - Blog posts:  /blog/YYYY/MM/DD/slug/
+# - Talks:       /talks/YYYY/MM/DD/event-name/
+# - About page:  /about/
+# - Other pages:  page layout (projects, tags, support, etc.)
+#
+# Pages intentionally excluded (no article content):
+# - Homepage: / (just a post listing)
+# - Tags index: /tags/ (just a tag cloud)
+# - Talks index: /talks/ (listing page)
+#
+# ---
+
+~version: "2.1"
+
+# ===========================
+# GLOBAL: Exclude non-article pages
+# ===========================
+
+# Exclude homepage (it's a post listing, not an article)
+?path_not: ^/$
+
+# Exclude the talks listing page (but not individual talk pages)
+?path_not: ^/talks/?$
+
+# Exclude the tags index
+?path_not: ^/tags/?$
+
+
+# ===========================
+# CLEANUP: Remove non-content elements from all pages
+# ===========================
+
+# Remove navigation, masthead, footer
+@remove: //div[has-class("navigation-wrapper")]
+@remove: //header[has-class("masthead")]
+@remove: //div[has-class("footer-wrapper")]
+
+# Remove all script and style tags
+@remove: //script
+@remove: //style
+@remove: //noscript
+@remove: //link[@rel="stylesheet"]
+
+# Remove social share buttons
+@remove: //span[has-class("social-share-x")]
+@remove: //span[has-class("social-share-linkedin")]
+
+# Remove "Support my work" CTA
+@remove: //p[has-class("post-support")]
+
+# Remove Disqus comments
+@remove: //div[@id="disqus_thread"]
+
+# Remove image credit paragraphs
+@remove: //p[has-class("image-credit")]
+
+# Remove SVG defs (gradients, etc.) that leak from navigation
+@remove: //svg/defs
+
+# Remove analytics / tracking elements
+@remove: //img[@src[contains(., "analytics")]]
+@remove: //img[@src[contains(., "pixel")]]
+
+
+# ===========================
+# METADATA: Extract from Open Graph and page structure
+# ===========================
+
+# Site name for display
+site_name: "jonnyzzz.com"
+
+# Description from OG meta or meta description
+description: //meta[@property="og:description"]/@content
+description: //meta[@name="description"]/@content
+
+# Preview image from OG meta
+image_url: //meta[@property="og:image"]/@content
+
+
+# ===========================
+# DOM FIXES: Run before page-type sections (no condition guards)
+# ===========================
+
+# IV cannot fetch SVG images — remove them
+@remove: //img[contains(@src, ".svg")]
+
+# IV requires <img> at block level — not inside <a>, <p>, <span>, etc.
+# Split parent repeatedly to lift images out of all inline/block wrappers
+@split_parent: //a//img
+@split_parent: //p//img
+@split_parent: //p//img
+
+# Iframes inside <p> are also not allowed
+@split_parent: //p//iframe
+
+# Convert any remaining inline styles on iframes to proper dimensions
+@set_attrs(width, 640, height, 360): //iframe[not(@width)]
+
+# Handle lazy-loaded images (if data-src is used)
+@if( //img[@data-src] ) {
+  @set_attr(src, $@): //img/@data-src
+}
+
+# Remove any remaining SVG icons that aren't content images
+@remove: //a//svg[has-class("social-icon")]
+@remove: //a//svg[has-class("nav-heart")]
+
+# Handle mermaid diagrams — mark as unsupported (can't render in IV)
+@unsupported: //code[has-class("language-mermaid")]
+
+# Clean up empty paragraphs and divs
+@remove: //p[not(node()) and not(text())]
+@remove: //div[not(node()) and not(text())]
+
+
+# ===========================
+# BLOG POSTS: body#post with article.hentry
+# ===========================
+
+# Blog posts have body#post — use exists condition at top level
+?exists: //body[@id="post"]
+
+title: //h1[has-class("entry-title")]
+author: //span[has-class("author")]/span[has-class("fn")]
+@datetime: //span[has-class("entry-date")][has-class("published")]//time/@datetime
+published_date: $@
+cover: //img[has-class("entry-feature-image")]
+
+@remove: //footer[has-class("entry-meta")]
+@remove: //ul[has-class("entry-tags")]
+@remove: //header[has-class("entry-header")]
+
+body: //div[has-class("entry-content")]
+
+
+# ===========================
+# TALK PAGES: /talks/YYYY/MM/DD/event-name/
+# ===========================
+
+# Talk pages have body#page and path starting with /talks/YYYY/
+?path: ^/talks/\d{4}/
+
+title: //h1[has-class("entry-title")]
+author: "Eugene Petrenko"
+
+@remove: //header[has-class("entry-header")]//a[contains(@href, "/talks")]
+
+$event_h4: (//header[has-class("entry-header")]//h4)[1]
+subtitle: $event_h4
+
+@remove: //header[has-class("entry-header")]
+
+body: //div[has-class("entry-content")]
+
+
+# ===========================
+# GENERIC PAGES: about, projects, support, etc.
+# ===========================
+
+# Fallback: body#page pages that aren't talks (properties only set if still empty)
+?exists: //body[@id="page"]
+
+title: //h1[has-class("entry-title")]
+title: //h1
+author: "Eugene Petrenko"
+
+@remove: //header[has-class("entry-header")]
+
+body: //div[has-class("entry-content")]
+body: //article[has-class("entry")]
