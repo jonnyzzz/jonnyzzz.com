@@ -118,7 +118,9 @@ sooner and enable AI Agents of any kind with the best tools human developers lov
 IntelliJ-based products.
 
 The [skill factory post]({% post_url blog/2026-04-08-mcp-steroid-skill-factory %}) is coming
-tomorrow. We're also opening a proof-of-concept program for
+tomorrow. And if you're wondering what happens when the plugin ZIP exceeds 180 MB,
+[the 413 post]({% post_url blog/2026-04-17-intellij-plugin-hot-reload-413 %}) covers that.
+We're also opening a proof-of-concept program for
 companies that want to use MCP Steroid for their specific workflows. If that's interesting,
 reach out on [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or in the
 [Discord](https://discord.com/invite/e9qgQ7NeTC).

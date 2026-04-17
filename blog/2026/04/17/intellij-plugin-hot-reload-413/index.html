@@ -1,0 +1,578 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>IntelliJ Plugin Hot-Reload: HTTP 413 &#8211; Eugene Petrenko</title>
+<meta name="description" content="A 185 MB IntelliJ plugin hit IntelliJ's 180 MB Netty request-body limit and broke hot reload. The fix was not to raise the limit, but to stop uploading the ZIP and pass a local file path instead.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, intellij, plugins, netty, hot-reload, mcp-steroid" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="IntelliJ Plugin Hot-Reload: HTTP 413 -- Eugene Petrenko" />
+<meta name="twitter:description" content="A 185 MB IntelliJ plugin hit IntelliJ's 180 MB Netty request-body limit and broke hot reload. The fix was not to raise the limit, but to stop uploading the ZIP and pass a local file path instead." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="IntelliJ Plugin Hot-Reload: HTTP 413 -- Eugene Petrenko" />
+<meta property="og:description" content="A 185 MB IntelliJ plugin hit IntelliJ's 180 MB Netty request-body limit and broke hot reload. The fix was not to raise the limit, but to stop uploading the ZIP and pass a local file path instead." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="plugins" />
+
+<meta property="article:tag" content="netty" />
+
+<meta property="article:tag" content="hot-reload" />
+
+<meta property="article:tag" content="mcp-steroid" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">IntelliJ Plugin Hot-Reload: HTTP 413</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#plugins" title="Pages tagged plugins">plugins</a></li><li><a href="/tags/#netty" title="Pages tagged netty">netty</a></li><li><a href="/tags/#hot-reload" title="Pages tagged hot-reload">hot-reload</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-04-17T00:00:00+00:00">April 17, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=IntelliJ+Plugin+Hot-Reload%3A+HTTP+413%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/&amp;hashtags=intellij,plugins,netty,hot-reload,mcp-steroid" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=IntelliJ+Plugin+Hot-Reload%3A+HTTP+413%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AA+185+MB+IntelliJ+plugin+hit+IntelliJ%27s+180+MB+Netty+request-body+limit+and+broke+hot+reload.+The+fix+was+not+to+raise+the+limit%2C+but+to+stop+uploading+the+ZIP+and+pass+a+local+file+path+instead.%0A%0Ahttps://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/%0A%0A%23intellij%20%23plugins%20%23netty%20%23hotreload%20%23mcpsteroid" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>185 MB. That’s where my IntelliJ plugin stopped hot-reloading.</p>
+
+<p>I’ve been working on <a href="https://github.com/jonnyzzz/mcp-steroid">MCP Steroid</a>, an IntelliJ plugin
+that exposes IDE APIs to LLM agents via an MCP server. It bundles a Kotlin compiler, an OCR
+engine, and enough other dependencies to reach <strong>185 MB</strong> as a ZIP.</p>
+
+<p>That size mattered because MCP Steroid changes fast. An agent tries a skill, hits an edge case, I
+fix the handler, redeploy, and the agent tries again. Restarting the IDE for every build kills
+that feedback loop. That is why I built
+<a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload">intellij-plugin-hot-reload</a>
+(<a href="/blog/2026/01/05/intellij-plugin-hot-reload/">background post</a>): an HTTP endpoint
+on IntelliJ’s built-in server on port 63342 that deploys plugins without a restart. My Gradle
+<code class="language-plaintext highlighter-rouge">deployPlugin</code> task finds running IDEs via marker files, POSTs the ZIP, and the IDE reloads
+the plugin on the fly.</p>
+
+<p>Then I got this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>→ http://localhost:63342/api/plugin-hot-reload
+  ✗ HTTP 413
+</code></pre></div></div>
+
+<h2 id="the-investigation">The Investigation</h2>
+
+<p>I first assumed the bug was in my handler. It wasn’t. IntelliJ returned 413 before my code ever
+ran. <code class="language-plaintext highlighter-rouge">curl -v</code> showed the same thing:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-v</span> <span class="nt">-X</span> POST <span class="s2">"http://localhost:63342/api/plugin-hot-reload"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/octet-stream"</span> <span class="se">\</span>
+  <span class="nt">--data-binary</span> <span class="s2">"@mcp-steroid-185mb.zip"</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; Content-Length: 194059789
+&gt; Expect: 100-continue
+&gt;
+&lt; HTTP/1.1 413 Request Entity Too Large
+&lt; content-length: 0
+</code></pre></div></div>
+
+<p>An empty body. No hint. Just 413.</p>
+
+<p>IntelliJ’s built-in HTTP server uses Netty. The
+<a href="https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/ide/HttpRequestHandler.kt#L80-L87"><code class="language-plaintext highlighter-rouge">HttpRequestHandler</code></a>
+extension point receives a <code class="language-plaintext highlighter-rouge">FullHttpRequest</code>. That word matters. Netty’s
+<code class="language-plaintext highlighter-rouge">HttpObjectAggregator</code> builds the full request body before the handler runs, and it returns 413
+when the request exceeds its limit.</p>
+
+<p>The aggregator is added in
+<a href="https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L107-L109"><code class="language-plaintext highlighter-rouge">NettyUtil.addHttpServerCodec()</code></a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span><span class="o">.</span><span class="na">addLast</span><span class="o">(</span><span class="s">"httpObjectAggregator"</span><span class="o">,</span> <span class="k">new</span> <span class="nc">HttpObjectAggregator</span><span class="o">(</span><span class="no">MAX_CONTENT_LENGTH</span><span class="o">));</span>
+</code></pre></div></div>
+
+<p>And <code class="language-plaintext highlighter-rouge">MAX_CONTENT_LENGTH</code> comes from
+<a href="https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L34-L43"><code class="language-plaintext highlighter-rouge">NettyUtil.java</code></a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">final</span> <span class="kt">int</span> <span class="no">MAX_CONTENT_LENGTH</span><span class="o">;</span>
+
+<span class="kd">static</span> <span class="o">{</span>
+  <span class="kt">int</span> <span class="n">maxContentLength</span> <span class="o">=</span> <span class="mi">180</span><span class="o">;</span>
+  <span class="k">try</span> <span class="o">{</span>
+    <span class="n">maxContentLength</span> <span class="o">=</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+      <span class="nc">System</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"ide.netty.max.frame.size.in.mb"</span><span class="o">,</span> <span class="s">"180"</span><span class="o">)</span>
+    <span class="o">)</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">;</span>
+  <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">NumberFormatException</span> <span class="n">ignore</span><span class="o">)</span> <span class="o">{</span>
+  <span class="o">}</span>
+  <span class="no">MAX_CONTENT_LENGTH</span> <span class="o">=</span> <span class="n">maxContentLength</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><strong>180 MB. My ZIP is 185 MB.</strong></p>
+
+<p>The pipeline is wired in
+<a href="https://github.com/JetBrains/intellij-community/blob/master/platform/built-in-server/src/org/jetbrains/io/PortUnificationServerHandler.java#L100-L102"><code class="language-plaintext highlighter-rouge">PortUnificationServerHandler</code></a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">isHttp</span><span class="o">(</span><span class="n">magic1</span><span class="o">,</span> <span class="n">magic2</span><span class="o">))</span> <span class="o">{</span>
+  <span class="nc">NettyUtil</span><span class="o">.</span><span class="na">addHttpServerCodec</span><span class="o">(</span><span class="n">pipeline</span><span class="o">);</span>
+  <span class="n">pipeline</span><span class="o">.</span><span class="na">addLast</span><span class="o">(</span><span class="s">"delegatingHttpHandler"</span><span class="o">,</span> <span class="n">delegatingHttpRequestHandler</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Every request on IntelliJ’s built-in server goes through that path. There is no per-handler
+override. Once I saw that, the shape of the problem changed: fight the limit, or stop uploading
+the body.</p>
+
+<h2 id="first-idea-another-http-server">First Idea: Another HTTP Server</h2>
+
+<p>My first workaround was obvious: spin up a separate Netty or Ktor server with a larger body limit.
+<strong>It was the idea that my AI Agent suggested as a too straightforward solution that I rejected. Too much
+work for that simple use-case.</strong></p>
+
+<p>It would work, but it would also mean:</p>
+
+<ul>
+  <li>Managing a second server lifecycle, plus port allocation and conflicts</li>
+  <li>Teaching every client a second endpoint convention</li>
+  <li>Debugging one more moving part when reload fails</li>
+  <li>Reimplementing authentication, TLS, and shutdown concerns the built-in server already handles</li>
+</ul>
+
+<p>I rejected building it. Then I ask to find a better solution.</p>
+
+<h2 id="better-solution-pass-a-local-path">Better Solution: Pass a Local Path</h2>
+
+<p>The hot-reload plugin and the Gradle build run on the same machine. The ZIP already exists on
+disk. I was uploading 185 MB over loopback so the server could write it to a temp file and hand
+that path to <code class="language-plaintext highlighter-rouge">PluginInstaller.installAndLoadDynamicPlugin()</code>.</p>
+
+<p>The file was already local. I only needed to pass the path.</p>
+
+<p>On the server side, the handler checks a query parameter before touching the request body:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">localDiskFile</span> <span class="p">=</span> <span class="n">urlDecoder</span><span class="p">.</span><span class="nf">parameters</span><span class="p">()[</span><span class="s">"local-disk-file"</span><span class="p">]</span><span class="o">?.</span><span class="nf">firstOrNull</span><span class="p">()</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">localDiskFile</span> <span class="p">!=</span> <span class="k">null</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">val</span> <span class="py">file</span> <span class="p">=</span> <span class="nc">Path</span><span class="p">.</span><span class="nf">of</span><span class="p">(</span><span class="n">localDiskFile</span><span class="p">)</span>
+  <span class="k">if</span> <span class="p">(!</span><span class="nc">Files</span><span class="p">.</span><span class="nf">exists</span><span class="p">(</span><span class="n">file</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nf">sendError</span><span class="p">(</span>
+      <span class="n">context</span><span class="p">,</span>
+      <span class="n">request</span><span class="p">,</span>
+      <span class="nc">HttpResponseStatus</span><span class="p">.</span><span class="nc">BAD_REQUEST</span><span class="p">,</span>
+      <span class="s">"File not found: $localDiskFile"</span>
+    <span class="p">)</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span> <span class="nf">executeReload</span><span class="p">(</span><span class="n">context</span><span class="p">)</span> <span class="p">{</span> <span class="n">reloadService</span><span class="p">,</span> <span class="n">progress</span> <span class="p">-&gt;</span>
+    <span class="n">reloadService</span><span class="p">.</span><span class="nf">reloadPluginFromZipFile</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">progress</span><span class="p">)</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">reloadPluginFromZipFile</code> reads the ZIP from disk, extracts the plugin ID, and passes the path to
+IntelliJ’s <code class="language-plaintext highlighter-rouge">installAndLoadDynamicPlugin()</code>. My code never creates a 185 MB byte array.</p>
+
+<p>On the client side, the Gradle task got smaller too:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">encodedPath</span> <span class="p">=</span> <span class="nc">URLEncoder</span><span class="p">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">zip</span><span class="p">.</span><span class="n">absolutePath</span><span class="p">,</span> <span class="nc">Charsets</span><span class="p">.</span><span class="nc">UTF_8</span><span class="p">)</span>
+<span class="kd">val</span> <span class="py">conn</span> <span class="p">=</span> <span class="p">(</span>
+  <span class="nc">URI</span><span class="p">(</span><span class="s">"$url?local-disk-file=$encodedPath"</span><span class="p">).</span><span class="nf">toURL</span><span class="p">().</span><span class="nf">openConnection</span><span class="p">()</span> <span class="k">as</span> <span class="nc">HttpURLConnection</span>
+<span class="p">).</span><span class="nf">apply</span> <span class="p">{</span>
+  <span class="n">requestMethod</span> <span class="p">=</span> <span class="s">"POST"</span>
+  <span class="n">doOutput</span> <span class="p">=</span> <span class="k">false</span>
+  <span class="n">doInput</span> <span class="p">=</span> <span class="k">true</span>
+  <span class="nf">setRequestProperty</span><span class="p">(</span><span class="s">"Authorization"</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+  <span class="n">connectTimeout</span> <span class="p">=</span> <span class="mi">5_000</span>
+  <span class="n">readTimeout</span> <span class="p">=</span> <span class="mi">300_000</span>
+<span class="p">}</span>
+
+<span class="nf">check</span><span class="p">(</span><span class="n">conn</span><span class="p">.</span><span class="n">responseCode</span> <span class="k">in</span> <span class="mi">200</span><span class="o">..</span><span class="mi">299</span><span class="p">)</span> <span class="p">{</span> <span class="s">"HTTP ${conn.responseCode}"</span> <span class="p">}</span>
+<span class="n">conn</span><span class="p">.</span><span class="n">inputStream</span><span class="p">.</span><span class="nf">bufferedReader</span><span class="p">().</span><span class="nf">lineSequence</span><span class="p">().</span><span class="nf">forEach</span> <span class="p">{</span> <span class="nf">println</span><span class="p">(</span><span class="s">"  $it"</span><span class="p">)</span> <span class="p">}</span>
+</code></pre></div></div>
+
+<p>No body. No <code class="language-plaintext highlighter-rouge">Content-Type</code>. Just a short authenticated POST with a local path.</p>
+
+<h2 id="why-this-is-better">Why This Is Better</h2>
+
+<p>This wasn’t just a workaround. It was the design I should’ve used from the start.</p>
+
+<p>The body-upload path forces Netty to aggregate the entire ZIP before my handler runs. At 185 MB,
+that’s a large allocation even on the happy path. If someone gets the Bearer token, it is also an
+easy memory amplifier.</p>
+
+<p>The file-path flow avoids that:</p>
+
+<ul>
+  <li>No 185 MB buffer. The HTTP layer sees an empty body and hands a <code class="language-plaintext highlighter-rouge">Path</code> to the plugin installer.</li>
+  <li>The ZIP stays on disk instead of moving through a socket and an in-memory aggregator.</li>
+  <li>The handler can verify existence, size, and, if needed, a checksum before the reload starts.</li>
+  <li>More secure: you need a plugin file on the disk, even if you can reach the localhost-bound web-server and somehow know the token.</li>
+</ul>
+
+<p>This is not a dramatic security boundary change. The caller is already authenticated and trusted
+to supply a local path. But it replaces “accept arbitrary bytes over the network” with
+“read this specific file.” That’s a better default.</p>
+
+<p>I kept the body-upload path for plugins under 180 MB and for the rare case where client and
+server do not share a filesystem. Backward compatibility was just an early <code class="language-plaintext highlighter-rouge">if</code> in the handler.</p>
+
+<h2 id="the-result">The Result</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>→ http://localhost:63342/api/plugin-hot-reload?local-disk-file=%2Fpath%2Fto%2Fplugin.zip
+  Authorization: Bearer $TOKEN
+  Starting plugin hot reload, zip size: 193,995,401 bytes
+  Plugin ID: com.jonnyzzz.mcp-steroid
+  Unloading existing plugin: MCP Steroid
+  Plugin unloaded successfully
+  Installing and loading plugin: MCP Steroid (0.92.0)
+  Plugin MCP Steroid reloaded successfully
+  SUCCESS
+</code></pre></div></div>
+
+<p>185 MB plugin. Zero bytes in the request body. Full hot reload in under 10 seconds. Better security.</p>
+
+<h2 id="takeaways">Takeaways</h2>
+
+<ol>
+  <li>
+    <p><strong>When an error is opaque, read the source.</strong> The 413 had zero diagnostic information. Reading
+IntelliJ’s
+<a href="https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L34-L43">NettyUtil.java</a>
+made the limit obvious.</p>
+  </li>
+  <li>
+    <p><strong>Question the transport, not just the limit.</strong> My first instinct was “make the limit bigger.”
+The better question was “why am I transferring this data at all?”</p>
+  </li>
+  <li>
+    <p><strong>Localhost is still a network hop.</strong> Even loopback HTTP goes through TCP, Netty codecs, and
+aggregation. A local path skips that entire stack.</p>
+  </li>
+  <li>
+    <p><strong>Global system properties are not a great API.</strong>
+<code class="language-plaintext highlighter-rouge">ide.netty.max.frame.size.in.mb</code> is global and resolved at class load time. Not something I
+want users editing in <code class="language-plaintext highlighter-rouge">idea.vmoptions</code>.</p>
+  </li>
+</ol>
+
+<p>The hot-reload plugin with <code class="language-plaintext highlighter-rouge">?local-disk-file=</code> support is at
+<a href="https://github.com/jonnyzzz/intellij-plugin-hot-reload">jonnyzzz/intellij-plugin-hot-reload</a>
+(v1.0.0). If your IntelliJ plugin is creeping toward 180 MB — or you just want a tighter
+plugin development loop — give it a try.</p>
+
+<hr />
+
+<p>I’m looking forward to seeing that functionality supported natively in IntelliJ and IntelliJ SDK.
+That will make IntelliJ plugin development much easier. Promote that post, and I’ll be happy to
+contribute the fixes.</p>
+
+<p>Related posts: <a href="/blog/2026/03/24/agentic-experience-and-tools/">Agentic Experience and Tools</a>,
+<a href="/blog/2026/04/07/mcp-steroid-open-source/">MCP Steroid Is Now Open Source</a>, and
+<a href="/blog/2026/04/08/mcp-steroid-skill-factory/">IntelliJ as a Skill Factory</a>.</p>
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

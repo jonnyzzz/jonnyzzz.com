@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-04-15T13:46:38+00:00</updated>
+  <updated>2026-04-17T13:50:26+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,268 @@
   
 
   
+  
+  <entry>
+    <title type="html">IntelliJ Plugin Hot-Reload: HTTP 413</title>
+    <link href="https://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/" rel="alternate" type="text/html" title="IntelliJ Plugin Hot-Reload: HTTP 413" />
+    <published>2026-04-17T00:00:00+00:00</published>
+    <updated>2026-04-17T00:00:00+00:00</updated>
+    <id>/blog/2026/04/17/intellij-plugin-hot-reload-413</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/04/17/intellij-plugin-hot-reload-413/">&lt;p&gt;185 MB. That’s where my IntelliJ plugin stopped hot-reloading.&lt;/p&gt;
+
+&lt;p&gt;I’ve been working on &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;MCP Steroid&lt;/a&gt;, an IntelliJ plugin
+that exposes IDE APIs to LLM agents via an MCP server. It bundles a Kotlin compiler, an OCR
+engine, and enough other dependencies to reach &lt;strong&gt;185 MB&lt;/strong&gt; as a ZIP.&lt;/p&gt;
+
+&lt;p&gt;That size mattered because MCP Steroid changes fast. An agent tries a skill, hits an edge case, I
+fix the handler, redeploy, and the agent tries again. Restarting the IDE for every build kills
+that feedback loop. That is why I built
+&lt;a href=&quot;https://github.com/jonnyzzz/intellij-plugin-hot-reload&quot;&gt;intellij-plugin-hot-reload&lt;/a&gt;
+(&lt;a href=&quot;/blog/2026/01/05/intellij-plugin-hot-reload/&quot;&gt;background post&lt;/a&gt;): an HTTP endpoint
+on IntelliJ’s built-in server on port 63342 that deploys plugins without a restart. My Gradle
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;deployPlugin&lt;/code&gt; task finds running IDEs via marker files, POSTs the ZIP, and the IDE reloads
+the plugin on the fly.&lt;/p&gt;
+
+&lt;p&gt;Then I got this:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;→ http://localhost:63342/api/plugin-hot-reload
+  ✗ HTTP 413
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;the-investigation&quot;&gt;The Investigation&lt;/h2&gt;
+
+&lt;p&gt;I first assumed the bug was in my handler. It wasn’t. IntelliJ returned 413 before my code ever
+ran. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl -v&lt;/code&gt; showed the same thing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;curl &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-X&lt;/span&gt; POST &lt;span class=&quot;s2&quot;&gt;&quot;http://localhost:63342/api/plugin-hot-reload&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-H&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Authorization: Bearer &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$TOKEN&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;-H&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Content-Type: application/octet-stream&quot;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+  &lt;span class=&quot;nt&quot;&gt;--data-binary&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;@mcp-steroid-185mb.zip&quot;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;gt; Content-Length: 194059789
+&amp;gt; Expect: 100-continue
+&amp;gt;
+&amp;lt; HTTP/1.1 413 Request Entity Too Large
+&amp;lt; content-length: 0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;An empty body. No hint. Just 413.&lt;/p&gt;
+
+&lt;p&gt;IntelliJ’s built-in HTTP server uses Netty. The
+&lt;a href=&quot;https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/ide/HttpRequestHandler.kt#L80-L87&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HttpRequestHandler&lt;/code&gt;&lt;/a&gt;
+extension point receives a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FullHttpRequest&lt;/code&gt;. That word matters. Netty’s
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HttpObjectAggregator&lt;/code&gt; builds the full request body before the handler runs, and it returns 413
+when the request exceeds its limit.&lt;/p&gt;
+
+&lt;p&gt;The aggregator is added in
+&lt;a href=&quot;https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L107-L109&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NettyUtil.addHttpServerCodec()&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addLast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;httpObjectAggregator&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HttpObjectAggregator&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;no&quot;&gt;MAX_CONTENT_LENGTH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;));&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MAX_CONTENT_LENGTH&lt;/code&gt; comes from
+&lt;a href=&quot;https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L34-L43&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NettyUtil.java&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;MAX_CONTENT_LENGTH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxContentLength&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;180&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;maxContentLength&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Integer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;parseInt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getProperty&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;ide.netty.max.frame.size.in.mb&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;180&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1024&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;NumberFormatException&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ignore&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;no&quot;&gt;MAX_CONTENT_LENGTH&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;maxContentLength&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;180 MB. My ZIP is 185 MB.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;The pipeline is wired in
+&lt;a href=&quot;https://github.com/JetBrains/intellij-community/blob/master/platform/built-in-server/src/org/jetbrains/io/PortUnificationServerHandler.java#L100-L102&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PortUnificationServerHandler&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isHttp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;magic1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;magic2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;NettyUtil&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addHttpServerCodec&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;addLast&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;delegatingHttpHandler&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;delegatingHttpRequestHandler&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Every request on IntelliJ’s built-in server goes through that path. There is no per-handler
+override. Once I saw that, the shape of the problem changed: fight the limit, or stop uploading
+the body.&lt;/p&gt;
+
+&lt;h2 id=&quot;first-idea-another-http-server&quot;&gt;First Idea: Another HTTP Server&lt;/h2&gt;
+
+&lt;p&gt;My first workaround was obvious: spin up a separate Netty or Ktor server with a larger body limit.
+&lt;strong&gt;It was the idea that my AI Agent suggested as a too straightforward solution that I rejected. Too much
+work for that simple use-case.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;It would work, but it would also mean:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Managing a second server lifecycle, plus port allocation and conflicts&lt;/li&gt;
+  &lt;li&gt;Teaching every client a second endpoint convention&lt;/li&gt;
+  &lt;li&gt;Debugging one more moving part when reload fails&lt;/li&gt;
+  &lt;li&gt;Reimplementing authentication, TLS, and shutdown concerns the built-in server already handles&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I rejected building it. Then I ask to find a better solution.&lt;/p&gt;
+
+&lt;h2 id=&quot;better-solution-pass-a-local-path&quot;&gt;Better Solution: Pass a Local Path&lt;/h2&gt;
+
+&lt;p&gt;The hot-reload plugin and the Gradle build run on the same machine. The ZIP already exists on
+disk. I was uploading 185 MB over loopback so the server could write it to a temp file and hand
+that path to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PluginInstaller.installAndLoadDynamicPlugin()&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The file was already local. I only needed to pass the path.&lt;/p&gt;
+
+&lt;p&gt;On the server side, the handler checks a query parameter before touching the request body:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;localDiskFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;urlDecoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;parameters&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;local-disk-file&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;?.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;firstOrNull&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localDiskFile&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Path&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;of&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;localDiskFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(!&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;Files&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;exists&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sendError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;n&quot;&gt;request&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;nc&quot;&gt;HttpResponseStatus&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;BAD_REQUEST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+      &lt;span class=&quot;s&quot;&gt;&quot;File not found: $localDiskFile&quot;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;executeReload&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;context&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;reloadService&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;progress&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;reloadService&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;reloadPluginFromZipFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;progress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;reloadPluginFromZipFile&lt;/code&gt; reads the ZIP from disk, extracts the plugin ID, and passes the path to
+IntelliJ’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;installAndLoadDynamicPlugin()&lt;/code&gt;. My code never creates a 185 MB byte array.&lt;/p&gt;
+
+&lt;p&gt;On the client side, the Gradle task got smaller too:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;encodedPath&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;URLEncoder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;zip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;absolutePath&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Charsets&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;UTF_8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;conn&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;nc&quot;&gt;URI&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$url?local-disk-file=$encodedPath&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;toURL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;openConnection&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;HttpURLConnection&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;apply&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;requestMethod&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;POST&quot;&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;doOutput&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;doInput&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;nf&quot;&gt;setRequestProperty&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Authorization&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;token&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;connectTimeout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;5_000&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;readTimeout&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;300_000&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nf&quot;&gt;check&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;responseCode&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;299&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;HTTP ${conn.responseCode}&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;bufferedReader&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lineSequence&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;  $it&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;No body. No &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Content-Type&lt;/code&gt;. Just a short authenticated POST with a local path.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-this-is-better&quot;&gt;Why This Is Better&lt;/h2&gt;
+
+&lt;p&gt;This wasn’t just a workaround. It was the design I should’ve used from the start.&lt;/p&gt;
+
+&lt;p&gt;The body-upload path forces Netty to aggregate the entire ZIP before my handler runs. At 185 MB,
+that’s a large allocation even on the happy path. If someone gets the Bearer token, it is also an
+easy memory amplifier.&lt;/p&gt;
+
+&lt;p&gt;The file-path flow avoids that:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;No 185 MB buffer. The HTTP layer sees an empty body and hands a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Path&lt;/code&gt; to the plugin installer.&lt;/li&gt;
+  &lt;li&gt;The ZIP stays on disk instead of moving through a socket and an in-memory aggregator.&lt;/li&gt;
+  &lt;li&gt;The handler can verify existence, size, and, if needed, a checksum before the reload starts.&lt;/li&gt;
+  &lt;li&gt;More secure: you need a plugin file on the disk, even if you can reach the localhost-bound web-server and somehow know the token.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This is not a dramatic security boundary change. The caller is already authenticated and trusted
+to supply a local path. But it replaces “accept arbitrary bytes over the network” with
+“read this specific file.” That’s a better default.&lt;/p&gt;
+
+&lt;p&gt;I kept the body-upload path for plugins under 180 MB and for the rare case where client and
+server do not share a filesystem. Backward compatibility was just an early &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;if&lt;/code&gt; in the handler.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-result&quot;&gt;The Result&lt;/h2&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;→ http://localhost:63342/api/plugin-hot-reload?local-disk-file=%2Fpath%2Fto%2Fplugin.zip
+  Authorization: Bearer $TOKEN
+  Starting plugin hot reload, zip size: 193,995,401 bytes
+  Plugin ID: com.jonnyzzz.mcp-steroid
+  Unloading existing plugin: MCP Steroid
+  Plugin unloaded successfully
+  Installing and loading plugin: MCP Steroid (0.92.0)
+  Plugin MCP Steroid reloaded successfully
+  SUCCESS
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;185 MB plugin. Zero bytes in the request body. Full hot reload in under 10 seconds. Better security.&lt;/p&gt;
+
+&lt;h2 id=&quot;takeaways&quot;&gt;Takeaways&lt;/h2&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;When an error is opaque, read the source.&lt;/strong&gt; The 413 had zero diagnostic information. Reading
+IntelliJ’s
+&lt;a href=&quot;https://github.com/JetBrains/intellij-community/blob/master/platform/platform-util-netty/src/org/jetbrains/io/NettyUtil.java#L34-L43&quot;&gt;NettyUtil.java&lt;/a&gt;
+made the limit obvious.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Question the transport, not just the limit.&lt;/strong&gt; My first instinct was “make the limit bigger.”
+The better question was “why am I transferring this data at all?”&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Localhost is still a network hop.&lt;/strong&gt; Even loopback HTTP goes through TCP, Netty codecs, and
+aggregation. A local path skips that entire stack.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;Global system properties are not a great API.&lt;/strong&gt;
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ide.netty.max.frame.size.in.mb&lt;/code&gt; is global and resolved at class load time. Not something I
+want users editing in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;idea.vmoptions&lt;/code&gt;.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The hot-reload plugin with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;?local-disk-file=&lt;/code&gt; support is at
+&lt;a href=&quot;https://github.com/jonnyzzz/intellij-plugin-hot-reload&quot;&gt;jonnyzzz/intellij-plugin-hot-reload&lt;/a&gt;
+(v1.0.0). If your IntelliJ plugin is creeping toward 180 MB — or you just want a tighter
+plugin development loop — give it a try.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;I’m looking forward to seeing that functionality supported natively in IntelliJ and IntelliJ SDK.
+That will make IntelliJ plugin development much easier. Promote that post, and I’ll be happy to
+contribute the fixes.&lt;/p&gt;
+
+&lt;p&gt;Related posts: &lt;a href=&quot;/blog/2026/03/24/agentic-experience-and-tools/&quot;&gt;Agentic Experience and Tools&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/04/07/mcp-steroid-open-source/&quot;&gt;MCP Steroid Is Now Open Source&lt;/a&gt;, and
+&lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;IntelliJ as a Skill Factory&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="intellij" />
+  
+    <category term="plugins" />
+  
+    <category term="netty" />
+  
+    <category term="hot-reload" />
+  
+    <category term="mcp-steroid" />
+  
+    <summary type="html">A 185 MB IntelliJ plugin hit IntelliJ&apos;s 180 MB Netty request-body limit and broke hot reload. The fix was not to raise the limit, but to stop uploading the ZIP and pass a local file path instead.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Building an IntelliJ Plugin That Works Across Multiple IDE Versions: 7 Approaches</title>
@@ -1926,7 +2188,9 @@ sooner and enable AI Agents of any kind with the best tools human developers lov
 IntelliJ-based products.&lt;/p&gt;
 
 &lt;p&gt;The &lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;skill factory post&lt;/a&gt; is coming
-tomorrow. We’re also opening a proof-of-concept program for
+tomorrow. And if you’re wondering what happens when the plugin ZIP exceeds 180 MB,
+&lt;a href=&quot;/blog/2026/04/17/intellij-plugin-hot-reload-413/&quot;&gt;the 413 post&lt;/a&gt; covers that.
+We’re also opening a proof-of-concept program for
 companies that want to use MCP Steroid for their specific workflows. If that’s interesting,
 reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or in the
 &lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord&lt;/a&gt;.&lt;/p&gt;</content>
@@ -4074,335 +4338,6 @@ about it – reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/
     <category term="docker" />
   
     <summary type="html">The only way to know your MCP server actually works is to run a real AI Agent against it. Here is how we built integration tests that spin up Claude Code, Codex, and Gemini CLI in Docker containers -- all talking to the same live MCP server during the test run.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">CLI Is the New API and MCP: Building Agent-Ready Tools for Enterprise Teams</title>
-    <link href="https://jonnyzzz.com/blog/2026/02/20/cli-tools-for-ai-agents/" rel="alternate" type="text/html" title="CLI Is the New API and MCP: Building Agent-Ready Tools for Enterprise Teams" />
-    <published>2026-02-20T00:00:00+00:00</published>
-    <updated>2026-02-20T00:00:00+00:00</updated>
-    <id>/blog/2026/02/20/cli-tools-for-ai-agents</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/02/20/cli-tools-for-ai-agents/">&lt;p&gt;Late last year, I noticed something small and very important.&lt;/p&gt;
-
-&lt;p&gt;My AI Agents discovered &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh&lt;/code&gt; on my machine and started using it without asking me for a tutorial. I’m not even sure it was me to install &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh&lt;/code&gt;.
-They configured auth, read and wrote comments, opened issues, updated pull requests, and kept going.&lt;/p&gt;
-
-&lt;p&gt;That was my “wait, this is different” moment.&lt;/p&gt;
-
-&lt;p&gt;I did not build a custom integration for them. I did not write an MCP server first. I did not train a model.
-I had a well-designed CLI already installed, with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt;, good error messages, and predictable behavior.
-That was enough.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-discovery-ai-agents-already-speak-cli&quot;&gt;The Discovery: AI Agents Already Speak CLI&lt;/h2&gt;
-
-&lt;p&gt;When we discuss AI tooling, we often jump directly to orchestration systems, special protocols,
-or expensive platform programs. Those are useful. We use them too.&lt;/p&gt;
-
-&lt;p&gt;But my first real breakthrough was much more practical:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;AI Agents were already fluent with command-line workflows.&lt;/li&gt;
-  &lt;li&gt;They could compose commands, parse output, and retry after failures.&lt;/li&gt;
-  &lt;li&gt;They could guide me through auth prompts when needed.&lt;/li&gt;
-  &lt;li&gt;Agents can learn about your tools from AGENTS.md or a likes files automatically.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;That changed how I think about tool strategy.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;We are building products for agents now.&lt;/p&gt;
-
-  &lt;p&gt;AI Agent is not just an implementation detail. It is a user persona.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;the-evolution-mcp-skills-and-process-execution&quot;&gt;The Evolution: MCP, Skills, and Process Execution&lt;/h2&gt;
-
-&lt;p&gt;MCP is excellent and increasingly important, especially when you need typed tool contracts and explicit
-capabilities (&lt;a href=&quot;https://modelcontextprotocol.io/docs/concepts/architecture&quot;&gt;architecture&lt;/a&gt;,
-&lt;a href=&quot;https://modelcontextprotocol.io/specification/latest&quot;&gt;spec&lt;/a&gt;).&lt;/p&gt;
-
-&lt;p&gt;But there is a practical truth worth saying out loud:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A good CLI is often the fastest way to make a tool usable by AI Agents.&lt;/li&gt;
-  &lt;li&gt;The CLI should have a good UX for agents (not necessary the same as a good UX for humans, but likely)&lt;/li&gt;
-  &lt;li&gt;In my experience, existing command surfaces are often most of the way there.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;the-real-unlock-good-cli-ux-is-the-integration&quot;&gt;The Real Unlock: Good CLI UX Is the Integration&lt;/h2&gt;
-
-&lt;p&gt;Here is the simplest integration I now recommend to enterprise teams.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-1-ship-an-actually-usable-cli&quot;&gt;Step 1: Ship an actually usable CLI&lt;/h3&gt;
-
-&lt;p&gt;At minimum:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;stable commands and flags&lt;/li&gt;
-  &lt;li&gt;predictable non-zero exit codes on failure&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt; that explains intent, not only syntax&lt;/li&gt;
-  &lt;li&gt;machine-readable output for anything non-trivial&lt;/li&gt;
-  &lt;li&gt;clear auth and permission errors&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;GitHub CLI is a strong example here:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;a href=&quot;https://cli.github.com/manual/&quot;&gt;GitHub CLI manual&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href=&quot;https://cli.github.com/manual/gh_api&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gh api&lt;/code&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;step-2-tell-the-ai-agent-that-the-cli-exists&quot;&gt;Step 2: Tell the AI Agent that the CLI exists&lt;/h3&gt;
-
-&lt;p&gt;A single section in your agent instruction file is enough to start.&lt;/p&gt;
-
-&lt;div class=&quot;language-md highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;gh&quot;&gt;# Agent Tools&lt;/span&gt;
-
-Use &lt;span class=&quot;sb&quot;&gt;`acme-cli`&lt;/span&gt; for:
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; change requests
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; deployment status
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; internal issue tracking
-
-Rules:
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; Prefer &lt;span class=&quot;sb&quot;&gt;`acme-cli --json`&lt;/span&gt; for parsing.
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; Run &lt;span class=&quot;sb&quot;&gt;`acme-cli --help`&lt;/span&gt; before using a new subcommand.
-&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; If auth fails, explain the next login step to the user.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That is it. No ceremony.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-3-keep-command-contracts-stable&quot;&gt;Step 3: Keep command contracts stable&lt;/h3&gt;
-
-&lt;p&gt;If the output format changes every week, your agent workflows will flap.&lt;/p&gt;
-
-&lt;p&gt;Treat your CLI output as an API contract. Humans can adapt quickly. Agents need consistency.&lt;/p&gt;
-
-&lt;h3 id=&quot;step-4-improve-and-make-ai-agents-learn-from-the-tool&quot;&gt;Step 4: Improve and make AI Agents learn from the tool&lt;/h3&gt;
-
-&lt;p&gt;On this step you are going to run the product work, and ask you AI Agents to perform
-specific task with your CLI. You are not going to give many instructions just ask
-one to deliver. Do several rounds, and improve the tool to avoid the common pitfalls.&lt;/p&gt;
-
-&lt;p&gt;Use one AI Agent as the Product manager and ask it to start the agents to conduct the review. For example, 
-you can use &lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.sh&lt;/a&gt; as the CLI that makes one agent
-start next agents, such that Claude Code, Codex, and Gemini.&lt;/p&gt;
-
-&lt;p&gt;I use the same &lt;strong&gt;Reinforcement Learning&lt;/strong&gt; approach in the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;
-project, where we use all the call traces as the input for improvements. During that improvement process,
-we created the recommendation system that suggests the best documentation articles based on the
-user requests and current failures.&lt;/p&gt;
-
-&lt;p&gt;The part of your work is marketing. You need to explain what your tool does in the best and
-the most clear and straightforward way to get your target audience – AI Agents – use your tool.&lt;/p&gt;
-
-&lt;p&gt;Iterate and improve.&lt;/p&gt;
-
-&lt;h3 id=&quot;design-the-interaction-and-developer-experience&quot;&gt;Design the Interaction and Developer Experience&lt;/h3&gt;
-
-&lt;p&gt;Sometimes, a login or a real user interaction is necessary. You should think about that carefully, 
-to make sure it will work with an AI Agent connected. An agent may give up after several failures,
-and find the other way to deal with the task without your tool.&lt;/p&gt;
-
-&lt;p&gt;The fragile version example. It can work amazing, or block and fail:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;acme review submit
-Are you sure? &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;y/N]
-Please open browser and login...
-Operation completed successfully!!!
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;At this point, you are going to develop the best user experience for AI Agent, knowing there is
-a developer behind the agent too.&lt;/p&gt;
-
-&lt;h2 id=&quot;enterprise-rollout-small-moves-big-impact&quot;&gt;Enterprise Rollout: Small Moves, Big Impact&lt;/h2&gt;
-
-&lt;p&gt;The deployment pattern is surprisingly simple:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Put the CLI binary in the repo or distribute through your MDM / endpoint management.&lt;/li&gt;
-  &lt;li&gt;Add one line in your AGENTS.md instructions saying where the tool is or where to download it.&lt;/li&gt;
-  &lt;li&gt;Keep login and updates frictionless.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;You do not need to rebuild your whole platform before you start getting value. But make sure you are
-not making the process complex, or you are not making your AI Agent asking for hundreds of permissions
-to proceed with the tool or with the installation of it.&lt;/p&gt;
-
-&lt;p&gt;If you already have internal CLI tools, you are not behind.
-You are probably ahead.&lt;/p&gt;
-
-&lt;p&gt;But having the commands is only half the story. The other half is whether an AI Agent can authenticate
-and recover cleanly when auth fails.&lt;/p&gt;
-
-&lt;h2 id=&quot;developer-experience-is-mostly-about-authentication&quot;&gt;Developer Experience Is Mostly About Authentication&lt;/h2&gt;
-
-&lt;p&gt;In enterprise environments, auth is where good ideas go to die.&lt;/p&gt;
-
-&lt;p&gt;Your AI Agent can run commands, but eventually it must ask a human for approval or login.
-If this flow is noisy, confusing, or brittle, the whole system slows down.&lt;/p&gt;
-
-&lt;p&gt;For internal tools that connect to SCM, CI/CD, review systems, and issue trackers, I now use this checklist:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;one obvious login command (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tool auth login&lt;/code&gt;)&lt;/li&gt;
-  &lt;li&gt;clear status (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;tool auth status&lt;/code&gt;)&lt;/li&gt;
-  &lt;li&gt;explicit scopes and permission errors&lt;/li&gt;
-  &lt;li&gt;short troubleshooting message in every auth failure&lt;/li&gt;
-  &lt;li&gt;clear UX for AI Agent and the user&lt;/li&gt;
-  &lt;li&gt;explicit token mode in case of fully automated approaches&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This is not only AI Agent experience. This is core developer experience.&lt;/p&gt;
-
-&lt;h2 id=&quot;tool-lifecycle-updates-rollbacks-and-version-control&quot;&gt;Tool Lifecycle: Updates, Rollbacks, and Version Control&lt;/h2&gt;
-
-&lt;p&gt;The next failure mode is version drift.&lt;/p&gt;
-
-&lt;p&gt;One project needs CLI version A. Another needs B.
-Agents run on laptops, ephemeral environments, and CI workers.
-Now your support channel becomes chaos.&lt;/p&gt;
-
-&lt;p&gt;We need a lightweight control plane for versions.&lt;/p&gt;
-
-&lt;p&gt;I have been experimenting with this pattern in
-&lt;a href=&quot;https://github.com/jonnyzzz/devrig.dev&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig.dev&lt;/code&gt;&lt;/a&gt;: a dev environment tool that can also resolve the
-right binary version, verify it, cache it, and execute it consistently.&lt;/p&gt;
-
-&lt;p&gt;A minimal config can look like this:&lt;/p&gt;
-
-&lt;div class=&quot;language-yaml highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;na&quot;&gt;wrapper&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;0.0.1&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;sha-512:&amp;lt;wrapper-hash&amp;gt;&lt;/span&gt;
-
-&lt;span class=&quot;na&quot;&gt;tool&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;jb-cli&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;version&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;0.9.4&lt;/span&gt;
-  &lt;span class=&quot;na&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;pi&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;sha-512:&amp;lt;tool-hash&amp;gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The wrapper resolves the right binary per platform, verifies checksums, caches locally, and executes.
-That means every AI Agent on every machine runs the same version by default.&lt;/p&gt;
-
-&lt;p&gt;This makes updates and rollbacks explicit, reproducible, and project-aware.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-this-matters-for-sdlc-throughput&quot;&gt;Why This Matters for SDLC Throughput&lt;/h2&gt;
-
-&lt;p&gt;The tools like one above help to connect your AI Agents to the organizational flow,
-and make agents able to code, build, test, review and comply with the changest.
-Agents on the other hand work much better with the agentic loop, where feedback
-flows in.&lt;/p&gt;
-
-&lt;p&gt;This is connected to a point I made in
-&lt;a href=&quot;/blog/2026/01/16/code-review-bottleneck/&quot;&gt;the code review bottleneck post&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;Generation speed is only one part of the pipeline.&lt;/p&gt;
-
-&lt;p&gt;If your agent can generate code quickly but cannot operate through code review,
-protected delivery, and issue tracking, you did not speed up the system.
-You moved the bottleneck.&lt;/p&gt;
-
-&lt;p&gt;The CLI approach helps because it integrates the agent into the real flow,
-not a sandboxed demo flow.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-feedback-loop-learn-by-using-agents-with-agents-for-agents&quot;&gt;The Feedback Loop: Learn by Using Agents, With Agents, For Agents&lt;/h2&gt;
-
-&lt;p&gt;The most interesting part starts after rollout.&lt;/p&gt;
-
-&lt;p&gt;If your tool is painful, AI Agents will hit that pain many times per day.
-That is a gift, if you capture it correctly.&lt;/p&gt;
-
-&lt;p&gt;Design the tool so agents can report friction:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;open issue in tracker&lt;/li&gt;
-  &lt;li&gt;include command, error, and context&lt;/li&gt;
-  &lt;li&gt;propose a fix or a minimal reproduction&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Example issue template:&lt;/p&gt;
-
-&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Title: agent failure in jb-cli review submit
-
-Command: jb-cli review submit --id CR-123
-Error: 401 token expired
-Attempted recovery: jb-cli auth login
-Suggested improvement: expose token expiry in auth status JSON
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Then your team triages and improves the tool, often with another AI Agent.
-That creates a practical reinforcement loop.
-No custom ML pipeline required. Just disciplined engineering feedback, at high frequency.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-i-got-wrong-at-first&quot;&gt;What I Got Wrong at First&lt;/h2&gt;
-
-&lt;p&gt;Just start using AI Agents to code tasks in some projects. You will see soon where is
-the manual work, or what you agent should be able to do automatically.&lt;/p&gt;
-
-&lt;p&gt;For me, it has started with the build and tests run, for that use-case I use
-the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt; plugin.&lt;/p&gt;
-
-&lt;p&gt;For code review, I use &lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.sh&lt;/a&gt; and instruct
-my main agent to start multiple different agents to review the code, look at the git
-history to the popular patterns and behaviour of the team.&lt;/p&gt;
-
-&lt;p&gt;Next I found that I need to follow internal processes and submit the code to the
-safe-push pipeline. We already have the CLI tool for that task, but it was lacking
-the status sub-command. Now we have it.&lt;/p&gt;
-
-&lt;p&gt;I’m looking forward to support YouTrack, TeamCity and other products, and solve more
-low-hanging fruits problems for AI Agents to work on the project.&lt;/p&gt;
-
-&lt;h2 id=&quot;try-this-next-week&quot;&gt;Try This Next Week&lt;/h2&gt;
-
-&lt;p&gt;If you own internal developer tooling, try this next week:&lt;/p&gt;
-&lt;ol&gt;
-  &lt;li&gt;Start using AI Agents for coding&lt;/li&gt;
-  &lt;li&gt;Pick one CLI command or AGENTS.md improvement, if none look at your own experience.&lt;/li&gt;
-  &lt;li&gt;Add agent instructions in the repo and run one real task through an AI Agent.&lt;/li&gt;
-  &lt;li&gt;Collect stats and usages, failures, improve the CLI, and repeat.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;That loop is where the leverage comes from.&lt;/p&gt;
-
-&lt;p&gt;If your team says, “we already have internal CLI tools,” that is good news.
-You already did the difficult foundation work. We are widening the interface of our systems.
-For the first time, the terminal is becoming a direct product surface for both humans and AI Agents.&lt;/p&gt;
-
-&lt;p&gt;For new tools, if you consider to start development today. I recommend to see if the CLI too + Skills or AGENTS.md
-are just enough, before you start doing the full-fledged MCP Server. I believe that we can create tools,
-which require only a really short intro or a SKILL, having everything else encapsulated inside it.&lt;/p&gt;
-
-&lt;p&gt;If you run this pattern in your organization, I would love to hear what worked and what failed.
-Reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
-&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="ai-coding" />
-  
-    <category term="developer-experience" />
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="cli" />
-  
-    <category term="enterprise" />
-  
-    <summary type="html">AI Agents already speak CLI. Better command UX is often the fastest path to enterprise agent integration.</summary>
   
   </entry>
   

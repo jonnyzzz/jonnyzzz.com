@@ -6,6 +6,11 @@
 
 ---
 
+> **Update (April 2026):** The hot-reload plugin now supports `?local-disk-file=<path>` for
+> plugins exceeding IntelliJ's 180 MB body limit. See
+> [My IntelliJ Plugin Hit HTTP 413]({% post_url blog/2026-04-17-intellij-plugin-hot-reload-413 %})
+> for the full story.
+
 Restarting IntelliJ for every plugin tweak is a productivity tax. The wait breaks flow, and by the time the IDE is back up you've lost the tiny detail you were trying to test. I wanted a tighter loop, so I built **intellij-plugin-hot-reload**.
 
 ## Series: Holiday Sprint with AI
