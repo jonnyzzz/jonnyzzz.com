@@ -1,0 +1,601 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE &#8211; Eugene Petrenko</title>
+<meta name="description" content="The obvious way to connect an AI Agent to a running IntelliJ is an HTTP MCP server inside the IDE. I built it, shipped it, and used it daily — and it kept breaking on real workstations: dynamic ports, start-order lottery, multiple IDEs, and the agent-up/IDE-down dead end. Here is why I moved the whole thing to stdio and a CLI coordinator called devrig, and what the journey taught me.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mcp, mcp-steroid, devrig, ai-agents, ai-coding, intellij, architecture, cli" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE -- Eugene Petrenko" />
+<meta name="twitter:description" content="The obvious way to connect an AI Agent to a running IntelliJ is an HTTP MCP server inside the IDE. I built it, shipped it, and used it daily — and it kept breaking on real workstations: dynamic ports, start-order lottery, multiple IDEs, and the agent-up/IDE-down dead end. Here is why I moved the whole thing to stdio and a CLI coordinator called devrig, and what the journey taught me." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE -- Eugene Petrenko" />
+<meta property="og:description" content="The obvious way to connect an AI Agent to a running IntelliJ is an HTTP MCP server inside the IDE. I built it, shipped it, and used it daily — and it kept breaking on real workstations: dynamic ports, start-order lottery, multiple IDEs, and the agent-up/IDE-down dead end. Here is why I moved the whole thing to stdio and a CLI coordinator called devrig, and what the journey taught me." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="mcp" />
+
+<meta property="article:tag" content="mcp-steroid" />
+
+<meta property="article:tag" content="devrig" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="architecture" />
+
+<meta property="article:tag" content="cli" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#devrig" title="Pages tagged devrig">devrig</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#architecture" title="Pages tagged architecture">architecture</a></li><li><a href="/tags/#cli" title="Pages tagged cli">cli</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-05-20T00:00:00+00:00">May 20, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=From+HTTP+MCP+to+stdio%3A+Lessons+Connecting+an+AI+Agent+to+a+Desktop+IDE%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/&amp;hashtags=mcp,mcp-steroid,devrig,ai-agents,ai-coding,intellij,architecture,cli" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=From+HTTP+MCP+to+stdio%3A+Lessons+Connecting+an+AI+Agent+to+a+Desktop+IDE%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AThe+obvious+way+to+connect+an+AI+Agent+to+a+running+IntelliJ+is+an+HTTP+MCP+server+inside+the+IDE.+I+built+it%2C+shipped+it%2C+and+used+it+daily+%E2%80%94+and+it+kept+breaking+on+real+workstations%3A+dynamic+ports%2C+start-order+lottery%2C+multiple+IDEs%2C+and+the+agent-up%2FIDE-down+dead+end.+Here+is+why+I+moved+the+whole+thing+to+stdio+and+a+CLI+coordinator+called+devrig%2C+and+what+the+journey+taught+me.%0A%0Ahttps://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/%0A%0A%23mcp%20%23mcpsteroid%20%23devrig%20%23aiagents%20%23aicoding%20%23intellij%20%23architecture%20%23cli" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>If you want to connect an AI Agent to a locally running desktop application — in my case the
+IntelliJ family — there is one obvious idea. Run an MCP server <em>inside</em> the application. Bind it to a
+port. Point the agent at that port as an HTTP MCP server. Done.</p>
+
+<p>It is the obvious idea because it is the correct first idea. I built exactly that, shipped it
+as part of my independent experiment, and
+used it every day. It kept breaking in real workstation setups — including my own. This is the
+story of why, and why the answer turned out to be the least glamorous transport in the spec:
+<strong>stdio</strong>, behind a small CLI that does the routing.</p>
+
+<h2 id="the-obvious-approach-an-http-mcp-server-inside-the-ide">The obvious approach: an HTTP MCP server inside the IDE</h2>
+
+<p>The MCP standard defines two transports: <a href="https://modelcontextprotocol.io/specification/2025-03-26/basic/transports">stdio and Streamable HTTP</a> (the older
+HTTP+SSE transport was deprecated in the 2025-03-26 spec). For a desktop app the HTTP route looks
+natural — the IDE is already a long-running statefull process, so let it open a socket and answer MCP calls.</p>
+
+<p>So I implemented the HTTP layer and reached for the <a href="https://github.com/modelcontextprotocol/kotlin-sdk">Ktor MCP integration in the Kotlin SDK</a>.
+And immediately hit the first snag (state January 2026): at the time, that integration only spoke the <strong>SSE</strong> transport,
+not the newer <strong>Streamable HTTP</strong> the latest spec wanted. I was stuck on a spec-version mismatch
+before I had connected a single agent. (The Kotlin SDK has since grown <code class="language-plaintext highlighter-rouge">mcpStreamableHttp()</code> helpers;
+back then it had not.)</p>
+
+<p>The thing that saved me here was not clever code. It was <strong>integration tests for the MCP layer</strong>.
+It was using Docker image, where an agent (claude, codex, gemini) is started and connected
+to the MCP server running in the test. It asks an agent to look at the MCP tools and call them.</p>
+
+<p>Every time I or an AI Agent re-implemented the transport, a test would go red and tell me I had broken the contract.
+I re-did that layer more than once, and the test suite caught a regression every single time. If you
+take one portable lesson from this whole post, take that one: an agent-facing protocol is exactly the
+kind of surface that deserves real integration tests, because the consumer – an LLM – will not file a
+bug report unless you ask it explicitly (which I often do)</p>
+
+<blockquote>
+  <p>Good integration-test coverage of the MCP layer paid for itself many times over.</p>
+</blockquote>
+
+<h2 id="where-http-against-a-desktop-app-falls-apart">Where HTTP-against-a-desktop-app falls apart</h2>
+
+<p>The naive model assumes one user, one machine, one IDE. That is not what a real agentic-coding
+workstation looks like. Here is the pile of complications, roughly in the order they bit me.</p>
+
+<p><strong>A dynamic port at startup, with no limit on instances.</strong> Nothing stops you from running several
+instances of the same IDE at once — distinct processes, each launched with its own config directory.
+A <em>fixed</em> port is therefore impossible — the first IDE would grab it and every other instance would
+have to fail to bind. So each IDE has to pick its port dynamically: start
+from a configurable base and increment until one is free. This is, not coincidentally, exactly how
+the <a href="https://www.jetbrains.com/help/idea/settings-tools-built-in-server.html">IntelliJ built-in web server</a> behaves (it starts from <code class="language-plaintext highlighter-rouge">63342</code>). It works. But it
+turns the port into a moving target.</p>
+
+<p><strong>Several IDEs at once, by design.</strong> IntelliJ is not a single app — JetBrains ships a <a href="https://www.jetbrains.com/products/">whole family
+of IDEs</a> (IDEA, PyCharm, GoLand, WebStorm, Rider, and more). One can have
+two or three of them open at once; power users run more than one
+instance — distinct processes with their own config directories — for different projects. Some use
+EAP versions in a row with release builds. Each such IntelliJ-based IDE
+process is its own MCP server on its own base-plus-increment port. (Several project <em>windows</em> in one
+instance are a different axis — one port, several projects.) Now I have a <em>set</em> of endpoints to
+discover and route between, not one.</p>
+
+<p><strong>Start-order dependence.</strong> Because the ports are assigned first-come-first-served from the base, the
+port a given IDE gets depends on the order you launched everything in. To make the agent talk to a
+<em>specific</em> IDE, you have to start that IDE first so it grabs the predictable port. That is a terrible
+thing to ask a human to remember, and an impossible thing to ask an agent to reason about. That is
+not manageable to maintain each time the port changes.</p>
+
+<p><strong>Agents can’t disambiguate identically-named MCP servers.</strong> This was the quiet killer. You cannot
+simply register five “mcp-steroid” servers with an agent and expect it to choose wisely — to the
+agent they look like the same server, and it does not understand that they are different IDEs. In
+practice, I ended up registering exactly one server, on the first port in the range — and then back to
+the start-order ritual to make sure the right IDE owned that port.</p>
+
+<p><strong>Nested IDEs.</strong> Sometimes an IDE is launched <em>from</em> another IDE. Now the set of processes the MCP
+server must cover is not even stable for the duration of a session.</p>
+
+<p><strong>Agent up, IDE down.</strong> The one that hurt the most in daily use. The agent runs for hours; the IDE
+does not. I shut an IDE down to update it, or it crashed, or I just forgot to open it — and the agent
+was instantly dead in the water, frequently unable to reconnect even after the IDE came back. An HTTP
+client dialing a port that no longer answers has nowhere to go. The MCP Steroid implementation
+specifically handles unknown sessions to keep an agent working after an IDE is restarted.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Real-world setup</th>
+      <th>What HTTP-in-the-IDE breaks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Two instances of the same IDE</td>
+      <td>Can’t share a port; base+increment; which one answers?</td>
+    </tr>
+    <tr>
+      <td>IDEA + PyCharm + GoLand open at once</td>
+      <td>Several servers, several ports, agent picks one</td>
+    </tr>
+    <tr>
+      <td>“Use <em>this</em> IDE” intent</td>
+      <td>Depends on launch order — start it first or lose</td>
+    </tr>
+    <tr>
+      <td>Agent registered with N identical servers</td>
+      <td>Agent can’t disambiguate; only one ends up usable</td>
+    </tr>
+    <tr>
+      <td>IDE shut down to update while the agent runs</td>
+      <td>Agent dead, often can’t reconnect</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>None of these is fatal on its own. I worked around every one of them and kept using the tool. But the
+workarounds stack into a fragile pile, and the pile is the point: HTTP-against-a-desktop-app is
+fighting the environment instead of fitting it.</p>
+
+<h2 id="the-pivot-the-app-doesnt-care-about-the-transport">The pivot: the app doesn’t care about the transport</h2>
+
+<p>Here is the schema that unlocked everything.</p>
+
+<blockquote>
+  <p>The IDE side does not care whether the bytes arrive over HTTP or stdio. MCP is MCP. The transport
+is a detail at the edge.</p>
+</blockquote>
+
+<p>Instead of forcing the <em>application</em> to host the network endpoint, move all the routing and
+connection-handling to a small program the agent launches directly — and let <em>that</em> talk to the IDEs
+however it likes.</p>
+
+<p>That program is a CLI. The agent speaks MCP to it over <strong>stdio</strong>: launch a subprocess, talk over
+pipes. No agent-facing ports, no DNS, no firewall, no “which IDE answered?”. And because the CLI owns
+the routing,
+it can do all the things the IDE-hosted server could not: discover every running IDE, pick the right
+one, start one if none exists, and survive an IDE restarting underneath it.</p>
+
+<p>In MCP Steroid this CLI is <strong>devrig</strong>. The agent’s entire configuration becomes one stdio command;
+<code class="language-plaintext highlighter-rouge">devrig</code> is the coordinator that connects to all your IDEs, regardless of how many are running. The
+mechanics of what <code class="language-plaintext highlighter-rouge">devrig</code> discovers, downloads, and routes — and the screenshots — are the subject of
+a follow-up, the <a href="/blog/2026/06/02/devrig-mcp-steroid-level-3/">Level 3 post</a>; this post is about <em>why</em> it has to exist.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        Coding Agent
+            │  MCP over stdio  (one subprocess, no ports)
+            ▼
+        devrig  ── coordinator / router ──┐
+            │            │            │   │
+            ▼            ▼            ▼   ▼
+        IDEA #1      PyCharm       GoLand   (start one on demand if none)
+</code></pre></div></div>
+
+<h2 id="why-stdio--a-coordinator-is-actually-more-powerful">Why stdio + a coordinator is actually more powerful</h2>
+
+<p>Moving to stdio is not just “the same thing without ports.” It changes what is <em>possible</em>.</p>
+
+<p><strong>Sessionless routing, because the state lives on disk.</strong> MCP Steroid is a <em>stateful</em> MCP — its
+commands change the IDE’s state (files, refactorings, run configs, etc.). That sounds like it would
+<em>need</em> sticky sessions, but it is the opposite: because the durable state is in the process,
+there is no MCP session to pin. Any command can be routed to <strong>any</strong> backend capable of
+executing it. That is what makes multi-IDE-per-project realistic — GoLand handling the Go module,
+an IntelliJ handling the Java service, both serving the same checkout. The one catch I am still
+sharpening: the project key has to encode the <em>IDE type</em>, or the agent can’t reliably tell the
+GoLand-<code class="language-plaintext highlighter-rouge">myapp</code> from the IDEA-<code class="language-plaintext highlighter-rouge">myapp</code> and route to the right one. The data is there; making it obvious
+to the agent is the open challenge.</p>
+
+<p><strong>Restart resilience.</strong> The stdio coordinator can let connections come and go. The “agent up, IDE
+down” dead end stops being a dead end — <code class="language-plaintext highlighter-rouge">devrig</code> can reconnect, or start an IDE, instead of leaving the
+agent staring at a closed socket. It can also provision the IDE configurations if neccessary for the project.</p>
+
+<p><strong>Provision on demand.</strong> Once the agent talks to a coordinator instead of a fixed socket, “no IDE is
+running” stops being a dead end — the coordinator can bring one into existence for the task rather
+than asking a human to “please leave the IDE open for the next four hours.” How that will work once
+devrig ships it is the story for the follow-up <a href="/blog/2026/06/02/devrig-mcp-steroid-level-3/">Level 3 post</a>; the point here is that the
+architecture is what makes it possible at all.</p>
+
+<p><strong>A path to remote.</strong> Once the agent talks to a coordinator instead of a fixed local socket, the
+particular local IDE stops being the center of the architecture. The same protocol extends to remote
+IDEs — and eventually to fleets of them. That is the part I am most interested in commercially, and
+the reason <code class="language-plaintext highlighter-rouge">devrig</code> itself is the thing worth promoting, not any single IDE behind it.</p>
+
+<h2 id="routing-to-a-project-project_name-and-discovery">Routing to a project: <code class="language-plaintext highlighter-rouge">project_name</code> and discovery</h2>
+
+<p>A coordinator only helps if the agent can say <em>which</em> project it means without knowing anything about
+ports, process ids, or how many IDEs are open. So the most important thing the coordinator does is
+turn “all the IDEs on this machine” into one flat, addressable list of projects. Two halves make that
+work: <strong>discovery</strong> and a single addressing key, <strong><code class="language-plaintext highlighter-rouge">project_name</code></strong>.</p>
+
+<p><strong>Discovery</strong> is the coordinator’s live picture of the world. It keeps an up-to-date view of the
+IDEs running on the machine and the projects each one currently has open, as one map — every open
+project, across every running IDE, in a single table. When an IDE opens or closes a project, the map
+updates; the agent never has to be told.</p>
+
+<p><strong><code class="language-plaintext highlighter-rouge">project_name</code></strong> is the only thing the agent has to care about. The coordinator exposes each
+discovered project under a stable name and hands the agent that list. Every project-targeting tool
+takes exactly one project argument — <code class="language-plaintext highlighter-rouge">project_name</code> — and nothing else about <em>where</em> the project
+lives. The agent reads the list, picks a name, and calls the tool.</p>
+
+<p>The routing itself is then almost boring, which is the point. On each call the coordinator looks the
+<code class="language-plaintext highlighter-rouge">project_name</code> up in its discovery map, finds the IDE that actually has that project open, and
+forwards the call there — translating the exposed name back to whatever that IDE calls the project
+internally. If two IDEs happen to have a project with the same name open, the coordinator makes the
+exposed <code class="language-plaintext highlighter-rouge">project_name</code> unique, so the agent can still aim at exactly one. The agent addresses a name;
+the coordinator does the plumbing.</p>
+
+<p>This is the concrete shape of the sessionless routing above: the key is the <em>project</em>, not a session,
+so any call for a given <code class="language-plaintext highlighter-rouge">project_name</code> simply lands wherever that project lives. That’s the whole
+trick behind “one agent, many IDEs” — the agent holds a list of names, and discovery keeps that list
+honest.</p>
+
+<h2 id="mcp-cli-or-skill-there-is-no-single-answer">MCP, CLI, or skill? There is no single answer</h2>
+
+<p>One more thing the journey clarified, and I want to leave it as an open question rather than a verdict.
+There is a real design-space discussion hiding under all of this: should a capability be exposed as an
+<strong>MCP</strong> tool, a <strong>CLI</strong>, or an agent <strong>skill</strong> — or some combination, skill+CLI, skill+MCP?</p>
+
+<p>These are at least three distinct axes in a multidimensional feature space, not a ranked list. Some
+combinations are clearly more powerful for specific scenarios, and I do not believe there is one
+correct point. The honest design move is to assume you will want several of them and factor your
+architecture so that adding another surface is cheap. Choosing stdio + a CLI coordinator was partly a
+bet on exactly that flexibility: the CLI is a substrate the MCP, the skills, and the human-facing
+commands can all sit on top of.</p>
+
+<p>Give <code class="language-plaintext highlighter-rouge">devrig</code> a try. And let me know what MCP+CLI+Skills equation looks like for you.</p>
+
+<h2 id="what-i-would-tell-my-earlier-self">What I would tell my earlier self</h2>
+
+<ul>
+  <li><strong>Start with the obvious transport, but treat it as a hypothesis.</strong> HTTP-in-the-IDE was the right
+thing to try first and the right thing to abandon once the environment voted against it.</li>
+  <li><strong>Match the transport to the environment, not to the protocol’s defaults.</strong> A desktop app full of
+swappable, restartable, multi-instance processes wants a subprocess-and-pipes model, not a
+server-and-port one.</li>
+  <li><strong>Push routing to the edge you control.</strong> The IDE can’t own discovery sanely; a CLI the agent
+launches can.</li>
+  <li><strong>Stateful-on-disk means sessionless.</strong> That inversion is what makes many-backends routing simple.</li>
+  <li><strong>Test the agent-facing layer like a public API.</strong> Your most demanding consumer can’t describe what
+you broke.</li>
+</ul>
+
+<p>This is experimental, in-progress work — <code class="language-plaintext highlighter-rouge">devrig</code> is the go-to direction now, but I am still learning
+where it bends. It has rough edges I am not hiding: a runtime prerequisite you have to satisfy by
+hand, single-user assumptions, and lifecycle operations that serialize. Rather than restate the exact
+version numbers here (they will move release to release), the prerequisites, the trade-offs I am
+least sure about, and an explicit list of open questions are what the follow-up <a href="/blog/2026/06/02/devrig-mcp-steroid-level-3/">Level 3 post</a>
+will cover — head there when you want to actually run it.</p>
+
+<p>If you have wired an agent to a desktop app and hit a different wall than these — or solved one of
+them a better way — I want to hear it. Reply on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://twitter.com/jonnyzzz">Twitter</a>, or open an
+issue on <a href="https://github.com/jonnyzzz/mcp-steroid">jonnyzzz/mcp-steroid</a>. The more concrete the workstation you describe, the more
+directly it shapes what <code class="language-plaintext highlighter-rouge">devrig</code> does next.</p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

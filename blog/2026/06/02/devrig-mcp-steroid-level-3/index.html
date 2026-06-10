@@ -1,0 +1,769 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents &#8211; Eugene Petrenko</title>
+<meta name="description" content="The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mcp, mcp-steroid, ai-agents, ai-coding, agentic-experience, intellij, cli, devrig" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents -- Eugene Petrenko" />
+<meta name="twitter:description" content="The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents -- Eugene Petrenko" />
+<meta property="og:description" content="The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="mcp" />
+
+<meta property="article:tag" content="mcp-steroid" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="agentic-experience" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="cli" />
+
+<meta property="article:tag" content="devrig" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#mcp" title="Pages tagged mcp">mcp</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#agentic-experience" title="Pages tagged agentic-experience">agentic-experience</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#cli" title="Pages tagged cli">cli</a></li><li><a href="/tags/#devrig" title="Pages tagged devrig">devrig</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-06-02T00:00:00+00:00">June 02, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=devrig%3A+MCP+Steroid+Goes+Level+3+%E2%80%94+Autonomous+IDE+Setup+for+AI+Agents%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/&amp;hashtags=mcp,mcp-steroid,ai-agents,ai-coding,agentic-experience,intellij,cli,devrig" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=devrig%3A+MCP+Steroid+Goes+Level+3+%E2%80%94+Autonomous+IDE+Setup+for+AI+Agents%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AThe+new+%60devrig%60+CLI+in+MCP+Steroid+0.100+turns+the+IDE+bring-up+ritual+into+one+stdio+command.+%60devrig+install+%60+writes+the+MCP+config%3B+%60devrig+backend+download%2Fstart%60+brings+an+IntelliJ-family+IDE+into+existence+and+gives+the+agent+an+IDE+of+its+own.+In+the+e2e+test%2C+Claude+provisions+an+IDE+and+finds+4%2C633+PSI+usages+of+one+class+in+Keycloak+%E2%80%94+in+one+prompt.%0A%0Ahttps://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/%0A%0A%23mcp%20%23mcpsteroid%20%23aiagents%20%23aicoding%20%23agenticexperience%20%23intellij%20%23cli%20%23devrig" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>If you have ever wired an AI Agent to an IntelliJ-family IDE through MCP, you know the routine:
+start the IDE, install the plugin, write down the port number, paste an HTTP URL into your agent’s
+config, restart the agent, hope you guessed which project the agent is supposed to see. Two IDEs
+open? Pick one. PyCharm <em>and</em> IntelliJ both running? Hope the port-number lottery favors you.</p>
+
+<p>The new <code class="language-plaintext highlighter-rouge">devrig</code> CLI in <a href="https://mcp-steroid.jonnyzzz.com/releases/0.100/">MCP Steroid 0.100</a> kills that ritual. One stdio command —
+<code class="language-plaintext highlighter-rouge">devrig mcp</code> — and the agent gets a deterministic view of every IDE, every project, every window,
+no matter how many are open. If the right IDE is not running, <code class="language-plaintext highlighter-rouge">devrig</code> downloads it and starts it.
+And the agent’s MCP config? <code class="language-plaintext highlighter-rouge">devrig install claude</code> writes it for you — and from then on <code class="language-plaintext highlighter-rouge">devrig mcp</code>
+connects to every running IDE that has the MCP Steroid plugin installed.</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-bridge.svg" alt="One devrig bridge connects your AI Agent to all running IDEs at once — and can start more" /></p>
+
+<p><strong>This is what I call Level 3 of MCP Steroid:</strong> the agent is no longer the customer of a manually
+configured environment. The environment configures itself for the agent.</p>
+
+<p>The headline number: the e2e test in <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt"><code class="language-plaintext highlighter-rouge">DevrigManagedBackendAgentE2ETest.kt</code></a> provisions an IntelliJ
+Community via <code class="language-plaintext highlighter-rouge">devrig</code>, opens <a href="https://github.com/keycloak/keycloak">Keycloak</a>, and asks Claude to find PSI usages of
+<code class="language-plaintext highlighter-rouge">org.keycloak.models.UserModel</code> over its <code class="language-plaintext highlighter-rouge">ReferencesSearch</code>. The verified count is <strong>4,633</strong>, in
+one prompt.</p>
+
+<p>I want to show what it does, why it matters, where the trade-offs are, and — most importantly —
+ask what <em>you</em> would have it do next.</p>
+
+<h2 id="the-three-levels">The three levels</h2>
+
+<p>I have been organizing the work in my head as three levels of autonomy. They line up roughly with
+Swarmia’s <a href="https://www.swarmia.com/blog/five-levels-ai-agent-autonomy/">five levels of coding-agent autonomy</a>, but applied to the <strong>agent ⇄ IDE</strong>
+boundary:</p>
+
+<ul>
+  <li><strong>Level 1 — Manual.</strong> The user starts the IDE, installs the plugin, copies the port into the
+agent’s MCP config. Every step is human. This is where most teams still live.</li>
+  <li><strong>Level 2 — Auto-discovery.</strong> The agent’s MCP client finds whichever IDE happens to be running,
+reads its open projects, routes calls correctly. The user still has to launch the IDE.</li>
+  <li><strong>Level 3 — Fully autonomous lifecycle.</strong> <code class="language-plaintext highlighter-rouge">devrig install</code> writes the agent’s MCP config.
+<code class="language-plaintext highlighter-rouge">devrig backend download/start</code> brings the IDE into existence. Open project, route calls, stop
+cleanly. The human is out of the loop.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">devrig</code> is the first thing in the MCP Steroid family that delivers Level 3 end-to-end.</p>
+
+<h2 id="a-quick-map-of-where-we-were">A quick map of where we were</h2>
+
+<p>The <a href="/blog/2026/01/04/mcp-steroids-intellij/">original MCP Steroid post</a> argued that AI Agents need the <strong>full</strong> IntelliJ runtime,
+not a curated list of tool functions. The MCP standard defines two transports:
+<a href="https://modelcontextprotocol.io/specification/2025-03-26/basic/transports">stdio and Streamable HTTP</a>. JetBrains’ own bundled MCP Server picks HTTP — it
+listens on a port and the agent dials in. Stdio still dominates IDE use cases though (~67 % of
+deployments in 2026 per a <a href="https://www.digitalapplied.com/blog/mcp-adoption-statistics-2026-model-context-protocol">recent adoption survey</a>), and for good reason: it maps 1:1
+to “launch a subprocess; talk to it over pipes”. No ports, no DNS, no firewall, no “which IDE
+answered?”.</p>
+
+<p>For one user, one machine, one IDE, the HTTP model is fine. For a real agentic-coding workstation
+it is a small disaster:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Real-world setup</th>
+      <th>What breaks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IntelliJ + PyCharm + Rider open simultaneously</td>
+      <td>Each grabs a different port; agent picks one</td>
+    </tr>
+    <tr>
+      <td>Two windows of the same product</td>
+      <td>Same port, two projects, ambiguous routing</td>
+    </tr>
+    <tr>
+      <td>Project on a remote dev machine</td>
+      <td>Manual SSH tunnel, manual port-forward</td>
+    </tr>
+    <tr>
+      <td>First-time setup on a clean laptop</td>
+      <td>Install IDE → install plugin → restart → …</td>
+    </tr>
+    <tr>
+      <td>Background batch job needing an IDE</td>
+      <td>“Please leave the IDE open” — for hours</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>This is the swamp <code class="language-plaintext highlighter-rouge">devrig</code> is built to drain. The product website calls it
+“<a href="https://mcp-steroid.jonnyzzz.com/docs/devrig/">one bridge, every IDE</a>” — one <code class="language-plaintext highlighter-rouge">devrig mcp</code> process connects your AI Agent to
+<strong>all</strong> the IntelliJ-family IDEs running on your machine at once, across projects, and can
+download and start more on demand.</p>
+
+<h2 id="what-devrig-actually-is">What <code class="language-plaintext highlighter-rouge">devrig</code> actually is</h2>
+
+<p>Architecturally, <code class="language-plaintext highlighter-rouge">devrig</code> is the smallest possible thing the agent talks to: a Kotlin-based
+command-line program that speaks MCP over stdio on its front and routes everything else to
+whatever IntelliJ-family IDE makes sense. The same binary doubles as an admin CLI you can run
+by hand.</p>
+
+<p>One scope note, because it is a common question: today <code class="language-plaintext highlighter-rouge">devrig</code> is a suite that bridges the agent
+to IDEs running the <strong>MCP Steroid plugin</strong> — that is what gives the agent the full IntelliJ
+runtime. It is <strong>not</strong> a front-end for the <strong>IntelliJ-native MCP Server</strong> (JetBrains’ own bundled
+one). <code class="language-plaintext highlighter-rouge">devrig</code> already <em>detects</em> those IDEs so it can offer to fix them, but it does not route the
+agent through them yet. Speaking to the IntelliJ-native MCP Server directly — so an agent reaches a
+stock IDE with no plugin installed — is planned for a future release.</p>
+
+<p>The current subcommand surface, straight from <code class="language-plaintext highlighter-rouge">devrig --help</code>:</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-help.png" alt="devrig --help in iTerm2 with JetBrains Mono" /></p>
+
+<p>The agent only ever sees <code class="language-plaintext highlighter-rouge">devrig mcp</code>. Everything else is for humans or CLI integrations, or for swarm scripts
+(<a href="/blog/2026/03/17/run-agent-v2-release/">run-agent.sh</a> and friends) orchestrating fleets. <code class="language-plaintext highlighter-rouge">devrig</code> ships without a bundled
+runtime and is compiled for <strong>Java 25</strong>: provide a JDK 25 on <code class="language-plaintext highlighter-rouge">PATH</code>, via <code class="language-plaintext highlighter-rouge">DEVRIG_JAVA_HOME</code>.
+Amazon Corretto 25 works; so does any other JDK 25.</p>
+
+<p>We are going to automatically fetch the required runtime JDK in the next versions.</p>
+
+<h2 id="devrig-install--the-new-entry-point"><code class="language-plaintext highlighter-rouge">devrig install</code> — the new entry point</h2>
+
+<p>For most users, the very first command they run is the one that wires <code class="language-plaintext highlighter-rouge">devrig</code> into their coding
+agent. It landed in 0.100 to close <a href="https://github.com/jonnyzzz/mcp-steroid/issues/64">issue #64</a>:</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-install.png" alt="devrig install claude in iTerm2 with JetBrains Mono" /></p>
+
+<p>Three flavors, all delegating to the agent’s own CLI under the hood so the resulting config is
+exactly the one the agent itself expects:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">devrig install claude</code> → <code class="language-plaintext highlighter-rouge">claude mcp add --scope user mcp-steroid -- devrig mcp</code></li>
+  <li><code class="language-plaintext highlighter-rouge">devrig install codex</code> → <code class="language-plaintext highlighter-rouge">codex mcp add mcp-steroid -- devrig mcp</code></li>
+  <li><code class="language-plaintext highlighter-rouge">devrig install gemini</code> → <code class="language-plaintext highlighter-rouge">gemini mcp add --type stdio --scope user --trust mcp-steroid devrig mcp</code></li>
+</ul>
+
+<p>These three syntaxes were the <em>single biggest source of setup failures</em> while scripting the demo.
+Three CLIs, two of which have the <code class="language-plaintext highlighter-rouge">--</code> argv-forwarding gotcha,
+one with a different flag spelling each release. The bug-of-the-week was forgetting the <code class="language-plaintext highlighter-rouge">mcp</code>
+subcommand and registering <code class="language-plaintext highlighter-rouge">devrig</code> with nothing after it — at which point the agent tried to run
+plain <code class="language-plaintext highlighter-rouge">devrig</code>, got the help banner on stdout, and reported “MCP server initialize failed” with no
+explanation. The <code class="language-plaintext highlighter-rouge">devrig install</code> subcommand makes that class of failure unrepresentable. (The
+subcommand was originally spelled <code class="language-plaintext highlighter-rouge">mpc</code>; <code class="language-plaintext highlighter-rouge">mcp</code> is now the canonical name and <code class="language-plaintext highlighter-rouge">mpc</code> stays as a hidden
+alias so older registrations keep working.) Re-running <code class="language-plaintext highlighter-rouge">devrig install</code> is a safe, idempotent upsert:
+it finds every prior devrig/<code class="language-plaintext highlighter-rouge">mcp-steroid</code> entry and consolidates them into one.</p>
+
+<p>It also records <code class="language-plaintext highlighter-rouge">JAVA_HOME</code> explicitly so the registered MCP command is reproducible — the JDK
+the user actually has on their host is the one the agent will use, not whatever the user’s shell
+<code class="language-plaintext highlighter-rouge">JAVA_HOME</code> resolves to next month.</p>
+
+<h2 id="discovery-the-unglamorous-backbone">Discovery, the unglamorous backbone</h2>
+
+<p>Pop a few JetBrains IDEs open and run <code class="language-plaintext highlighter-rouge">devrig backend</code>. On my workstation right now, with one real
+IntelliJ open and one previously-downloaded managed Community sitting on disk:</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-backend.png" alt="devrig backend discovery in iTerm2 with JetBrains Mono" /></p>
+
+<p>Two paths feed that list:</p>
+
+<ol>
+  <li><strong>Marker files</strong> — every IDE with MCP Steroid installed writes a schema-versioned JSON file at
+<code class="language-plaintext highlighter-rouge">~/.mcp-steroid/markers/&lt;pid&gt;.mcp-steroid</code> carrying its pid, MCP URL, IDE identity, plugin
+version, bearer token, and a per-JVM <code class="language-plaintext highlighter-rouge">bootHash</code>. <code class="language-plaintext highlighter-rouge">devrig</code> reads them and subscribes to each
+IDE’s NDJSON projects-stream endpoint for a live snapshot of open projects.</li>
+  <li><strong>Active port scan</strong> of <code class="language-plaintext highlighter-rouge">127.0.0.1:63342..63361</code> (the <a href="https://www.jetbrains.com/help/idea/settings-tools-built-in-server.html">IntelliJ built-in Netty server</a>,
+which picks the first free port from 63342) and <code class="language-plaintext highlighter-rouge">:64342..64361</code> (JetBrains’ own bundled
+<a href="https://www.jetbrains.com/help/idea/mcp-server.html">MCP server</a>). This catches IDEs running <em>without</em> MCP Steroid so we can offer to
+fix them.</li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">devrig backend</code> lists <em>managed</em> backends too — IDEs <code class="language-plaintext highlighter-rouge">devrig</code> itself downloaded under
+<code class="language-plaintext highlighter-rouge">~/.mcp-steroid/backends/</code> — even when they are not currently running. That’s the second row in
+the screenshot. Discovery, install state, and lifecycle state share one consolidated view, and
+every row carries the <strong>plugin version</strong> so an out-of-date MCP Steroid is visible at a glance.</p>
+
+<p>Names are not the same string the IDE uses internally. The <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/devrig-naming.md">devrig naming spec</a>
+defines an <em>exposed</em> form: <code class="language-plaintext highlighter-rouge">slug(originalName)-projectHash</code>, where <code class="language-plaintext highlighter-rouge">projectHash</code> is a
+SHA-256-derived <strong>base62</strong> string (8 chars) over canonical inputs. Base62 was a deliberate switch
+from base64url — the earlier scheme produced exposed names like <code class="language-plaintext highlighter-rouge">mcp-steroid-gumou---</code> whenever
+the encoder spilled trailing <code class="language-plaintext highlighter-rouge">-</code> / <code class="language-plaintext highlighter-rouge">_</code> characters. Identifier-safe alphabet, always 8 chars,
+stable across IDE restarts.</p>
+
+<h2 id="routing-across-many-ides-many-projects">Routing across many IDEs, many projects</h2>
+
+<p>When two IDEs both have a project called <code class="language-plaintext highlighter-rouge">myapp</code> open, what does the agent see? Names alone are
+ambiguous, and the agent will not be impressed by “tried to open <code class="language-plaintext highlighter-rouge">myapp</code>, got the wrong one”.</p>
+
+<p>Same scheme as above — <code class="language-plaintext highlighter-rouge">&lt;slug&gt;-&lt;projectHash&gt;</code> — applied per project per IDE pid. Two <code class="language-plaintext highlighter-rouge">myapp</code>s
+become two distinct exposed names. Windows route the same way (used by screenshots and
+window-targeted actions).</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-project.png" alt="devrig project listing in iTerm2 with JetBrains Mono" /></p>
+
+<p>There is one subtlety worth knowing, and it is where the first follow-up to 0.100 landed. In 0.100, when
+the agent called <code class="language-plaintext highlighter-rouge">steroid_open_project</code>, <code class="language-plaintext highlighter-rouge">devrig</code> <em>guessed</em> the target IDE — any running <em>managed</em>
+backend first (the agent’s own sandbox), the newest discovered IDE otherwise. That guess is fine
+until two IDEs could each plausibly answer. So <a href="https://github.com/jonnyzzz/mcp-steroid/pull/87">issue #87</a> made the choice explicit:
+<code class="language-plaintext highlighter-rouge">steroid_list_projects</code> now self-describes a <code class="language-plaintext highlighter-rouge">backends[]</code> list, each entry carrying an opaque,
+routable <code class="language-plaintext highlighter-rouge">backend_name</code>, and <code class="language-plaintext highlighter-rouge">steroid_open_project</code> now <strong>requires</strong> that <code class="language-plaintext highlighter-rouge">backend_name</code> on the
+<code class="language-plaintext highlighter-rouge">devrig</code> surface to say <em>exactly</em> which IDE opens the project. It is a <strong>devrig-only</strong> parameter — a
+direct one-IDE connection does not expose it, and ignores it if sent — and an unknown value comes
+back as a self-correcting error listing the routable ones. The guidance
+the agent gets: prefer the backend that already has the same repository — or a sibling git worktree
+of it — open. One catch worth repeating in the prompt: those ids are <strong>not</strong> stable across IDE
+restarts, so the rule is <em>re-read <code class="language-plaintext highlighter-rouge">steroid_list_projects</code>, don’t cache <code class="language-plaintext highlighter-rouge">backend_name</code></em>.</p>
+
+<h2 id="auto-downloading-and-auto-starting-a-managed-ide">Auto-downloading and auto-starting a managed IDE</h2>
+
+<p>The biggest jump from Level 2 to Level 3. <code class="language-plaintext highlighter-rouge">devrig backend download</code> (no id) lists what is
+available, <em>and</em> declares which IDEs are compatible with the plugin version that ships in this
+build of <code class="language-plaintext highlighter-rouge">devrig</code>:</p>
+
+<p><img src="/images/posts/2026-06-02-devrig-backend-download.png" alt="devrig backend download list in iTerm2 with JetBrains Mono" /></p>
+
+<p>A few interesting things here:</p>
+
+<ul>
+  <li><strong>Community editions</strong> come from the real GitHub releases of <code class="language-plaintext highlighter-rouge">idea-community</code> / <code class="language-plaintext highlighter-rouge">pycharm-community</code>,
+not from the marketing-version JetBrains feed — the JetBrains products API doesn’t surface true
+IC/PC release artifacts in a stable enough way. <code class="language-plaintext highlighter-rouge">devrig</code> resolves them directly from the
+open-source repos.</li>
+  <li><strong>Android Studio</strong> comes from the <a href="https://developer.android.com/studio">Quail canary feed</a> — there is no
+<code class="language-plaintext highlighter-rouge">data.services.jetbrains.com</code> row for it, but Quail publishes a canonical SHA-256 per archive.</li>
+  <li><strong>Plugin compatibility is gated at download time.</strong> Every row carries the IDE’s build baseline
+(e.g. <code class="language-plaintext highlighter-rouge">261</code>). The bundled MCP Steroid plugin’s <code class="language-plaintext highlighter-rouge">since-build</code> / <code class="language-plaintext highlighter-rouge">until-build</code> from <code class="language-plaintext highlighter-rouge">plugin.xml</code>
+is read at startup, and IDEs whose baseline falls outside the supported range are marked
+<em>incompatible</em> — <code class="language-plaintext highlighter-rouge">devrig backend download</code> refuses to fetch them rather than letting the agent
+land in an IDE that silently won’t load the plugin. Primary baseline today: <strong>2026.1 (<code class="language-plaintext highlighter-rouge">261</code>)</strong>,
+with <strong>2026.2 EAP (<code class="language-plaintext highlighter-rouge">262</code>)</strong> as secondary verification. <strong>2025.3 (<code class="language-plaintext highlighter-rouge">253</code>) is dropped.</strong></li>
+  <li><strong>Archive caching is hash-qualified.</strong> Community and Ultimate archives that happen to share a
+filename cannot collide; both unpacked trees carry a SHA-derived prefix.</li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ devrig backend download idea-ultimate
+… resolving IDE 2026.1.2 from data.services.jetbrains.com …
+… downloading idea-ultimate-2026.1.2 (≈ 1.2 GB) …
+id:       idea-ultimate-2026.1.2
+state:    installed
+install:  /Users/jonnyzzz/.mcp-steroid/backends/idea-ultimate-2026.1.2
+cache:    /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2
+
+$ devrig backend start idea-ultimate
+pid:    67890
+log:    /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2/logs/managed.log
+config: /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2/config
+</code></pre></div></div>
+
+<p>The started IDE is <strong>headless from the user’s perspective</strong> — it can stay in the background as
+long as the agent needs it, and <code class="language-plaintext highlighter-rouge">devrig backend stop</code> reaps it cleanly. A global lock serialises
+download / start / stop so two concurrent agents can’t trash the same on-disk install. Managed
+backends emit anonymous PostHog beacons (<code class="language-plaintext highlighter-rouge">devrig_session_initialized</code>, <code class="language-plaintext highlighter-rouge">devrig_exec_code</code>,
+start / stop, errors) so I can tell whether agents are actually using the lifecycle or working
+around it.</p>
+
+<h2 id="the-whole-flow-end-to-end">The whole flow, end to end</h2>
+
+<p>The sequence above is exactly what the end-to-end test does, and it is the cleanest demonstration of
+Level 3 I have. In one prompt, with no MCP config and no IDE running up front: <code class="language-plaintext highlighter-rouge">devrig install claude</code>, then
+<code class="language-plaintext highlighter-rouge">devrig backend download idea-community</code>, <code class="language-plaintext highlighter-rouge">devrig backend start idea-community</code>, and then Claude
+opens <strong>Keycloak</strong> and runs
+<code class="language-plaintext highlighter-rouge">JavaPsiFacade.findClass("org.keycloak.models.UserModel") → ReferencesSearch.search(psiClass).findAll().size</code>.
+The return value is real:</p>
+
+<blockquote>
+  <p><strong>4,633 PSI usages of <code class="language-plaintext highlighter-rouge">org.keycloak.models.UserModel</code> — in one prompt.</strong></p>
+</blockquote>
+
+<p>It comes straight from the e2e test (<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt"><code class="language-plaintext highlighter-rouge">DevrigManagedBackendAgentE2ETest.kt</code></a>). One honesty note: the IDE
+archive and Keycloak’s Maven indices are pre-warmed before the run, so the wall-clock stays short —
+but that only changes the <em>timing</em>. The agent’s actual work — provision the IDE, open the project,
+run the PSI search — is byte-identical whether the caches are warm or cold.</p>
+
+<h2 id="what-0100-changed-beyond-devrig">What 0.100 changed beyond <code class="language-plaintext highlighter-rouge">devrig</code></h2>
+
+<p>The <a href="https://mcp-steroid.jonnyzzz.com/releases/0.100/">0.100 release notes</a> (<a href="https://github.com/jonnyzzz/mcp-steroid/releases/tag/v0.100">GitHub release <code class="language-plaintext highlighter-rouge">v0.100</code></a>) cover the full
+delta, but the agent-facing items worth naming alongside <code class="language-plaintext highlighter-rouge">devrig</code>:</p>
+
+<ul>
+  <li><strong>Typed <code class="language-plaintext highlighter-rouge">modal</code> mode for <code class="language-plaintext highlighter-rouge">steroid_execute_code</code>.</strong> The earlier mix of dialog-killer and
+allow-modal booleans is replaced with one explicit parameter: <code class="language-plaintext highlighter-rouge">smart_non_modal</code> (default — close
+stray dialogs, verify non-modal, commit + refresh, wait for smart mode), <code class="language-plaintext highlighter-rouge">non_modal</code> (assert
+only, no mid-run policy), or <code class="language-plaintext highlighter-rouge">unleashed</code> (intentional modal-dialog workflows).</li>
+  <li><strong>The tool surface narrowed from 10 → 8.</strong> <code class="language-plaintext highlighter-rouge">steroid_action_discovery</code> and <code class="language-plaintext highlighter-rouge">steroid_apply_patch</code>
+are gone; the same workflows live as recipes (<code class="language-plaintext highlighter-rouge">mcp-steroid://ide/action-discovery</code>,
+<code class="language-plaintext highlighter-rouge">mcp-steroid://ide/apply-patch</code> with the in-script <code class="language-plaintext highlighter-rouge">applyPatch { }</code> DSL) reached only through
+<code class="language-plaintext highlighter-rouge">steroid_fetch_resource</code>. The IDE-conditional context the resource carries is the reason for
+not advertising recipes via the generic MCP <code class="language-plaintext highlighter-rouge">resources/list</code>.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">steroid_input</code> switched to <code class="language-plaintext highlighter-rouge">window_id</code></strong> (from <code class="language-plaintext highlighter-rouge">steroid_list_windows</code> /
+<code class="language-plaintext highlighter-rouge">steroid_take_screenshot</code>). Breaking change to that tool’s input — worth flagging if you have
+scripts pinning the old <code class="language-plaintext highlighter-rouge">screenshot_execution_id</code>.</li>
+  <li><strong>The devrig↔plugin wire contract is pinned</strong>, additive-only, with contract tests covering the
+full <code class="language-plaintext highlighter-rouge">steroid_execute_code</code> parameter set (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/23">issue #23</a>).</li>
+  <li><strong>Token-efficient tabular output.</strong> <code class="language-plaintext highlighter-rouge">printCsv</code> / <code class="language-plaintext highlighter-rouge">printToon</code> script-context helpers let
+<code class="language-plaintext highlighter-rouge">steroid_execute_code</code> return compact tables without token bloat (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/34">#34</a> / <a href="https://github.com/jonnyzzz/mcp-steroid/issues/35">#35</a>).</li>
+  <li><strong>Human review mode is gone in full</strong> — the <code class="language-plaintext highlighter-rouge">review.*</code> registry keys, the
+<code class="language-plaintext highlighter-rouge">mcp.steroid.review.mode</code> system property, the storage helpers, the docs and website pages.
+The product is focused on agent-driven IDE execution rather than a human-gated review step.</li>
+</ul>
+
+<h2 id="pros--what-changes-for-the-agent">Pros — what changes for the agent</h2>
+
+<ul>
+  <li><strong>One transport, one server.</strong> <code class="language-plaintext highlighter-rouge">devrig mcp</code> is the only thing the agent’s MCP config has to
+know. No ports, no URLs, no per-machine drift. Stdio is the dominant IDE transport for a reason.</li>
+  <li><strong>The install is a single command.</strong> <code class="language-plaintext highlighter-rouge">devrig install claude|codex|gemini</code> writes the agent
+config the way the agent itself expects. The three-CLI argv-forwarding tax is paid once, in
+<code class="language-plaintext highlighter-rouge">devrig</code>, not on every user’s machine.</li>
+  <li><strong>Multi-IDE, multi-window, multi-project — out of the box.</strong> Hash-suffixed routing makes
+“which one?” disambiguation explicit; base62 hashes are identifier-safe.</li>
+  <li><strong>Compatibility gating.</strong> If the bundled plugin can’t load in a given IDE build, that IDE is
+flagged at <em>download time</em>. Fewer silent dead-ends.</li>
+  <li><strong>First run is one command, not a setup checklist.</strong> No “go install the IDE first” step in the
+agent’s bring-up guide — <code class="language-plaintext highlighter-rouge">devrig backend download</code> <em>is</em> the install step (a real download the first
+time, cached after).</li>
+  <li><strong>Background mode is normal.</strong> Spinning up an IDE for a 4-hour batch job stops being weird; it
+is just <code class="language-plaintext highlighter-rouge">start</code> + <code class="language-plaintext highlighter-rouge">stop</code>. The Docker test matrix exercises that path daily.</li>
+  <li><strong>Inspectable.</strong> <code class="language-plaintext highlighter-rouge">devrig backend --json</code> and <code class="language-plaintext highlighter-rouge">devrig project --json</code> give swarm scripts a
+deterministic snapshot to make decisions on. Managed backends report their lifecycle via
+PostHog beacons.</li>
+</ul>
+
+<h2 id="cons--and-i-want-you-to-read-these-honestly">Cons — and I want you to read these honestly</h2>
+
+<ul>
+  <li><strong>JDK 25 is a hard requirement.</strong> <code class="language-plaintext highlighter-rouge">devrig</code> doesn’t bundle a JVM in 0.100; the host must provide
+Java 25. A bundled-runtime story is on the roadmap (the deployment spec exists), not in the box
+yet.</li>
+  <li><strong>Port-range assumption.</strong> The active scanner pings exactly <code class="language-plaintext highlighter-rouge">63342..63361</code> and <code class="language-plaintext highlighter-rouge">64342..64361</code>.
+Anything outside those ranges is invisible. Right default in 2026; still a default.</li>
+  <li><strong>Managed-IDE operations are one-at-a-time.</strong> A global lock prevents concurrent download / start
+/ stop. Two agents on the same machine launching different IDEs in parallel will serialise.
+Probably the right call; worth knowing.</li>
+  <li><strong>Detection lag.</strong> A crashed IDE stays in the routing table for ~2 seconds until the next poll.</li>
+  <li><strong>The trust dialog can still block a fully-autonomous open.</strong> On 2026.1.2 the project-trust
+auto-grant regressed (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/65">issue #65</a>): a freshly opened project can stall on the Trust
+dialog — the one human gate that quietly defeats the “human out of the loop” pitch until someone
+clicks it. Embarrassing for a Level 3 story, and it belongs near the top of the fix list.</li>
+  <li><strong>Multi-IDE labeling is still settling.</strong> With several IDEs open, <code class="language-plaintext highlighter-rouge">steroid_list_projects</code> /
+<code class="language-plaintext highlighter-rouge">steroid_list_windows</code> could mislabel which backend a project belongs to (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/89">issue #89</a>).
+The explicit <code class="language-plaintext highlighter-rouge">backend_name</code> model above points the right way, but making the labels themselves
+reliable across many IDEs is the actual fix, and that part is still in flight.</li>
+  <li><strong>Plugin install on user-launched IDEs still has a human seam.</strong> <code class="language-plaintext highlighter-rouge">devrig backend provision</code>
+prints instructions — it does not yet drop the plugin file into the user’s main IDE config
+automatically. Closing that seam is on the list.</li>
+  <li><strong>Single-user assumption.</strong> <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/</code> is per user. Multi-tenant CI servers will need a
+story; today they get one home directory.</li>
+  <li><strong>macOS / Linux first.</strong> Windows is supported (the <code class="language-plaintext highlighter-rouge">devrig install</code> PowerShell path is real),
+but most production hours so far live on macOS arm64.</li>
+  <li><strong>2025.3 is dropped.</strong> If you are on <code class="language-plaintext highlighter-rouge">253</code>, the plugin will refuse to load and <code class="language-plaintext highlighter-rouge">devrig</code> will
+refuse to download the matching managed backend. Upgrade to 2026.1.</li>
+</ul>
+
+<h2 id="open-questions--what-should-it-do-next">Open questions — what should it do next?</h2>
+
+<p>This is the part I really wrote this post for. 0.100 is shipped, a fast follow-up added explicit
+<code class="language-plaintext highlighter-rouge">backend_name</code> routing, and the foundation works. Now I want to choose what to build next based on
+what <em>you</em> actually need.</p>
+
+<p>A few directions on the whiteboard — please tell me which ones matter, and what I am missing:</p>
+
+<ol>
+  <li><strong>Remote IDEs as a first-class concept.</strong> <code class="language-plaintext highlighter-rouge">devrig</code> already routes between local IDEs. Same
+abstraction wants to extend to a JetBrains Gateway / SSH host: tell <code class="language-plaintext highlighter-rouge">devrig</code> “use the IDE on
+<code class="language-plaintext highlighter-rouge">dev-box-7</code>” and it sets up the channel. Niche, or the next obvious step?</li>
+  <li><strong>Fully autonomous plugin install into a user-launched IDE.</strong> Drop the plugin file in the
+right directory, restart the IDE, verify the marker appeared, report back. Worth it, or do
+most users want a manual confirmation step?</li>
+  <li><strong>Bundled-JRE devrig.</strong> Ship a <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/binaries/&lt;os&gt;-&lt;cpu&gt;-&lt;sha&gt;/</code> cache with a small
+wrapper, so the JDK-25 prerequisite stops being a prerequisite. The deployment spec is written.</li>
+  <li><strong>Fleet mode.</strong> One <code class="language-plaintext highlighter-rouge">devrig</code> server, N parallel agents, one user — each agent gets its own
+managed IDE window without trampling the others. The lock today serialises; fleet mode would
+need a different concurrency story.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">devrig doctor</code>.</strong> Self-diagnostic command: “your plugin is out of date in IDE 2, port 63344
+is taken by a different process, your JDK is missing on Linux/arm64, your <code class="language-plaintext highlighter-rouge">claude</code> MCP entry
+points at a stale path.”</li>
+  <li><strong>Sandboxed IDE profiles.</strong> Spawn an IDE with a throwaway config dir for one task, then
+delete. Reproducible runs without polluting the user’s main IDE setup.</li>
+  <li><strong>CI-friendly mode.</strong> Headless start optimised for GitHub Actions / TeamCity where the
+“human in the loop” assumption no longer holds.</li>
+  <li><strong>Plugin auto-update.</strong> When <code class="language-plaintext highlighter-rouge">devrig</code> itself updates and ships a newer plugin, push it into
+every managed IDE on the machine.</li>
+  <li><strong>Auth and policy.</strong> The per-IDE bearer token is already on the marker file. The next question
+is who is allowed to do what — does that matter to teams, or is it overkill outside enterprise?</li>
+  <li><strong>More agent CLIs.</strong> Cursor, Aider, Continue, IntelliJ AI Assistant chat — <code class="language-plaintext highlighter-rouge">devrig install</code>
+today knows three. Adding a fourth is <code class="language-plaintext highlighter-rouge">mcpAddStdioArgs</code> plus an enum entry. Which one would
+actually unblock you?</li>
+</ol>
+
+<p>Reply on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a>, <a href="https://twitter.com/jonnyzzz">Twitter</a>, or open an issue on
+<a href="https://github.com/jonnyzzz/mcp-steroid">jonnyzzz/mcp-steroid</a> — and the more concrete the workflow you describe, the more
+directly I can shape this around it. Issue <a href="https://github.com/jonnyzzz/mcp-steroid/issues/64">#64</a> tracked the auto-install ask before
+it landed; the same template works for anything on the list above.</p>
+
+<h2 id="where-this-is-going-and-where-it-is">Where this is going, and where it is</h2>
+
+<p>I have been writing about <a href="/blog/2026/03/24/agentic-experience-and-tools/">Agentic Experience and Tools</a> as the discipline of building
+products with the AI Agent as the <em>user</em>, not as a feature bolted onto a human-facing UI. MCP
+Steroid is that bet, and it has a deliberate arc:</p>
+
+<p><img src="/images/posts/2026-06-02-mcp-steroid-arc.svg" alt="MCP Steroid's arc — the in-IDE plugin, then devrig the bridge, then remote IDE fleets" /></p>
+
+<p>The plugin came first: hand the agent the <strong>full</strong> IntelliJ runtime instead of a curated tool menu.
+<code class="language-plaintext highlighter-rouge">devrig</code> is the next move — wrap that capability in one stdio bridge so the agent reaches <em>every</em>
+MCP Steroid–enabled IDE on the machine, and can bring a managed one into existence on its own. The
+step after that is remote: the same protocol pointed at IDEs on other hosts, and eventually fleets
+of them, which is probably where the commercial product starts to make sense.</p>
+
+<p>So where are we, honestly? Level 3 has worked end to end — the <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt">Keycloak run</a> is not a mock,
+and the <code class="language-plaintext highlighter-rouge">backend_name</code> routing that landed right after 0.100 makes “which IDE?” an explicit,
+answerable question. The foundation is real. It is also still an independent experiment with sharp
+edges: the 2026.1.2 trust-dialog regression can still stall an autonomous open, the JDK-25
+prerequisite is unbundled, plugin promotion into a user’s own IDE still has a manual step, and
+<code class="language-plaintext highlighter-rouge">~/.mcp-steroid/</code> assumes a single user. Remote and fleet mode are designed, not shipped.</p>
+
+<p>The honest summary: the agent can now stop asking a human for help just to <em>get started</em> against a
+real IDE — and that, I think, is where this kind of tooling gets interesting. What it should reach
+for next I genuinely do not know yet; that is what the open questions above are for. Tell me which
+one is yours.</p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
