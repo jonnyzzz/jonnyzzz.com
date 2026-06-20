@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-06-10T13:03:36+00:00</updated>
+  <updated>2026-06-20T10:39:04+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,409 @@
   
 
   
+  
+  <entry>
+    <title type="html">What Did the Agent Just Push? Auditing Git for AI Agents</title>
+    <link href="https://jonnyzzz.com/blog/2026/06/20/auditing-git-for-ai-agents/" rel="alternate" type="text/html" title="What Did the Agent Just Push? Auditing Git for AI Agents" />
+    <published>2026-06-20T00:00:00+00:00</published>
+    <updated>2026-06-20T00:00:00+00:00</updated>
+    <id>/blog/2026/06/20/auditing-git-for-ai-agents</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/06/20/auditing-git-for-ai-agents/">&lt;p&gt;You hand a repository to an autonomous AI Agent and let it work. It clones, branches, commits, pushes,
+maybe opens a pull request. A few minutes later it tells you it is done. Two questions stay on the table,
+and neither has a comfortable answer:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Which commits did it actually produce?&lt;/strong&gt; Not the summary it wrote for you — the real objects that
+landed on the server.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Are you sure it only touched the branches you allowed?&lt;/strong&gt; One confused agent force-pushing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; is
+a bad afternoon.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I have been running fleets of agents on the same codebases for a while now (see
+&lt;a href=&quot;/blog/2026/01/30/orchestrating-ai-fleets/&quot;&gt;Orchestrating AI Fleets&lt;/a&gt; and the
+&lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;), and the more agents you run, the
+more these two questions turn from curiosity into operational risk. This post is about answering them at
+the layer where the truth lives: &lt;strong&gt;git itself&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;This post is the approach: why this is a git problem, the one rule that makes everything else possible, and
+the two mechanisms — a git proxy and git hooks — at a level you can reason about and act on. The deepest
+wire-protocol mechanics of the proxy are involved enough that they get their own follow-up; here we cover
+the shape and the decisions, with enough pseudo-code that your AI Agent can start implementing it in your
+stack.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;why-this-is-a-git-problem-not-a-policy-document&quot;&gt;Why This Is a Git Problem, Not a Policy Document&lt;/h2&gt;
+
+&lt;p&gt;The naive answer is “just tell the agent which branches it may touch.” That is a policy. Policies are
+suggestions to a process that has a shell, a network, and a strong urge to finish its task. Agents are
+smart — give one a constraint phrased as a request and it may find a creative way around it, not out of
+bad intent but because working around obstacles is literally what we trained it to do.&lt;/p&gt;
+
+&lt;p&gt;So we do not rely on asking nicely. We rely on two properties:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Blast radius&lt;/strong&gt; — only the heads we selected can change on the real server, enforced somewhere the
+agent cannot route around.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Provenance&lt;/strong&gt; — every commit the agent created is captured and attributed, so we can recover, review,
+and audit it after the fact. This will be a great source for iterative learning later.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are two ways to get there. The first is a &lt;strong&gt;git proxy&lt;/strong&gt; that sits outside the agent’s sandbox — the
+hard boundary. The second is &lt;strong&gt;git hooks&lt;/strong&gt; baked into the sandbox image — a lighter, best-effort layer for
+when you own the image but not the network path. We use the proxy as the real wall and treat hooks as
+extra telemetry. Here is why.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-one-rule-underneath-everything-dont-give-agents-the-real-keys&quot;&gt;The One Rule Underneath Everything: Don’t Give Agents the Real Keys&lt;/h2&gt;
+
+&lt;p&gt;Before any proxy or hook, there is a decision that makes the rest possible.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;The agent never holds the credentials to the real git server.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Inside the sandbox, the agent gets a short-lived, scoped token that authenticates it to &lt;em&gt;our&lt;/em&gt; endpoint —
+not to GitHub or Space, not to your internal git host. We inject that token the boring way: a git credential helper
+or a URL rewrite, never the real key on disk. The real push credential lives in the proxy, which the agent
+cannot read. When a push is allowed, the proxy authenticates upstream with its own service credential.&lt;/p&gt;
+
+&lt;p&gt;This is the property that survives a clever agent. A sandbox is a permission boundary, and inside its own
+sandbox an agent may have enough rights to do almost anything — read its environment, rewrite files,
+disable the tooling we installed. If the real key were anywhere in that environment, a determined agent
+could find it and talk to the Git server directly, and every control we built would be decoration. Because the
+key is &lt;em&gt;not&lt;/em&gt; there, the worst an escaped agent can reach is the proxy — and the proxy enforces policy and
+holds the key. The blast radius is bounded by where the credential lives, not by how well-behaved the
+agent is&lt;/p&gt;
+
+&lt;p&gt;I want to note – the pattern how we are going to limit the agent push/pull operations is not standard,
+and potentially is hard-to-impossible to implement out of the box with GitHub, Space or any third-party Git host.
+Agentic AI opens yet another direction for us – software is now very cheap to build, given you know how.&lt;/p&gt;
+
+&lt;p&gt;Below we explain enough ideas to implement it. Git supports multiple protocols, including HTTP, SSH, &lt;del&gt;and Git over TCP&lt;/del&gt;.
+We decided to use HTTP below, but the same technique can be applied to other protocols as well, mainly to SSH.&lt;/p&gt;
+
+&lt;h2 id=&quot;solution-1-the-git-proxy--the-hard-boundary&quot;&gt;Solution 1: The Git Proxy — the Hard Boundary&lt;/h2&gt;
+
+&lt;p&gt;A git push over HTTP is a surprisingly inspectable conversation. If you put a proxy on the path between the
+agent and the server, you can read the whole exchange, decide whether to allow it, and capture everything
+that flows through — without the agent being able to tell the difference, and without it being able to go
+around you, because it has nowhere else to go&lt;/p&gt;
+
+&lt;h3 id=&quot;what-a-push-actually-looks-like-on-the-wire&quot;&gt;What a push actually looks like on the wire&lt;/h3&gt;
+
+&lt;p&gt;Git’s “smart HTTP” protocol does a push in two HTTP requests
+(&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-http&quot;&gt;gitprotocol-http&lt;/a&gt;):&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Ref advertisement&lt;/strong&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET /info/refs?service=git-receive-pack&lt;/code&gt;. After a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;# service=git-receive-pack&lt;/code&gt;
+header line and a flush, the server lists every ref and its current object id, and on the &lt;em&gt;first&lt;/em&gt; ref
+line it appends a NUL byte followed by the
+&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-capabilities&quot;&gt;capabilities&lt;/a&gt; it supports.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;The push itself&lt;/strong&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST /git-receive-pack&lt;/code&gt;. The body is a sequence of commands (“update
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/x&lt;/code&gt; from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;old&amp;gt;&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;new&amp;gt;&lt;/code&gt;”) followed by a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PACK&lt;/code&gt; — the binary blob of objects being
+transferred.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The advertisement, the command list and the status report are all framed in &lt;strong&gt;pkt-lines&lt;/strong&gt;: a 4-byte hex
+length prefix in front of each chunk, with a special &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0000&lt;/code&gt; “flush” packet as a separator
+(&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-common&quot;&gt;gitprotocol-common&lt;/a&gt;). The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PACK&lt;/code&gt; payload itself is raw
+bytes that follow the command section. That framing is the whole reason a proxy can parse the stream
+cheaply — you always know where the next record starts.&lt;/p&gt;
+
+&lt;h3 id=&quot;enforcement-reject-the-heads-you-didnt-allow&quot;&gt;Enforcement: reject the heads you didn’t allow&lt;/h3&gt;
+
+&lt;p&gt;This is the easy and most valuable half. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ref-update&lt;/code&gt; commands sit in plain pkt-lines at the front of the
+POST body, &lt;em&gt;before&lt;/em&gt; the pack. Parse them, compare each target ref against your allow-list, and refuse the
+ones that don’t match — before a single byte reaches the real server.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;on POST /git-receive-pack(body):
+    # read pkt-lines until the 0000 flush that ends the
+    # command list; the pack begins right after it.
+    # --signed wraps the commands in a push-cert ...
+    # push-cert-end block (then push-options): parse the
+    # commands from inside it and forward the cert
+    # byte-for-byte — the signature covers it
+    commands, pack = split_at_pack(body)
+
+    for (old, new, ref) in parse_commands(commands):
+
+        # e.g. only refs/heads/agent/* may change
+        if not allowed(ref):                      
+            return reject(ref, &quot;ref not in allow-list&quot;)
+
+        if is_delete(new) and not allow_deletes(ref):
+            return reject(ref, &quot;deletes not permitted&quot;)
+
+    # only now, with our real credential
+    response = forward_upstream(body)
+
+    # the audit trail — the capture step, in a follow-up
+    capture(response, pack)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Because the proxy holds the credential and the agent does not, this is a wall, not a request. An agent
+that dislikes the wall cannot push around it — its token only opens the proxy.&lt;/p&gt;
+
+&lt;p&gt;That is the enforcement half — the part that bounds the blast radius, and the part you can ship first. The
+other half is &lt;em&gt;capture&lt;/em&gt;: getting the traffic to the proxy in the first place, reading the pushed pack,
+logging every commit, and keeping the objects alive for recovery. It turns out to be a meaty topic on its
+own — MITM and endpoint classification, thin packs and the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; trick, why a pack gives you whole
+files and not diffs, backup marker refs, and the side-effects of sitting in the middle of a signed, atomic
+protocol — so I’ll give the build its own follow-up post. If
+you only ever do one thing, do enforcement; if you want the audit trail too, that follow-up is where it
+gets built.&lt;/p&gt;
+
+&lt;h2 id=&quot;solution-2-git-hooks--the-lighter-in-container-alternative&quot;&gt;Solution 2: Git Hooks — the Lighter, In-Container Alternative&lt;/h2&gt;
+
+&lt;p&gt;The proxy needs you to control the network path. Sometimes you don’t — you control the &lt;em&gt;image&lt;/em&gt; the agent
+runs in, but the egress is whatever it is. In that case &lt;a href=&quot;https://git-scm.com/docs/githooks&quot;&gt;git hooks&lt;/a&gt; get
+you most of the provenance, with none of the wire-protocol work.&lt;/p&gt;
+
+&lt;p&gt;The idea: stamp every commit with a session id as it is created, and capture artifacts on push.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;prepare-commit-msg&lt;/code&gt;&lt;/strong&gt; is the primary tagging point. It fires for commit, amend, merge, cherry-pick and
+the rebase reword/squash/fixup paths — and, crucially, it is &lt;strong&gt;not&lt;/strong&gt; suppressed by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git commit
+--no-verify&lt;/code&gt; (unlike &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-commit&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;commit-msg&lt;/code&gt;, which are). That is exactly why it is the &lt;em&gt;primary&lt;/em&gt;
+tag: the one commit-time hook the agent can’t wave away. Have it append
+a &lt;a href=&quot;https://git-scm.com/docs/git-interpret-trailers&quot;&gt;trailer&lt;/a&gt; like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Agent-Session: &amp;lt;id&amp;gt;&lt;/code&gt; to the message. A
+trailer is a structured &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Key: value&lt;/code&gt; line at the end of the message, the same machinery as
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Signed-off-by&lt;/code&gt;, so it survives rebases and you can grep for it later. Re-collect existing values and
+re-emit one block, so a squash &lt;em&gt;preserves distinct&lt;/em&gt; sessions and &lt;em&gt;dedups identical&lt;/em&gt; ones.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;commit-msg&lt;/code&gt;&lt;/strong&gt; is a thin validator — a second chance to confirm the trailer is present. Like the
+others, it only observes and never blocks the commit.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;post-rewrite&lt;/code&gt;&lt;/strong&gt; records old→new commit mapping after amend/rebase, so provenance follows the rewrite.
+(Mind the detail: its stdin is &lt;em&gt;space&lt;/em&gt;-separated, not tab.)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;&lt;/strong&gt; is the enforcement-and-capture net. If it finds an untagged commit, it rewrites the whole
+pushed suffix in topological order with a checkout-free
+&lt;a href=&quot;https://git-scm.com/docs/git-commit-tree&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git commit-tree&lt;/code&gt;&lt;/a&gt; — no rebase, so no dirty-tree or
+empty-commit hazards — re-parenting each descendant onto its rewritten ancestor (and keeping every parent
+of a merge with repeated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-p&lt;/code&gt;), then moves the branch and &lt;strong&gt;aborts the push&lt;/strong&gt; so the corrected commits go
+out on the retry. That auto-rewrite only makes sense when the pushed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;local-ref&amp;gt;&lt;/code&gt; is a real
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/*&lt;/code&gt; branch; for a delete, a detached-HEAD push or a raw-SHA push there is no branch to move, so
+abort with instructions instead. On a clean push it captures — a
+&lt;a href=&quot;https://git-scm.com/docs/git-bundle&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git bundle&lt;/code&gt;&lt;/a&gt; (validate it with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git bundle verify&lt;/code&gt;), per-commit
+patches, and a small &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;metadata.json&lt;/code&gt;. Be honest about what this is, though: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt; fires &lt;em&gt;before&lt;/em&gt; the
+remote answers, so these are &lt;strong&gt;attempted-push artifacts&lt;/strong&gt; — they record what the agent tried to send, not
+what the server finally accepted. For “what actually landed”, you need the proxy or a server-side hook.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;To make the hooks apply to &lt;em&gt;every&lt;/em&gt; repository — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/workspace&lt;/code&gt; and any clone the agent makes later — wire
+them through &lt;a href=&quot;https://git-scm.com/docs/git-config&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt;&lt;/a&gt; rather than copying files into each
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/hooks&lt;/code&gt;. Bake the hooks into the image root-owned and read-only, and set &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt; in the
+root-owned &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/gitconfig&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# Dockerfile (sketch)
+COPY --chmod=555 --chown=root:root githooks/ /opt/githooks/
+RUN git config --system core.hooksPath /opt/githooks
+# resolve one canonical Agent-Session id in the entrypoint and write it to a fixed, well-known FILE
+# (say /.session_id) that the hooks read — NOT an env var. A file is harder for the agent to unset or
+# forge than the environment, and it survives sub-shells and `git` wrappers. Pre-create it owner-writable
+# in the image (the entrypoint runs non-root); a missing or blank file just means &quot;skip tagging&quot; — the
+# hooks still never block.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Why a file and not the obvious environment variable: the agent shares that environment. It can &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unset&lt;/code&gt; the
+variable, override it, or spawn &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git&lt;/code&gt; with a scrubbed env — the same class of bypass we just saw with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_CONFIG_*&lt;/code&gt;. A fixed path the entrypoint writes once, before the agent runs, is a smaller target. It is
+still inside the sandbox, so still defeat-able by a determined agent — but it removes the easy footgun, and
+that is the right bar for a best-effort layer.&lt;/p&gt;
+
+&lt;h3 id=&quot;hooks-can-be-broken-by-the-agent-or-an-ide--and-thats-expected&quot;&gt;Hooks Can Be Broken by the Agent or an IDE — and That’s Expected&lt;/h3&gt;
+
+&lt;p&gt;Here is the part most write-ups skip, and the reason hooks are the &lt;em&gt;second&lt;/em&gt; solution, not the first.&lt;/p&gt;
+
+&lt;p&gt;A hook runs &lt;em&gt;inside the agent’s sandbox&lt;/em&gt;, which means it lives in a place where the agent often has enough
+permissions to defeat it. The honest list of holes:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Config precedence runs the wrong way for you.&lt;/strong&gt; It is tempting to think &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/etc/gitconfig&lt;/code&gt; is
+authoritative because it is “system”. It is the opposite — system config is the &lt;em&gt;lowest&lt;/em&gt; precedence, and
+a per-user &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.gitconfig&lt;/code&gt; overrides it (&lt;a href=&quot;https://git-scm.com/docs/git-config&quot;&gt;git-config&lt;/a&gt;, SCOPES). So an
+agent that can write its own global config can point &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt; somewhere empty. Root-owned
+read-only files raise the bar, but precedence is not on your side.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;And precedence is only the easy bypass.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git -c core.hooksPath=…&lt;/code&gt; on the command line, a repo-local
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/config&lt;/code&gt;, or the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_CONFIG_COUNT&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_CONFIG_NOSYSTEM&lt;/code&gt; environment variables all override the
+system file too. A &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git&lt;/code&gt; wrapper that scrubs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_CONFIG_*&lt;/code&gt; and refuses &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-c core.hooksPath=&lt;/code&gt; would close
+these, but now you are maintaining a wrapper — and you are still inside the sandbox.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git push --no-verify&lt;/code&gt; skips &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;&lt;/strong&gt; entirely, unless you also wrap the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git&lt;/code&gt; binary.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;A sufficiently privileged agent can just remove the hooks.&lt;/strong&gt; In a dedicated sandbox the agent may well
+have &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo&lt;/code&gt; or own the filesystem. If it decides to delete &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/githooks&lt;/code&gt;, it can.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;We do not treat any of this as a defect. &lt;strong&gt;Hooks are best-effort observability, not a security boundary.&lt;/strong&gt;
+They give you clean provenance for the overwhelmingly common case where the agent is doing ordinary work,
+and they cost almost nothing. The moment you need a guarantee rather than a strong default, you are back to
+the proxy — because the proxy is the one control the agent cannot reach, and the credential isolation
+behind it is the one fact the agent cannot wish away.&lt;/p&gt;
+
+&lt;p&gt;That is the whole reason for the ordering. Proxy first, hooks as a helpful layer on top.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-two-solutions-side-by-side&quot;&gt;The Two Solutions, Side by Side&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Property&lt;/th&gt;
+      &lt;th&gt;Git Proxy (Solution 1)&lt;/th&gt;
+      &lt;th&gt;Git Hooks (Solution 2)&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Where it runs&lt;/td&gt;
+      &lt;td&gt;Outside the sandbox, on the path&lt;/td&gt;
+      &lt;td&gt;Inside the sandbox image&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Can the agent bypass it?&lt;/td&gt;
+      &lt;td&gt;No — it holds the keys, agent can’t&lt;/td&gt;
+      &lt;td&gt;Yes — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-verify&lt;/code&gt;, sudo, config&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Enforces blast radius&lt;/td&gt;
+      &lt;td&gt;Yes, before bytes reach the server&lt;/td&gt;
+      &lt;td&gt;Best-effort (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt; only)&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Captures every commit&lt;/td&gt;
+      &lt;td&gt;Yes (raw pack if &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; skipped)&lt;/td&gt;
+      &lt;td&gt;Attempts only, until a hook is off&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Needs control of the network&lt;/td&gt;
+      &lt;td&gt;Yes&lt;/td&gt;
+      &lt;td&gt;No&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Needs control of the image&lt;/td&gt;
+      &lt;td&gt;No&lt;/td&gt;
+      &lt;td&gt;Yes&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Right mental model&lt;/td&gt;
+      &lt;td&gt;A wall&lt;/td&gt;
+      &lt;td&gt;A diligent assistant&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Access possible outside of the session&lt;/td&gt;
+      &lt;td&gt;Controlled by the proxy&lt;/td&gt;
+      &lt;td&gt;Controlled by the Git Hosting&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;If you can run only one, run the proxy. If you can run both, the hooks make the common case richer while
+the proxy guarantees the floor.&lt;/p&gt;
+
+&lt;p&gt;The long answer actually is to design and use the combination of both. For example, I believe that we
+still need to keep track of all changes that were created by the AI Agent; it will help in the future us
+better understand what happened, how quality and other project metrics were affected. It will definitely
+help us to improve the agent’s performance and the project’s quality. This information will be necessary
+to measure the impact of the agent on the project.&lt;/p&gt;
+
+&lt;p&gt;We are missing &lt;strong&gt;Solution 3&lt;/strong&gt;. The pipeline to mark, backup, and analyze all the AI-made changes at scale. I’m
+building it now.&lt;/p&gt;
+
+&lt;h2 id=&quot;meanwhile-git-itself-is-being-rebuilt-for-agents&quot;&gt;Meanwhile, Git Itself Is Being Rebuilt for Agents&lt;/h2&gt;
+
+&lt;p&gt;It is worth zooming out, because the ground under all of this is moving. In June 2026 two projects landed
+that take the same problem somewhere very different. &lt;strong&gt;Cursor Origin&lt;/strong&gt;
+(&lt;a href=&quot;https://explainx.ai/blog/cursor-origin-git-hosting-github-alternative-ai-agents-2026&quot;&gt;overview&lt;/a&gt;) is a git
+&lt;em&gt;forge&lt;/em&gt; built for agents rather than humans — its whole premise is that when dozens of background agents
+clone, branch and push against one repository at once, git’s human-scale assumptions become the bottleneck.
+And &lt;a href=&quot;https://github.com/EpicGames/lore&quot;&gt;&lt;strong&gt;Lore&lt;/strong&gt;&lt;/a&gt;, Epic Games’ new open-source version control system,
+rebuilds the &lt;em&gt;substrate&lt;/em&gt; — content-addressed, local-first, and equally at home with code and the
+multi-gigabyte binaries that games and film drag around.&lt;/p&gt;
+
+&lt;p&gt;Two different layers, one signal: version control is being rethought for a world where most commits are not
+typed by a person. That does not retire anything in this post. Most teams still run plain git against
+GitHub, GitLab or an internal host today — and even an agent-first forge has to answer the same two
+questions this whole write-up is about: &lt;em&gt;which commits did the agent produce, and did it touch only what we
+allowed?&lt;/em&gt; The boundary and the audit trail travel with you whatever the substrate; the proxy and the hooks
+are how you get them on the git you already have.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion-ai-automation-is-not-just-running-the-jobs&quot;&gt;Conclusion: AI Automation Is Not Just Running the Jobs&lt;/h2&gt;
+
+&lt;p&gt;It is easy to think the hard part of agent automation is getting the agent to &lt;em&gt;do&lt;/em&gt; the work. It is not.
+The agent does the work happily. The hard part is everything around the work:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;Bound the blast radius.&lt;/strong&gt; Assume the agent is capable and occasionally wrong, keep the real
+credentials out of its reach, and put enforcement somewhere it cannot route around. A boundary the
+agent can edit is a preference, not a boundary.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Collect the data.&lt;/strong&gt; Every commit, every push, attributed to a session and stored. Not because you
+expect disaster, but because that log is the raw material for the &lt;em&gt;next&lt;/em&gt; iteration — which prompts
+produce which diffs, where agents go off the rails, what a good run looks like versus a bad one. You
+cannot improve a system you cannot see, and an agent that pushes into a black box teaches you nothing.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;That second point is the one our team keeps coming back to. The capture is not just an audit trail; it is a
+feedback loop. The same data that lets you recover a lost branch lets you measure your fleet and tune it —
+the kind of self-improvement loop I wrote about in
+&lt;a href=&quot;/blog/2026/04/28/ai-agent-roadmap-research/&quot;&gt;the AI Agent roadmap research&lt;/a&gt; and the
+&lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;multi-agent orchestration&lt;/a&gt; work. Give
+agents room to run, take away the keys to the things they shouldn’t touch, and write down everything they
+do. Then read it back and make the next run better.&lt;/p&gt;
+
+&lt;p&gt;The mechanics of the proxy — how it intercepts the traffic, forces a parseable pack, logs every commit, and
+pins the objects so nothing gets garbage-collected — are involved enough to deserve their own follow-up
+post, which I’ll publish next.&lt;/p&gt;
+
+&lt;p&gt;If you have built something similar — a different boundary, a smarter capture, a hook trick I missed — I
+would love to hear it. Find me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
+&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;, and tell me what your agents tried to get away with.&lt;/p&gt;
+
+&lt;p&gt;And if your team is wiring AI Agents into real infrastructure and wants a second pair of hands on the
+isolation and audit layer — the proxy, the credential boundary, the capture pipeline — this is exactly the
+kind of problem I enjoy. I am happy to &lt;strong&gt;consult and help you build it&lt;/strong&gt;: from a quick architecture review
+to designing the whole thing with your team. Reach out on
+&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; and let’s scope it together.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;git-documentation-used-in-this-post&quot;&gt;Git Documentation Used in This Post&lt;/h2&gt;
+
+&lt;p&gt;Everything above leans on the public Git documentation rather than any one implementation:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-http&quot;&gt;gitprotocol-http&lt;/a&gt; — the smart HTTP transport&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-common&quot;&gt;gitprotocol-common&lt;/a&gt; — pkt-line framing&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-capabilities&quot;&gt;gitprotocol-capabilities&lt;/a&gt; — capabilities on the advertisement&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/githooks&quot;&gt;githooks&lt;/a&gt; and &lt;a href=&quot;https://git-scm.com/docs/git-config&quot;&gt;git-config&lt;/a&gt; — hooks and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-interpret-trailers&quot;&gt;git-interpret-trailers&lt;/a&gt;, &lt;a href=&quot;https://git-scm.com/docs/git-bundle&quot;&gt;git-bundle&lt;/a&gt;, &lt;a href=&quot;https://git-scm.com/docs/git-commit-tree&quot;&gt;git-commit-tree&lt;/a&gt;, &lt;a href=&quot;https://git-scm.com/docs/git-index-pack&quot;&gt;git-index-pack&lt;/a&gt; — the hook toolbox&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The wire-protocol and packfile internals — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;report-status&lt;/code&gt;, the pack format, push certificates — are
+covered in the follow-up post.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Related reading on this blog:
+&lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;,
+&lt;a href=&quot;/blog/2019/04/09/git-replication/&quot;&gt;Efficient Git Replication&lt;/a&gt;, and
+&lt;a href=&quot;/blog/2026/01/16/code-review-bottleneck/&quot;&gt;the code review bottleneck&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="git" />
+  
+    <category term="infrastructure" />
+  
+    <category term="workflow" />
+  
+    <summary type="html">When you hand a repo to an autonomous AI Agent, you need to bound what it can touch and capture what it did. Part 1 — the approach — keep the keys away from the agent, a git proxy as the hard boundary, and git hooks as the lighter alternative.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents</title>
@@ -3593,292 +3996,6 @@ didn’t give good enough instructions to the agents.&lt;/p&gt;
     <category term="agentic-experience" />
   
     <summary type="html">I build bridges between AI agents and the tools we humans use every day. I call this domain Agentic Experience and Tools. This is my program.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">run-agent.sh v2.0: Hardened Runner with 115 Tests, Random Selection, and Agent Environment Contract</title>
-    <link href="https://jonnyzzz.com/blog/2026/03/17/run-agent-v2-release/" rel="alternate" type="text/html" title="run-agent.sh v2.0: Hardened Runner with 115 Tests, Random Selection, and Agent Environment Contract" />
-    <published>2026-03-17T00:00:00+00:00</published>
-    <updated>2026-03-17T00:00:00+00:00</updated>
-    <id>/blog/2026/03/17/run-agent-v2-release</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/03/17/run-agent-v2-release/">&lt;p&gt;I’ve been running AI Agents in parallel for weeks — Claude Code, Codex, Gemini —
-and the launcher script that ties them together kept accumulating rough edges.
-Stale PID files after crashes. No tests. No help output. And, as three AI reviewers
-independently discovered, a command injection vulnerability hiding in plain sight.&lt;/p&gt;
-
-&lt;p&gt;Today I’m releasing &lt;a href=&quot;https://github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&quot;&gt;run-agent.sh v2.0&lt;/a&gt; — a major rewrite that fixes all of that.&lt;/p&gt;
-
-&lt;p&gt;The script started as a quick 95-line wrapper. It now weighs in at 211 lines,
-backed by 115 acceptance tests, random agent selection, and a proper environment
-contract for every spawned agent.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-run-agentsh&quot;&gt;What is run-agent.sh?&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; enables you agents to start more agent processes for sub-tasks.
-That plays nice with Recursive Language Models (&lt;a href=&quot;https://jonnyzzz.com/RLM.md&quot;&gt;RLM.md&lt;/a&gt;),
-or &lt;a href=&quot;https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md&quot;&gt;THE_PROMPT_v5.md&lt;/a&gt; swarms,
-where you use more agents. In simple words, running multiple agents allows each
-agent to do fewer things at once via delegation, delivering better outcomes, while avoiding the
-context rot or overflow.&lt;/p&gt;
-
-&lt;p&gt;As an example, use the prompt like&lt;/p&gt;
-&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;PUT YOUR TASK DESCRIPTION HERE&amp;gt;
-
-In order to deliver on the task, you should use https://run-agent.jonnyzzz.com/run-agent.sh script
-to start more tasks. You should follow the https://run-agent.jonnyzzz.com/THE_PROMPT_v5.md and
-other files relative to it as the main process. Your purpose is to orchestrate and delegate
-the work to other run-agent&apos;s which you start, you must not do the work yourself.
-So create /loop when necessary to monitor the process. Never stop unless the work is completed.
-
-All your promots should use the https://run-agent.jonnyzzz.com/MESSAGE-BUS.md as the key
-communication principle. 
-
-Make sure you download the files locally and use the full paths to the files below.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.sh&lt;/a&gt; is a unified shell script that launches AI coding agents
-in isolated sub-processes, with selected current directories. Each invocation creates a timestamped folder with
-the prompt copy, captured stdout/stderr, process metadata, and a copy of the
-runner itself — full traceability for every agent execution.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;This is the tool for AI Agents to help consolidate and coupe with the work more effectively&lt;/strong&gt;&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh claude ~/Work/project ./task-prompt.md
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;It powers the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;marinade&lt;/code&gt; agentic orchestration framework, where a root
-AI Agent spawns sub-agents in parallel.&lt;/p&gt;
-
-&lt;h2 id=&quot;random-agent-selection&quot;&gt;Random agent selection&lt;/h2&gt;
-
-&lt;p&gt;One thing I noticed while orchestrating multi-agent runs: I kept manually
-rotating between agents to diversify the results. That felt like a job for the
-script, not for me.&lt;/p&gt;
-
-&lt;p&gt;The default agent is now &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;any&lt;/code&gt; — the script picks a random agent from the
-available pool:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./run-agent.sh any ~/Work/project ./prompt.md
-&lt;span class=&quot;c&quot;&gt;# AGENT_SELECTED=gemini&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# RUN_ID=run_20260317-134514-27961&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# RUN_DIR=./runs/run_20260317-134514-27961&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;This is useful when you want to let agents compete or diversify across runs.
-When combined with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_AGENT_AGENTS&lt;/code&gt;, the random selection respects the
-restricted pool:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Set at the environment level&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,codex
-
-&lt;span class=&quot;c&quot;&gt;# The actual call&lt;/span&gt;
-./run-agent.sh any ~/Work/project ./prompt.md
-&lt;span class=&quot;c&quot;&gt;# Never picks gemini&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;agent-availability-control&quot;&gt;Agent availability control&lt;/h2&gt;
-
-&lt;p&gt;A new environment variable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_AGENT_AGENTS&lt;/code&gt; controls which agents are
-available. Agents not in the list are rejected and hidden from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt;:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;# Only claude and codex are available&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,codex ./run-agent.sh gemini ...
-&lt;span class=&quot;c&quot;&gt;# stderr: Unknown agent: gemini&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# stderr: Known agents: claude,codex&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# exit 2&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Invalid names in the list are caught at startup:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;RUN_AGENT_AGENTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;claude,fakename ./run-agent.sh claude ...
-&lt;span class=&quot;c&quot;&gt;# stderr: RUN_AGENT_AGENTS: unknown agent &apos;fakename&apos;. Built-in agents: codex,claude,gemini&lt;/span&gt;
-&lt;span class=&quot;c&quot;&gt;# exit 2&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;environment-contract&quot;&gt;Environment contract&lt;/h2&gt;
-
-&lt;p&gt;Before this release, agents had to guess paths or rely on convention.
-Now every agent gets four exported environment variables — no guesswork:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Variable&lt;/th&gt;
-      &lt;th&gt;Value&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUNS_DIR&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;Absolute path to the runs directory&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE_BUS&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;Absolute path to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE-BUS.md&lt;/code&gt; (now inside &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUNS_DIR&lt;/code&gt;)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RUN_ID&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;Unique run identifier (e.g., &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run_20260317-134514-27961&lt;/code&gt;)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROMPT&lt;/code&gt;&lt;/td&gt;
-      &lt;td&gt;Absolute path to the copied prompt file&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Every agent knows exactly where it is, where to write messages,
-and what run it belongs to.&lt;/p&gt;
-
-&lt;p&gt;Additionally, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CLAUDECODE&lt;/code&gt; is explicitly &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unset&lt;/code&gt; before spawning —
-preventing nested Claude Code runtime context from leaking into
-sub-agents. I learned this the hard way: a Claude Code sub-agent
-was picking up its parent’s runtime state and behaving differently
-than when launched standalone.&lt;/p&gt;
-
-&lt;h2 id=&quot;115-acceptance-tests-zero-api-keys&quot;&gt;115 acceptance tests, zero API keys&lt;/h2&gt;
-
-&lt;p&gt;The test suite uses mock agent stubs — small bash scripts that simulate
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;claude&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;codex&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gemini&lt;/code&gt; without making any API calls. The full
-suite runs in under 10 seconds:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;bash tests/test-run-agent.sh
-&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; run-agent.sh Acceptance Tests &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt; Test 1: Script structure &lt;span class=&quot;nt&quot;&gt;---&lt;/span&gt;
-  PASS: run-agent.sh is executable
-  PASS: run-agent.sh has bash shebang
-  PASS: run-agent.sh uses &lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-euo&lt;/span&gt; pipefail
-...
-&lt;span class=&quot;o&quot;&gt;===&lt;/span&gt; Test Results &lt;span class=&quot;o&quot;&gt;===&lt;/span&gt;
-  PASSED: 115
-  FAILED: 0
-RESULT: PASS &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;all 115 tests passed&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The tests cover what matters:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Prompt delivery&lt;/strong&gt;: a mock agent that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cat&lt;/code&gt;s stdin, verifying prompt
-content reaches the agent&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;CLI arguments&lt;/strong&gt;: a mock that echoes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&quot;$@&quot;&lt;/code&gt;, verifying
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--permission-mode&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-C&lt;/code&gt;, etc.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;CWD with spaces&lt;/strong&gt;: creates a directory with spaces, runs an agent,
-checks &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pwd&lt;/code&gt; output&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Injection rejection&lt;/strong&gt;: passes &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$(echo pwned)&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;foo;bar&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;../etc&lt;/code&gt;
-as agent names — all exit 2&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Environment exports&lt;/strong&gt;: mock agents print &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$RUN_ID&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$PROMPT&lt;/code&gt;,
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$MESSAGE_BUS&lt;/code&gt; — verified against expected values&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;CLAUDECODE sanitization&lt;/strong&gt;: sets &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CLAUDECODE=should_be_removed&lt;/code&gt;,
-verifies agent sees it unset&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;cwd.txt correctness&lt;/strong&gt;: checks not just key presence but actual values
-(absolute paths, numeric PID, matching RUN_ID)&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Help side effects&lt;/strong&gt;: verifies &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--help&lt;/code&gt; creates no run directories&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The three-agent review also identified tests that were “vacuously true” —
-tests that would pass even if the behavior they claimed to test was broken.
-For example, test 15 originally grepped the script source for
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;export MESSAGE_BUS&lt;/code&gt; instead of verifying the agent process actually
-received the variable. That is the kind of bug that hides in plain sight
-until someone (or some agent) asks the right question.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-exit-code-bug&quot;&gt;The exit code bug&lt;/h2&gt;
-
-&lt;p&gt;This one was subtle. The original script had &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -euo pipefail&lt;/code&gt; and then:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$AGENT_PID&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$?&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PID_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EXIT_CODE=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$EXIT_CODE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$CWD_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;When an agent exited non-zero, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -e&lt;/code&gt; caused the script to bail at
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wait&lt;/code&gt; before cleaning up &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pid.txt&lt;/code&gt; or recording &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EXIT_CODE&lt;/code&gt;. Monitoring
-scripts that checked &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pid.txt&lt;/code&gt; would think the agent was still running.
-I spent more time than I’d like to admit debugging “zombie” agents that
-were actually long dead. The fix:&lt;/p&gt;
-
-&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
-&lt;span class=&quot;nb&quot;&gt;wait&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$AGENT_PID&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;EXIT_CODE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$?&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PID_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;EXIT_CODE=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$EXIT_CODE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$CWD_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;|| EXIT_CODE=$?&lt;/code&gt; captures the non-zero exit code without triggering
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;set -e&lt;/code&gt;. Standard bash idiom, but easy to miss when you write the happy
-path first.&lt;/p&gt;
-
-&lt;h2 id=&quot;cicd&quot;&gt;CI/CD&lt;/h2&gt;
-
-&lt;p&gt;Two GitHub Actions workflows keep the project honest:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Tests&lt;/strong&gt; — runs all 115 acceptance tests on every push&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Deploy&lt;/strong&gt; — syncs static files, builds the site, deploys to GitHub Pages&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Every push to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; makes the latest &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; available at
-&lt;a href=&quot;https://run-agent.jonnyzzz.com/run-agent.sh&quot;&gt;run-agent.jonnyzzz.com/run-agent.sh&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s next&lt;/h2&gt;
-
-&lt;p&gt;The script is battle-tested for the orchestration use case, but I want to
-push it into real, established projects — not just greenfield AI experiments.
-That will likely surface new requirements and rough edges.&lt;/p&gt;
-
-&lt;p&gt;Concrete plans:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Integration tests with real agents&lt;/strong&gt; — mock stubs catch regressions,
-but they cannot catch API-level breakage. I want a CI job that actually
-calls each agent with a trivial prompt and verifies end-to-end behavior.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Streaming output&lt;/strong&gt; — right now stdout/stderr are captured to files.
-For long-running agents, tailing the output and progress would help to 
-tell a suck agent from a thinking one.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;More agents&lt;/strong&gt; — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;case&lt;/code&gt; statement makes it trivial to add new ones.
-If you use a different AI coding tool, open a PR.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;There’s still so much more we can do. If you run multi-agent orchestration
-or have ideas for what the runner should handle, I would love to hear about
-it. Reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;Twitter/X&lt;/a&gt;.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;The release is at &lt;a href=&quot;https://github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&quot;&gt;github.com/jonnyzzz/run-agent/releases/tag/v2.0.0&lt;/a&gt;.
-The script is at &lt;a href=&quot;https://run-agent.jonnyzzz.com&quot;&gt;run-agent.jonnyzzz.com&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="multi-agent" />
-  
-    <category term="orchestration" />
-  
-    <category term="cli" />
-  
-    <category term="testing" />
-  
-    <category term="automation" />
-  
-    <category term="ai-coding" />
-  
-    <category term="dev-tools" />
-  
-    <category term="sub-agent" />
-  
-    <summary type="html">run-agent.sh went from a 95-line launcher to a hardened 211-line agent runner with 115 acceptance tests, random agent selection, and a proper environment contract. Here is what changed, why, and how we found a command injection vulnerability along the way.</summary>
   
   </entry>
   
