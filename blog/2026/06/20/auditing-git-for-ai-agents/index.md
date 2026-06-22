@@ -293,7 +293,7 @@ do. Then read it back and make the next run better.
 
 The mechanics of the proxy — how it intercepts the traffic, forces a parseable pack, logs every commit, and
 pins the objects so nothing gets garbage-collected — are involved enough to deserve their own follow-up
-post, which I'll publish next.
+post: [Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)]({% post_url blog/2026-06-22-inside-the-git-proxy-for-ai-agents %}).
 
 If you have built something similar — a different boundary, a smarter capture, a hook trick I missed — I
 would love to hear it. Find me on [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or

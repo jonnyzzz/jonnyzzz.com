@@ -1,0 +1,693 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2) &#8211; Eugene Petrenko</title>
+<meta name="description" content="Part 2 — how the git proxy intercepts HTTPS, forces a parseable pack, logs every commit, pins the objects with marker refs, and survives the sharp edges of a signed, atomic protocol."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, git, infrastructure, workflow" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2) -- Eugene Petrenko" />
+<meta name="twitter:description" content="Part 2 — how the git proxy intercepts HTTPS, forces a parseable pack, logs every commit, pins the objects with marker refs, and survives the sharp edges of a signed, atomic protocol." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2) -- Eugene Petrenko" />
+<meta property="og:description" content="Part 2 — how the git proxy intercepts HTTPS, forces a parseable pack, logs every commit, pins the objects with marker refs, and survives the sharp edges of a signed, atomic protocol." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="git" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="workflow" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-06-22T00:00:00+00:00">June 22, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Inside+the+Git+Proxy%3A+Capturing+What+an+AI+Agent+Pushed+%28Part+2%29%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&amp;hashtags=ai-agents,ai-coding,git,infrastructure,workflow" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Inside+the+Git+Proxy%3A+Capturing+What+an+AI+Agent+Pushed+%28Part+2%29%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0APart+2+%E2%80%94+how+the+git+proxy+intercepts+HTTPS%2C+forces+a+parseable+pack%2C+logs+every+commit%2C+pins+the+objects+with+marker+refs%2C+and+survives+the+sharp+edges+of+a+signed%2C+atomic+protocol.%0A%0Ahttps://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/%0A%0A%23aiagents%20%23aicoding%20%23git%20%23infrastructure%20%23workflow" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>This is the second half of
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">What Did the Agent Just Push?</a>. Part 1 made
+the case for a <strong>git proxy</strong> as the hard boundary, set up the one rule that makes it work — the agent never
+holds the real keys — and showed the <em>enforcement</em> half: rejecting any head outside the allow-list before a
+byte reaches the server. Enforcement bounds the blast radius, and it is the part you can ship first.</p>
+
+<p>This part is the <em>capture</em> half: how the proxy actually gets the traffic, reads what the agent pushed, and
+keeps it recoverable. It is the deep end — protocol gymnastics, packfile internals, and the side-effects of
+sitting in the middle of git’s wire protocol.</p>
+
+<p>Recall the shape of a push from Part 1: a ref-advertisement <code class="language-plaintext highlighter-rouge">GET /info/refs?service=git-receive-pack</code>, then
+a <code class="language-plaintext highlighter-rouge">POST /git-receive-pack</code> carrying pkt-line commands followed by a <code class="language-plaintext highlighter-rouge">PACK</code>. The proxy already parsed those
+commands and located the pack — everything below works on that pack.</p>
+
+<hr />
+
+<h3 id="make-https-the-only-way-in">Make HTTPS the Only Way In</h3>
+
+<p>From my standpoint, the SSH is the best transport one should use with Git. On the other hand, 
+Git supports multiple transports, and the tricks we are covering here are similar for all of them.</p>
+
+<p>In our case, we decided to use HTTPS with token authentication, that requires much less additional 
+setup than SSH. We are not using <code class="language-plaintext highlighter-rouge">git://</code> protocol in production, as you may assume.
+An agent that can open an SSH connection to the server, but we specify no access keys.
+The git proxy server URL is explained to the agent in prompt files. Agent has no token to
+access the original Git server via HTTPS.</p>
+
+<p>For HTTPS you have two ways in. Either the agent’s <code class="language-plaintext highlighter-rouge">https_proxy</code> points at you and you <strong>MITM</strong> the TLS
+tunnel with your own CA installed in the sandbox’s trust store, or you publish a dedicated hostname the
+agent’s remotes point at directly. If you MITM, guard one thing: a client opens the tunnel with
+<code class="language-plaintext highlighter-rouge">CONNECT host:443</code> and then sends an inner <code class="language-plaintext highlighter-rouge">Host:</code> header, and the two must match — reject a mismatch with
+<code class="language-plaintext highlighter-rouge">421 Misdirected Request</code>, or an agent can <code class="language-plaintext highlighter-rouge">CONNECT</code> an allowed host and then ask for a different one,
+slipping past your per-host policy.</p>
+
+<p>Once the bytes are yours, <strong>classify by an exact whitelist, not a prefix match.</strong> Git’s HTTP surface is
+small and each endpoint has a fixed method, query shape and content type:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Request</th>
+      <th>Operation</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET …/info/refs?service=git-upload-pack</code></td>
+      <td>read</td>
+      <td>smart fetch/clone discovery</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET …/info/refs?service=git-receive-pack</code></td>
+      <td><strong>write</strong></td>
+      <td>push discovery — classified early</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST …/git-upload-pack</code></td>
+      <td>read</td>
+      <td>smart fetch</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">POST …/git-receive-pack</code></td>
+      <td><strong>write</strong></td>
+      <td>smart push</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">GET …/info/refs</code> (no query), <code class="language-plaintext highlighter-rouge">…/HEAD</code>, <code class="language-plaintext highlighter-rouge">…/objects/…</code></td>
+      <td>read</td>
+      <td>dumb protocol, read-only by design</td>
+    </tr>
+    <tr>
+      <td>anything else</td>
+      <td>deny</td>
+      <td>reject reserved git paths with 400</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Two things fall out of this. A push is a <em>write</em> the moment you see its discovery <code class="language-plaintext highlighter-rouge">GET</code>, not just at the
+<code class="language-plaintext highlighter-rouge">POST</code> — so the discovery request is the natural place to influence the push (we use it below). And under
+this whitelist the dumb protocol is read-only: the one write path you allow is smart <code class="language-plaintext highlighter-rouge">receive-pack</code>, which
+is the one place branch policy bites. (Git also has a legacy WebDAV-style HTTP push, <code class="language-plaintext highlighter-rouge">git-http-push</code>, that
+writes <em>outside</em> <code class="language-plaintext highlighter-rouge">receive-pack</code> — so deny <code class="language-plaintext highlighter-rouge">DAV</code> methods and those paths too, or a write could sneak in
+behind your back). One endpoint deserves a hard no: the dumb <code class="language-plaintext highlighter-rouge">objects/info/alternates</code> (and
+<code class="language-plaintext highlighter-rouge">http-alternates</code>) can point the client at object stores <em>outside</em> your proxy, so reject it — otherwise an
+allow-listed clone can quietly source objects from somewhere you don’t audit.</p>
+
+<h3 id="capture-log-every-commit-that-was-pushed">Capture: log every commit that was pushed</h3>
+
+<p>The proxy already knows <em>which refs</em> moved — that was enforcement, in Part 1. Provenance needs the
+<em>commits</em>. We want to read the pack and log each commit’s hash, author and subject — ideally store the pack
+too, for offline recovery.</p>
+
+<p>There is one obstacle. By default, git is allowed to send a <strong>thin pack</strong>: a pack whose objects may be
+deltas against base objects that are <em>not in the pack</em>, because the receiver is assumed to already have
+them (<a href="https://git-scm.com/docs/gitformat-pack">gitformat-pack</a>). A thin pack is efficient on the wire and
+miserable to parse in isolation — you don’t have the bases. (It is possible to request missing
+objects via the HTTP dumb protocol from the main Git server, I would not go this way).</p>
+
+<p>The fix is a capability the protocol already defines. The server can advertise <strong><code class="language-plaintext highlighter-rouge">no-thin</code></strong>, and per the
+spec <em>“A client MUST NOT send a thin pack if the server advertises the <code class="language-plaintext highlighter-rouge">no-thin</code> capability”</em>
+(<a href="https://git-scm.com/docs/gitprotocol-capabilities">gitprotocol-capabilities</a>). So the proxy rewrites the
+ref advertisement on its way back to the agent, injecting <code class="language-plaintext highlighter-rouge">no-thin</code> into the capability list. The agent’s
+git then sends a <strong>self-contained</strong> pack the proxy can parse on its own.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>on GET /info/refs?service=git-receive-pack:
+    strip_header(request, "Accept-Encoding")        # advert comes back uncompressed so we can rewrite it
+    advert = fetch_upstream_advertisement()
+    advert = inject_capability(advert, "no-thin")   # rewrites the first ref line's pkt-line and its
+                                                    #   4-byte length prefix; mind the pkt-line limit
+                                                    #   (65520 total / 65516 of payload)
+    return advert
+    # if no-thin won't fit, you have two choices: fail CLOSED (reject the push) if you need a hard audit
+    # guarantee, or fall back to storing the raw thin pack and resolving it later against the upstream
+    # objects — but do not pretend you walked it; a thin pack is not self-contained
+</code></pre></div></div>
+
+<p>Two honest caveats here, because the details bite:</p>
+
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">no-thin</code> does not turn off delta compression.</strong> It only guarantees that every delta’s base is
+<em>inside the same pack</em>. Git will still delta-encode a commit against another commit in the pack. So your
+pack walker must resolve in-pack commit deltas — but only the commit objects, which are few and small.
+Trees and blobs you can inflate-and-discard. Memory stays bounded by the commit set, not by the pack
+size. It means we can unpack the PACK file and read the commits, trees and the file BLOBs without
+looking for additional objects in the parent repository.</li>
+  <li><strong>Self-contained packs are bigger</strong> than thin ones, and the gap is not subtle. In one test, injecting
+<code class="language-plaintext highlighter-rouge">no-thin</code> flipped a real push from a 490-byte thin pack (a ref-delta against a base the server already
+had) to a 5,697-byte self-contained one — and it overrode the client’s hardcoded <code class="language-plaintext highlighter-rouge">--thin</code> with zero
+cooperation from the agent. You can reproduce the effect yourself: push one small commit and compare the
+<code class="language-plaintext highlighter-rouge">POST</code> body size with and without <code class="language-plaintext highlighter-rouge">no-thin</code> in the advertisement (<code class="language-plaintext highlighter-rouge">GIT_TRACE_PACKET=1</code> makes the framing
+visible). For a handful of commits that is a fine trade; for a 2 GB monorepo migration it is not. Know
+which one you are running.</li>
+  <li><strong>BLOGs are not DIFFS</strong>. Git stores the whole file content in BLOGs, which are in the commit. BLOBs
+do not show what was changed, it’s the *actual content of the changed file**. Git packs BLOBs with
+delta compression on the PACK file. Should you want to find the actual change – you still need to access
+the parent commit objects -&gt; all tree objects they reference -&gt; and the BLOBs of the previous revisions. 
+There can be multiple base objects in the merge-commits (aka commits with multiple parents).</li>
+</ul>
+
+<p>Capture should happen <em>after</em> the server accepts the push, gated on the upstream result. The
+receive-pack response carries a <a href="https://git-scm.com/docs/gitprotocol-pack">report-status</a>: <code class="language-plaintext highlighter-rouge">unpack ok</code>
+plus a per-ref <code class="language-plaintext highlighter-rouge">ok &lt;ref&gt;</code> or <code class="language-plaintext highlighter-rouge">ng &lt;ref&gt; &lt;reason&gt;</code>. A push can <em>partially</em> succeed — <code class="language-plaintext highlighter-rouge">unpack ok</code> and then
+<code class="language-plaintext highlighter-rouge">ng</code> on one ref — so don’t log a commit as “pushed” until the server says <code class="language-plaintext highlighter-rouge">ok</code> for the ref that carries it.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>capture(response, pack):                           # runs only after the server accepted the push
+    status = parse_report_status(response)         # truth is in the response body, NOT the HTTP code:
+    if status.unpack != "ok": return               #   "unpack ok" can still be followed by "ng &lt;ref&gt; ..."
+    accepted = [r for r in status.refs if r.result == "ok"]   # log ONLY the refs the server actually took
+    if not accepted: return                        #   (a 200 can carry per-ref "ng" — never trust the 200)
+    store(pack, key = f"{session_id}/{new_head}.pack")        # spool the pack to storage; no second copy
+    for commit in walk_commits(pack, reachable_from=accepted):   # bases are in-pack thanks to no-thin, so
+        log(session_id, commit.hash, commit.author, commit.subject)  # resolve commit deltas; drop blobs
+</code></pre></div></div>
+
+<p>Run the capture off to the side — a detached, best-effort task. If logging fails, the developer’s push
+must still succeed. Observability that breaks the thing it observes is worse than no observability</p>
+
+<h3 id="a-pack-is-snapshots-not-diffs">A Pack Is Snapshots, Not Diffs</h3>
+
+<p>There is a deeper limit worth stating plainly, because it surprises people and it decides what you can
+actually recover. <strong>Git stores snapshots, not diffs.</strong> A blob is the <em>whole</em> file, never a change to it;
+the deltas you see <em>inside</em> a packfile (thin or not) are a storage-and-transport trick — one object encoded
+against another to save bytes — and not the semantic change the agent made. When you resolve the pack you
+get back whole files: the complete new version of everything that was touched, never a tidy “here is what
+changed”. So the pack, by itself, tells you the new state, not the edit.</p>
+
+<p>To learn <em>what changed</em> you have to diff a commit against its parent — and that is where the pack runs out.
+For commits <em>inside</em> the pushed range you are fine: a commit and its parent are both new, both in the pack,
+so you can diff them from the pack alone. The gap is the <strong>boundary</strong> — the first new commit’s parent is
+the old head, and the old head’s tree and the <em>old</em> versions of the changed files are precisely the objects
+the pack omits, because the server already had them. A non-thin pack is self-contained for its <em>new</em>
+objects, but it is silent about the past. (A thin pack looks tempting here, since its wire bytes encode the
+changed blob as a delta against the parent’s version — but that base blob still is not in the pack, so you
+cannot apply it without fetching the parent anyway). And you cannot cheat by faking an empty advertisement
+to make the client upload all of history: <code class="language-plaintext highlighter-rouge">receive-pack</code> does a compare-and-swap on each command’s old
+object id and rejects a mismatch, and rewriting that old id back would break a signed push.</p>
+
+<p>This has a blunt consequence, and it is the real reason the next section exists. If the same file was
+touched across several commits, you can reconstruct the chain of new snapshots from the pack — but turning
+that into a readable history of <em>changes</em> needs the parent at every boundary. Lose those parent objects to
+garbage collection and the diff is gone for good, even though you faithfully archived every pushed pack. So
+capturing the agent’s pushes is necessary but not sufficient: you also have to keep the <strong>parents</strong>
+reachable. That is why you back up <em>heads</em> in git, not just archive packs — pin the heads so the old
+commits, trees and blobs survive long enough to tell you what actually changed.</p>
+
+<h3 id="keep-the-objects-alive-backup-marker-refs">Keep the objects alive: backup marker refs</h3>
+
+<p>There is a subtle way to lose the very data you just captured. The agent pushes to a branch, you record
+it, the agent (or a cleanup job) deletes that branch, and now those objects are unreferenced on the server
+and eligible for garbage collection. Your <code class="language-plaintext highlighter-rouge">.pack</code> in object storage survives, but the <em>server</em> no longer
+has them.</p>
+
+<p>The cheap fix is to pin each captured head with a <strong>backup marker ref</strong> — a second, ref-only push that
+points a marker like <code class="language-plaintext highlighter-rouge">refs/heads/_captures/session-&lt;id&gt;/&lt;branch&gt;-&lt;shortsha&gt;</code> at the head the agent just
+pushed. Because the head’s objects are <em>already</em> on the server, this push transfers <strong>no objects at all</strong>:
+it sends the canonical empty pack (a 32-byte pack with zero objects for SHA-1 repositories). It is fast,
+and idempotent — on a name collision you resolve the existing marker and confirm it points at exactly
+<code class="language-plaintext highlighter-rouge">new_head</code> before treating it as success (the short SHA in the name is a convenience, not a proof of
+identity) — and it keeps the commits reachable and GC-safe until your retention sweep removes them.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>after a successful capture of &lt;new_head&gt; on &lt;branch&gt;:
+    marker = f"refs/heads/_captures/session-{session_id}/{branch}-{short(new_head)}"
+    # a create command is "&lt;zero-id&gt; &lt;new_head&gt; &lt;marker&gt;"; the objects are already upstream, so this
+    # push carries the empty pack. It uses the proxy's OWN credential and skips the allow-list — the
+    # proxy writes these markers, the agent never does
+    receive_pack_push(zero_id, new_head, marker)
+    # on a collision, resolve the existing marker and verify it == new_head, then treat as success
+</code></pre></div></div>
+
+<p>Fire it as a separate, isolated request — <em>not</em> a second command piggybacked into the agent’s own push.
+That distinction is load-bearing. If you inject your marker command into the client’s <code class="language-plaintext highlighter-rouge">receive-pack</code> body
+and the client used <code class="language-plaintext highlighter-rouge">git push --atomic</code>, then a failure of <em>your</em> command (a name collision, a slow host)
+atomically fails the <em>agent’s</em> real push. You would have turned your insurance policy into the thing that
+drops the developer’s work. A standalone ref push, sequenced after the agent’s push reports <code class="language-plaintext highlighter-rouge">ok</code>, cannot
+couple to it, and it leaves the agent’s signed certificate untouched. Give it its own generous timeout
+(real git hosts can be slow) and never loop it back through the forward proxy. It is independent and
+best-effort — if it fails, you log it and move on.</p>
+
+<p>One honest limitation, though, and it is worth saying out loud: <strong>signed pushes can take the marker away
+from you entirely.</strong> If the upstream <em>requires</em> a valid push certificate on the capture namespace, you are
+blocked both ways — you cannot add the marker to the agent’s own push (that alters its signed command list
+and breaks the signature), and a separate marker push would itself need a certificate, which the proxy
+cannot produce without a signing identity of its own. So under mandatory signed-push you have two options:
+give the proxy its own service key that the host trusts for <code class="language-plaintext highlighter-rouge">refs/heads/_captures/*</code> and let it sign its
+marker pushes — a <em>different</em> signature than the agent’s, made by the proxy as itself — or drop the
+server-side marker altogether and lean on the <code class="language-plaintext highlighter-rouge">.pack</code> you already captured into your own storage, which
+needs no ref on the host at all. The marker is insurance; when the host won’t let you buy it, your own
+captured pack is the policy that still pays out. You can workaround that by adding the secondary Git
+repository, that is synchronized with the main repository, it will be used to keep all the captured
+packs and markers, and without certificates.</p>
+
+<p>Two more things make the markers pay off. First, they are exactly what saves you from a <strong>force-push or a
+delete</strong>: the marker pins <code class="language-plaintext highlighter-rouge">new_head</code>, so even if the agent later force-pushes its branch backward or
+deletes it, the objects stay reachable through the marker and survive <code class="language-plaintext highlighter-rouge">git gc --prune=now</code>. Drop the
+marker in your retention sweep and they become collectable again. Second, the marker is what makes
+<strong>recovery cheap</strong>: a warm repository that already has <code class="language-plaintext highlighter-rouge">old_head</code> fetches only the <code class="language-plaintext highlighter-rouge">old_head..new_head</code>
+range, and <code class="language-plaintext highlighter-rouge">git log old..new</code> plus <code class="language-plaintext highlighter-rouge">git show</code> reconstructs exactly the commits and patches that were
+pushed — force-push included, since <code class="language-plaintext highlighter-rouge">A..B</code> means “reachable from B but not A”. And this is where the
+snapshot/diff problem from earlier gets solved almost for free: because <em>every</em> push gets its own marker,
+the marker you wrote for the <strong>previous</strong> push pins what is now the <strong>parent</strong> of this one. The chain of
+markers keeps each boundary’s old side reachable, so the parent objects you need to compute a real diff are
+still there — you backed up the heads as you went, exactly as that section argued. One caveat from the real
+world: a custom ref namespace like <code class="language-plaintext highlighter-rouge">refs/captures/*</code> is not portable — some hosts honor only <code class="language-plaintext highlighter-rouge">refs/heads/*</code>
+and <code class="language-plaintext highlighter-rouge">refs/tags/*</code> and silently reject the rest, so a lightweight <strong>tag</strong> is often the most portable pin.
+Tags auto-follow into clones, though, so remember to clean them up after recovery</p>
+
+<h3 id="side-effects-to-watch">Side-Effects to Watch</h3>
+
+<p>A proxy that parses pushes is a man-in-the-middle by design, and a few of its side-effects bite in
+production rather than in the demo:</p>
+
+<ul>
+  <li><strong>You have to buffer the command prefix before you can forward.</strong> The ref commands sit in front of the
+pack, so policy can’t run until you have read and held <em>that</em> much. You do not have to hold the whole
+pack in memory, though — once policy passes, stream or tee the pack to disk or object storage as it flows
+upstream. Either way, apply a size cap: an unbounded push, accidental or malicious, is a memory- and
+disk-exhaustion vector. This is buffering you are <em>adding</em> to the path; bound it deliberately.</li>
+  <li><strong>Object ids are not always 40 hex characters.</strong> Most parsers quietly assume SHA-1. A repository using
+the SHA-256 object format has 64-character ids, a different empty-pack size, and will be rejected as
+malformed by SHA-1-only code. Either handle both hash lengths or document the limitation loudly — a
+silent “malformed push” on a SHA-256 repo is a miserable thing to debug
+(<a href="https://git-scm.com/docs/gitformat-pack">gitformat-pack</a>).</li>
+  <li><strong>Signed pushes sign the heads, not the pack — so read them, never edit them.</strong> <code class="language-plaintext highlighter-rouge">git push --signed</code>
+wraps the ref-update command list in a <em>push certificate</em> and GPG-signs it. The signature covers the
+affected heads — each <code class="language-plaintext highlighter-rouge">old-id new-id refname</code> update — plus the pusher identity, the destination URL and
+a server-issued nonce. It does <strong>not</strong> cover the pack: each <code class="language-plaintext highlighter-rouge">new-id</code> is a SHA, so signing the heads
+already certifies the objects by hash (<a href="https://git-scm.com/docs/gitprotocol-pack">gitprotocol-pack</a>).
+The tempting conclusion is “then a proxy can never handle a signed push.” Not quite. The proxy never
+needs to <em>touch</em> that list — it reads it and decides: forward the certificate byte-for-byte when every
+head is allowed, reject the whole push when one is not. Enforcement, capture and markers all survive,
+because none of them edit the signed bytes. What signed push removes are the edit-the-list shortcuts —
+remap an old id, inject an extra ref, strip a disallowed one — each of which stops the signature
+verifying. Two consequences are worth pinning down:
+    <ul>
+      <li><strong>Filtering is all-or-nothing.</strong> You cannot quietly drop one disallowed ref from a multi-ref push;
+you forward it whole or reject it whole. Reject is the safe default, so the boundary still holds — you
+just lose the ability to <em>partially</em> allow a signed push.</li>
+      <li><strong>Relay the nonce untouched.</strong> The nonce lives in the advertisement; when you inject <code class="language-plaintext highlighter-rouge">no-thin</code> there,
+keep the <code class="language-plaintext highlighter-rouge">push-cert</code> nonce intact, or the client’s certificate will not verify upstream.</li>
+    </ul>
+
+    <p>This is also the deeper reason capture and markers stay strictly out of band: they must never appear in
+the signed command list, or they would invalidate the very push they are trying to record.</p>
+  </li>
+  <li><strong>HTTP success is not git success.</strong> Worth repeating because it is the easiest one to get wrong: a <code class="language-plaintext highlighter-rouge">200</code>
+from the server’s git backend does not mean the objects were stored. The truth is in the <code class="language-plaintext highlighter-rouge">report-status</code>
+body. Gate every capture on it.</li>
+</ul>
+
+<p>None of these are reasons not to build the proxy. They are the difference between one that works on your
+laptop and one you can leave running in front of a fleet.</p>
+
+<h2 id="where-this-leaves-you">Where This Leaves You</h2>
+
+<p>That is the whole proxy: intercept HTTPS, force a parseable pack, gate capture on the server’s real answer,
+pin the heads so nothing you captured gets collected, and respect the protocol’s sharp edges — signed,
+atomic, partial-success. None of it is exotic; it is mostly careful reading of the Git wire-protocol docs
+linked below. The payoff is the thing Part 1 was after: you know exactly what every agent pushed, you can
+recover it, and only the heads you allowed ever change upstream</p>
+
+<p>One more reason to learn these internals now rather than wait: the substrate is being rebuilt. The
+agent-first forges and next-generation version-control systems landing in 2026 — Cursor’s
+<a href="https://explainx.ai/blog/cursor-origin-git-hosting-github-alternative-ai-agents-2026">Origin</a> and Epic’s
+<a href="https://github.com/EpicGames/lore">Lore</a>, both of which I touch on in
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">Part 1</a> — still move objects, still pack and
+delta them, still have to tell you what an agent changed. The transport and the storage may shift under
+you, but pkt-lines, packs, thin-vs-self-contained, and “snapshots, not diffs” are the vocabulary you carry
+across all of it.</p>
+
+<p>If you came straight here for the mechanics, the <em>why</em> — credential isolation, the lighter git-hooks
+alternative, and how to choose between them — is in
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">Part 1</a>.</p>
+
+<p>And if your team is building this for real and wants a second pair of hands on the proxy or the capture
+pipeline, this is exactly the kind of problem I enjoy. I am happy to <strong>consult and help you build it</strong> —
+reach out on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> and let’s scope it together.</p>
+
+<p>Given all the information – my implementation we log all the pushes intercepted to a log file. We
+assume the Git server will keep all objects (in our case it does) and run pinning job outside of
+the main flow.</p>
+
+<hr />
+
+<h2 id="git-documentation-used-in-this-post">Git Documentation Used in This Post</h2>
+
+<p>The proxy is mostly careful reading of the public Git wire-protocol and format docs:</p>
+
+<ul>
+  <li><a href="https://git-scm.com/docs/gitprotocol-http">gitprotocol-http</a> — the smart HTTP transport</li>
+  <li><a href="https://git-scm.com/docs/gitprotocol-common">gitprotocol-common</a> — pkt-line framing and limits</li>
+  <li><a href="https://git-scm.com/docs/gitprotocol-capabilities">gitprotocol-capabilities</a> — <code class="language-plaintext highlighter-rouge">no-thin</code>, <code class="language-plaintext highlighter-rouge">report-status</code></li>
+  <li><a href="https://git-scm.com/docs/gitprotocol-pack">gitprotocol-pack</a> — the receive-pack exchange, status report, push certificate</li>
+  <li><a href="https://git-scm.com/docs/gitformat-pack">gitformat-pack</a> — pack and thin-pack format, object hashing</li>
+</ul>
+
+<p>For the deeper design notes, the Git project keeps a set of technical documents under
+<a href="https://github.com/git/git/tree/master/Documentation/technical">Documentation/technical</a> in the source
+tree — the protocol and format docs themselves were promoted to the top-level <code class="language-plaintext highlighter-rouge">gitprotocol-*</code> and
+<code class="language-plaintext highlighter-rouge">gitformat-pack</code> man pages linked above.</p>
+
+<p><em>Related reading on this blog:
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">What Did the Agent Just Push? (Part 1)</a>,
+<a href="/blog/2026/02/02/git-fork-pattern/">Git Fork Pattern</a>, and
+<a href="/blog/2019/04/09/git-replication/">Efficient Git Replication</a>.</em></p>
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

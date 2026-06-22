@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-06-20T10:39:04+00:00</updated>
+  <updated>2026-06-22T10:14:32+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,384 @@
   
 
   
+  
+  <entry>
+    <title type="html">Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)</title>
+    <link href="https://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/" rel="alternate" type="text/html" title="Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)" />
+    <published>2026-06-22T00:00:00+00:00</published>
+    <updated>2026-06-22T00:00:00+00:00</updated>
+    <id>/blog/2026/06/22/inside-the-git-proxy-for-ai-agents</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/">&lt;p&gt;This is the second half of
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;What Did the Agent Just Push?&lt;/a&gt;. Part 1 made
+the case for a &lt;strong&gt;git proxy&lt;/strong&gt; as the hard boundary, set up the one rule that makes it work — the agent never
+holds the real keys — and showed the &lt;em&gt;enforcement&lt;/em&gt; half: rejecting any head outside the allow-list before a
+byte reaches the server. Enforcement bounds the blast radius, and it is the part you can ship first.&lt;/p&gt;
+
+&lt;p&gt;This part is the &lt;em&gt;capture&lt;/em&gt; half: how the proxy actually gets the traffic, reads what the agent pushed, and
+keeps it recoverable. It is the deep end — protocol gymnastics, packfile internals, and the side-effects of
+sitting in the middle of git’s wire protocol.&lt;/p&gt;
+
+&lt;p&gt;Recall the shape of a push from Part 1: a ref-advertisement &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET /info/refs?service=git-receive-pack&lt;/code&gt;, then
+a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST /git-receive-pack&lt;/code&gt; carrying pkt-line commands followed by a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PACK&lt;/code&gt;. The proxy already parsed those
+commands and located the pack — everything below works on that pack.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&quot;make-https-the-only-way-in&quot;&gt;Make HTTPS the Only Way In&lt;/h3&gt;
+
+&lt;p&gt;From my standpoint, the SSH is the best transport one should use with Git. On the other hand, 
+Git supports multiple transports, and the tricks we are covering here are similar for all of them.&lt;/p&gt;
+
+&lt;p&gt;In our case, we decided to use HTTPS with token authentication, that requires much less additional 
+setup than SSH. We are not using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git://&lt;/code&gt; protocol in production, as you may assume.
+An agent that can open an SSH connection to the server, but we specify no access keys.
+The git proxy server URL is explained to the agent in prompt files. Agent has no token to
+access the original Git server via HTTPS.&lt;/p&gt;
+
+&lt;p&gt;For HTTPS you have two ways in. Either the agent’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;https_proxy&lt;/code&gt; points at you and you &lt;strong&gt;MITM&lt;/strong&gt; the TLS
+tunnel with your own CA installed in the sandbox’s trust store, or you publish a dedicated hostname the
+agent’s remotes point at directly. If you MITM, guard one thing: a client opens the tunnel with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CONNECT host:443&lt;/code&gt; and then sends an inner &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Host:&lt;/code&gt; header, and the two must match — reject a mismatch with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;421 Misdirected Request&lt;/code&gt;, or an agent can &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CONNECT&lt;/code&gt; an allowed host and then ask for a different one,
+slipping past your per-host policy.&lt;/p&gt;
+
+&lt;p&gt;Once the bytes are yours, &lt;strong&gt;classify by an exact whitelist, not a prefix match.&lt;/strong&gt; Git’s HTTP surface is
+small and each endpoint has a fixed method, query shape and content type:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Request&lt;/th&gt;
+      &lt;th&gt;Operation&lt;/th&gt;
+      &lt;th&gt;Notes&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET …/info/refs?service=git-upload-pack&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;read&lt;/td&gt;
+      &lt;td&gt;smart fetch/clone discovery&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET …/info/refs?service=git-receive-pack&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;write&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;push discovery — classified early&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST …/git-upload-pack&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;read&lt;/td&gt;
+      &lt;td&gt;smart fetch&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST …/git-receive-pack&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;&lt;strong&gt;write&lt;/strong&gt;&lt;/td&gt;
+      &lt;td&gt;smart push&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET …/info/refs&lt;/code&gt; (no query), &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;…/HEAD&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;…/objects/…&lt;/code&gt;&lt;/td&gt;
+      &lt;td&gt;read&lt;/td&gt;
+      &lt;td&gt;dumb protocol, read-only by design&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;anything else&lt;/td&gt;
+      &lt;td&gt;deny&lt;/td&gt;
+      &lt;td&gt;reject reserved git paths with 400&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Two things fall out of this. A push is a &lt;em&gt;write&lt;/em&gt; the moment you see its discovery &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET&lt;/code&gt;, not just at the
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST&lt;/code&gt; — so the discovery request is the natural place to influence the push (we use it below). And under
+this whitelist the dumb protocol is read-only: the one write path you allow is smart &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;receive-pack&lt;/code&gt;, which
+is the one place branch policy bites. (Git also has a legacy WebDAV-style HTTP push, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git-http-push&lt;/code&gt;, that
+writes &lt;em&gt;outside&lt;/em&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;receive-pack&lt;/code&gt; — so deny &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DAV&lt;/code&gt; methods and those paths too, or a write could sneak in
+behind your back). One endpoint deserves a hard no: the dumb &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;objects/info/alternates&lt;/code&gt; (and
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;http-alternates&lt;/code&gt;) can point the client at object stores &lt;em&gt;outside&lt;/em&gt; your proxy, so reject it — otherwise an
+allow-listed clone can quietly source objects from somewhere you don’t audit.&lt;/p&gt;
+
+&lt;h3 id=&quot;capture-log-every-commit-that-was-pushed&quot;&gt;Capture: log every commit that was pushed&lt;/h3&gt;
+
+&lt;p&gt;The proxy already knows &lt;em&gt;which refs&lt;/em&gt; moved — that was enforcement, in Part 1. Provenance needs the
+&lt;em&gt;commits&lt;/em&gt;. We want to read the pack and log each commit’s hash, author and subject — ideally store the pack
+too, for offline recovery.&lt;/p&gt;
+
+&lt;p&gt;There is one obstacle. By default, git is allowed to send a &lt;strong&gt;thin pack&lt;/strong&gt;: a pack whose objects may be
+deltas against base objects that are &lt;em&gt;not in the pack&lt;/em&gt;, because the receiver is assumed to already have
+them (&lt;a href=&quot;https://git-scm.com/docs/gitformat-pack&quot;&gt;gitformat-pack&lt;/a&gt;). A thin pack is efficient on the wire and
+miserable to parse in isolation — you don’t have the bases. (It is possible to request missing
+objects via the HTTP dumb protocol from the main Git server, I would not go this way).&lt;/p&gt;
+
+&lt;p&gt;The fix is a capability the protocol already defines. The server can advertise &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt;&lt;/strong&gt;, and per the
+spec &lt;em&gt;“A client MUST NOT send a thin pack if the server advertises the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; capability”&lt;/em&gt;
+(&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-capabilities&quot;&gt;gitprotocol-capabilities&lt;/a&gt;). So the proxy rewrites the
+ref advertisement on its way back to the agent, injecting &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; into the capability list. The agent’s
+git then sends a &lt;strong&gt;self-contained&lt;/strong&gt; pack the proxy can parse on its own.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;on GET /info/refs?service=git-receive-pack:
+    strip_header(request, &quot;Accept-Encoding&quot;)        # advert comes back uncompressed so we can rewrite it
+    advert = fetch_upstream_advertisement()
+    advert = inject_capability(advert, &quot;no-thin&quot;)   # rewrites the first ref line&apos;s pkt-line and its
+                                                    #   4-byte length prefix; mind the pkt-line limit
+                                                    #   (65520 total / 65516 of payload)
+    return advert
+    # if no-thin won&apos;t fit, you have two choices: fail CLOSED (reject the push) if you need a hard audit
+    # guarantee, or fall back to storing the raw thin pack and resolving it later against the upstream
+    # objects — but do not pretend you walked it; a thin pack is not self-contained
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Two honest caveats here, because the details bite:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; does not turn off delta compression.&lt;/strong&gt; It only guarantees that every delta’s base is
+&lt;em&gt;inside the same pack&lt;/em&gt;. Git will still delta-encode a commit against another commit in the pack. So your
+pack walker must resolve in-pack commit deltas — but only the commit objects, which are few and small.
+Trees and blobs you can inflate-and-discard. Memory stays bounded by the commit set, not by the pack
+size. It means we can unpack the PACK file and read the commits, trees and the file BLOBs without
+looking for additional objects in the parent repository.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Self-contained packs are bigger&lt;/strong&gt; than thin ones, and the gap is not subtle. In one test, injecting
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; flipped a real push from a 490-byte thin pack (a ref-delta against a base the server already
+had) to a 5,697-byte self-contained one — and it overrode the client’s hardcoded &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--thin&lt;/code&gt; with zero
+cooperation from the agent. You can reproduce the effect yourself: push one small commit and compare the
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;POST&lt;/code&gt; body size with and without &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; in the advertisement (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_TRACE_PACKET=1&lt;/code&gt; makes the framing
+visible). For a handful of commits that is a fine trade; for a 2 GB monorepo migration it is not. Know
+which one you are running.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;BLOGs are not DIFFS&lt;/strong&gt;. Git stores the whole file content in BLOGs, which are in the commit. BLOBs
+do not show what was changed, it’s the *actual content of the changed file**. Git packs BLOBs with
+delta compression on the PACK file. Should you want to find the actual change – you still need to access
+the parent commit objects -&amp;gt; all tree objects they reference -&amp;gt; and the BLOBs of the previous revisions. 
+There can be multiple base objects in the merge-commits (aka commits with multiple parents).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Capture should happen &lt;em&gt;after&lt;/em&gt; the server accepts the push, gated on the upstream result. The
+receive-pack response carries a &lt;a href=&quot;https://git-scm.com/docs/gitprotocol-pack&quot;&gt;report-status&lt;/a&gt;: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unpack ok&lt;/code&gt;
+plus a per-ref &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ok &amp;lt;ref&amp;gt;&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ng &amp;lt;ref&amp;gt; &amp;lt;reason&amp;gt;&lt;/code&gt;. A push can &lt;em&gt;partially&lt;/em&gt; succeed — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unpack ok&lt;/code&gt; and then
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ng&lt;/code&gt; on one ref — so don’t log a commit as “pushed” until the server says &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ok&lt;/code&gt; for the ref that carries it.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;capture(response, pack):                           # runs only after the server accepted the push
+    status = parse_report_status(response)         # truth is in the response body, NOT the HTTP code:
+    if status.unpack != &quot;ok&quot;: return               #   &quot;unpack ok&quot; can still be followed by &quot;ng &amp;lt;ref&amp;gt; ...&quot;
+    accepted = [r for r in status.refs if r.result == &quot;ok&quot;]   # log ONLY the refs the server actually took
+    if not accepted: return                        #   (a 200 can carry per-ref &quot;ng&quot; — never trust the 200)
+    store(pack, key = f&quot;{session_id}/{new_head}.pack&quot;)        # spool the pack to storage; no second copy
+    for commit in walk_commits(pack, reachable_from=accepted):   # bases are in-pack thanks to no-thin, so
+        log(session_id, commit.hash, commit.author, commit.subject)  # resolve commit deltas; drop blobs
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Run the capture off to the side — a detached, best-effort task. If logging fails, the developer’s push
+must still succeed. Observability that breaks the thing it observes is worse than no observability&lt;/p&gt;
+
+&lt;h3 id=&quot;a-pack-is-snapshots-not-diffs&quot;&gt;A Pack Is Snapshots, Not Diffs&lt;/h3&gt;
+
+&lt;p&gt;There is a deeper limit worth stating plainly, because it surprises people and it decides what you can
+actually recover. &lt;strong&gt;Git stores snapshots, not diffs.&lt;/strong&gt; A blob is the &lt;em&gt;whole&lt;/em&gt; file, never a change to it;
+the deltas you see &lt;em&gt;inside&lt;/em&gt; a packfile (thin or not) are a storage-and-transport trick — one object encoded
+against another to save bytes — and not the semantic change the agent made. When you resolve the pack you
+get back whole files: the complete new version of everything that was touched, never a tidy “here is what
+changed”. So the pack, by itself, tells you the new state, not the edit.&lt;/p&gt;
+
+&lt;p&gt;To learn &lt;em&gt;what changed&lt;/em&gt; you have to diff a commit against its parent — and that is where the pack runs out.
+For commits &lt;em&gt;inside&lt;/em&gt; the pushed range you are fine: a commit and its parent are both new, both in the pack,
+so you can diff them from the pack alone. The gap is the &lt;strong&gt;boundary&lt;/strong&gt; — the first new commit’s parent is
+the old head, and the old head’s tree and the &lt;em&gt;old&lt;/em&gt; versions of the changed files are precisely the objects
+the pack omits, because the server already had them. A non-thin pack is self-contained for its &lt;em&gt;new&lt;/em&gt;
+objects, but it is silent about the past. (A thin pack looks tempting here, since its wire bytes encode the
+changed blob as a delta against the parent’s version — but that base blob still is not in the pack, so you
+cannot apply it without fetching the parent anyway). And you cannot cheat by faking an empty advertisement
+to make the client upload all of history: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;receive-pack&lt;/code&gt; does a compare-and-swap on each command’s old
+object id and rejects a mismatch, and rewriting that old id back would break a signed push.&lt;/p&gt;
+
+&lt;p&gt;This has a blunt consequence, and it is the real reason the next section exists. If the same file was
+touched across several commits, you can reconstruct the chain of new snapshots from the pack — but turning
+that into a readable history of &lt;em&gt;changes&lt;/em&gt; needs the parent at every boundary. Lose those parent objects to
+garbage collection and the diff is gone for good, even though you faithfully archived every pushed pack. So
+capturing the agent’s pushes is necessary but not sufficient: you also have to keep the &lt;strong&gt;parents&lt;/strong&gt;
+reachable. That is why you back up &lt;em&gt;heads&lt;/em&gt; in git, not just archive packs — pin the heads so the old
+commits, trees and blobs survive long enough to tell you what actually changed.&lt;/p&gt;
+
+&lt;h3 id=&quot;keep-the-objects-alive-backup-marker-refs&quot;&gt;Keep the objects alive: backup marker refs&lt;/h3&gt;
+
+&lt;p&gt;There is a subtle way to lose the very data you just captured. The agent pushes to a branch, you record
+it, the agent (or a cleanup job) deletes that branch, and now those objects are unreferenced on the server
+and eligible for garbage collection. Your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.pack&lt;/code&gt; in object storage survives, but the &lt;em&gt;server&lt;/em&gt; no longer
+has them.&lt;/p&gt;
+
+&lt;p&gt;The cheap fix is to pin each captured head with a &lt;strong&gt;backup marker ref&lt;/strong&gt; — a second, ref-only push that
+points a marker like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/_captures/session-&amp;lt;id&amp;gt;/&amp;lt;branch&amp;gt;-&amp;lt;shortsha&amp;gt;&lt;/code&gt; at the head the agent just
+pushed. Because the head’s objects are &lt;em&gt;already&lt;/em&gt; on the server, this push transfers &lt;strong&gt;no objects at all&lt;/strong&gt;:
+it sends the canonical empty pack (a 32-byte pack with zero objects for SHA-1 repositories). It is fast,
+and idempotent — on a name collision you resolve the existing marker and confirm it points at exactly
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;new_head&lt;/code&gt; before treating it as success (the short SHA in the name is a convenience, not a proof of
+identity) — and it keeps the commits reachable and GC-safe until your retention sweep removes them.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;after a successful capture of &amp;lt;new_head&amp;gt; on &amp;lt;branch&amp;gt;:
+    marker = f&quot;refs/heads/_captures/session-{session_id}/{branch}-{short(new_head)}&quot;
+    # a create command is &quot;&amp;lt;zero-id&amp;gt; &amp;lt;new_head&amp;gt; &amp;lt;marker&amp;gt;&quot;; the objects are already upstream, so this
+    # push carries the empty pack. It uses the proxy&apos;s OWN credential and skips the allow-list — the
+    # proxy writes these markers, the agent never does
+    receive_pack_push(zero_id, new_head, marker)
+    # on a collision, resolve the existing marker and verify it == new_head, then treat as success
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Fire it as a separate, isolated request — &lt;em&gt;not&lt;/em&gt; a second command piggybacked into the agent’s own push.
+That distinction is load-bearing. If you inject your marker command into the client’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;receive-pack&lt;/code&gt; body
+and the client used &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git push --atomic&lt;/code&gt;, then a failure of &lt;em&gt;your&lt;/em&gt; command (a name collision, a slow host)
+atomically fails the &lt;em&gt;agent’s&lt;/em&gt; real push. You would have turned your insurance policy into the thing that
+drops the developer’s work. A standalone ref push, sequenced after the agent’s push reports &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ok&lt;/code&gt;, cannot
+couple to it, and it leaves the agent’s signed certificate untouched. Give it its own generous timeout
+(real git hosts can be slow) and never loop it back through the forward proxy. It is independent and
+best-effort — if it fails, you log it and move on.&lt;/p&gt;
+
+&lt;p&gt;One honest limitation, though, and it is worth saying out loud: &lt;strong&gt;signed pushes can take the marker away
+from you entirely.&lt;/strong&gt; If the upstream &lt;em&gt;requires&lt;/em&gt; a valid push certificate on the capture namespace, you are
+blocked both ways — you cannot add the marker to the agent’s own push (that alters its signed command list
+and breaks the signature), and a separate marker push would itself need a certificate, which the proxy
+cannot produce without a signing identity of its own. So under mandatory signed-push you have two options:
+give the proxy its own service key that the host trusts for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/_captures/*&lt;/code&gt; and let it sign its
+marker pushes — a &lt;em&gt;different&lt;/em&gt; signature than the agent’s, made by the proxy as itself — or drop the
+server-side marker altogether and lean on the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.pack&lt;/code&gt; you already captured into your own storage, which
+needs no ref on the host at all. The marker is insurance; when the host won’t let you buy it, your own
+captured pack is the policy that still pays out. You can workaround that by adding the secondary Git
+repository, that is synchronized with the main repository, it will be used to keep all the captured
+packs and markers, and without certificates.&lt;/p&gt;
+
+&lt;p&gt;Two more things make the markers pay off. First, they are exactly what saves you from a &lt;strong&gt;force-push or a
+delete&lt;/strong&gt;: the marker pins &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;new_head&lt;/code&gt;, so even if the agent later force-pushes its branch backward or
+deletes it, the objects stay reachable through the marker and survive &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git gc --prune=now&lt;/code&gt;. Drop the
+marker in your retention sweep and they become collectable again. Second, the marker is what makes
+&lt;strong&gt;recovery cheap&lt;/strong&gt;: a warm repository that already has &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;old_head&lt;/code&gt; fetches only the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;old_head..new_head&lt;/code&gt;
+range, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git log old..new&lt;/code&gt; plus &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git show&lt;/code&gt; reconstructs exactly the commits and patches that were
+pushed — force-push included, since &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;A..B&lt;/code&gt; means “reachable from B but not A”. And this is where the
+snapshot/diff problem from earlier gets solved almost for free: because &lt;em&gt;every&lt;/em&gt; push gets its own marker,
+the marker you wrote for the &lt;strong&gt;previous&lt;/strong&gt; push pins what is now the &lt;strong&gt;parent&lt;/strong&gt; of this one. The chain of
+markers keeps each boundary’s old side reachable, so the parent objects you need to compute a real diff are
+still there — you backed up the heads as you went, exactly as that section argued. One caveat from the real
+world: a custom ref namespace like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/captures/*&lt;/code&gt; is not portable — some hosts honor only &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/*&lt;/code&gt;
+and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/tags/*&lt;/code&gt; and silently reject the rest, so a lightweight &lt;strong&gt;tag&lt;/strong&gt; is often the most portable pin.
+Tags auto-follow into clones, though, so remember to clean them up after recovery&lt;/p&gt;
+
+&lt;h3 id=&quot;side-effects-to-watch&quot;&gt;Side-Effects to Watch&lt;/h3&gt;
+
+&lt;p&gt;A proxy that parses pushes is a man-in-the-middle by design, and a few of its side-effects bite in
+production rather than in the demo:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;You have to buffer the command prefix before you can forward.&lt;/strong&gt; The ref commands sit in front of the
+pack, so policy can’t run until you have read and held &lt;em&gt;that&lt;/em&gt; much. You do not have to hold the whole
+pack in memory, though — once policy passes, stream or tee the pack to disk or object storage as it flows
+upstream. Either way, apply a size cap: an unbounded push, accidental or malicious, is a memory- and
+disk-exhaustion vector. This is buffering you are &lt;em&gt;adding&lt;/em&gt; to the path; bound it deliberately.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Object ids are not always 40 hex characters.&lt;/strong&gt; Most parsers quietly assume SHA-1. A repository using
+the SHA-256 object format has 64-character ids, a different empty-pack size, and will be rejected as
+malformed by SHA-1-only code. Either handle both hash lengths or document the limitation loudly — a
+silent “malformed push” on a SHA-256 repo is a miserable thing to debug
+(&lt;a href=&quot;https://git-scm.com/docs/gitformat-pack&quot;&gt;gitformat-pack&lt;/a&gt;).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Signed pushes sign the heads, not the pack — so read them, never edit them.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git push --signed&lt;/code&gt;
+wraps the ref-update command list in a &lt;em&gt;push certificate&lt;/em&gt; and GPG-signs it. The signature covers the
+affected heads — each &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;old-id new-id refname&lt;/code&gt; update — plus the pusher identity, the destination URL and
+a server-issued nonce. It does &lt;strong&gt;not&lt;/strong&gt; cover the pack: each &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;new-id&lt;/code&gt; is a SHA, so signing the heads
+already certifies the objects by hash (&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-pack&quot;&gt;gitprotocol-pack&lt;/a&gt;).
+The tempting conclusion is “then a proxy can never handle a signed push.” Not quite. The proxy never
+needs to &lt;em&gt;touch&lt;/em&gt; that list — it reads it and decides: forward the certificate byte-for-byte when every
+head is allowed, reject the whole push when one is not. Enforcement, capture and markers all survive,
+because none of them edit the signed bytes. What signed push removes are the edit-the-list shortcuts —
+remap an old id, inject an extra ref, strip a disallowed one — each of which stops the signature
+verifying. Two consequences are worth pinning down:
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;Filtering is all-or-nothing.&lt;/strong&gt; You cannot quietly drop one disallowed ref from a multi-ref push;
+you forward it whole or reject it whole. Reject is the safe default, so the boundary still holds — you
+just lose the ability to &lt;em&gt;partially&lt;/em&gt; allow a signed push.&lt;/li&gt;
+      &lt;li&gt;&lt;strong&gt;Relay the nonce untouched.&lt;/strong&gt; The nonce lives in the advertisement; when you inject &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; there,
+keep the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;push-cert&lt;/code&gt; nonce intact, or the client’s certificate will not verify upstream.&lt;/li&gt;
+    &lt;/ul&gt;
+
+    &lt;p&gt;This is also the deeper reason capture and markers stay strictly out of band: they must never appear in
+the signed command list, or they would invalidate the very push they are trying to record.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;HTTP success is not git success.&lt;/strong&gt; Worth repeating because it is the easiest one to get wrong: a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;200&lt;/code&gt;
+from the server’s git backend does not mean the objects were stored. The truth is in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;report-status&lt;/code&gt;
+body. Gate every capture on it.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;None of these are reasons not to build the proxy. They are the difference between one that works on your
+laptop and one you can leave running in front of a fleet.&lt;/p&gt;
+
+&lt;h2 id=&quot;where-this-leaves-you&quot;&gt;Where This Leaves You&lt;/h2&gt;
+
+&lt;p&gt;That is the whole proxy: intercept HTTPS, force a parseable pack, gate capture on the server’s real answer,
+pin the heads so nothing you captured gets collected, and respect the protocol’s sharp edges — signed,
+atomic, partial-success. None of it is exotic; it is mostly careful reading of the Git wire-protocol docs
+linked below. The payoff is the thing Part 1 was after: you know exactly what every agent pushed, you can
+recover it, and only the heads you allowed ever change upstream&lt;/p&gt;
+
+&lt;p&gt;One more reason to learn these internals now rather than wait: the substrate is being rebuilt. The
+agent-first forges and next-generation version-control systems landing in 2026 — Cursor’s
+&lt;a href=&quot;https://explainx.ai/blog/cursor-origin-git-hosting-github-alternative-ai-agents-2026&quot;&gt;Origin&lt;/a&gt; and Epic’s
+&lt;a href=&quot;https://github.com/EpicGames/lore&quot;&gt;Lore&lt;/a&gt;, both of which I touch on in
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt; — still move objects, still pack and
+delta them, still have to tell you what an agent changed. The transport and the storage may shift under
+you, but pkt-lines, packs, thin-vs-self-contained, and “snapshots, not diffs” are the vocabulary you carry
+across all of it.&lt;/p&gt;
+
+&lt;p&gt;If you came straight here for the mechanics, the &lt;em&gt;why&lt;/em&gt; — credential isolation, the lighter git-hooks
+alternative, and how to choose between them — is in
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;And if your team is building this for real and wants a second pair of hands on the proxy or the capture
+pipeline, this is exactly the kind of problem I enjoy. I am happy to &lt;strong&gt;consult and help you build it&lt;/strong&gt; —
+reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; and let’s scope it together.&lt;/p&gt;
+
+&lt;p&gt;Given all the information – my implementation we log all the pushes intercepted to a log file. We
+assume the Git server will keep all objects (in our case it does) and run pinning job outside of
+the main flow.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;git-documentation-used-in-this-post&quot;&gt;Git Documentation Used in This Post&lt;/h2&gt;
+
+&lt;p&gt;The proxy is mostly careful reading of the public Git wire-protocol and format docs:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-http&quot;&gt;gitprotocol-http&lt;/a&gt; — the smart HTTP transport&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-common&quot;&gt;gitprotocol-common&lt;/a&gt; — pkt-line framing and limits&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-capabilities&quot;&gt;gitprotocol-capabilities&lt;/a&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;report-status&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitprotocol-pack&quot;&gt;gitprotocol-pack&lt;/a&gt; — the receive-pack exchange, status report, push certificate&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/gitformat-pack&quot;&gt;gitformat-pack&lt;/a&gt; — pack and thin-pack format, object hashing&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For the deeper design notes, the Git project keeps a set of technical documents under
+&lt;a href=&quot;https://github.com/git/git/tree/master/Documentation/technical&quot;&gt;Documentation/technical&lt;/a&gt; in the source
+tree — the protocol and format docs themselves were promoted to the top-level &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gitprotocol-*&lt;/code&gt; and
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gitformat-pack&lt;/code&gt; man pages linked above.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Related reading on this blog:
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;What Did the Agent Just Push? (Part 1)&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;, and
+&lt;a href=&quot;/blog/2019/04/09/git-replication/&quot;&gt;Efficient Git Replication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="git" />
+  
+    <category term="infrastructure" />
+  
+    <category term="workflow" />
+  
+    <summary type="html">Part 2 — how the git proxy intercepts HTTPS, forces a parseable pack, logs every commit, pins the objects with marker refs, and survives the sharp edges of a signed, atomic protocol.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">What Did the Agent Just Push? Auditing Git for AI Agents</title>
@@ -362,7 +740,7 @@ do. Then read it back and make the next run better.&lt;/p&gt;
 
 &lt;p&gt;The mechanics of the proxy — how it intercepts the traffic, forces a parseable pack, logs every commit, and
 pins the objects so nothing gets garbage-collected — are involved enough to deserve their own follow-up
-post, which I’ll publish next.&lt;/p&gt;
+post: &lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;If you have built something similar — a different boundary, a smarter capture, a hook trick I missed — I
 would love to hear it. Find me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
@@ -3811,191 +4189,6 @@ reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;Lin
     <category term="agentic-coding" />
   
     <summary type="html">MCP Steroid -- the plugin that gives AI Agents the full IntelliJ IDE runtime -- is now open source under Apache 2.0. Original source at github.com/jonnyzzz/mcp-steroid, transitioning under JetBrains at github.com/JetBrains/mcp-steroid.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">Agentic Experience and Tools: My Program</title>
-    <link href="https://jonnyzzz.com/blog/2026/03/24/agentic-experience-and-tools/" rel="alternate" type="text/html" title="Agentic Experience and Tools: My Program" />
-    <published>2026-03-24T00:00:00+00:00</published>
-    <updated>2026-03-24T00:00:00+00:00</updated>
-    <id>/blog/2026/03/24/agentic-experience-and-tools</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/03/24/agentic-experience-and-tools/">&lt;blockquote&gt;
-  &lt;p&gt;AI Agents can think. They cannot always act. I build the &lt;strong&gt;bridges&lt;/strong&gt; between
-agent intelligence and the real-world tools that agents cannot reach.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;img src=&quot;/images/agentic-experience-and-tools.png&quot; alt=&quot;Agentic Experience and Tools&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;I have spent twenty+ years at &lt;a href=&quot;https://jetbrains.com&quot;&gt;JetBrains&lt;/a&gt; making software developers more
-productive. I started &lt;a href=&quot;https://www.jetbrains.com/ide-services/&quot;&gt;IDE Services&lt;/a&gt; from zero, grew 
-it to 500+ enterprise customers, and handed it to the team. I have given fifty-plus &lt;a href=&quot;/talks&quot;&gt;talks&lt;/a&gt; on developer
-tooling around the world. &lt;strong&gt;I am a founder&lt;/strong&gt; – I create products, take them
-from inception to stable results, and move on to the next thing. That is
-what drives me.&lt;/p&gt;
-
-&lt;p&gt;In late 2025 I saw a shift. AI Agents crossed a threshold. They could read
-code, reason about architecture, propose changes, write tests, iterate
-on feedback, deploy services. The intelligence was there.&lt;/p&gt;
-
-&lt;p&gt;But agents live in a world of tokens and text. Our development
-infrastructure – IDEs, CI pipelines, code review systems, debuggers –
-lives in the human world. Agents cannot run your IDE’s thousand
-inspections. They cannot trigger your CI pipeline. They cannot start a
-debugger. They cannot navigate your code review system or debug your GUI app.&lt;/p&gt;
-
-&lt;p&gt;The gap between what agents can think and what they can do is the
-defining bottleneck of this era. &lt;strong&gt;I am building the bridges that close it.&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;I call this domain &lt;strong&gt;Agentic Experience &amp;amp; Tools&lt;/strong&gt;. For me, I work in that domain
-and in the scope of exiting old products, where Agentic Experience and Tools are the most
-challenging to deliver.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-mission-agentic-experience--tools&quot;&gt;The Mission: Agentic Experience &amp;amp; Tools&lt;/h2&gt;
-
-&lt;p&gt;I make AI Agents more effective at solving problems on real-world projects
-by building the missing connections between agents and existing tools,
-processes, and infrastructure – including optimizing how agents work
-together, which models they use, and how they learn from their own runs.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;The AI Agent is not an implementation detail. &lt;strong&gt;It is the user,&lt;/strong&gt; and the product persona.
-The human is the stakeholder.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;The biggest &lt;strong&gt;misconception&lt;/strong&gt; I see: people keep designing products for
-humans with AI tools bolted on. I am doing the opposite. I build products
-intended directly for agentic usage. No UX, no UI in the traditional
-sense – APIs, &lt;a href=&quot;/blog/2026/02/20/cli-tools-for-ai-agents/&quot;&gt;CLIs&lt;/a&gt;, &lt;a href=&quot;https://modelcontextprotocol.io/&quot;&gt;MCPs&lt;/a&gt;, and
-structured outputs that agents consume natively. Humans buy and install
-these tools to improve the performance metrics of their agents. Later,
-other AI Agents may do the buying too.&lt;/p&gt;
-
-&lt;p&gt;Only agents can validate what is actually better for agents. So I use an
-agentic learning process: agents define the evaluation, run it, and
-self-improve based on collected data. When I built the
-&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;MCP Steroid&lt;/a&gt; debugger, one agent ran
-the debug task through IntelliJ while another reviewed the logs and
-rewrote the prompts. Multiple times. After iterations, the agent went from failing –
-falling back to screenshots just to see what was happening – to solving
-the debug task on the first attempt. That is the kind of improvement I
-am after: measurable, agent-validated, compounding.&lt;/p&gt;
-
-&lt;p&gt;I do not compete with AI Agents. I make every agent better. Whatever your
-team already uses – Claude, Codex, Gemini, Junie, Cursor, Augment, Kilo –
-my tools remove the walls between that agent and your development
-infrastructure. I integrate with all of them. I replace none of them.
-When there is no AI Agents in use, I enable them.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-agentic-loop&quot;&gt;The Agentic Loop&lt;/h2&gt;
-
-&lt;p&gt;Agents need real-world feedback: build the code, run the tests, deploy
-to staging. Once these loops are established, agents iterate on their
-own, improving quality with each pass.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;The principle: agents follow the same processes as humans.&lt;/strong&gt; No
-shortcuts. No special agent-only paths. That is what makes the output
-trustworthy. The human decides how much autonomy to grant, and signs off
-on the result.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-is-still-broken&quot;&gt;What Is Still Broken&lt;/h2&gt;
-
-&lt;p&gt;&lt;strong&gt;Agents cannot react to events yet.&lt;/strong&gt; Today, a human kicks off agent
-runs. Agents should wake up automatically when a CI build fails, a code
-review gets comments, or a merge pipeline completes. I am looking for
-design partners to implement event-driven workflows.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Setup takes too long.&lt;/strong&gt; Configuring the full stack is a 30-minute
-process. The goal is one Docker command to start.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Agents do not learn enough from failures.&lt;/strong&gt; Every agent run generates
-telemetry. That data should feed back automatically – agents reporting
-problems to other agents that fix them.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-i-have-built&quot;&gt;What I Have Built&lt;/h2&gt;
-
-&lt;p&gt;I have built a portfolio of tools that address different parts of the gap:&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;MCP Steroid&lt;/a&gt; gives agents access to
-the full IntelliJ IDE runtime – inspections, refactorings, debugger,
-screenshots. On DPAIA benchmarks, agents with MCP Steroid are
-&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/&quot;&gt;20-54% faster&lt;/a&gt; on tasks requiring
-semantic understanding and multi-file refactoring. It works with Claude,
-Codex, Gemini, Cursor, and any MCP client. See it in action: the
-&lt;a href=&quot;https://youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f&quot;&gt;demo playlist&lt;/a&gt;
-includes debugger integration, monorepo deep dives, and more.
-&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/releases/&quot;&gt;Try it&lt;/a&gt; on your IDE today.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://run-agent.jonnyzzz.com/&quot;&gt;run-agent.sh&lt;/a&gt; orchestrates agent
-swarms with full isolation and traceability – up to 16 agents in
-parallel, coordinating through an append-only
-&lt;a href=&quot;https://run-agent.jonnyzzz.com/MESSAGE-BUS.md&quot;&gt;message bus&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;/blog/2026/01/05/rlm-multi-agent-orchestration/&quot;&gt;RLM&lt;/a&gt; decomposes tasks that exceed one
-context window into sub-agent work.&lt;/p&gt;
-
-&lt;p&gt;Dedicated posts about each are coming.&lt;/p&gt;
-
-&lt;h2 id=&quot;find-the-others&quot;&gt;Find the Others&lt;/h2&gt;
-
-&lt;p&gt;I am looking for the people who are actually doing this – not
-theorizing, not pitching, but deploying agents on real codebases and
-hitting real walls.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;If your agents are stuck&lt;/strong&gt; – they can generate code but cannot get it
-reviewed, tested, merged, or deployed – I want to hear about it. That
-is the exact gap I work on.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;If you are building tools that agents use&lt;/strong&gt;, I want to compare notes.
-What works, what breaks, what the models still cannot do.&lt;/p&gt;
-
-&lt;p&gt;Join the conversation and follow me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; – that
-is where most of the discussion happens.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;Andrej Karpathy on the &lt;a href=&quot;https://podcasts.apple.com/us/podcast/no-priors-artificial-intelligence-technology-startups/id1668002688&quot;&gt;No Priors podcast&lt;/a&gt;
-(March 2026):&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Just I think everything, like so many things, even if they
-don’t work, I think to a large
-extent you feel like it’s a skill issue.
-It’s not that the capability is not there; it’s that you
-just haven’t found a way to string together what’s available. Like, I
-didn’t give good enough instructions to the agents.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;The agents are capable.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;The bridges are missing. I build them.&lt;/strong&gt; Reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;X&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="ai-coding" />
-  
-    <category term="developer-experience" />
-  
-    <category term="agentic-experience" />
-  
-    <summary type="html">I build bridges between AI agents and the tools we humans use every day. I call this domain Agentic Experience and Tools. This is my program.</summary>
   
   </entry>
   
