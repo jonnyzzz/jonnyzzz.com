@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-06-22T10:14:32+00:00</updated>
+  <updated>2026-06-26T08:47:31+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,329 @@
   
 
   
+  
+  <entry>
+    <title type="html">Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)</title>
+    <link href="https://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/" rel="alternate" type="text/html" title="Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)" />
+    <published>2026-06-26T00:00:00+00:00</published>
+    <updated>2026-06-26T00:00:00+00:00</updated>
+    <id>/blog/2026/06/26/inside-the-git-hooks-for-ai-agents</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/">&lt;p&gt;This is the third part of the series. &lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt;
+laid out the approach — keep the keys away from the agent, a git proxy as the hard boundary, git hooks as
+the lighter alternative. &lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Part 2&lt;/a&gt; was the
+build of the proxy. This one is the build of the &lt;strong&gt;hooks&lt;/strong&gt;: the in-container layer you reach for when you
+own the image but not the network path.&lt;/p&gt;
+
+&lt;p&gt;The job is the same two questions — &lt;em&gt;which commits did the agent produce, and did it touch only what we
+allowed?&lt;/em&gt; — answered from inside the sandbox instead of on the wire. A reminder from Part 1: this is
+&lt;strong&gt;best-effort observability, not a security boundary&lt;/strong&gt;. A sufficiently determined agent in its own sandbox
+can defeat any of it. We build it anyway, because for the overwhelmingly common case where the agent is
+just doing its work, it gives you clean provenance for almost nothing — and the proxy is still there as the
+floor.&lt;/p&gt;
+
+&lt;p&gt;The plan: stamp a session-id &lt;a href=&quot;https://git-scm.com/docs/git-interpret-trailers&quot;&gt;trailer&lt;/a&gt; on every commit as
+it is written, keep that tag alive across amend/rebase/squash, and on push capture a restorable copy of
+what is going out. Four hooks do it — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;prepare-commit-msg&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;commit-msg&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;post-rewrite&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt; — wired
+in through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt;. Let me walk the load-bearing parts.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;wiring-hijack-every-hook-without-breaking-the-repos-own&quot;&gt;Wiring: Hijack Every Hook Without Breaking the Repo’s Own&lt;/h2&gt;
+
+&lt;p&gt;Part 1 covered the install: bake the hooks into the image root-owned and read-only, and point
+&lt;a href=&quot;https://git-scm.com/docs/git-config&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt;&lt;/a&gt; at them in the system config so &lt;em&gt;every&lt;/em&gt; repository
+the agent touches — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/workspace&lt;/code&gt; and any clone it makes later — runs them. But &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt; is greedy:
+it &lt;strong&gt;replaces&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$GIT_DIR/hooks&lt;/code&gt; entirely. The moment you set it, a project’s own &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git/hooks/pre-commit&lt;/code&gt;
+stops firing. That is a regression you do not want to ship to developers who rely on their own hooks.&lt;/p&gt;
+
+&lt;p&gt;So the first thing each of our hooks does is run the repository’s own hook of the same name, honor its exit
+code, and only then do our work:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;run_local_hook(name, args, stdin):
+    # resolve the MAIN repo&apos;s .git even from a linked worktree, and as an absolute path
+    git_dir = git rev-parse --path-format=absolute --git-common-dir
+    local   = &quot;$git_dir/hooks/$name&quot;
+    if is_executable(local):
+        exec local with (args, stdin)   # its exit code becomes ours — honor a rejection
+    # else: nothing to chain, carry on
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Two traps hide in those four lines. First, &lt;strong&gt;recursion&lt;/strong&gt;: if you resolve the hook path through
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt; you point straight back at yourself and loop forever — so resolve the &lt;em&gt;literal&lt;/em&gt;
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;$GIT_DIR/hooks&lt;/code&gt;, never the configured path. Second, &lt;strong&gt;worktrees&lt;/strong&gt;: a linked worktree has its own private
+gitdir, but the conventional hooks live in the main repo’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git&lt;/code&gt;. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--git-common-dir&lt;/code&gt; resolves to the main
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.git&lt;/code&gt; from anywhere, so a hook running inside a worktree still finds the project’s real hooks.&lt;/p&gt;
+
+&lt;p&gt;For hooks that receive data on stdin (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;post-rewrite&lt;/code&gt;), there is a third trap: you need that
+stdin &lt;em&gt;twice&lt;/em&gt; — once for your own logic, once to replay to the local hook — and command substitution
+silently strips trailing newlines and mangles blank lines. So buffer stdin to a temp file and replay the
+&lt;strong&gt;exact bytes&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;stdin_buf = mktemp(); read all of stdin into stdin_buf
+... parse stdin_buf for our own work ...
+run_local_hook(name, args, stdin=stdin_buf)   # byte-for-byte, not via $(...)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;One more constraint shaped the whole library: it runs on the macOS dev host &lt;em&gt;and&lt;/em&gt; the Linux agent image,
+so it is written for &lt;strong&gt;bash 3.2&lt;/strong&gt; — no associative arrays, no namerefs. Portability is a feature when your
+hooks have to behave identically in two very different places&lt;/p&gt;
+
+&lt;h2 id=&quot;tagging-one-trailer-re-collected-every-time&quot;&gt;Tagging: One Trailer, Re-Collected Every Time&lt;/h2&gt;
+
+&lt;p&gt;The tag itself is a git &lt;em&gt;trailer&lt;/em&gt; — a structured &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Key: value&lt;/code&gt; line at the foot of the commit message, the
+same machinery as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Signed-off-by&lt;/code&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Agent-Session: 2026-06-20T11:04:18Z-7f3a9c
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The naive approach — append that line to the message — falls apart the first time someone squashes three
+commits or rebases a branch. Trailers get duplicated, buried mid-message, or dropped. The robust approach
+is to treat the trailer block as something you &lt;strong&gt;recompute&lt;/strong&gt; on every message, not something you append
+once:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;apply_tag(msgfile, sid):
+    existing = all &quot;Agent-Session:&quot; values already in the message
+    from_urls = session ids parsed out of any orchestrator URLs pasted in the body
+    all = dedup(existing + from_urls + [sid])        # order-preserving, drop blanks
+    body = message with the raw Agent-Session lines AND those URLs stripped out
+    # re-emit ONE trailing trailer block, deduped, via the real tool
+    git interpret-trailers --if-exists addIfDifferent --if-missing add \
+        (one --trailer &quot;Agent-Session: &amp;lt;v&amp;gt;&quot; per v in all) &amp;lt;&amp;lt;&amp;lt; body  &amp;gt; msgfile
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Three things matter here. We let &lt;a href=&quot;https://git-scm.com/docs/git-interpret-trailers&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git interpret-trailers&lt;/code&gt;&lt;/a&gt;
+place the block — it knows where the trailer section ends and how to keep it well-formed, which hand-rolled
+string-appending never gets right. We &lt;strong&gt;re-collect&lt;/strong&gt; existing values before re-emitting, so a squash of
+commits from different sessions &lt;em&gt;preserves every distinct&lt;/em&gt; session id and &lt;em&gt;dedups identical&lt;/em&gt; ones — the
+audit trail survives history rewriting. And we also harvest ids out of any session URL the agent pasted
+into the message body, so a commit references its origin even when the trailer was never added by hand.&lt;/p&gt;
+
+&lt;p&gt;This runs in &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;prepare-commit-msg&lt;/code&gt;&lt;/strong&gt;, the primary tagging point. It fires for commit, amend, merge,
+cherry-pick and every rebase reword/squash/fixup path — and, as Part 1 noted, it is the one commit-time
+hook that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git commit --no-verify&lt;/code&gt; does &lt;strong&gt;not&lt;/strong&gt; suppress, which is exactly why the tag lives there.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# prepare-commit-msg
+run_local_hook(&quot;prepare-commit-msg&quot;, argv, stdin)  || exit with its code
+apply_tag(msgfile, resolve_sid())   || warn &quot;tagging failed (continuing)&quot;
+exit 0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;commit-msg&lt;/code&gt;&lt;/strong&gt; is a thin backstop: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;prepare-commit-msg&lt;/code&gt; already covers every path, so this one only acts
+if the final message somehow has no tag — a guard against a future regression, never the normal route. It
+never blocks the commit&lt;/p&gt;
+
+&lt;p&gt;Where does the session id come from? From a fixed file the environment writes once per session — covered in
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt;. The resolver reads the first line of
+that file and sanitizes it into a trailer-safe token: keep the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;:&lt;/code&gt; so an ISO-8601 timestamp survives, drop
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt; so it can never break a path you later build from the id. No file, or a blank one, means “skip
+tagging” — the hooks never block on a missing id.&lt;/p&gt;
+
+&lt;h2 id=&quot;provenance-across-rewrites&quot;&gt;Provenance Across Rewrites&lt;/h2&gt;
+
+&lt;p&gt;When the agent amends or rebases, commit hashes change, and a tag-by-hash audit trail would lose the
+thread. &lt;a href=&quot;https://git-scm.com/docs/githooks&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;post-rewrite&lt;/code&gt;&lt;/a&gt; closes that gap: git hands it
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;old-sha&amp;gt; &amp;lt;new-sha&amp;gt;&lt;/code&gt; pairs on stdin (space-separated — &lt;em&gt;not&lt;/em&gt; tab, a detail that has bitten many a hook),
+and we append them to a per-session provenance log before delegating to the repo’s own hook:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# post-rewrite  (stdin: &quot;&amp;lt;old&amp;gt; &amp;lt;new&amp;gt;&quot; per line)
+buffer stdin
+for &quot;&amp;lt;old&amp;gt; &amp;lt;new&amp;gt;&quot; in stdin:
+    append &quot;&amp;lt;timestamp&amp;gt;  &amp;lt;mode&amp;gt;  &amp;lt;old&amp;gt;  &amp;lt;new&amp;gt;&quot;  to  $ARTIFACTS/_provenance/&amp;lt;sid&amp;gt;.log
+run_local_hook(&quot;post-rewrite&quot;, argv, stdin=buffer)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;old → new&lt;/code&gt; chain is recoverable even after the local history has been reshaped, and that log later
+travels with the push capture&lt;/p&gt;
+
+&lt;h2 id=&quot;enforcement-on-push-re-tag-or-bail-out&quot;&gt;Enforcement on Push: Re-Tag, or Bail Out&lt;/h2&gt;
+
+&lt;p&gt;The commit hooks are easy to bypass — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--no-verify&lt;/code&gt;, a tool that writes commits directly, an agent in a
+hurry. &lt;a href=&quot;https://git-scm.com/docs/githooks&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;&lt;/a&gt; is the net that catches untagged commits before they
+leave the box. For each pushed branch it works out which commits are actually new, and if any of them lack
+the tag, it rewrites them and &lt;strong&gt;aborts the push&lt;/strong&gt; so the corrected commits go out on the retry — what you
+might call “amend on push”.&lt;/p&gt;
+
+&lt;p&gt;The first subtlety is &lt;strong&gt;bounding the range&lt;/strong&gt;. git hands &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt; a line per ref —
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;local-ref&amp;gt; &amp;lt;local-sha&amp;gt; &amp;lt;remote-ref&amp;gt; &amp;lt;remote-sha&amp;gt;&lt;/code&gt; — and the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;remote-sha&lt;/code&gt; is the authoritative “what the
+server already has” boundary. Except when it is all-zero, which means a &lt;em&gt;brand-new&lt;/em&gt; branch: there is no
+remote tip, and if you naively take “everything reachable from local-sha” you will try to re-tag and
+capture the entire history of the repo. So for a new branch, fall back to the merge-base against the
+remote’s existing tracking tips; if even that cannot be found, do not guess — skip:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;push_base(local_sha, remote_sha, remote):
+    if remote_sha is not all-zero:  return remote_sha          # normal update
+    tips = object names of refs/remotes/&amp;lt;remote&amp;gt;/*
+    if no tips:  return &quot;&quot;                                     # cannot bound — caller must skip
+    return git merge-base local_sha &amp;lt;tips...&amp;gt;                  # new branch: nearest known ancestor
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;(A small landmine worth flagging: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git merge-base --remotes&lt;/code&gt; is &lt;strong&gt;not&lt;/strong&gt; a thing. You have to enumerate the
+tracking-tip object names and pass them explicitly.)&lt;/p&gt;
+
+&lt;p&gt;With a base in hand, the enforcement pass is straightforward — only rewrite real &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/heads/*&lt;/code&gt; updates
+(skip deletions, and skip tags, since rewriting a tag ref would clobber it):&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# pre-push enforcement
+need_retry = 0
+for &quot;&amp;lt;localref&amp;gt; &amp;lt;localsha&amp;gt; _ &amp;lt;remotesha&amp;gt;&quot; in stdin:
+    skip if deletion, or localref not under refs/heads/
+    base = push_base(localsha, remotesha, remote)   ; skip if empty
+    if any commit in base..localsha has no Agent-Session trailer and we have a sid:
+        retag_range(base, localref, localsha, sid)   # checkout-free, see below
+        need_retry = 1
+if need_retry: exit 1   # &quot;re-tagged commits; please re-run your push&quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Checking a commit for the trailer is a one-liner thanks to git’s own formatter —
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git show -s --format=&apos;%(trailers:key=Agent-Session,valueonly)&apos;&lt;/code&gt; prints the value or nothing.&lt;/p&gt;
+
+&lt;h3 id=&quot;re-tagging-without-a-checkout&quot;&gt;Re-Tagging Without a Checkout&lt;/h3&gt;
+
+&lt;p&gt;Rewriting commits inside a hook is where most implementations reach for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git rebase&lt;/code&gt; — and inherit all of
+rebase’s hazards: it checks out, it fights a dirty working tree, it can drop empty commits, and a failure
+leaves rebase state lying around. We avoid all of it with &lt;a href=&quot;https://git-scm.com/docs/git-commit-tree&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git
+commit-tree&lt;/code&gt;&lt;/a&gt;, which builds a commit object from a tree with no
+working-tree involvement at all:&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;retag_range(boundary, tipref, tip, sid):
+    map = {}                                  # old sha -&amp;gt; new sha
+    for c in  git rev-list --reverse --topo-order  boundary..tip:     # parents before children
+        tree     = c^{tree}
+        newparents = [ map[p] or p  for p in parents(c) ]             # remap to rewritten parents
+        msg      = apply_tag(message_of(c), sid)
+        newc     = commit-tree tree (-p each newparent) -F msg \
+                       with c&apos;s original author/committer name+email+DATE preserved
+        map[c]   = newc
+    git update-ref tipref  map[tip]           # move the branch to the rewritten tip
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Two details make it correct. &lt;strong&gt;Topological order, parents first&lt;/strong&gt;, with a parent-remap table: when you
+rewrite a commit its children must be re-pointed at the &lt;em&gt;new&lt;/em&gt; parent, or you fork history. And you must
+&lt;strong&gt;preserve the original author and committer identity and dates&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_AUTHOR_DATE&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GIT_COMMITTER_DATE&lt;/code&gt;,
+and the name/email pairs) — otherwise the “re-tag” silently rewrites timestamps and authorship, which is
+both wrong and alarming in a blame view. Because nothing is ever checked out, a dirty tree is fine and an
+empty commit is fine; there is no rebase state to clean up if a step fails. This is the same
+“rewrite the whole pushed suffix in topological order” idea Part 2 mentioned for the proxy — here is the
+actual mechanism.&lt;/p&gt;
+
+&lt;p&gt;This only makes sense for a real branch ref. A delete, a detached-HEAD push, or a raw-SHA push has no
+branch to move, so the hook skips the rewrite there rather than do something surprising.&lt;/p&gt;
+
+&lt;h2 id=&quot;capture-on-push-a-restorable-copy-never-blocking&quot;&gt;Capture on Push: a Restorable Copy, Never Blocking&lt;/h2&gt;
+
+&lt;p&gt;After enforcement, a second pass captures what is going out — and unlike enforcement, capture &lt;strong&gt;never&lt;/strong&gt;
+blocks a push. If any of it fails, the developer’s push still succeeds; the failure is logged and that is
+all. Each piece is bounded to the push range (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;base..local-sha&lt;/code&gt;), and if the range is empty or cannot be
+bounded, the whole capture is skipped rather than writing a degenerate artifact or dumping full history.&lt;/p&gt;
+
+&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# pre-push capture (per pushed ref, in a subshell so a failure is contained)
+base  = push_base(...)            ; skip if empty
+range = base..localsha
+skip if  git rev-list --count range  == 0          # nothing new
+
+git bundle create   bundle.bundle  localref --not base                 # restorable clone source
+git rev-list --objects range | git pack-objects --no-thin --stdout  &amp;gt; pack.pack
+git format-patch -o patches/  range                                    # human-readable, per commit
+git rev-list --merges range  &amp;gt; merges.txt                              # format-patch omits merges
+copy the provenance log + write metadata.json
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;A few choices worth calling out:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;The non-thin pack.&lt;/strong&gt; Here is the contrast with Part 2 that I like. The proxy could not pass a flag to
+the agent’s git — it had to &lt;em&gt;advertise&lt;/em&gt; the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;no-thin&lt;/code&gt; capability and let the client comply. In a hook,
+&lt;strong&gt;you are the client&lt;/strong&gt;, so you just say &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git pack-objects --no-thin&lt;/code&gt; and get a self-contained pack you can
+re-index anywhere. Same goal, opposite side of the wire.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Stream with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--stdout&lt;/code&gt;.&lt;/strong&gt; Letting &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pack-objects&lt;/code&gt; write its own file drops it in the repo and then
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rename()&lt;/code&gt;s it into place — which fails with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EXDEV&lt;/code&gt; when your artifacts directory is on a different mount
+than the repo (it usually is). Streaming to stdout and redirecting sidesteps the cross-mount rename
+entirely.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;A bundle &lt;em&gt;and&lt;/em&gt; patches &lt;em&gt;and&lt;/em&gt; a pack.&lt;/strong&gt; They serve different masters: the
+&lt;a href=&quot;https://git-scm.com/docs/git-bundle&quot;&gt;bundle&lt;/a&gt; is a one-file restorable clone source, the patches are
+what a human actually reads in review, and the pack is the raw objects. Cheap to produce, and you will be
+glad of all three the day you need to reconstruct a branch the agent deleted.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;metadata.json&lt;/code&gt; built with a JSON tool&lt;/strong&gt;, not string interpolation — branch names and URLs contain
+characters that turn hand-built JSON into a parsing bug. Let the tool escape them.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Everything lands under one auto-uploaded artifacts directory, and capture directories are named flat (slash
+in a branch name becomes a dash) so a branch like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;feature/x&lt;/code&gt; does not blow up the path.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-limits-again--briefly&quot;&gt;The Limits, Again — Briefly&lt;/h2&gt;
+
+&lt;p&gt;Everything in &lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1’s “hooks can be broken”&lt;/a&gt;
+still holds and I will not repeat it in full: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt; can be overridden from a per-user config or
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-c&lt;/code&gt; on the command line, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;git push --no-verify&lt;/code&gt; skips &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;, and an agent with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sudo&lt;/code&gt; can simply
+delete the hook directory. None of that is a defect — it is the definition of an in-sandbox layer. The
+hooks make the honest, common case observable and cheap; when you need a &lt;em&gt;guarantee&lt;/em&gt;, that is the proxy’s
+job, because the proxy is the one control the agent cannot reach.&lt;/p&gt;
+
+&lt;p&gt;There is also a softer failure mode the hooks lean into deliberately: they &lt;strong&gt;warn rather than block&lt;/strong&gt;.
+Every hook writes its warnings both to stderr and to a log in the artifacts tree, so a tagging or capture
+hiccup is visible after the fact without ever having stopped the developer’s commit or push. For
+observability, a tool that breaks the thing it observes is worse than no tool.&lt;/p&gt;
+
+&lt;h2 id=&quot;where-this-sits-in-the-series&quot;&gt;Where This Sits in the Series&lt;/h2&gt;
+
+&lt;p&gt;Two builds, one goal. The &lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;proxy&lt;/a&gt; is the
+wall outside the sandbox that the agent cannot route around; these hooks are the diligent assistant inside
+it. Run the proxy when you control the network, run the hooks when you control the image, and run both when
+you can — the hooks enrich the common case while the proxy guarantees the floor.&lt;/p&gt;
+
+&lt;p&gt;And both feed the same thing: a complete, attributed record of what every agent did to the code. That
+record is not just an audit trail — it is the raw material for measuring a fleet of agents and making the
+next run better, which is the larger system I am building now and will write about separately.&lt;/p&gt;
+
+&lt;p&gt;If you implement a version of this — a smarter tagging scheme, a cheaper capture, a hook trick I missed — I
+would love to hear it on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
+&lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;. And if your team is wiring AI Agents into real infrastructure and
+wants a hand on the boundary and the audit trail, that is exactly the kind of problem I enjoy — reach out
+and let’s scope it together.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h2 id=&quot;git-documentation-used-in-this-post&quot;&gt;Git Documentation Used in This Post&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/githooks&quot;&gt;githooks&lt;/a&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;prepare-commit-msg&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;commit-msg&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;post-rewrite&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pre-push&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-config&quot;&gt;git-config&lt;/a&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;core.hooksPath&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-interpret-trailers&quot;&gt;git-interpret-trailers&lt;/a&gt; — recomputing the trailer block&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-commit-tree&quot;&gt;git-commit-tree&lt;/a&gt; — checkout-free commit rewriting&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-rev-list&quot;&gt;git-rev-list&lt;/a&gt; and &lt;a href=&quot;https://git-scm.com/docs/git-rev-parse&quot;&gt;git-rev-parse&lt;/a&gt; — ranges, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--git-common-dir&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;https://git-scm.com/docs/git-bundle&quot;&gt;git-bundle&lt;/a&gt;, &lt;a href=&quot;https://git-scm.com/docs/git-pack-objects&quot;&gt;git-pack-objects&lt;/a&gt;, &lt;a href=&quot;https://git-scm.com/docs/git-format-patch&quot;&gt;git-format-patch&lt;/a&gt; — the capture artifacts&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;Related reading on this blog:
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;What Did the Agent Just Push? (Part 1)&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Inside the Git Proxy (Part 2)&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;, and
+&lt;a href=&quot;/blog/2019/04/09/git-replication/&quot;&gt;Efficient Git Replication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="git" />
+  
+    <category term="infrastructure" />
+  
+    <category term="workflow" />
+  
+    <summary type="html">Part 3 — the build for the lighter solution. How a set of git hooks stamps a session id on every commit an AI Agent makes, survives squash and rebase, and captures each push — all best-effort, all inside the sandbox.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)</title>
@@ -337,7 +660,9 @@ across all of it.&lt;/p&gt;
 
 &lt;p&gt;If you came straight here for the mechanics, the &lt;em&gt;why&lt;/em&gt; — credential isolation, the lighter git-hooks
 alternative, and how to choose between them — is in
-&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt;.&lt;/p&gt;
+&lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;Part 1&lt;/a&gt;. And the build of that lighter
+alternative — the in-container hooks that tag every commit and capture each push — is
+&lt;a href=&quot;/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/&quot;&gt;Part 3&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;And if your team is building this for real and wants a second pair of hands on the proxy or the capture
 pipeline, this is exactly the kind of problem I enjoy. I am happy to &lt;strong&gt;consult and help you build it&lt;/strong&gt; —
@@ -368,6 +693,7 @@ tree — the protocol and format docs themselves were promoted to the top-level 
 
 &lt;p&gt;&lt;em&gt;Related reading on this blog:
 &lt;a href=&quot;/blog/2026/06/20/auditing-git-for-ai-agents/&quot;&gt;What Did the Agent Just Push? (Part 1)&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/&quot;&gt;Inside the Git Hooks (Part 3)&lt;/a&gt;,
 &lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;, and
 &lt;a href=&quot;/blog/2019/04/09/git-replication/&quot;&gt;Efficient Git Replication&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;</content>
 
@@ -740,7 +1066,10 @@ do. Then read it back and make the next run better.&lt;/p&gt;
 
 &lt;p&gt;The mechanics of the proxy — how it intercepts the traffic, forces a parseable pack, logs every commit, and
 pins the objects so nothing gets garbage-collected — are involved enough to deserve their own follow-up
-post: &lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)&lt;/a&gt;.&lt;/p&gt;
+post: &lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)&lt;/a&gt;.
+And the lighter, in-container alternative — the git hooks that stamp a session id on every commit and
+capture each push from inside the sandbox — gets its own build in
+&lt;a href=&quot;/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/&quot;&gt;Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;If you have built something similar — a different boundary, a smarter capture, a hook trick I missed — I
 would love to hear it. Find me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or
@@ -770,6 +1099,8 @@ to designing the whole thing with your team. Reach out on
 covered in the follow-up post.&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;Related reading on this blog:
+&lt;a href=&quot;/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/&quot;&gt;Inside the Git Proxy (Part 2)&lt;/a&gt;,
+&lt;a href=&quot;/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/&quot;&gt;Inside the Git Hooks (Part 3)&lt;/a&gt;,
 &lt;a href=&quot;/blog/2026/02/02/git-fork-pattern/&quot;&gt;Git Fork Pattern&lt;/a&gt;,
 &lt;a href=&quot;/blog/2019/04/09/git-replication/&quot;&gt;Efficient Git Replication&lt;/a&gt;, and
 &lt;a href=&quot;/blog/2026/01/16/code-review-bottleneck/&quot;&gt;the code review bottleneck&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;</content>
@@ -4037,158 +4368,6 @@ reach out to me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&
     <category term="kotlin" />
   
     <summary type="html">Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">MCP Steroid Is Now Open Source</title>
-    <link href="https://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/" rel="alternate" type="text/html" title="MCP Steroid Is Now Open Source" />
-    <published>2026-04-07T00:00:00+00:00</published>
-    <updated>2026-04-07T00:00:00+00:00</updated>
-    <id>/blog/2026/04/07/mcp-steroid-open-source</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/04/07/mcp-steroid-open-source/">&lt;p&gt;MCP Steroid is now open source under the Apache 2.0 license. The source is at
-&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;github.com/jonnyzzz/mcp-steroid&lt;/a&gt;, with the project
-transitioning under JetBrains at &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;github.com/JetBrains/mcp-steroid&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-bridge&quot;&gt;The Bridge&lt;/h2&gt;
-
-&lt;p&gt;AI Agents can think. They cannot always act. The gap between what agents can reason about and
-what they can actually do inside a codebase – that’s the bottleneck I’ve been working on.&lt;/p&gt;
-
-&lt;p&gt;I build products where the AI Agent is the user. No UI – APIs, CLIs, MCPs. People keep designing
-products for humans with AI bolted on. I’m doing the opposite: we make JetBrains tools available
-for AI agents, not for humans.&lt;/p&gt;
-
-&lt;p&gt;IntelliJ-based IDEs have shipped with a built-in MCP server since 2025.2 – curated tools for common
-operations like running configurations, file edits, and basic code actions. Useful, but fixed.&lt;/p&gt;
-
-&lt;p&gt;MCP Steroid is different. It gives AI Agents the ability to write and execute arbitrary Kotlin code against
-the full IntelliJ Platform API. Not a predefined menu of operations – the actual APIs that power
-the IDE’s own features: inspections, refactorings, the debugger, PSI trees, screenshots.
-It can access any plugins and third-party extensions too! AI Agents
-get the whole IDE, not a curated subset. On &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/strategy/&quot;&gt;DPAI Arena&lt;/a&gt;
-benchmarks, agents with MCP Steroid are 20-54% faster on tasks requiring semantic understanding –
-54% on rename-refactoring across 9 files, 20% on multi-layer generation across 15 files. Simple text
-replacements show no improvement, which is expected.&lt;/p&gt;
-
-&lt;p&gt;I wrote more about this framing in
-&lt;a href=&quot;/blog/2026/03/24/agentic-experience-and-tools/&quot;&gt;Agentic Experience and Tools&lt;/a&gt;
-and in the &lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;original MCP Steroid post&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;how-it-got-here&quot;&gt;How It Got Here&lt;/h2&gt;
-
-&lt;p&gt;I started MCP Steroid in December 2025 as a free-time experiment – one engineer building a Bridge
-between AI Agents and IntelliJ’s APIs. It was built with AI agents. The project uses MCP Steroid
-itself plus a &lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;run-agent.sh&lt;/a&gt;
-swarm for development. The main effort went into evals and integration tests – making sure agents
-actually succeed at real tasks, not just compile. MCP Steroid plugin learned from its one development too.&lt;/p&gt;
-
-&lt;p&gt;The codebase has 84 prompt markdown files – 37% of production source by line count – that teach
-agents how to navigate IntelliJ APIs: the debugger, refactorings, inspections, test runners, VCS.
-Just like JetBrains IDEs make software developers more professional, these resources make AI agents
-more professional. There are integration tests for Claude Code, Codex, and Gemini, all
-&lt;a href=&quot;/blog/2026/02/21/testing-mcp-server-with-ai-agents/&quot;&gt;running in Docker&lt;/a&gt;
-with full IDE containers.&lt;/p&gt;
-
-&lt;p&gt;We validated that AI Agents can write and call Kotlin code to solve specific tasks with the help of IntelliJ.
-This is quality work
-and a real experiment with 1,690 commits over four months, not a rough prototype –
-see the &lt;a href=&quot;/blog/2026/02/23/mcp-steroid-project-assessment/&quot;&gt;project assessment at 75 days&lt;/a&gt;
-for the earlier snapshot.&lt;/p&gt;
-
-&lt;p&gt;In March 2026, we agreed to move the project under JetBrains and start using it internally. The original source is at
-&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;github.com/jonnyzzz/mcp-steroid&lt;/a&gt;, with the JetBrains fork
-at &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;github.com/JetBrains/mcp-steroid&lt;/a&gt;, released under
-Apache 2.0. I’m still the main contributor.&lt;/p&gt;
-
-&lt;h2 id=&quot;skills--a-tease&quot;&gt;Skills – a Tease&lt;/h2&gt;
-
-&lt;p&gt;The real value isn’t individual API calls. It’s that solved problems accumulate into reusable skills.
-An agent struggles through IntelliJ’s API once, figures out the working approach, and that approach
-gets wrapped into a skill any agent can call without re-discovering the surface.&lt;/p&gt;
-
-&lt;p&gt;The skill prototyping process has become magnitude times cheaper – 
-make an agent research the &lt;a href=&quot;https://github.com/JetBrains/intellij-community&quot;&gt;IntelliJ Community&lt;/a&gt;
-and figure out how to solve your task. Then, turn it as a skill which uses the MCP Steroid plugin. 
-Eval it.&lt;/p&gt;
-
-&lt;p&gt;I’ve got a dedicated post about the
-&lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;skill factory&lt;/a&gt; coming next –
-with code examples, the two-phase workflow, and the enterprise angle. For now: think of it as the
-difference between giving an agent a tool and giving it a way to build its own tools.&lt;/p&gt;
-
-&lt;h2 id=&quot;try-it&quot;&gt;Try It&lt;/h2&gt;
-
-&lt;p&gt;According to our &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/strategy/&quot;&gt;strategy&lt;/a&gt;, we start from an
-explicit plugin for IntelliJ-based IDEs (including any third-party IDEs, e.g. &lt;strong&gt;Android Studio&lt;/strong&gt;).
-The long-term target is a headless
-self-contained runtime – available as SaaS and as an end-user product – the headless 
-&lt;strong&gt;IDE for AI Agents&lt;/strong&gt;. The project requires investment into packaging for headless environments, and that’s where
-JetBrains infrastructure matters.&lt;/p&gt;
-
-&lt;p&gt;To get started today: install the MCP Steroid plugin in any IntelliJ-based IDE or Android Studio
-(version 2025.3+). The plugin generates &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroid.md&lt;/code&gt; in your project with instructions.
-Follow those instructions to register the MCP Server with your agent. The server uses the
-Streamable HTTP protocol.&lt;/p&gt;
-
-&lt;p&gt;Quick sanity check – ask your agent to run a Kotlin code like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;println(project.name)&lt;/code&gt; or ask it
-“What do I see in my IDE”&lt;/p&gt;
-
-&lt;p&gt;See it in action: &lt;a href=&quot;https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f&quot;&gt;YouTube playlist&lt;/a&gt;,
-and here’s &lt;a href=&quot;https://www.youtube.com/watch?v=HtDDNyAoLak&quot;&gt;Codex debugging an application in IntelliJ IDEA&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;get-involved&quot;&gt;Get Involved&lt;/h2&gt;
-
-&lt;p&gt;The project is open source, and the community is just getting started. If you’ve explored IntelliJ
-APIs, built agents, or solved IDE automation problems – that knowledge is useful here.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Star and fork the repository.&lt;/strong&gt; The original source is at
-&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;github.com/jonnyzzz/mcp-steroid&lt;/a&gt; and the JetBrains fork
-is at &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;github.com/JetBrains/mcp-steroid&lt;/a&gt;. Fork it, experiment with it, write
-a skill, open an issue, improve the docs. Contributions of any kind are welcome.&lt;/p&gt;
-
-&lt;p&gt;You can just try the plugin, download it from &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/releases&quot;&gt;the website&lt;/a&gt;
-or from JetBrains Marketplace (soon). Share what you build, and
-join the &lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord&lt;/a&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
-
-&lt;p&gt;With JetBrains infrastructure, support, and investment, I believe MCP Steroid will be delivered
-sooner and enable AI Agents of any kind with the best tools human developers love in
-IntelliJ-based products.&lt;/p&gt;
-
-&lt;p&gt;The &lt;a href=&quot;/blog/2026/04/08/mcp-steroid-skill-factory/&quot;&gt;skill factory post&lt;/a&gt; is coming
-tomorrow. And if you’re wondering what happens when the plugin ZIP exceeds 180 MB,
-&lt;a href=&quot;/blog/2026/04/17/intellij-plugin-hot-reload-413/&quot;&gt;the 413 post&lt;/a&gt; covers that.
-We’re also opening a proof-of-concept program for
-companies that want to use MCP Steroid for their specific workflows. If that’s interesting,
-reach out on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or in the
-&lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="intellij" />
-  
-    <category term="android-studio" />
-  
-    <category term="open-source" />
-  
-    <category term="agentic-coding" />
-  
-    <summary type="html">MCP Steroid -- the plugin that gives AI Agents the full IntelliJ IDE runtime -- is now open source under Apache 2.0. Original source at github.com/jonnyzzz/mcp-steroid, transitioning under JetBrains at github.com/JetBrains/mcp-steroid.</summary>
   
   </entry>
   

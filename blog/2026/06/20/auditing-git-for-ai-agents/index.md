@@ -294,6 +294,9 @@ do. Then read it back and make the next run better.
 The mechanics of the proxy — how it intercepts the traffic, forces a parseable pack, logs every commit, and
 pins the objects so nothing gets garbage-collected — are involved enough to deserve their own follow-up
 post: [Inside the Git Proxy: Capturing What an AI Agent Pushed (Part 2)]({% post_url blog/2026-06-22-inside-the-git-proxy-for-ai-agents %}).
+And the lighter, in-container alternative — the git hooks that stamp a session id on every commit and
+capture each push from inside the sandbox — gets its own build in
+[Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)]({% post_url blog/2026-06-26-inside-the-git-hooks-for-ai-agents %}).
 
 If you have built something similar — a different boundary, a smarter capture, a hook trick I missed — I
 would love to hear it. Find me on [LinkedIn](https://www.linkedin.com/in/jonnyzzz/) or
@@ -321,6 +324,8 @@ The wire-protocol and packfile internals — `report-status`, the pack format, p
 covered in the follow-up post.
 
 *Related reading on this blog:
+[Inside the Git Proxy (Part 2)]({% post_url blog/2026-06-22-inside-the-git-proxy-for-ai-agents %}),
+[Inside the Git Hooks (Part 3)]({% post_url blog/2026-06-26-inside-the-git-hooks-for-ai-agents %}),
 [Git Fork Pattern]({% post_url blog/2026-02-02-git-fork-pattern %}),
 [Efficient Git Replication]({% post_url blog/2019-04-09-git-replication %}), and
 [the code review bottleneck]({% post_url blog/2026-01-16-code-review-bottleneck %}).*

@@ -282,7 +282,9 @@ across all of it.
 
 If you came straight here for the mechanics, the *why* — credential isolation, the lighter git-hooks
 alternative, and how to choose between them — is in
-[Part 1]({% post_url blog/2026-06-20-auditing-git-for-ai-agents %}).
+[Part 1]({% post_url blog/2026-06-20-auditing-git-for-ai-agents %}). And the build of that lighter
+alternative — the in-container hooks that tag every commit and capture each push — is
+[Part 3]({% post_url blog/2026-06-26-inside-the-git-hooks-for-ai-agents %}).
 
 And if your team is building this for real and wants a second pair of hands on the proxy or the capture
 pipeline, this is exactly the kind of problem I enjoy. I am happy to **consult and help you build it** —
@@ -311,5 +313,6 @@ tree — the protocol and format docs themselves were promoted to the top-level 
 
 *Related reading on this blog:
 [What Did the Agent Just Push? (Part 1)]({% post_url blog/2026-06-20-auditing-git-for-ai-agents %}),
+[Inside the Git Hooks (Part 3)]({% post_url blog/2026-06-26-inside-the-git-hooks-for-ai-agents %}),
 [Git Fork Pattern]({% post_url blog/2026-02-02-git-fork-pattern %}), and
 [Efficient Git Replication]({% post_url blog/2019-04-09-git-replication %}).*

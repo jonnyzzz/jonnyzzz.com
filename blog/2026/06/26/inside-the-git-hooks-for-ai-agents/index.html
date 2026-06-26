@@ -1,0 +1,638 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3) &#8211; Eugene Petrenko</title>
+<meta name="description" content="Part 3 — the build for the lighter solution. How a set of git hooks stamps a session id on every commit an AI Agent makes, survives squash and rebase, and captures each push — all best-effort, all inside the sandbox."/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, git, infrastructure, workflow" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3) -- Eugene Petrenko" />
+<meta name="twitter:description" content="Part 3 — the build for the lighter solution. How a set of git hooks stamps a session id on every commit an AI Agent makes, survives squash and rebase, and captures each push — all best-effort, all inside the sandbox." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3) -- Eugene Petrenko" />
+<meta property="og:description" content="Part 3 — the build for the lighter solution. How a set of git hooks stamps a session id on every commit an AI Agent makes, survives squash and rebase, and captures each push — all best-effort, all inside the sandbox." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="git" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="workflow" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#git" title="Pages tagged git">git</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-06-26T00:00:00+00:00">June 26, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Inside+the+Git+Hooks%3A+Tagging+Every+AI+Agent+Commit+%28Part+3%29%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/&amp;hashtags=ai-agents,ai-coding,git,infrastructure,workflow" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Inside+the+Git+Hooks%3A+Tagging+Every+AI+Agent+Commit+%28Part+3%29%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0APart+3+%E2%80%94+the+build+for+the+lighter+solution.+How+a+set+of+git+hooks+stamps+a+session+id+on+every+commit+an+AI+Agent+makes%2C+survives+squash+and+rebase%2C+and+captures+each+push+%E2%80%94+all+best-effort%2C+all+inside+the+sandbox.%0A%0Ahttps://jonnyzzz.com/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/%0A%0A%23aiagents%20%23aicoding%20%23git%20%23infrastructure%20%23workflow" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>This is the third part of the series. <a href="/blog/2026/06/20/auditing-git-for-ai-agents/">Part 1</a>
+laid out the approach — keep the keys away from the agent, a git proxy as the hard boundary, git hooks as
+the lighter alternative. <a href="/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/">Part 2</a> was the
+build of the proxy. This one is the build of the <strong>hooks</strong>: the in-container layer you reach for when you
+own the image but not the network path.</p>
+
+<p>The job is the same two questions — <em>which commits did the agent produce, and did it touch only what we
+allowed?</em> — answered from inside the sandbox instead of on the wire. A reminder from Part 1: this is
+<strong>best-effort observability, not a security boundary</strong>. A sufficiently determined agent in its own sandbox
+can defeat any of it. We build it anyway, because for the overwhelmingly common case where the agent is
+just doing its work, it gives you clean provenance for almost nothing — and the proxy is still there as the
+floor.</p>
+
+<p>The plan: stamp a session-id <a href="https://git-scm.com/docs/git-interpret-trailers">trailer</a> on every commit as
+it is written, keep that tag alive across amend/rebase/squash, and on push capture a restorable copy of
+what is going out. Four hooks do it — <code class="language-plaintext highlighter-rouge">prepare-commit-msg</code>, <code class="language-plaintext highlighter-rouge">commit-msg</code>, <code class="language-plaintext highlighter-rouge">post-rewrite</code>, <code class="language-plaintext highlighter-rouge">pre-push</code> — wired
+in through <code class="language-plaintext highlighter-rouge">core.hooksPath</code>. Let me walk the load-bearing parts.</p>
+
+<hr />
+
+<h2 id="wiring-hijack-every-hook-without-breaking-the-repos-own">Wiring: Hijack Every Hook Without Breaking the Repo’s Own</h2>
+
+<p>Part 1 covered the install: bake the hooks into the image root-owned and read-only, and point
+<a href="https://git-scm.com/docs/git-config"><code class="language-plaintext highlighter-rouge">core.hooksPath</code></a> at them in the system config so <em>every</em> repository
+the agent touches — <code class="language-plaintext highlighter-rouge">/workspace</code> and any clone it makes later — runs them. But <code class="language-plaintext highlighter-rouge">core.hooksPath</code> is greedy:
+it <strong>replaces</strong> <code class="language-plaintext highlighter-rouge">$GIT_DIR/hooks</code> entirely. The moment you set it, a project’s own <code class="language-plaintext highlighter-rouge">.git/hooks/pre-commit</code>
+stops firing. That is a regression you do not want to ship to developers who rely on their own hooks.</p>
+
+<p>So the first thing each of our hooks does is run the repository’s own hook of the same name, honor its exit
+code, and only then do our work:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>run_local_hook(name, args, stdin):
+    # resolve the MAIN repo's .git even from a linked worktree, and as an absolute path
+    git_dir = git rev-parse --path-format=absolute --git-common-dir
+    local   = "$git_dir/hooks/$name"
+    if is_executable(local):
+        exec local with (args, stdin)   # its exit code becomes ours — honor a rejection
+    # else: nothing to chain, carry on
+</code></pre></div></div>
+
+<p>Two traps hide in those four lines. First, <strong>recursion</strong>: if you resolve the hook path through
+<code class="language-plaintext highlighter-rouge">core.hooksPath</code> you point straight back at yourself and loop forever — so resolve the <em>literal</em>
+<code class="language-plaintext highlighter-rouge">$GIT_DIR/hooks</code>, never the configured path. Second, <strong>worktrees</strong>: a linked worktree has its own private
+gitdir, but the conventional hooks live in the main repo’s <code class="language-plaintext highlighter-rouge">.git</code>. <code class="language-plaintext highlighter-rouge">--git-common-dir</code> resolves to the main
+<code class="language-plaintext highlighter-rouge">.git</code> from anywhere, so a hook running inside a worktree still finds the project’s real hooks.</p>
+
+<p>For hooks that receive data on stdin (<code class="language-plaintext highlighter-rouge">pre-push</code>, <code class="language-plaintext highlighter-rouge">post-rewrite</code>), there is a third trap: you need that
+stdin <em>twice</em> — once for your own logic, once to replay to the local hook — and command substitution
+silently strips trailing newlines and mangles blank lines. So buffer stdin to a temp file and replay the
+<strong>exact bytes</strong>:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>stdin_buf = mktemp(); read all of stdin into stdin_buf
+... parse stdin_buf for our own work ...
+run_local_hook(name, args, stdin=stdin_buf)   # byte-for-byte, not via $(...)
+</code></pre></div></div>
+
+<p>One more constraint shaped the whole library: it runs on the macOS dev host <em>and</em> the Linux agent image,
+so it is written for <strong>bash 3.2</strong> — no associative arrays, no namerefs. Portability is a feature when your
+hooks have to behave identically in two very different places</p>
+
+<h2 id="tagging-one-trailer-re-collected-every-time">Tagging: One Trailer, Re-Collected Every Time</h2>
+
+<p>The tag itself is a git <em>trailer</em> — a structured <code class="language-plaintext highlighter-rouge">Key: value</code> line at the foot of the commit message, the
+same machinery as <code class="language-plaintext highlighter-rouge">Signed-off-by</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Agent-Session: 2026-06-20T11:04:18Z-7f3a9c
+</code></pre></div></div>
+
+<p>The naive approach — append that line to the message — falls apart the first time someone squashes three
+commits or rebases a branch. Trailers get duplicated, buried mid-message, or dropped. The robust approach
+is to treat the trailer block as something you <strong>recompute</strong> on every message, not something you append
+once:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apply_tag(msgfile, sid):
+    existing = all "Agent-Session:" values already in the message
+    from_urls = session ids parsed out of any orchestrator URLs pasted in the body
+    all = dedup(existing + from_urls + [sid])        # order-preserving, drop blanks
+    body = message with the raw Agent-Session lines AND those URLs stripped out
+    # re-emit ONE trailing trailer block, deduped, via the real tool
+    git interpret-trailers --if-exists addIfDifferent --if-missing add \
+        (one --trailer "Agent-Session: &lt;v&gt;" per v in all) &lt;&lt;&lt; body  &gt; msgfile
+</code></pre></div></div>
+
+<p>Three things matter here. We let <a href="https://git-scm.com/docs/git-interpret-trailers"><code class="language-plaintext highlighter-rouge">git interpret-trailers</code></a>
+place the block — it knows where the trailer section ends and how to keep it well-formed, which hand-rolled
+string-appending never gets right. We <strong>re-collect</strong> existing values before re-emitting, so a squash of
+commits from different sessions <em>preserves every distinct</em> session id and <em>dedups identical</em> ones — the
+audit trail survives history rewriting. And we also harvest ids out of any session URL the agent pasted
+into the message body, so a commit references its origin even when the trailer was never added by hand.</p>
+
+<p>This runs in <strong><code class="language-plaintext highlighter-rouge">prepare-commit-msg</code></strong>, the primary tagging point. It fires for commit, amend, merge,
+cherry-pick and every rebase reword/squash/fixup path — and, as Part 1 noted, it is the one commit-time
+hook that <code class="language-plaintext highlighter-rouge">git commit --no-verify</code> does <strong>not</strong> suppress, which is exactly why the tag lives there.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code># prepare-commit-msg
+run_local_hook("prepare-commit-msg", argv, stdin)  || exit with its code
+apply_tag(msgfile, resolve_sid())   || warn "tagging failed (continuing)"
+exit 0
+</code></pre></div></div>
+
+<p><strong><code class="language-plaintext highlighter-rouge">commit-msg</code></strong> is a thin backstop: <code class="language-plaintext highlighter-rouge">prepare-commit-msg</code> already covers every path, so this one only acts
+if the final message somehow has no tag — a guard against a future regression, never the normal route. It
+never blocks the commit</p>
+
+<p>Where does the session id come from? From a fixed file the environment writes once per session — covered in
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">Part 1</a>. The resolver reads the first line of
+that file and sanitizes it into a trailer-safe token: keep the <code class="language-plaintext highlighter-rouge">:</code> so an ISO-8601 timestamp survives, drop
+<code class="language-plaintext highlighter-rouge">/</code> so it can never break a path you later build from the id. No file, or a blank one, means “skip
+tagging” — the hooks never block on a missing id.</p>
+
+<h2 id="provenance-across-rewrites">Provenance Across Rewrites</h2>
+
+<p>When the agent amends or rebases, commit hashes change, and a tag-by-hash audit trail would lose the
+thread. <a href="https://git-scm.com/docs/githooks"><code class="language-plaintext highlighter-rouge">post-rewrite</code></a> closes that gap: git hands it
+<code class="language-plaintext highlighter-rouge">&lt;old-sha&gt; &lt;new-sha&gt;</code> pairs on stdin (space-separated — <em>not</em> tab, a detail that has bitten many a hook),
+and we append them to a per-session provenance log before delegating to the repo’s own hook:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code># post-rewrite  (stdin: "&lt;old&gt; &lt;new&gt;" per line)
+buffer stdin
+for "&lt;old&gt; &lt;new&gt;" in stdin:
+    append "&lt;timestamp&gt;  &lt;mode&gt;  &lt;old&gt;  &lt;new&gt;"  to  $ARTIFACTS/_provenance/&lt;sid&gt;.log
+run_local_hook("post-rewrite", argv, stdin=buffer)
+</code></pre></div></div>
+
+<p>Now an <code class="language-plaintext highlighter-rouge">old → new</code> chain is recoverable even after the local history has been reshaped, and that log later
+travels with the push capture</p>
+
+<h2 id="enforcement-on-push-re-tag-or-bail-out">Enforcement on Push: Re-Tag, or Bail Out</h2>
+
+<p>The commit hooks are easy to bypass — <code class="language-plaintext highlighter-rouge">--no-verify</code>, a tool that writes commits directly, an agent in a
+hurry. <a href="https://git-scm.com/docs/githooks"><code class="language-plaintext highlighter-rouge">pre-push</code></a> is the net that catches untagged commits before they
+leave the box. For each pushed branch it works out which commits are actually new, and if any of them lack
+the tag, it rewrites them and <strong>aborts the push</strong> so the corrected commits go out on the retry — what you
+might call “amend on push”.</p>
+
+<p>The first subtlety is <strong>bounding the range</strong>. git hands <code class="language-plaintext highlighter-rouge">pre-push</code> a line per ref —
+<code class="language-plaintext highlighter-rouge">&lt;local-ref&gt; &lt;local-sha&gt; &lt;remote-ref&gt; &lt;remote-sha&gt;</code> — and the <code class="language-plaintext highlighter-rouge">remote-sha</code> is the authoritative “what the
+server already has” boundary. Except when it is all-zero, which means a <em>brand-new</em> branch: there is no
+remote tip, and if you naively take “everything reachable from local-sha” you will try to re-tag and
+capture the entire history of the repo. So for a new branch, fall back to the merge-base against the
+remote’s existing tracking tips; if even that cannot be found, do not guess — skip:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>push_base(local_sha, remote_sha, remote):
+    if remote_sha is not all-zero:  return remote_sha          # normal update
+    tips = object names of refs/remotes/&lt;remote&gt;/*
+    if no tips:  return ""                                     # cannot bound — caller must skip
+    return git merge-base local_sha &lt;tips...&gt;                  # new branch: nearest known ancestor
+</code></pre></div></div>
+
+<p>(A small landmine worth flagging: <code class="language-plaintext highlighter-rouge">git merge-base --remotes</code> is <strong>not</strong> a thing. You have to enumerate the
+tracking-tip object names and pass them explicitly.)</p>
+
+<p>With a base in hand, the enforcement pass is straightforward — only rewrite real <code class="language-plaintext highlighter-rouge">refs/heads/*</code> updates
+(skip deletions, and skip tags, since rewriting a tag ref would clobber it):</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code># pre-push enforcement
+need_retry = 0
+for "&lt;localref&gt; &lt;localsha&gt; _ &lt;remotesha&gt;" in stdin:
+    skip if deletion, or localref not under refs/heads/
+    base = push_base(localsha, remotesha, remote)   ; skip if empty
+    if any commit in base..localsha has no Agent-Session trailer and we have a sid:
+        retag_range(base, localref, localsha, sid)   # checkout-free, see below
+        need_retry = 1
+if need_retry: exit 1   # "re-tagged commits; please re-run your push"
+</code></pre></div></div>
+
+<p>Checking a commit for the trailer is a one-liner thanks to git’s own formatter —
+<code class="language-plaintext highlighter-rouge">git show -s --format='%(trailers:key=Agent-Session,valueonly)'</code> prints the value or nothing.</p>
+
+<h3 id="re-tagging-without-a-checkout">Re-Tagging Without a Checkout</h3>
+
+<p>Rewriting commits inside a hook is where most implementations reach for <code class="language-plaintext highlighter-rouge">git rebase</code> — and inherit all of
+rebase’s hazards: it checks out, it fights a dirty working tree, it can drop empty commits, and a failure
+leaves rebase state lying around. We avoid all of it with <a href="https://git-scm.com/docs/git-commit-tree"><code class="language-plaintext highlighter-rouge">git
+commit-tree</code></a>, which builds a commit object from a tree with no
+working-tree involvement at all:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>retag_range(boundary, tipref, tip, sid):
+    map = {}                                  # old sha -&gt; new sha
+    for c in  git rev-list --reverse --topo-order  boundary..tip:     # parents before children
+        tree     = c^{tree}
+        newparents = [ map[p] or p  for p in parents(c) ]             # remap to rewritten parents
+        msg      = apply_tag(message_of(c), sid)
+        newc     = commit-tree tree (-p each newparent) -F msg \
+                       with c's original author/committer name+email+DATE preserved
+        map[c]   = newc
+    git update-ref tipref  map[tip]           # move the branch to the rewritten tip
+</code></pre></div></div>
+
+<p>Two details make it correct. <strong>Topological order, parents first</strong>, with a parent-remap table: when you
+rewrite a commit its children must be re-pointed at the <em>new</em> parent, or you fork history. And you must
+<strong>preserve the original author and committer identity and dates</strong> (<code class="language-plaintext highlighter-rouge">GIT_AUTHOR_DATE</code>, <code class="language-plaintext highlighter-rouge">GIT_COMMITTER_DATE</code>,
+and the name/email pairs) — otherwise the “re-tag” silently rewrites timestamps and authorship, which is
+both wrong and alarming in a blame view. Because nothing is ever checked out, a dirty tree is fine and an
+empty commit is fine; there is no rebase state to clean up if a step fails. This is the same
+“rewrite the whole pushed suffix in topological order” idea Part 2 mentioned for the proxy — here is the
+actual mechanism.</p>
+
+<p>This only makes sense for a real branch ref. A delete, a detached-HEAD push, or a raw-SHA push has no
+branch to move, so the hook skips the rewrite there rather than do something surprising.</p>
+
+<h2 id="capture-on-push-a-restorable-copy-never-blocking">Capture on Push: a Restorable Copy, Never Blocking</h2>
+
+<p>After enforcement, a second pass captures what is going out — and unlike enforcement, capture <strong>never</strong>
+blocks a push. If any of it fails, the developer’s push still succeeds; the failure is logged and that is
+all. Each piece is bounded to the push range (<code class="language-plaintext highlighter-rouge">base..local-sha</code>), and if the range is empty or cannot be
+bounded, the whole capture is skipped rather than writing a degenerate artifact or dumping full history.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code># pre-push capture (per pushed ref, in a subshell so a failure is contained)
+base  = push_base(...)            ; skip if empty
+range = base..localsha
+skip if  git rev-list --count range  == 0          # nothing new
+
+git bundle create   bundle.bundle  localref --not base                 # restorable clone source
+git rev-list --objects range | git pack-objects --no-thin --stdout  &gt; pack.pack
+git format-patch -o patches/  range                                    # human-readable, per commit
+git rev-list --merges range  &gt; merges.txt                              # format-patch omits merges
+copy the provenance log + write metadata.json
+</code></pre></div></div>
+
+<p>A few choices worth calling out:</p>
+
+<ul>
+  <li><strong>The non-thin pack.</strong> Here is the contrast with Part 2 that I like. The proxy could not pass a flag to
+the agent’s git — it had to <em>advertise</em> the <code class="language-plaintext highlighter-rouge">no-thin</code> capability and let the client comply. In a hook,
+<strong>you are the client</strong>, so you just say <code class="language-plaintext highlighter-rouge">git pack-objects --no-thin</code> and get a self-contained pack you can
+re-index anywhere. Same goal, opposite side of the wire.</li>
+  <li><strong>Stream with <code class="language-plaintext highlighter-rouge">--stdout</code>.</strong> Letting <code class="language-plaintext highlighter-rouge">pack-objects</code> write its own file drops it in the repo and then
+<code class="language-plaintext highlighter-rouge">rename()</code>s it into place — which fails with <code class="language-plaintext highlighter-rouge">EXDEV</code> when your artifacts directory is on a different mount
+than the repo (it usually is). Streaming to stdout and redirecting sidesteps the cross-mount rename
+entirely.</li>
+  <li><strong>A bundle <em>and</em> patches <em>and</em> a pack.</strong> They serve different masters: the
+<a href="https://git-scm.com/docs/git-bundle">bundle</a> is a one-file restorable clone source, the patches are
+what a human actually reads in review, and the pack is the raw objects. Cheap to produce, and you will be
+glad of all three the day you need to reconstruct a branch the agent deleted.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">metadata.json</code> built with a JSON tool</strong>, not string interpolation — branch names and URLs contain
+characters that turn hand-built JSON into a parsing bug. Let the tool escape them.</li>
+</ul>
+
+<p>Everything lands under one auto-uploaded artifacts directory, and capture directories are named flat (slash
+in a branch name becomes a dash) so a branch like <code class="language-plaintext highlighter-rouge">feature/x</code> does not blow up the path.</p>
+
+<h2 id="the-limits-again--briefly">The Limits, Again — Briefly</h2>
+
+<p>Everything in <a href="/blog/2026/06/20/auditing-git-for-ai-agents/">Part 1’s “hooks can be broken”</a>
+still holds and I will not repeat it in full: <code class="language-plaintext highlighter-rouge">core.hooksPath</code> can be overridden from a per-user config or
+<code class="language-plaintext highlighter-rouge">-c</code> on the command line, <code class="language-plaintext highlighter-rouge">git push --no-verify</code> skips <code class="language-plaintext highlighter-rouge">pre-push</code>, and an agent with <code class="language-plaintext highlighter-rouge">sudo</code> can simply
+delete the hook directory. None of that is a defect — it is the definition of an in-sandbox layer. The
+hooks make the honest, common case observable and cheap; when you need a <em>guarantee</em>, that is the proxy’s
+job, because the proxy is the one control the agent cannot reach.</p>
+
+<p>There is also a softer failure mode the hooks lean into deliberately: they <strong>warn rather than block</strong>.
+Every hook writes its warnings both to stderr and to a log in the artifacts tree, so a tagging or capture
+hiccup is visible after the fact without ever having stopped the developer’s commit or push. For
+observability, a tool that breaks the thing it observes is worse than no tool.</p>
+
+<h2 id="where-this-sits-in-the-series">Where This Sits in the Series</h2>
+
+<p>Two builds, one goal. The <a href="/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/">proxy</a> is the
+wall outside the sandbox that the agent cannot route around; these hooks are the diligent assistant inside
+it. Run the proxy when you control the network, run the hooks when you control the image, and run both when
+you can — the hooks enrich the common case while the proxy guarantees the floor.</p>
+
+<p>And both feed the same thing: a complete, attributed record of what every agent did to the code. That
+record is not just an audit trail — it is the raw material for measuring a fleet of agents and making the
+next run better, which is the larger system I am building now and will write about separately.</p>
+
+<p>If you implement a version of this — a smarter tagging scheme, a cheaper capture, a hook trick I missed — I
+would love to hear it on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or
+<a href="https://twitter.com/jonnyzzz">Twitter</a>. And if your team is wiring AI Agents into real infrastructure and
+wants a hand on the boundary and the audit trail, that is exactly the kind of problem I enjoy — reach out
+and let’s scope it together.</p>
+
+<hr />
+
+<h2 id="git-documentation-used-in-this-post">Git Documentation Used in This Post</h2>
+
+<ul>
+  <li><a href="https://git-scm.com/docs/githooks">githooks</a> — <code class="language-plaintext highlighter-rouge">prepare-commit-msg</code>, <code class="language-plaintext highlighter-rouge">commit-msg</code>, <code class="language-plaintext highlighter-rouge">post-rewrite</code>, <code class="language-plaintext highlighter-rouge">pre-push</code></li>
+  <li><a href="https://git-scm.com/docs/git-config">git-config</a> — <code class="language-plaintext highlighter-rouge">core.hooksPath</code></li>
+  <li><a href="https://git-scm.com/docs/git-interpret-trailers">git-interpret-trailers</a> — recomputing the trailer block</li>
+  <li><a href="https://git-scm.com/docs/git-commit-tree">git-commit-tree</a> — checkout-free commit rewriting</li>
+  <li><a href="https://git-scm.com/docs/git-rev-list">git-rev-list</a> and <a href="https://git-scm.com/docs/git-rev-parse">git-rev-parse</a> — ranges, <code class="language-plaintext highlighter-rouge">--git-common-dir</code></li>
+  <li><a href="https://git-scm.com/docs/git-bundle">git-bundle</a>, <a href="https://git-scm.com/docs/git-pack-objects">git-pack-objects</a>, <a href="https://git-scm.com/docs/git-format-patch">git-format-patch</a> — the capture artifacts</li>
+</ul>
+
+<p><em>Related reading on this blog:
+<a href="/blog/2026/06/20/auditing-git-for-ai-agents/">What Did the Agent Just Push? (Part 1)</a>,
+<a href="/blog/2026/06/22/inside-the-git-proxy-for-ai-agents/">Inside the Git Proxy (Part 2)</a>,
+<a href="/blog/2026/02/02/git-fork-pattern/">Git Fork Pattern</a>, and
+<a href="/blog/2019/04/09/git-replication/">Efficient Git Replication</a>.</em></p>
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
