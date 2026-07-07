@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-06-26T08:47:31+00:00</updated>
+  <updated>2026-07-07T12:21:24+00:00</updated>
   <id>/</id>
 
   
@@ -17,6 +17,673 @@
   
 
   
+  
+  <entry>
+    <title type="html">A Real IntelliJ IDEA Inside Docker: Integration Tests with X Server, Window Manager, and Live Video</title>
+    <link href="https://jonnyzzz.com/blog/2026/07/05/intellij-in-docker-integration-tests/" rel="alternate" type="text/html" title="A Real IntelliJ IDEA Inside Docker: Integration Tests with X Server, Window Manager, and Live Video" />
+    <published>2026-07-05T00:00:00+00:00</published>
+    <updated>2026-07-05T00:00:00+00:00</updated>
+    <id>/blog/2026/07/05/intellij-in-docker-integration-tests</id>
+    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/07/05/intellij-in-docker-integration-tests/">&lt;p&gt;&lt;a href=&quot;https://youtu.be/rA-pBJR9wh0&quot;&gt;&lt;img src=&quot;/images/posts/2026-07-05-docker-ide-demo-play.jpg&quot; alt=&quot;A full IntelliJ IDEA running in Docker, its live screen streamed into a browser tab while an AI 
+Agent drives the debugger&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;The demo: an integration test boots IntelliJ IDEA inside a Docker container, streams its live screen into
+the browser tab on the right, and a Claude agent drives the IDE debugger — all of it the setup described
+below. &lt;a href=&quot;https://youtu.be/rA-pBJR9wh0&quot;&gt;Watch it on YouTube&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;The question I keep asking myself while writing my IntelliJ plugins – is there a way to write an
+integration test that proves the plugin actually works inside the IDE. You need tests 10x more thanks
+to AI Agents and agentic loops, and since I integrate deeply with the IDE, I need that even more. The integration tests are
+also the source of the Agentic traces I use to self-improve &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;MCP Steroid&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In this post, I share insights to the setup of full integration tests with IntelliJ-based IDEs, 
+running with GUI, inside Docker container.&lt;/p&gt;
+
+&lt;p&gt;It started about 8 years ago, when we first introduced performance tests into the IntelliJ platform —
+such tests are now visible under the &lt;a href=&quot;https://github.com/JetBrains/intellij-community/tree/master/tools/intellij.tools.ide.starter&quot;&gt;IntelliJ Community&lt;/a&gt;. We’ve been using these tests to
+stabilize &lt;a href=&quot;https://jonnyzzz.com/talks/2021-02-26-ij20/&quot;&gt;IntelliJ Shared Indexes&lt;/a&gt;. This time, I provide the fully reusable way to
+run integration tests, now in Docker and with full GUI and tools.&lt;/p&gt;
+
+&lt;p&gt;We walk through the essentials: the Docker image, the X server setup, how we keep
+IntelliJ manageable in there, and how the video reaches your browser. Enough details that you (better your AI Agent) can
+re-implement the approach for your own GUI-under-test — it is not IntelliJ-specific at all. All the code is
+open source in the &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/tree/main/test-integration&quot;&gt;test-integration&lt;/a&gt; module, and the tech powers the
+&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;demo videos&lt;/a&gt; we are preparing for the project.&lt;/p&gt;
+
+&lt;p&gt;This continues the MCP Steroid series — the &lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;original post&lt;/a&gt; explains why AI Agents get the full
+IntelliJ runtime, and the &lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;devrig post&lt;/a&gt; covers the autonomous IDE lifecycle. Today is about the
+test infrastructure underneath.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-not-headless-why-not-mocks&quot;&gt;Why not headless, why not mocks&lt;/h2&gt;
+
+&lt;p&gt;First of all, you can find the &lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/testing-plugins.html&quot;&gt;testing framework in the IntelliJ SDK&lt;/a&gt;, that is great and enough for most
+of the cases. Here we discuss more high-level integration tests, which are as close to the end-user IDE
+as possible, with modal dialogs, and production files layout, production threading, deadlocks, and more.&lt;/p&gt;
+
+&lt;p&gt;The interesting bugs live in the seams: a modal dialog that blocks the whole
+IDE, the trust prompt that appears only on first open of a project, indexing that makes every PSI call
+return incomplete results or fail. MCP Steroid server executes Kotlin code inside the live IDE process —
+such the integration test has to
+prove that works while the IDE is doing all its usual IDE things.&lt;/p&gt;
+
+&lt;p&gt;Headless IntelliJ exists, but it is a different product in practice. No window subsystem means no dialogs, no
+focus, no screenshots — and screenshots are an MCP Steroid feature (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;). If the agent
+can see the IDE in production, the test environment must render actual pixels, and the IDE behaviour
+should be tested appropriately. The headless IDE — the same
+flavor the test framework uses — runs a different threading model that is much more convenient for testing.
+For the reference, &lt;a href=&quot;https://www.jetbrains.com/help/idea/remote-development-overview.html&quot;&gt;Remote Development&lt;/a&gt; functions slightly differently, we are not covering it.
+I want to be certain my plugin and my features are behaving in the GUI version of the IDE, just like the end-users do.&lt;/p&gt;
+
+&lt;p&gt;The &lt;strong&gt;requirement&lt;/strong&gt; list settled to: real IDE, real display, reproducible on any machine with Docker, and
+observable — when a 15-minute test goes sideways, “read 40MB of idea.log” is a bad debugging story. We wanted
+to just look at the screen, and I confirm, an AI Agent can do that too!&lt;/p&gt;
+
+&lt;p&gt;In the MCP Steroid we combine approaches – there are fast and lightweight tests with the 
+&lt;a href=&quot;https://plugins.jetbrains.com/docs/intellij/welcome.html&quot;&gt;IntelliJ Platform SDK&lt;/a&gt;,
+and there are heavy docker-based integration tests to cover the most heavy end-to-end flows. We are discussing
+the second below.&lt;/p&gt;
+
+&lt;h2 id=&quot;why-docker&quot;&gt;Why Docker?&lt;/h2&gt;
+
+&lt;p&gt;Since I want to stay as close as possible to end-user scenarios – a clean machine is &lt;strong&gt;required&lt;/strong&gt;.
+We run MCP Steroid together with AI Agents such as Claude Code, Codex, and Gemini. I do not want my local
+machine setup to interfere with the actual integration test. That is where Docker comes in – every time,
+we run in the same scripted, clean environment.&lt;/p&gt;
+
+&lt;p&gt;Docker comes with the price – I can only integration-test my project with Linux. There are
+solutions like &lt;a href=&quot;https://tart.run/&quot;&gt;tart&lt;/a&gt; to run virtual macOS and other solutions on Windows, which I
+do not cover so far.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-image-heavy-base-thin-ide-layer&quot;&gt;The image: heavy base, thin IDE layer&lt;/h2&gt;
+
+&lt;p&gt;The Docker setup is two layers. A heavy &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ide-base&lt;/code&gt; image holds everything that changes rarely and caches
+well; a thin per-IDE layer adds an IDE distribution on top. The base starts from a small Ubuntu image,
+installs the X stack, and ends by dropping to a non-root user that does nothing (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-base/Dockerfile&quot;&gt;full Dockerfile&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;language-dockerfile highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; ubuntu:24.04&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# X server, window manager, capture tools, fonts, and the JetBrains Runtime&apos;s native X deps&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;apt-get update &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    apt-get &lt;span class=&quot;nb&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--no-install-recommends&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        xvfb &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        x11-utils &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        fluxbox &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        fonts-dejavu &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        fonts-jetbrains-mono &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        ffmpeg &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        scrot &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        xdotool &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        xclip &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        xterm &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        libxi6 libxrender1 libxtst6 libxext6 libx11-6 &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        libfreetype6 libfontconfig1 &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        curl git unzip rsync procps ca-certificates &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;        &lt;span class=&quot;c&quot;&gt;# … a few more utilities trimmed for the post&lt;/span&gt;
+    &amp;amp;&amp;amp; rm -rf /var/lib/apt/lists/*
+
+# … plus six Temurin JDKs (8, 11, 17, 21, 24, 25) and Node.js 20, and the AI Agent CLIs
+&lt;span class=&quot;c&quot;&gt;# (Claude Code, Codex, Gemini) behind a daily cache-bust ARG so they stay fresh&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;# a non-root user that owns the dotfiles and caches. ubuntu:24.04 already ships a&lt;/span&gt;
+&lt;span class=&quot;c&quot;&gt;# default user at uid 1000, so free the slot before claiming it for `agent`.&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;userdel &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; ubuntu 2&amp;gt;/dev/null &lt;span class=&quot;o&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; useradd &lt;span class=&quot;nt&quot;&gt;-m&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; 1000 &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; /bin/bash agent
+
+&lt;span class=&quot;k&quot;&gt;USER&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; agent&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;WORKDIR&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; /home/agent&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CMD&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; [&quot;sleep&quot;, &quot;infinity&quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Every package earns its place:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xvfb&lt;/code&gt; — the virtual X server, our display&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fluxbox&lt;/code&gt; — a tiny window manager; without one, IntelliJ windows have no position, no focus, no stacking&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;x11-utils&lt;/code&gt; — gives us &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdpyinfo&lt;/code&gt; for the display readiness probe&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdotool&lt;/code&gt; — window geometry and raw input injection from scripts&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;scrot&lt;/code&gt; + &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ffmpeg&lt;/code&gt; — screenshots and screen recording&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fonts-jetbrains-mono&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fonts-dejavu&lt;/code&gt; — an IDE without fonts renders as squares, not much to look at&lt;/li&gt;
+  &lt;li&gt;the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;libx*&lt;/code&gt; set — the JetBrains Runtime is a JVM with AWT; these are its native X client dependencies&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The six JDKs let the IDE detect system JDKs and let tests exercise multi-version SDK selection; the
+daily cache-bust keeps the fast-moving agent CLIs fresh while the expensive apt layer rebuilds rarely.
+The same way you may need node, python, and other dev dependencies.&lt;/p&gt;
+
+&lt;p&gt;The last three lines matter more than they look. The container’s main process is literally &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sleep infinity&lt;/code&gt; —
+the container is an empty, running room. Xvfb, the window manager, ffmpeg, the IDE itself — every real
+process is started later, via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt;, from the test harness. This is the single most useful design
+decision in the whole setup: the harness owns the exact startup order, sees every process’s output
+separately, can restart any piece, and cleanup is LIFO through one stack of dispose actions. A &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CMD&lt;/code&gt; that
+tries to boot everything in a shell script gives you none of that.&lt;/p&gt;
+
+&lt;p&gt;The IDE layer is almost embarrassingly small (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-agent/Dockerfile&quot;&gt;full Dockerfile&lt;/a&gt;), and potentially
+cheap enough to run via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; or &lt;a href=&quot;https://devrig.dev&quot;&gt;devrig&lt;/a&gt;:&lt;/p&gt;
+
+&lt;div class=&quot;language-dockerfile highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;ARG&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; BASE_IMAGE=mcp-steroid-ide-base-test&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;FROM&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; ${BASE_IMAGE}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;USER&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; root&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;COPY&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; ide.tar.gz /tmp/ide.tar.gz&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;RUN &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; /opt/idea &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;chmod &lt;/span&gt;a+rwx /opt &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;tar&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-xzf&lt;/span&gt; /tmp/ide.tar.gz &lt;span class=&quot;nt&quot;&gt;-C&lt;/span&gt; /opt/idea &lt;span class=&quot;nt&quot;&gt;--strip-components&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1 &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\
+&lt;/span&gt;    &lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; /tmp/ide.tar.gz
+&lt;span class=&quot;k&quot;&gt;USER&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; agent&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;ENV&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; PATH=&quot;/opt/idea/bin:/usr/local/bin:/usr/bin:$PATH&quot;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;CMD&lt;/span&gt;&lt;span class=&quot;s&quot;&gt; [&quot;sleep&quot;, &quot;infinity&quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ide.tar.gz&lt;/code&gt; is downloaded by the build on the host — the same resolver that powers
+&lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download&lt;/code&gt;&lt;/a&gt; — and hard-linked into a hash-keyed build context, so Docker’s
+BuildKit reuses the ~1.5 GB layer between runs instead of re-snapshotting it. PyCharm, GoLand, WebStorm,
+Android Studio, and CLion get identical thin layers, only the archive and launcher name differ; Rider additionally
+installs the .NET SDK.&lt;/p&gt;
+
+&lt;h2 id=&quot;starting-the-container&quot;&gt;Starting the container&lt;/h2&gt;
+
+&lt;p&gt;The harness launches the container with plain &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker run&lt;/code&gt; — no Testcontainers library right now.
+I would recommend the &lt;a href=&quot;https://testcontainers.com/&quot;&gt;Testcontainers&lt;/a&gt; library, since everything we do is similar and
+should be supported there as well. We are considering moving to it later in the project too.&lt;/p&gt;
+
+&lt;p&gt;Here is the run command:&lt;/p&gt;
+
+&lt;div class=&quot;language-sh highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;docker run &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--init&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;--add-host&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;host.docker.internal:host-gateway &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &amp;lt;run-dir&amp;gt;:/mcp-run-dir:rw &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &amp;lt;repo-cache&amp;gt;:/repo-cache:ro &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &amp;lt;m2-cache&amp;gt;:/home/agent/.m2:rw &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-v&lt;/span&gt; &amp;lt;gradle-cache&amp;gt;:/home/agent/.gradle:rw &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 6754 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8765 &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 5005 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &amp;lt;image-id&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The container command comes from the image’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CMD&lt;/code&gt; — that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sleep infinity&lt;/code&gt; again. The Maven and Gradle cache
+mounts persist dependency downloads between runs. Each &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-p&lt;/code&gt; publishes the container port to a random free
+host port; the harness reads the mapping back and prints it, so parallel test runs never fight over ports.&lt;/p&gt;
+
+&lt;p&gt;Three published ports carry everything interesting:&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Port&lt;/th&gt;
+      &lt;th&gt;Purpose&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;6754&lt;/td&gt;
+      &lt;td&gt;MCP Steroid HTTP server inside the IDE — the test’s API&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;8765&lt;/td&gt;
+      &lt;td&gt;video streaming dashboard — the part for humans&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;5005&lt;/td&gt;
+      &lt;td&gt;JDWP — attach a debugger to the containerized IDE JVM&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;That last one is worth a pause: the IDE inside the container runs with
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-agentlib:jdwp=...,server=y,suspend=n&lt;/code&gt;, so when a test misbehaves you attach IntelliJ-on-the-host to
+IntelliJ-in-the-container and step through the plugin code live. Debugging an IDE with an IDE — it never
+stops being funny.&lt;/p&gt;
+
+&lt;p&gt;Two small flags carry weight. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--init&lt;/code&gt; gives us a proper PID 1 that reaps zombie processes — with dozens of
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; sessions spawning Xvfb, ffmpeg, rsync loops and an entire JVM, orphans are guaranteed.
+And we do &lt;em&gt;not&lt;/em&gt; pass &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--user&lt;/code&gt;: the image bakes a non-root &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;agent&lt;/code&gt; user (uid 1000 by default) that owns its dotfiles and
+caches; overriding the uid from outside breaks fluxbox and Maven in creative ways. The host run directory is
+made world-writable instead. Not elegant, works everywhere.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-x-server-xvfb-a-readiness-probe-and-fluxbox&quot;&gt;The X server: Xvfb, a readiness probe, and fluxbox&lt;/h2&gt;
+
+&lt;p&gt;Everything display-related lives in a small driver before anything else runs. The startup is two commands and one wait loop
+(&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/xcvb.kt&quot;&gt;the display driver&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;## Start the server&lt;/span&gt;
+Xvfb :99 &lt;span class=&quot;nt&quot;&gt;-screen&lt;/span&gt; 0 3840x2160x24 &lt;span class=&quot;nt&quot;&gt;-ac&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;## Wait for it in the other session; poll until xdpyinfo succeeds&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for &lt;/span&gt;i &lt;span class=&quot;k&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;seq &lt;/span&gt;1 150&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;do 
+   &lt;/span&gt;xdpyinfo &lt;span class=&quot;nt&quot;&gt;-display&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$DISPLAY&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt;/dev/null 2&amp;gt;&amp;amp;1 &lt;span class=&quot;o&quot;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;sleep &lt;/span&gt;0.1&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Xvfb :99 -screen 0 3840x2160x24 -ac&lt;/code&gt; — a 4K virtual screen, 24-bit color, access control off (we are alone
+inside the container). The readiness probe matters: Xvfb takes a moment to create its socket, and an IDE
+launched a hair too early dies with a cryptic &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Can&apos;t connect to X11 display&lt;/code&gt;. Polling &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdpyinfo&lt;/code&gt; until it
+succeeds costs at most 15 seconds and removed a whole class of flaky starts. From here on, the harness stamps
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DISPLAY=:99&lt;/code&gt; onto every &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; it issues, and that is the entire “installation” of the display&lt;/p&gt;
+
+&lt;p&gt;Then the window manager. You might think you can skip it — the X server renders fine without one. You can
+not. Without a WM, windows get no focus management, popups draw at 0,0, and IntelliJ’s own window activation
+logic quietly breaks. fluxbox is small, and is fully configured by writing three tiny
+dotfiles before launch (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/xcvb-windows.kt&quot;&gt;the window-manager setup&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;## optional wallpaper — point it at your own image, or drop this line&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;background: fullscreen\nbackground.pixmap: /usr/share/images/mcp-steroid-wallpaper.jpg\n&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /home/agent/.fluxbox/overlay
+&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;session.screen0.toolbar.visible: false\n&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /home/agent/.fluxbox/init
+&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;
+    [app] (name=jetbrains-idea)
+      [Decorations]  {NONE}
+    [end]
+    [app] (name=xterm)
+      [Decorations]  {NONE}
+    [end]
+&apos;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /home/agent/.fluxbox/apps
+
+&lt;span class=&quot;c&quot;&gt;## Start it&lt;/span&gt;
+fluxbox
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;After that, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdotool windowsize&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;windowmove&lt;/code&gt; pins the layout: the IDE takes the left two thirds of the 4K
+screen, and an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xterm&lt;/code&gt; on the right third tails the test’s own status output. When you watch the video
+stream, that xterm is the running commentary of what the harness is doing to the IDE at that moment.&lt;/p&gt;
+
+&lt;h2 id=&quot;managing-intellij-inside-the-container&quot;&gt;Managing IntelliJ inside the container&lt;/h2&gt;
+
+&lt;p&gt;Getting IntelliJ to &lt;em&gt;launch&lt;/em&gt; in Docker is easy. Getting it to reach a working editor with zero human clicks
+is where the real knowledge accumulated, one failure at a time. The launch itself is one line — the launcher
+script from the unpacked distribution, pointed at the project:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c&quot;&gt;## make sure DISPLAY variable is set&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;DISPLAY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;:99 /opt/idea/bin/idea /home/agent/project-home
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That one line only survives because the IDE is fully prepared on disk before it runs. JDK pinning happens in
+the factory as the project is deployed (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/intelliJ-factory.kt&quot;&gt;intelliJ-factory.kt&lt;/a&gt;); the rest is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;startIde()&lt;/code&gt;
+(&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/intelliJ.kt&quot;&gt;intelliJ.kt&lt;/a&gt;), in this order:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Pin the project and Gradle JDK&lt;/strong&gt; in the project’s own &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/misc.xml&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/gradle.xml&lt;/code&gt;, so
+import picks the right JVM.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Create the folders&lt;/strong&gt; — config, system, logs, plugins, and the project dir, so the IDE never races to
+create them.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Write the consent files&lt;/strong&gt; — the config-dir files and the JVM userPrefs that pre-accept EULA and
+privacy policy (more on these below).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Write &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;trusted-paths.xml&lt;/code&gt;&lt;/strong&gt; — mark the project path (and, for tests, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/&lt;/code&gt;) as trusted, so the Trust
+Project dialog never appears.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Write the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.vmoptions&lt;/code&gt;&lt;/strong&gt; — the full set of JVM flags (below).&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Write &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jdk.table.xml&lt;/code&gt;&lt;/strong&gt; — pre-populate the JDK table for IntelliJ IDEA-family IDEs, so project-open
+Gradle sync resolves the JDK instead of stalling ~8 minutes on an unknown SDK.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Two of these carry most of the weight: the VM options and the consent files. Let’s look at each.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-vm-options&quot;&gt;The VM options&lt;/h3&gt;
+
+&lt;p&gt;Everything that keeps that launcher alive unattended is in the generated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.vmoptions&lt;/code&gt; file. Its location is
+special — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;idea-home&amp;gt;.vmoptions&lt;/code&gt;, so for us &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/opt/idea.vmoptions&lt;/code&gt;. Here is the full set we generate:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;-Xmx6g
+-Xms1g
+
+## Debugger is enabled, should we need it — it listens inside the Docker container
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+
+## Redirect the IDE folders to explicit paths — enough to sandbox the IDE, even without Docker
+-Didea.config.path=/mcp-run-dir/intellij/ide-config
+-Didea.system.path=/home/agent/ide-system
+-Didea.log.path=/mcp-run-dir/intellij/ide-log
+-Didea.plugins.path=/home/agent/ide-plugins
+
+## MCP Steroid plugin — bind on all interfaces so Docker can map the port out
+-Dmcp.steroid.server.host=0.0.0.0
+-Dmcp.steroid.server.port=6754
+-Dmcp.steroid.dialog.killer.enabled=true
+-Dmcp.steroid.updates.enabled=false
+-Dmcp.steroid.analytics.enabled=false
+-Dmcp.steroid.idea.description.enabled=false
+-Dmcp.steroid.storage.path=/mcp-run-dir/intellij/mcp-steroid
+
+## Suppress the AI promo window (it fetches a remote URL on first run and, in Docker,
+## times out after 480s — an 8-minute startup deadlock). Also cut the network timeout.
+-Dllm.show.ai.promotion.window.on.start=false
+-Didea.connection.timeout=3000
+
+## License server for commercial IDEs (Rider, etc.)
+-DJETBRAINS_LICENSE_SERVER=https://your-intellij-linense-server-or-ide-services
+
+## Skip EULA, consent dialogs, trust prompts, and onboarding
+-Didea.trust.disabled=true
+-Djb.consents.confirmation.enabled=false
+-Djb.privacy.policy.text=&amp;lt;!--999.999--&amp;gt;
+-Djb.privacy.policy.ai.assistant.text=&amp;lt;!--999.999--&amp;gt;
+-Dmarketplace.eula.reviewed.and.accepted=true
+-Dwriterside.eula.reviewed.and.accepted=true
+-Didea.initially.ask.config=never
+-Dide.newUsersOnboarding=false
+-Dnosplash=true
+
+## Belt-and-suspenders vs the SDK-download consent modal that blocks JPS builds
+-Dunknown.sdk=false
+-Dunknown.sdk.auto=false
+-Dunknown.sdk.modal.jps=false
+
+## Never talk to the outside world about updates or telemetry
+-Didea.suppress.statistics.report=true
+-Didea.local.statistics.without.report=true
+-Dfeature.usage.event.log.send.on.ide.close=false
+-Dide.enable.notification.trace.data.sharing=false
+-Didea.updates.url=http://127.0.0.1
+-Dide.no.platform.update=true
+-Dide.browser.disabled=true
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Each of those trust/consent/onboarding flags is necessary to avoid a modal dialog on the first start.
+The good news – it works now, and it is a solvable grind.
+My favorite: the AI promo window that appears on a
+fresh IDE once made startup deadlock for a full eight minutes inside Docker before we found
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;llm.show.ai.promotion.window.on.start=false&lt;/code&gt;. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unknown.sdk&lt;/code&gt; trio is a close second — a background build
+task deciding it wants to download a JDK, and asking for consent with a modal, on a machine with no human.
+A dialog nobody can click is a distributed systems problem now. And because every IDE release can add a new
+first-run popup, the plugin ships an active dialog killer as the last line of defense.&lt;/p&gt;
+
+&lt;p&gt;Config, logs, and system dirs are split deliberately: config and logs live on the bind-mounted run
+directory, so after a failed CI run you get the full &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;idea.log&lt;/code&gt; and the exact IDE config as artifacts. The
+system dir (caches, indexes) stays on the container filesystem, where it is fast and disposable. The MCP
+Steroid plugin ZIP is unpacked into the plugins dir before launch, and a floating license server is
+configured via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-DJETBRAINS_LICENSE_SERVER&lt;/code&gt; so commercial IDEs like Rider skip the license dialog too —
+ours points at an internal JetBrains server, you would bring your own here.&lt;/p&gt;
+
+&lt;h3 id=&quot;the-consent-files&quot;&gt;The consent files&lt;/h3&gt;
+
+&lt;p&gt;VM options cover most of the first-run popups, but not all. A few consents live in files the IDE reads
+before any option is applied, so we write those ourselves before launch. IntelliJ records EULA and
+privacy-policy acceptance both in the config dir and in the JVM user preferences under the home directory;
+we pre-write them with a version far in the future (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;999.999&lt;/code&gt;) so the IDE always thinks the latest terms
+are already accepted:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;# inside the IDE config dir
+options/other.xml
+early-access-registry.txt
+options/AIOnboardingPromoWindowAdvisor.xml
+
+# inside the agent home (JVM userPrefs + consent options)
+.java/.userPrefs/jetbrains/prefs.xml
+.java/.userPrefs/jetbrains/privacy_policy/prefs.xml
+.config/JetBrains/consentOptions/accepted
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The user-prefs files carry the future version — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;accepted_version=999.999&lt;/code&gt;,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;privacy_policy_accepted_version=999.999&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;eua_accepted_version=999.999&lt;/code&gt;, and so on — while the config-dir
+files switch off onboarding and the AI-promo window, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;consentOptions/accepted&lt;/code&gt; records the
+usage-statistics choice. The exact list (there are a couple more, including an encoded Java-prefs path) is in
+&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/intellij-downloader/src/buildsrc-shared/kotlin/com/jonnyzzz/mcpSteroid/ideDownloader/IdeStartupConfig.kt&quot;&gt;IdeStartupConfig.kt&lt;/a&gt;. It is not glamorous, but it is the difference between a clean start
+and an IDE waiting on a dialog nobody will ever click.&lt;/p&gt;
+
+&lt;p&gt;With all of that written to disk, we finally run the launcher — and now we wait.&lt;/p&gt;
+
+&lt;h2 id=&quot;waiting-for-intellij-to-be-ready&quot;&gt;Waiting for IntelliJ to be ready&lt;/h2&gt;
+
+&lt;p&gt;Since MCP Steroid is already a tool to access IDE internals, we use the tool itself
+to monitor IDE readiness, for that we pass the following steps:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;poll the MCP Steroid port until it answers, then wait for the IDE window&lt;/li&gt;
+  &lt;li&gt;register the JDKs in the IDE (essential for IntelliJ IDEA-based tools)&lt;/li&gt;
+  &lt;li&gt;set the project SDK&lt;/li&gt;
+  &lt;li&gt;trigger the Maven/Gradle import and wait for it to actually finish&lt;/li&gt;
+  &lt;li&gt;wait for indexing and background progress to settle&lt;/li&gt;
+  &lt;li&gt;resolve any remaining unknown SDKs&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first step is a plain poll — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;curl&lt;/code&gt; the MCP port until it answers, while failing fast if
+the IDE process dies or the log shows a startup failure (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/mcp-steroid.kt&quot;&gt;mcp-steroid.kt&lt;/a&gt;). Every step after that is a Kotlin snippet
+we send through the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; tool, which runs it inside the live IDE. Setting the project
+SDK, for example, is just the IntelliJ API (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/mcp-steroid-jdks.kt&quot;&gt;mcp-steroid-jdks.kt&lt;/a&gt;):&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// runs inside the live IDE via steroid_execute_code&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;sdk&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProjectJdkTable&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getSdksOfType&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;JavaSdk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;first&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;21&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;temurin-21&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;||&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;name&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;corretto-21&quot;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;nf&quot;&gt;edtWriteAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;JavaSdkUtil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;applyJdkToProject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sdk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Triggering the import and, crucially, &lt;em&gt;waiting for it to finish&lt;/em&gt; is the same idea — subscribe to
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ProjectDataImportListener&lt;/code&gt; (Gradle) or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MavenImportListener&lt;/code&gt; (Maven), fire the refresh, and await
+the finished event instead of a blind &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sleep&lt;/code&gt;. The last step waits for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Observation.awaitConfiguration&lt;/code&gt;
+to drain, then for the IDE to reach &lt;em&gt;smart mode&lt;/em&gt; with zero running background progress indicators, held for
+several quiet rounds — indexing arrives in waves as libraries and their sources download, so a one-shot
+check returns too early. It also fails fast if progress freezes, so a stuck import does not hang to the
+timeout. The import and settle logic is in &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/mcp-steroid-import.kt&quot;&gt;mcp-steroid-import.kt&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-end-user-aidev-experience-in-the-mcp-steroid-project&quot;&gt;The end-user AI/Dev experience in the MCP Steroid project&lt;/h2&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;An integration test must be designed to start from the IDE as a usual test.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I’ve seen many integration tests that were hard to start locally and only ever ran on CI. That makes
+them unique, and maintained only by their authors. With Agentic AI and coding agents we can’t afford
+that price – each test run must be as cheap and as fast as possible, because our AI Agents will call
+such tests many times.&lt;/p&gt;
+
+&lt;p&gt;From an AI Agent’s (or a developer’s) point of view, the whole machinery above collapses into one call:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Test&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@Timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;value&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unit&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TimeUnit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;MINUTES&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;fun&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;`container&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;starts&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;and&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IDE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;becomes&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ready`&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;runWithCloseableStack&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lifetime&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;nc&quot;&gt;IntelliJContainer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;create&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lifetime&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;IntelliJContainerOpts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;consoleTitle&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;ide-container&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IntelliJContainer.create&lt;/code&gt; (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/intelliJ-factory.kt&quot;&gt;intelliJ-factory.kt&lt;/a&gt;) builds the image, starts the
+container, brings up Xvfb → fluxbox → video → screenshots → xterm, deploys the plugin and the test project,
+launches the IDE, and blocks in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;waitForMcpReady()&lt;/code&gt;. That gets the IDE and the MCP server up; a test that
+needs a fully imported project calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;waitForProjectReady()&lt;/code&gt; next — the JDK/import/indexing steps from above.
+The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lifetime&lt;/code&gt; stack unwinds all of it in reverse order — ffmpeg gets its SIGINT before
+the container goes away, so the video file always has a valid trailer. After that, tests speak plain MCP over
+HTTP: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; runs Kotlin inside the live IDE, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt; reports which dialogs
+are showing and whether indexing is in progress, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt; returns what the agent sees.&lt;/p&gt;
+
+&lt;h2 id=&quot;sending-the-live-video-to-a-browser-tab&quot;&gt;Sending the live video to a browser tab&lt;/h2&gt;
+
+&lt;p&gt;Now the fun part. Running an integration test with GUI version of an IDE. Are you curious to see what’s inside?&lt;/p&gt;
+
+&lt;p&gt;Screenshots came first — a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;scrot&lt;/code&gt; loop drops one PNG per second into the mounted volume,
+and that alone made failures debuggable. But flipping through PNG files is archaeology. During long agent
+runs we wanted to &lt;em&gt;watch&lt;/em&gt;, live, like over a colleague’s shoulder.&lt;/p&gt;
+
+&lt;p&gt;The obvious answer is VNC, and we deliberately skipped it. VNC means a VNC server in the container, a client
+on every developer machine, one more port, one more password. Our real requirement was much weaker:
+one-directional, view-only, zero-install. Something a browser tab can show.&lt;/p&gt;
+
+&lt;p&gt;So the pipeline is: &lt;strong&gt;ffmpeg grabs the X display into a growing fragmented MP4 file, and a tiny Node.js
+server streams that file into a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;video&amp;gt;&lt;/code&gt; tag as it grows.&lt;/strong&gt; No VNC, no WebRTC, no websockets — HTTP chunked
+transfer, invented last century, works great.&lt;/p&gt;
+
+&lt;p&gt;The capture side (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/xcvb-video.kt&quot;&gt;the capture + streaming driver&lt;/a&gt;) — 24 fps, and a keyframe every second
+(&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-g 24&lt;/code&gt;), which is load-bearing, as we will see:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ffmpeg &lt;span class=&quot;nt&quot;&gt;-nostdin&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-y&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; x11grab &lt;span class=&quot;nt&quot;&gt;-video_size&lt;/span&gt; 3840x2160 &lt;span class=&quot;nt&quot;&gt;-framerate&lt;/span&gt; 24 &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; :99 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt;:v libx264 &lt;span class=&quot;nt&quot;&gt;-preset&lt;/span&gt; ultrafast &lt;span class=&quot;nt&quot;&gt;-tune&lt;/span&gt; zerolatency &lt;span class=&quot;nt&quot;&gt;-crf&lt;/span&gt; 28 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-pix_fmt&lt;/span&gt; yuv420p &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; 24 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; 24 &lt;span class=&quot;nt&quot;&gt;-keyint_min&lt;/span&gt; 24 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-x264-params&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;keyint&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;24:min-keyint&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;24:scenecut&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0:rc-lookahead&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-movflags&lt;/span&gt; frag_keyframe+empty_moov+default_base_moof &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-frag_duration&lt;/span&gt; 1000000 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-flush_packets&lt;/span&gt; 1 &lt;span class=&quot;nt&quot;&gt;-fflags&lt;/span&gt; +flush_packets &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    /tmp/video/recording.mp4
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Three details here cost us real debugging days, so read them as a checklist:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-movflags frag_keyframe+empty_moov&lt;/code&gt;&lt;/strong&gt; turns the output into a &lt;em&gt;fragmented&lt;/em&gt; MP4. A normal MP4 writes
+its index (the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;moov&lt;/code&gt; atom) at the end, when encoding finishes — useless for a file you want to play
+&lt;em&gt;while&lt;/em&gt; it is being written. Fragmented MP4 is self-describing from the first fragment.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;The keyframe interval must be forced down.&lt;/strong&gt; x264’s default is one keyframe per ~250 frames, and each
+fragment starts on a keyframe — so the browser would sit on a black screen 20–50 seconds waiting for the
+first fragment to complete. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;keyint=24&lt;/code&gt; (one second) makes playback start almost immediately. We set both
+the generic &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-g&lt;/code&gt; option and x264’s own &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;keyint&lt;/code&gt; params, so the encoder and the muxer agree on one-second
+fragments.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;ffmpeg writes to a container-local path, not the mounted volume.&lt;/strong&gt; Docker Desktop’s virtiofs does not
+flush file data to the host while the writing process keeps the file open — the host sees a zero-byte
+file for the entire recording. So ffmpeg writes to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/tmp&lt;/code&gt; inside the container, and a one-second
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rsync --inplace&lt;/code&gt; loop mirrors the growing file to the mounted volume. Closed files (like the scrot PNGs)
+flush fine; it is specifically the always-open file that bites. The streaming server below reads the
+same container-local file — the rsync copy exists only so the host keeps the recording as an artifact.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The serving side is a few hundred lines of Node.js baked into the image, more than half of it the dashboard
+page (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-base/video-server.js&quot;&gt;video-server.js&lt;/a&gt;). The tail-follow core is under a hundred lines: keep the HTTP
+response open, remember a byte position, and every ~100 ms send whatever the file grew by (slightly
+simplified here):&lt;/p&gt;
+
+&lt;div class=&quot;language-javascript highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;c1&quot;&gt;// GET /video.mp4 — stream the growing file with chunked transfer encoding&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;serveVideo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;req&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;writeHead&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Content-Type&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;video/mp4&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;Connection&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;keep-alive&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;position&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;scheduleNext&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;ms&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;sendChunk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;ms&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;sendChunk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destroyed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stat&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getVideoStat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;scheduleNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;position&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;kd&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stream&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;createReadStream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;VIDEO_FILE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;position&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;chunk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if &lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;destroyed&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;res&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;chunk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+            &lt;span class=&quot;nx&quot;&gt;stream&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;on&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&apos;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;position&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;stat&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;scheduleNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;75&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;nf&quot;&gt;scheduleNext&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;sendChunk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET /&lt;/code&gt; serves a small dashboard page — a full-viewport &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;video autoplay muted playsinline&amp;gt;&lt;/code&gt; element pointed
+at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/video.mp4&lt;/code&gt;, the run ID in the header, and a status dot polling &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GET /status&lt;/code&gt; every 300 ms. When the
+harness shuts the server down, the page notices — repeated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/status&lt;/code&gt; failures flip the dot to “stopped” and
+the tab closes itself. On the host side, the harness waits for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/status&lt;/code&gt; to answer and runs
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;open http://localhost:&amp;lt;mapped-8765&amp;gt;/&lt;/code&gt; — on macOS the tab appears by itself the moment the stream is alive.
+On other platforms you follow the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;VIDEO_DASHBOARD=&lt;/code&gt; line from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;session-info.txt&lt;/code&gt; in the run directory,
+it is printed to the test output too:&lt;/p&gt;
+
+&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nf&quot;&gt;waitFor&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;35_000L&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;Video streaming server ready&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nf&quot;&gt;curl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;$dashboardUrl/status&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;httpCode&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isMacOs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;ProcessBuilder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;open&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dashboardUrl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;One browser caveat we learned the embarrassing way while recording the demo: &lt;strong&gt;Safari refused to play the
+growing fragmented MP4&lt;/strong&gt; — it waited for the first frame forever, Chrome handled the same stream fine. If
+you build this, test in Chrome first and save yourself an hour of blaming the encoder.&lt;/p&gt;
+
+&lt;p&gt;The latency of the whole chain — X11 frame to browser pixel — comes to a couple of seconds in our runs. For
+“is the agent stuck on a dialog or actually indexing”, that is more than enough.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-same-pipeline-on-camera&quot;&gt;The same pipeline, on camera&lt;/h2&gt;
+
+&lt;p&gt;The &lt;a href=&quot;https://youtu.be/rA-pBJR9wh0&quot;&gt;demo video&lt;/a&gt; at the top of this post is this exact infrastructure, filmed. It runs the
+pipeline one level deeper: a macOS VM (via &lt;a href=&quot;https://tart.run&quot;&gt;Tart&lt;/a&gt;) runs IntelliJ, which runs the
+integration test from the gutter, which boots the Docker container with the &lt;em&gt;inner&lt;/em&gt; IDE, and Chrome pops up
+with the live dashboard streaming that inner IDE while a Claude agent drives its debugger. An IDE in a
+container inside a VM, watched from a browser tab — and every layer is exactly the code above.&lt;/p&gt;
+
+&lt;p&gt;Producing a &lt;em&gt;readable&lt;/em&gt; video needed only three small overrides on top of the stock pipeline: the inner
+display drops from 4K to 1280×720 (so IDE fonts map ~1:1 onto video pixels), CRF goes from 28 to 20, and the
+x264 preset from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ultrafast&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;veryfast&lt;/code&gt;. The demo checkout carries a small local patch that reads these
+from environment variables — candidates to land on main as proper knobs, not there yet. Upstream CI still
+runs the defaults: same code path exercised daily, slightly nicer pixels for the camera.&lt;/p&gt;
+
+&lt;h2 id=&quot;re-implementing-this-for-your-own-gui-tests&quot;&gt;Re-implementing this for your own GUI tests&lt;/h2&gt;
+
+&lt;p&gt;Nothing above is IntelliJ-specific. The recipe, condensed:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;&lt;strong&gt;Base image:&lt;/strong&gt; Debian/Ubuntu + &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xvfb&lt;/code&gt;, a small WM (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;fluxbox&lt;/code&gt;), &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;x11-utils&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdotool&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;scrot&lt;/code&gt;,
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ffmpeg&lt;/code&gt;, fonts, and your app’s native GUI libraries. End it with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CMD [&quot;sleep&quot;, &quot;infinity&quot;]&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Own the startup order from the outside.&lt;/strong&gt; Start Xvfb via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt;, poll &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;xdpyinfo&lt;/code&gt; until the
+display answers, then the WM, then capture, then your application. Register cleanups in reverse.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Disarm every first-run dialog&lt;/strong&gt; your application can show. Hunt them down one by one; each is a hang in
+CI. Budget real time for this — it took us the longest.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Health-check with fail-fast branches:&lt;/strong&gt; process alive, log clean, endpoint answering. Never poll for
+success alone.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Screenshots first&lt;/strong&gt; (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;scrot&lt;/code&gt; in a loop — trivial and already saves you), &lt;strong&gt;video second&lt;/strong&gt;: ffmpeg
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;x11grab&lt;/code&gt; → fragmented MP4 with 1-second keyframes → tail-follow HTTP server → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;video&amp;gt;&lt;/code&gt; tag. Write to a
+container-local path and rsync to the volume if you are on Docker Desktop.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;Publish three ports:&lt;/strong&gt; your app’s API, the video dashboard, and a debugger.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;We drive all of this from Kotlin, but it is nothing a shell script can’t do. The whole sequence, wired
+together — the two background loops (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;scrot&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;rsync&lt;/code&gt;) are the ones the sections above only described:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;set&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-euo&lt;/span&gt; pipefail
+&lt;span class=&quot;nv&quot;&gt;cid&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;docker run &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--init&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; 8765 my-gui-image&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;   &lt;span class=&quot;c&quot;&gt;# the &quot;sleep infinity&quot; room&lt;/span&gt;
+x&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; docker &lt;span class=&quot;nb&quot;&gt;exec&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;DISPLAY&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;:99 &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cid&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$@&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;          &lt;span class=&quot;c&quot;&gt;# every command carries DISPLAY&lt;/span&gt;
+x &lt;span class=&quot;nb&quot;&gt;mkdir&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-p&lt;/span&gt; /tmp/video /tmp/shots
+
+x Xvfb :99 &lt;span class=&quot;nt&quot;&gt;-screen&lt;/span&gt; 0 1280x720x24 &lt;span class=&quot;nt&quot;&gt;-ac&lt;/span&gt; &amp;amp;                   &lt;span class=&quot;c&quot;&gt;# 1. virtual display&lt;/span&gt;
+x bash &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;for i in $(seq 1 150); do xdpyinfo -display :99 &amp;gt;/dev/null 2&amp;gt;&amp;amp;1 &amp;amp;&amp;amp; exit 0; sleep 0.1; done; exit 1&apos;&lt;/span&gt;
+x fluxbox &amp;amp;                                              &lt;span class=&quot;c&quot;&gt;# 2. window manager&lt;/span&gt;
+x xclock &amp;amp;                                               &lt;span class=&quot;c&quot;&gt;# 3. your GUI app (stand-in here)&lt;/span&gt;
+x bash &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;while :; do scrot /tmp/shots/$(date +%s).png; sleep 1; done&apos;&lt;/span&gt; &amp;amp;   &lt;span class=&quot;c&quot;&gt;# screenshots&lt;/span&gt;
+x ffmpeg &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; x11grab &lt;span class=&quot;nt&quot;&gt;-video_size&lt;/span&gt; 1280x720 &lt;span class=&quot;nt&quot;&gt;-framerate&lt;/span&gt; 24 &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; :99 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt;:v libx264 &lt;span class=&quot;nt&quot;&gt;-preset&lt;/span&gt; ultrafast &lt;span class=&quot;nt&quot;&gt;-tune&lt;/span&gt; zerolatency &lt;span class=&quot;nt&quot;&gt;-crf&lt;/span&gt; 28 &lt;span class=&quot;nt&quot;&gt;-pix_fmt&lt;/span&gt; yuv420p &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-g&lt;/span&gt; 24 &lt;span class=&quot;nt&quot;&gt;-keyint_min&lt;/span&gt; 24 &lt;span class=&quot;nt&quot;&gt;-x264-params&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;keyint&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;24:min-keyint&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;24:scenecut&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0:rc-lookahead&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-movflags&lt;/span&gt; frag_keyframe+empty_moov+default_base_moof &lt;span class=&quot;nt&quot;&gt;-frag_duration&lt;/span&gt; 1000000 &lt;span class=&quot;se&quot;&gt;\&lt;/span&gt;
+    &lt;span class=&quot;nt&quot;&gt;-flush_packets&lt;/span&gt; 1 &lt;span class=&quot;nt&quot;&gt;-fflags&lt;/span&gt; +flush_packets /tmp/video/recording.mp4 &amp;amp;   &lt;span class=&quot;c&quot;&gt;# 4. capture&lt;/span&gt;
+x bash &lt;span class=&quot;nt&quot;&gt;-c&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;while :; do rsync --inplace /tmp/video/recording.mp4 /mcp-run-dir/; sleep 1; done&apos;&lt;/span&gt; &amp;amp;
+x node /usr/local/bin/video-server.js /tmp/video/recording.mp4 8765 &amp;amp;   &lt;span class=&quot;c&quot;&gt;# 5. stream&lt;/span&gt;
+open &lt;span class=&quot;s2&quot;&gt;&quot;http://localhost:&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;docker port &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cid&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; 8765/tcp | &lt;span class=&quot;nb&quot;&gt;cut&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt;: &lt;span class=&quot;nt&quot;&gt;-f2&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&quot;&lt;/span&gt;        &lt;span class=&quot;c&quot;&gt;# 6. watch&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The parts I would warn you about, honestly: the vmoptions dialog-hunting never truly ends — every IDE
+release can add a new first-run popup, and we find out when CI hangs. The 4K Xvfb display makes ffmpeg eat a
+steady chunk of CPU; on weak CI workers you may want 1080p. And the whole &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docker exec&lt;/code&gt; orchestration is more
+code than a docker-compose file — the flexibility is worth it for us, but it is a real trade-off.&lt;/p&gt;
+
+&lt;h2 id=&quot;try-it-steal-it-improve-it&quot;&gt;Try it, steal it, improve it&lt;/h2&gt;
+
+&lt;p&gt;Everything in this post is in the open &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;jonnyzzz/mcp-steroid&lt;/a&gt; repository — the
+&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-base/Dockerfile&quot;&gt;base&lt;/a&gt; and &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-agent/Dockerfile&quot;&gt;agent&lt;/a&gt; Dockerfiles, the &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/xcvb.kt&quot;&gt;X server driver&lt;/a&gt;, the
+&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/main/kotlin/com/jonnyzzz/mcpSteroid/integration/infra/xcvb-video.kt&quot;&gt;video pipeline&lt;/a&gt;, and the &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/docker/ide-base/video-server.js&quot;&gt;video-server.js&lt;/a&gt; you can lift wholesale into your
+own project. To see it live:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;./gradlew :test-integration:test &lt;span class=&quot;nt&quot;&gt;--tests&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;&apos;*IntelliJContainerTest.container starts and IDE becomes ready&apos;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;On macOS a browser tab opens by itself on a live IDE booting inside a container; elsewhere, follow the
+&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;VIDEO_DASHBOARD=&lt;/code&gt; URL from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;session-info.txt&lt;/code&gt; in the run directory.&lt;/p&gt;
+
+&lt;p&gt;If you build a variant of this for your own GUI testing — a different app, a different streaming trick, or
+you got WebRTC working where we settled for chunked HTTP — I genuinely want to hear about it. Tell me on
+&lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;, or open an issue on the repo. And if the demo video is what
+brought you here: that is this same pipeline, just pointed at a camera.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="mcp" />
+  
+    <category term="mcp-steroid" />
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="intellij" />
+  
+    <category term="docker" />
+  
+    <category term="testing" />
+  
+    <category term="devrig" />
+  
+    <summary type="html">Evals that boot a full IntelliJ IDEA — pixels, dialogs, indexing and all — inside a Docker container. Xvfb provides the display, fluxbox keeps the windows in place, ffmpeg records everything, and a tiny Node.js server streams the live video straight into a browser tab on your machine. Here is the whole recipe, so you can build your own.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Inside the Git Hooks: Tagging Every AI Agent Commit (Part 3)</title>
@@ -4180,194 +4847,6 @@ specific to JetPack 7.0 that we have not seen documented well elsewhere.&lt;/p&g
     <category term="cuda" />
   
     <summary type="html">Setting up a Jetson AGX Thor Developer Kit headlessly from macOS — no monitor, no Ethernet on day one, just a USB-C cable and picocom. The OOBE wizard has a bug in JetPack 7.0 that silently drops you on the wrong serial port. Here is the working path.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">IntelliJ as a Skill Factory</title>
-    <link href="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/" rel="alternate" type="text/html" title="IntelliJ as a Skill Factory" />
-    <published>2026-04-08T00:00:00+00:00</published>
-    <updated>2026-04-08T00:00:00+00:00</updated>
-    <id>/blog/2026/04/08/mcp-steroid-skill-factory</id>
-    <content type="html" xml:base="https://jonnyzzz.com/blog/2026/04/08/mcp-steroid-skill-factory/">&lt;p&gt;Every time your agent needs to use an IntelliJ API it hasn’t seen before, it burns tokens figuring
-out PSI trees and threading rules. It tries something, gets a compilation error, tries again, gets
-a wrong result, tries a third time. Eventually it works. Then the next agent – or the same agent
-in a new session – starts the whole cycle over.&lt;/p&gt;
-
-&lt;p&gt;I &lt;a href=&quot;/blog/2026/04/07/mcp-steroid-open-source/&quot;&gt;open-sourced MCP Steroid&lt;/a&gt; yesterday.
-That post covered the what and why. This one is about the pattern that makes the plugin actually
-useful day to day: &lt;strong&gt;skills&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;two-islands&quot;&gt;Two Islands&lt;/h2&gt;
-
-&lt;p&gt;Here’s how I think about the problem. There are
-&lt;a href=&quot;/blog/2026/03/24/agentic-experience-and-tools/&quot;&gt;two islands&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Island one&lt;/strong&gt; is the IDE world. IntelliJ platform has deep code understanding – control flow
-graphs, cross-language refactorings, structural search, a debugger, Gradle integration, Spring Integration, and the long-tail more of the features. 
-It’s an
-extraordinary amount of engineering. But it was all built for humans clicking menus. IntelliJ IDEs
-ship with a built-in MCP server since 2025.2, but it exposes a curated, fixed set of operations –
-file edits, run configurations, basic code actions. A start, but not the full picture.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Island two&lt;/strong&gt; is the agentic world. AI agents that can reason, plan, iterate, and write code –
-but they’re stuck either running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;grep&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;sed&lt;/code&gt;, or limited to predefined tool menus, never
-touching the real depth of what the IDE already knows about the codebase.&lt;/p&gt;
-
-&lt;p&gt;MCP Steroid bridges them fully. An agent sends Kotlin through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;, and that code
-runs inside the IDE’s JVM with full access to everything IntelliJ knows. Not a curated subset.
-Not a fixed menu. The actual APIs that power the IDE’s own features. No abstractions skipped.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-skill-factory&quot;&gt;The Skill Factory&lt;/h2&gt;
-
-&lt;p&gt;Here’s the workflow that changed how I use the plugin.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Phase one: research.&lt;/strong&gt; The agent experiments with IntelliJ APIs via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;. It
-tries things, fails, iterates. This phase is messy – maybe 4-8 retries, a lot of tokens spent on
-compilation errors and wrong API assumptions – including
-&lt;a href=&quot;/blog/2026/02/12/jvm-classloading-intellij/&quot;&gt;JVM classloading quirks&lt;/a&gt; that trip up
-even experienced developers. That’s fine. The agent is learning.&lt;/p&gt;
-
-&lt;p&gt;At that phase Agent uses the 60+ resources that are already included into the MCP Steroid package.
-For really complex tasks, I also recommend adding the &lt;a href=&quot;https://github.com/JetBrains/intellij-community&quot;&gt;IntelliJ Community&lt;/a&gt; sources
-and the sources of your third-party plugins and ask the agent to conduct the research there as well.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Phase two: encapsulation.&lt;/strong&gt; Once the agent figures out how to solve the problem, the working
-approach gets wrapped into a reusable skill – a Kotlin snippet stored as a markdown document.
-Now any agent can call it without re-discovering the API surface.&lt;/p&gt;
-
-&lt;p&gt;That’s the skill factory. Each solved problem becomes a skill. Skills accumulate. The agent that
-struggled for 8 retries to find deprecated methods with zero usages? Next time it takes one call.&lt;/p&gt;
-
-&lt;p&gt;The &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;MCP Steroid repo&lt;/a&gt; ships with built-in articles that
-serve a dual purpose – they’re documentation for you, and reference material that agents read to
-create new skills. When your agent needs to figure out VFS or the debugger API, it reads these
-articles just like you would. Check the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/&quot;&gt;docs&lt;/a&gt; for the
-full set.&lt;/p&gt;
-
-&lt;h2 id=&quot;why-skills-not-plugin-code&quot;&gt;Why Skills, Not Plugin Code&lt;/h2&gt;
-
-&lt;p&gt;Here’s what makes skills compelling: writing a skill is one markdown file with a Kotlin code snippet.
-Writing the same capability as traditional plugin code means a Gradle project, extension points,
-build infrastructure, and a full development cycle. Skills skip all of that – the agent handles
-compilation, threading, and iteration for you. You just need to point it in the right direction.&lt;/p&gt;
-
-&lt;p&gt;This also works well with
-&lt;a href=&quot;/blog/2026/01/30/orchestrating-ai-fleets/&quot;&gt;sub-agent architectures&lt;/a&gt;. A parent agent
-can delegate a specific task to a sub-agent that reads only the relevant skill documentation from
-MCP resources. The sub-agent iterates until it works, and the parent’s context stays clean. This is
-how I run it in practice – the orchestrator picks the skill, the worker executes it.&lt;/p&gt;
-
-&lt;h2 id=&quot;example-a-complete-skill&quot;&gt;Example: A Complete Skill&lt;/h2&gt;
-
-&lt;p&gt;Here’s a working skill that finds all TODO comments in a project:&lt;/p&gt;
-
-&lt;div class=&quot;language-kotlin highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.intellij.psi.search.PsiSearchHelper&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;com.intellij.psi.search.GlobalSearchScope&lt;/span&gt;
-
-&lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;todoItems&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;readAction&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;searchHelper&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PsiSearchHelper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;getInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-    &lt;span class=&quot;kd&quot;&gt;val&lt;/span&gt; &lt;span class=&quot;py&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mutableListOf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;nc&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;&amp;gt;()&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;searchHelper&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;processCommentsContainingIdentifier&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;TODO&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;GlobalSearchScope&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;projectScope&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;project&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;comment&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;-&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${comment.containingFile.virtualFile.path}: ${comment.text.trim()}&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;true&lt;/span&gt;
-    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;todoItems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;forEach&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;it&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;An agent sends this through &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; and gets back every TODO comment with its file
-path. No plugin development, no Gradle project, no build infrastructure. One snippet, one call.&lt;/p&gt;
-
-&lt;p&gt;This is the kind of thing that takes an agent 4-8 retries to discover the first time –
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsiSearchHelper&lt;/code&gt; isn’t obvious, the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GlobalSearchScope&lt;/code&gt; parameter is easy to miss, and
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;readAction&lt;/code&gt; is required for PSI access. Once it’s a skill, every future agent gets it in one shot.&lt;/p&gt;
-
-&lt;h2 id=&quot;enterprise-your-own-skills&quot;&gt;Enterprise: Your Own Skills&lt;/h2&gt;
-
-&lt;p&gt;Even if you’re behind an enterprise firewall with proprietary IntelliJ plugins and internal APIs,
-you can create skills that wrap your own extensions. Your agent doesn’t need to know the internals
-of your company’s custom inspection plugin – it just calls the skill.&lt;/p&gt;
-
-&lt;p&gt;This is deliberately the same pattern. Open-source skills for the public IntelliJ APIs, private
-skills for your internal tooling. A team can build up a skill library for their specific codebase
-and workflows, and every agent on the team benefits.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
-
-&lt;p&gt;The immediate focus is skill coverage. More documented API patterns, more worked examples, more
-pre-built skills. The goal is to shrink the research phase for common tasks until it’s nearly zero.&lt;/p&gt;
-
-&lt;p&gt;Longer term, I want to explore event-driven skills. IntelliJ already has APIs for subscribing to
-events – a commit happens, a test fails, an inspection fires. An agent that reacts to those events
-automatically, running the right skill in response, would be genuinely useful. The event APIs
-exist. We haven’t wired them into MCP Steroid yet.&lt;/p&gt;
-
-&lt;p&gt;And headless support – running the plugin in Docker containers, in CI – is an active investment.
-We already &lt;a href=&quot;/blog/2026/02/21/testing-mcp-server-with-ai-agents/&quot;&gt;test MCP servers with real agents in Docker&lt;/a&gt;.
-Agents don’t always need a GUI, and we want MCP Steroid to work without one. That requires
-packaging work that JetBrains infrastructure makes possible.&lt;/p&gt;
-
-&lt;h2 id=&quot;get-involved&quot;&gt;Get Involved&lt;/h2&gt;
-
-&lt;p&gt;The best way to contribute to MCP Steroid is to create a skill. Pick an IDE capability you use
-manually – navigate to declaration, find all usages of a deprecated API, list failing tests with
-their stack traces, whatever is useful in your workflow. Point your agent at it. Let it figure
-out the API. When it works, save the Kotlin as a skill file and open a pull request.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Star and fork the repository&lt;/strong&gt; to get started:
-&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;github.com/jonnyzzz/mcp-steroid&lt;/a&gt; (original source) and
-&lt;a href=&quot;https://github.com/JetBrains/mcp-steroid&quot;&gt;github.com/JetBrains/mcp-steroid&lt;/a&gt; (JetBrains fork).
-The &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/&quot;&gt;docs&lt;/a&gt; have worked examples, and the
-&lt;a href=&quot;https://discord.com/invite/e9qgQ7NeTC&quot;&gt;Discord&lt;/a&gt; is where the community is building up.&lt;/p&gt;
-
-&lt;p&gt;You don’t need to be an IntelliJ platform expert. The agent does the API exploration. You need to
-know what IDE capability you want to expose – the rest is iteration.&lt;/p&gt;
-
-&lt;h2 id=&quot;try-it&quot;&gt;Try It&lt;/h2&gt;
-
-&lt;p&gt;According to the &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/strategy/&quot;&gt;MCP Steroid strategy&lt;/a&gt;, we start
-from an explicit plugin for IntelliJ-based IDEs and Android Studio. The long-term target is a
-headless, self-contained runtime – the IDE for AI agents without the UI. But you can use it today.&lt;/p&gt;
-
-&lt;p&gt;You’ll need any IntelliJ-based IDE or Android Studio (version 2025.3+). Install the plugin from &lt;a href=&quot;https://github.com/JetBrains/mcp-steroid/releases&quot;&gt;GitHub Releases&lt;/a&gt;
-– JetBrains Marketplace listing is coming soon. Once started, the plugin generates
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;.idea/mcp-steroid.md&lt;/code&gt; in your project with instructions. Follow those to register the MCP Server
-with your agent. The server uses the Streamable HTTP protocol.&lt;/p&gt;
-
-&lt;h2 id=&quot;poc-program&quot;&gt;PoC Program&lt;/h2&gt;
-
-&lt;p&gt;We’re opening a PoC program for companies that want MCP Steroid customized for their use cases –
-internal skills, proprietary API integrations, team-specific workflows. If that’s interesting,
-reach out to me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="intellij" />
-  
-    <category term="android-studio" />
-  
-    <category term="skills" />
-  
-    <category term="agentic-coding" />
-  
-    <category term="kotlin" />
-  
-    <summary type="html">Every time your agent hits an unfamiliar IntelliJ API, it burns tokens rediscovering PSI trees and threading rules. MCP Steroid turns that pain into reusable skills -- Kotlin snippets that any agent can call without re-learning the IDE.</summary>
   
   </entry>
   
