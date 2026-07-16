@@ -1,0 +1,545 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>A Real macOS Desktop for a Linux Agent: Driving Tart VMs over SSH with Agent Skills &#8211; Eugene Petrenko</title>
+<meta name="description" content="Last time we put a full IntelliJ IDEA inside a Docker container. But Docker only gives you Linux, and some GUIs are macOS — Aqua, Gatekeeper, TCC prompts and all. So we taught a Linux AI Agent to boot, see, and drive a real macOS desktop inside a Tart VM over SSH, and packaged the whole thing as reusable Agent Skills you can point at any Apple Silicon Mac.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, tart, macos, testing, intellij, agent-skills" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="A Real macOS Desktop for a Linux Agent: Driving Tart VMs over SSH with Agent Skills -- Eugene Petrenko" />
+<meta name="twitter:description" content="Last time we put a full IntelliJ IDEA inside a Docker container. But Docker only gives you Linux, and some GUIs are macOS — Aqua, Gatekeeper, TCC prompts and all. So we taught a Linux AI Agent to boot, see, and drive a real macOS desktop inside a Tart VM over SSH, and packaged the whole thing as reusable Agent Skills you can point at any Apple Silicon Mac." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="A Real macOS Desktop for a Linux Agent: Driving Tart VMs over SSH with Agent Skills -- Eugene Petrenko" />
+<meta property="og:description" content="Last time we put a full IntelliJ IDEA inside a Docker container. But Docker only gives you Linux, and some GUIs are macOS — Aqua, Gatekeeper, TCC prompts and all. So we taught a Linux AI Agent to boot, see, and drive a real macOS desktop inside a Tart VM over SSH, and packaged the whole thing as reusable Agent Skills you can point at any Apple Silicon Mac." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="tart" />
+
+<meta property="article:tag" content="macos" />
+
+<meta property="article:tag" content="testing" />
+
+<meta property="article:tag" content="intellij" />
+
+<meta property="article:tag" content="agent-skills" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">A Real macOS Desktop for a Linux Agent: Driving Tart VMs over SSH with Agent Skills</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#tart" title="Pages tagged tart">tart</a></li><li><a href="/tags/#macos" title="Pages tagged macos">macos</a></li><li><a href="/tags/#testing" title="Pages tagged testing">testing</a></li><li><a href="/tags/#intellij" title="Pages tagged intellij">intellij</a></li><li><a href="/tags/#agent-skills" title="Pages tagged agent-skills">agent-skills</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-07-16T00:00:00+00:00">July 16, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=A+Real+macOS+Desktop+for+a+Linux+Agent%3A+Driving+Tart+VMs+over+SSH+with+Agent+Skills%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/&amp;hashtags=ai-agents,ai-coding,tart,macos,testing,intellij,agent-skills" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=A+Real+macOS+Desktop+for+a+Linux+Agent%3A+Driving+Tart+VMs+over+SSH+with+Agent+Skills%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0ALast+time+we+put+a+full+IntelliJ+IDEA+inside+a+Docker+container.+But+Docker+only+gives+you+Linux%2C+and+some+GUIs+are+macOS+%E2%80%94+Aqua%2C+Gatekeeper%2C+TCC+prompts+and+all.+So+we+taught+a+Linux+AI+Agent+to+boot%2C+see%2C+and+drive+a+real+macOS+desktop+inside+a+Tart+VM+over+SSH%2C+and+packaged+the+whole+thing+as+reusable+Agent+Skills+you+can+point+at+any+Apple+Silicon+Mac.%0A%0Ahttps://jonnyzzz.com/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/%0A%0A%23aiagents%20%23aicoding%20%23tart%20%23macos%20%23testing%20%23intellij%20%23agentskills" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p><a href="/images/posts/2026-07-16-tart-macos-desktop.png"><img src="/images/posts/2026-07-16-tart-macos-desktop.png" alt="A real macOS desktop — Finder, Dock, wallpaper — captured over SSH from a
+headless Tart VM" /></a></p>
+
+<p><em>The AI Agent that took this screenshot has never touched a Mac. It is running on Linux, it reached an Apple
+Silicon Mac over SSH, booted a <a href="https://tart.run/">Tart</a> VM there, and captured a real macOS Aqua session — Finder, Dock,
+wallpaper and all.</em></p>
+
+<p>In the <a href="/blog/2026/07/05/intellij-in-docker-integration-tests/">previous post</a> we booted a full IntelliJ IDEA inside a Docker container — Xvfb for the
+display, fluxbox to keep the windows still, ffmpeg recording, live video streamed into a browser tab
+(<a href="https://youtu.be/rA-pBJR9wh0">watch it on YouTube</a>). I mentioned that Docker limits us to Linux, and
+that “solutions like tart to run virtual macOS” were left uncovered. That was the honest gap: if the thing
+you need your Agent to test is <em>macOS itself</em> — Gatekeeper, the TCC consent prompts, Aqua window focus — a
+Linux container will never show it to you.</p>
+
+<p>I experimented with capturing a demo video with an AI Agent on macOS. We processed all the experience, and
+condensed it into this post — the macOS half of the story. This time the deliverable is not a Kotlin test
+harness — it is a set of <a href="https://github.com/jonnyzzz/tart-skills">Agent Skills</a>: plain-markdown instructions plus a small <code class="language-plaintext highlighter-rouge">bin/tart-remote</code>
+orchestrator that any AI Agent on Linux can pick up to <strong>boot, see, and drive a real macOS desktop over
+SSH</strong>. It is open source in <a href="https://github.com/jonnyzzz/tart-skills">jonnyzzz/tart-skills</a>.</p>
+
+<h2 id="the-problem-a-macos-gui-and-no-mac-for-the-agent">The problem: a macOS GUI, and no Mac for the Agent</h2>
+
+<p><a href="https://tart.run/">Tart</a> runs macOS and Linux virtual machines on Apple Silicon using Apple’s <code class="language-plaintext highlighter-rouge">Virtualization.framework</code>
+(<a href="https://tart.run/">tart.run</a>). It is excellent — but it only runs on an Apple Silicon Mac.
+In my setup, most of the agentic payload is running on Linux, and I decided to explore the approach
+of connecting a Linux machine to a Mac VM, over SSH. The Agent side is not picky — we tested from Linux,
+and the same commands work from a Docker container or from another Mac. The one hard requirement is the
+VM host: that is always an Apple Silicon Mac. With this post I want to show what is possible.</p>
+
+<p>There is a second problem, softer but just as real. The lessons from the Docker post lived <em>inside</em> one
+project’s harness. This time we wanted the knowledge to travel — between Claude Code, Codex, Gemini, and
+whatever comes next. Markdown skills plus a thin CLI move between Agents in a way a test module never will.</p>
+
+<h2 id="the-two-ssh-hops">The two SSH hops</h2>
+
+<p>The whole design is one clean seam. The Agent never talks to Tart directly; it runs <code class="language-plaintext highlighter-rouge">ssh mac 'tart-remote …'</code>,
+and <code class="language-plaintext highlighter-rouge">tart-remote</code> owns everything Mac- and VM-specific.</p>
+
+<pre><code class="language-mermaid">graph LR
+    Agent["Linux AI Agent&lt;br/&gt;(the skills)"]
+    Mac["Mac host, Apple Silicon&lt;br/&gt;bin/tart-remote + tart&lt;br/&gt;boots + supervises the VM"]
+    VM["macOS GUI VM&lt;br/&gt;Aqua session:&lt;br/&gt;IntelliJ, Finder…"]
+
+    Agent --&gt;|ssh| Mac
+    Mac --&gt;|"ssh mux&lt;br/&gt;screencapture / cliclick"| VM
+    Mac -.-&gt;|"stdout: PNG / MP4 / IP"| Agent
+
+    style Agent fill:#e1f5ff
+    style Mac fill:#fff4e6
+    style VM fill:#f3e5f5
+</code></pre>
+
+<p>A Tart VM is a long-lived foreground process — a naive <code class="language-plaintext highlighter-rouge">ssh mac 'tart run …'</code> boots a VM that dies the moment
+the SSH command returns. So <code class="language-plaintext highlighter-rouge">vm-up</code> boots it <em>detached</em> (<code class="language-plaintext highlighter-rouge">nohup … &lt;/dev/null &amp; disown</code>) and the VM keeps its
+GUI session alive after the Agent disconnects. The inner hop is multiplexed with SSH <code class="language-plaintext highlighter-rouge">ControlMaster</code> /
+<code class="language-plaintext highlighter-rouge">ControlPersist</code>, which — besides being faster — dodges macOS sshd’s “Too many authentication failures”
+lockout that a busy Agent otherwise trips within seconds.</p>
+
+<p>Six skills sit on top of that orchestrator:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Skill</th>
+      <th>What the Agent uses it for</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-remote-setup</code></td>
+      <td>The Linux→Mac hop: install <code class="language-plaintext highlighter-rouge">tart-remote</code>, verify Tart is there</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-vm-manage</code></td>
+      <td>Boot (detached) / provision / status / stop / delete the VM</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-vm-screenshot</code></td>
+      <td>Capture the screen as a PNG — the Agent’s eyes</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-vm-intellij</code></td>
+      <td>Launch IntelliJ IDEA and drive it with click / type</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-vm-video</code></td>
+      <td>Record the GUI as video</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tart-vm-cache</code></td>
+      <td>Share one IDE copy across every VM — faster, less disk</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>A full run reads the way you’d hope (abbreviated — <code class="language-plaintext highlighter-rouge">$MAC</code> is your Mac, <code class="language-plaintext highlighter-rouge">$V</code> a task-unique
+<code class="language-plaintext highlighter-rouge">TART_VM=…</code>, and <code class="language-plaintext highlighter-rouge">cache-setup</code> runs once first — let it finish before <code class="language-plaintext highlighter-rouge">provision</code>, or the VM falls back to
+downloading its own IntelliJ; the <a href="https://github.com/jonnyzzz/tart-skills">repo</a> has the exact quick start):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote vm-up"</span>         <span class="c"># boot a macOS VM, detached</span>
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote provision"</span>     <span class="c"># cliclick, ffmpeg, IntelliJ, TCC grant</span>
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote screenshot -"</span> <span class="o">&gt;</span> desktop.png
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote start-ide"</span>     <span class="c"># launch IntelliJ into the GUI session</span>
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote click 800 450"</span> <span class="c"># drive it</span>
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote record 15 -"</span> <span class="o">&gt;</span> clip.mov
+ssh <span class="s2">"</span><span class="nv">$MAC</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$V</span><span class="s2"> ~/bin/tart-remote vm-gc"</span>         <span class="c"># clean up after yourself</span>
+</code></pre></div></div>
+
+<p>By default <code class="language-plaintext highlighter-rouge">vm-up</code> boots the <code class="language-plaintext highlighter-rouge">macos-tahoe-base</code> image (macOS 26) — set <code class="language-plaintext highlighter-rouge">TART_IMAGE</code> to reuse an image you
+already have pulled, the first pull is tens of gigabytes.</p>
+
+<p>Two design rules carried the whole thing. <strong>stdout is data, stderr is logs</strong> — so <code class="language-plaintext highlighter-rouge">screenshot -</code> and
+<code class="language-plaintext highlighter-rouge">record N -</code> stream raw bytes you redirect straight into a file, while every log line goes to stderr. And
+state is read straight from <code class="language-plaintext highlighter-rouge">tart list</code> / <code class="language-plaintext highlighter-rouge">tart ip</code>, so there is no bookkeeping to get out of sync.</p>
+
+<h2 id="the-gotchas-learned-the-hard-way">The gotchas, learned the hard way</h2>
+
+<p>Most of this project was distilled from a prior video-production effort that drove Tart VMs the hard way —
+hand-typed <code class="language-plaintext highlighter-rouge">ssh</code> commands, VMs that died the moment a terminal closed, and a run nobody could replay. A few
+lessons cost a real debugging session in <a href="https://devrig.dev">devrig</a> each, and they are the interesting part.</p>
+
+<p><strong>The keychain that blocks your VM.</strong> On a headless macOS 15+ host, booting a <em>macOS</em> guest failed with a
+security error, <code class="language-plaintext highlighter-rouge">Code=-9</code>, “Failed to create new HostKey”. Nothing in that message says the word “keychain”,
+and yet that is the cause: <code class="language-plaintext highlighter-rouge">Virtualization.framework</code> needs the host’s <code class="language-plaintext highlighter-rouge">login.keychain</code> to be <em>unlocked</em>, and
+a headless SSH session leaves it locked (<a href="https://tart.run/faq/">tart FAQ</a>, <a href="https://github.com/openai/tart/issues/1146">openai/tart#1146</a>). A Linux
+guest boots fine; only macOS trips it. The fix is one line in <a href="https://github.com/jonnyzzz/tart-skills/blob/main/bin/tart-remote"><code class="language-plaintext highlighter-rouge">vm-up</code></a> — <code class="language-plaintext highlighter-rouge">security unlock-keychain</code> —
+gated behind a <code class="language-plaintext highlighter-rouge">TART_KEYCHAIN_PW</code> you only set on a trusted host.</p>
+
+<p><strong>The Agent grants its own screen-recording consent.</strong> Without a Screen Recording grant in <code class="language-plaintext highlighter-rouge">TCC.db</code>,
+<code class="language-plaintext highlighter-rouge">screencapture</code> over SSH returns a black frame — and on macOS 15+ the consent dialog that would fix it can
+never appear in a headless session. Which client needs the grant has drifted across macOS versions:
+historically <code class="language-plaintext highlighter-rouge">/usr/libexec/sshd-keygen-wrapper</code>, and — since Sequoia picked up <a href="https://www.openssh.com/releasenotes.html">OpenSSH 9.8’s sshd
+split</a> — sometimes <code class="language-plaintext highlighter-rouge">com.apple.sshd-session</code>. Recent <a href="https://github.com/cirruslabs/macos-image-templates">Cirrus Labs base images</a>
+pre-bake the wrapper grant — SIP is off there, which is what makes <code class="language-plaintext highlighter-rouge">TCC.db</code> writable at all, not what
+disables the checks — so a fresh VM often captures fine before any provisioning; <a href="https://github.com/jonnyzzz/tart-skills/blob/main/provision/provision.sh">provisioning</a>
+writes the <code class="language-plaintext highlighter-rouge">com.apple.sshd-session</code> grant on top to cover both. Then macOS 15+ <em>still</em> periodically pops a
+“requesting to bypass the system private window picker” dialog. Captures keep working, but the box sits in
+the frame — so the Agent
+notices it in its own screenshot and clicks it away. An Agent approving a
+macOS privacy prompt about the Agent is my favorite moment in the whole project</p>
+
+<p><strong>A stranded ⌘ that opened the logout dialog.</strong> <a href="https://github.com/BlueM/cliclick"><code class="language-plaintext highlighter-rouge">cliclick</code></a>’s <code class="language-plaintext highlighter-rouge">kp:</code> accepts only named keys — no letters — so
+the natural “⌘A to clear the field” as <code class="language-plaintext highlighter-rouge">kd:cmd kp:a ku:cmd</code> errors on <code class="language-plaintext highlighter-rouge">a</code> <em>after</em> pressing Cmd down and never
+releases it. Cmd stays held, the next keystrokes become shortcuts, and one of our test runs cheerfully opened
+the macOS “quit everything and log out” dialog. <a href="https://github.com/jonnyzzz/tart-skills/blob/main/bin/tart-remote"><code class="language-plaintext highlighter-rouge">bin/tart-remote</code></a> now releases <code class="language-plaintext highlighter-rouge">cmd,ctrl,alt,shift</code> after
+every <code class="language-plaintext highlighter-rouge">key</code> call, even when <code class="language-plaintext highlighter-rouge">cliclick</code> returns an error, so a typo can’t strand a modifier. For a letter with
+a modifier you use <code class="language-plaintext highlighter-rouge">t:</code> inside the combo — <code class="language-plaintext highlighter-rouge">kd:cmd t:a ku:cmd</code>.</p>
+
+<p><strong>No Homebrew required.</strong> The remote Mac we validated against had no Xcode Command Line Tools and no
+<code class="language-plaintext highlighter-rouge">sshpass</code>. So Tart installs brew-less from its release tarball into <code class="language-plaintext highlighter-rouge">~/bin</code>, and the inner hop authenticates
+through OpenSSH’s <code class="language-plaintext highlighter-rouge">SSH_ASKPASS</code> (<a href="https://man.openbsd.org/ssh#SSH_ASKPASS"><code class="language-plaintext highlighter-rouge">SSH_ASKPASS_REQUIRE=force</code></a>, which needs no tty) when <code class="language-plaintext highlighter-rouge">sshpass</code> is absent.
+The only hard dependencies on the Mac are <code class="language-plaintext highlighter-rouge">tart</code> and a stock <code class="language-plaintext highlighter-rouge">ssh</code>. The constraint made the design better.</p>
+
+<h2 id="one-ide-shared-across-every-vm">One IDE, shared across every VM</h2>
+
+<p>Downloading a full IntelliJ into every VM is slow and wastes tens of gigabytes. Instead, <code class="language-plaintext highlighter-rouge">cache-setup</code>
+downloads IntelliJ IDEA Community Edition <em>once</em> into a folder on the Mac host, <code class="language-plaintext highlighter-rouge">vm-up</code> mounts that folder
+<strong>read-only</strong> into every VM, and the IDE runs straight from the mount — no per-VM download, no per-VM copy.
+We watched a fresh VM, with nothing in <code class="language-plaintext highlighter-rouge">/Applications</code>, launch IntelliJ straight off the shared read-only
+mount. For managing IDE versions we point at <a href="https://devrig.dev">devrig</a>, the little CLI that downloads and starts
+JetBrains IDE backends for an Agent.</p>
+
+<p>Because the Mac is shared between many AI Agent tasks at once, the skills bake in etiquette: a unique VM name per
+task, <code class="language-plaintext highlighter-rouge">tart-remote ls</code> to see the neighbors, and an always-clean-up-with-<code class="language-plaintext highlighter-rouge">vm-gc</code> rule even when the task
+failed. Two Agents each booted their own VM concurrently while we tested, and neither stepped on the other.</p>
+
+<h2 id="what-we-actually-get">What we actually get</h2>
+
+<p><a href="/images/posts/2026-07-16-tart-intellij-launched.png"><img src="/images/posts/2026-07-16-tart-intellij-launched.png" alt="IntelliJ IDEA launched inside the VM and driven over SSH from
+another machine" /></a></p>
+
+<p>Validated end-to-end, over both SSH hops, against a remote Apple Silicon Mac with <em>no Homebrew on it</em>:
+clone → keychain-unlocked detached boot → <code class="language-plaintext highlighter-rouge">provision</code> → a real desktop PNG → IntelliJ launched to its
+EULA → a <code class="language-plaintext highlighter-rouge">click</code> cleared the private-window-picker dialog → a valid 1600×900 QuickTime video. The screenshots in
+this post are those captures, streamed straight through both hops to the Agent.</p>
+
+<p>There are edges we have not solved yet. Sharing devrig’s downloads across VMs is not wired up — devrig wants
+a writable home, and the shared cache is read-only. The periodic private-window-picker dialog still appears and
+still needs a click. <code class="language-plaintext highlighter-rouge">TART_KEYCHAIN_PW</code> puts a password on a command line, so it is for trusted hosts only.
+And click coordinates follow <code class="language-plaintext highlighter-rouge">TART_DISPLAY</code>, so pin the resolution or your taps drift.</p>
+
+<blockquote>
+  <p>The same thesis as the Docker post, one level up: an AI Agent needs eyes and hands on <em>every</em> operating
+system its users run — not just the one that happens to fit in a container</p>
+</blockquote>
+
+<h2 id="try-it-point-it-at-a-mac">Try it, point it at a Mac</h2>
+
+<p>Clone <a href="https://github.com/jonnyzzz/tart-skills">jonnyzzz/tart-skills</a>, turn on Remote Login on any Apple Silicon Mac you can reach, and let your
+Agent take its first macOS screenshot. If you built the Docker variant from the last post, this is the macOS
+half of the same idea. Then show me what your Agent drove — tell me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or
+<a href="https://twitter.com/jonnyzzz">Twitter</a>, or open an issue on the repo.</p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
