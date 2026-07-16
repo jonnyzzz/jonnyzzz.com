@@ -150,18 +150,22 @@ failed. Two Agents each booted their own VM concurrently while we tested, and ne
 
 ## What we actually get
 
-[![IntelliJ IDEA launched inside the VM and driven over SSH from
-another machine][ide-img]][ide-img]
+[![IntelliJ IDEA Welcome screen inside the VM — first-run dialogs cleared by the
+Agent itself, driven over SSH from another machine][ide-img]][ide-img]
 
 Validated end-to-end, over both SSH hops, against a remote Apple Silicon Mac with *no Homebrew on it*:
-clone → keychain-unlocked detached boot → `provision` → a real desktop PNG → IntelliJ launched to its
-EULA → a `click` cleared the private-window-picker dialog → a valid 1600×900 QuickTime video. The screenshots in
-this post are those captures, streamed straight through both hops to the Agent.
+clone → keychain-unlocked detached boot → `provision` → a real desktop PNG → IntelliJ launched — and the
+Agent walked the first-run dialogs itself: the screen-recording consent, the User Agreement checkbox plus
+Continue, Data Sharing, the local-network prompt — all the way to the Welcome screen → a valid 1600×900
+QuickTime video. The screenshots in this post are those captures, streamed straight through both hops to
+the Agent.
 
 There are edges we have not solved yet. Sharing devrig's downloads across VMs is not wired up — devrig wants
 a writable home, and the shared cache is read-only. The periodic private-window-picker dialog still appears and
 still needs a click. `TART_KEYCHAIN_PW` puts a password on a command line, so it is for trusted hosts only.
-And click coordinates follow `TART_DISPLAY`, so pin the resolution or your taps drift.
+And mind the coordinates: the guest display is HiDPI, so screenshots carry 2× the pixels
+of the logical resolution your clicks use — `provision` pins the mode with displayplacer (a macOS 26 guest
+ignores the VM display setting otherwise), but the divide-by-two stays yours.
 
 > The same thesis as the Docker post, one level up: an AI Agent needs eyes and hands on *every* operating
 > system its users run — not just the one that happens to fit in a container

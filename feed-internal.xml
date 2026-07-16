@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-07-16T10:16:45+00:00</updated>
+  <updated>2026-07-16T13:27:04+00:00</updated>
   <id>/</id>
 
   
@@ -192,18 +192,22 @@ failed. Two Agents each booted their own VM concurrently while we tested, and ne
 
 &lt;h2 id=&quot;what-we-actually-get&quot;&gt;What we actually get&lt;/h2&gt;
 
-&lt;p&gt;&lt;a href=&quot;/images/posts/2026-07-16-tart-intellij-launched.png&quot;&gt;&lt;img src=&quot;/images/posts/2026-07-16-tart-intellij-launched.png&quot; alt=&quot;IntelliJ IDEA launched inside the VM and driven over SSH from
-another machine&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;/images/posts/2026-07-16-tart-intellij-launched.png&quot;&gt;&lt;img src=&quot;/images/posts/2026-07-16-tart-intellij-launched.png&quot; alt=&quot;IntelliJ IDEA Welcome screen inside the VM — first-run dialogs cleared by the
+Agent itself, driven over SSH from another machine&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Validated end-to-end, over both SSH hops, against a remote Apple Silicon Mac with &lt;em&gt;no Homebrew on it&lt;/em&gt;:
-clone → keychain-unlocked detached boot → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;provision&lt;/code&gt; → a real desktop PNG → IntelliJ launched to its
-EULA → a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;click&lt;/code&gt; cleared the private-window-picker dialog → a valid 1600×900 QuickTime video. The screenshots in
-this post are those captures, streamed straight through both hops to the Agent.&lt;/p&gt;
+clone → keychain-unlocked detached boot → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;provision&lt;/code&gt; → a real desktop PNG → IntelliJ launched — and the
+Agent walked the first-run dialogs itself: the screen-recording consent, the User Agreement checkbox plus
+Continue, Data Sharing, the local-network prompt — all the way to the Welcome screen → a valid 1600×900
+QuickTime video. The screenshots in this post are those captures, streamed straight through both hops to
+the Agent.&lt;/p&gt;
 
 &lt;p&gt;There are edges we have not solved yet. Sharing devrig’s downloads across VMs is not wired up — devrig wants
 a writable home, and the shared cache is read-only. The periodic private-window-picker dialog still appears and
 still needs a click. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TART_KEYCHAIN_PW&lt;/code&gt; puts a password on a command line, so it is for trusted hosts only.
-And click coordinates follow &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TART_DISPLAY&lt;/code&gt;, so pin the resolution or your taps drift.&lt;/p&gt;
+And mind the coordinates: the guest display is HiDPI, so screenshots carry 2× the pixels
+of the logical resolution your clicks use — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;provision&lt;/code&gt; pins the mode with displayplacer (a macOS 26 guest
+ignores the VM display setting otherwise), but the divide-by-two stays yours.&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;The same thesis as the Docker post, one level up: an AI Agent needs eyes and hands on &lt;em&gt;every&lt;/em&gt; operating
