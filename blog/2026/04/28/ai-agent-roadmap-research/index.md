@@ -93,7 +93,7 @@ script loops over them and dispatches agent runs accordingly. The format is simp
 enough that agents parse it without extra tooling. Here are the actual task files that drove the
 run (generalized — internal identifiers removed):
 
-<details>
+<details markdown="1">
 <summary><strong>TASK</strong> — collect the roadmap and orchestrate</summary>
 
 ```text
@@ -122,9 +122,10 @@ everything to run-agent.sh, as suggested in RLM.md and THE_PROMPT_v5.md. Apply i
 
 When not clear, start 3x run-agents and make the quorum decisions.
 ```
+
 </details>
 
-<details>
+<details markdown="1">
 <summary><strong>TASK-2</strong> — the research group of five</summary>
 
 ```text
@@ -141,9 +142,10 @@ linked issues, prefer the leaf issues first; create a dedicated file like
 issue-id-leaf-another-issue-id.md and place details there. Include a high-level overview in
 the initial issue.
 ```
+
 </details>
 
-<details>
+<details markdown="1">
 <summary><strong>TASK-3</strong> — close the gap on the stub issues</summary>
 
 ```text
@@ -166,9 +168,10 @@ THE_PROMPT_v5.md from https://run-agent.sh and use MCP Steroid to research the m
 2 issues in parallel. The process may already be running — check existing .md sizes before
 launching agents (skip if a file already has solution sections).
 ```
+
 </details>
 
-<details>
+<details markdown="1">
 <summary><strong>TASK-4</strong> — the mid-iteration snapshot</summary>
 
 ```text
@@ -184,6 +187,7 @@ Use RLM.md, run-agent.sh, and any other tools to assess all the tickets. For mor
 approaches, look at the other TASK*.md files in this folder; they contain the necessary
 information and approaches you should re-use.
 ```
+
 </details>
 
 ## The Numbers

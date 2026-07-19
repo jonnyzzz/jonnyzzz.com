@@ -1,0 +1,900 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Personal Assistant without OpenClaw or Hermes: Just One Prompt &#8211; Eugene Petrenko</title>
+<meta name="description" content="In one afternoon — one pasted prompt, included below — we turned an interactive Claude Code session into a personal-assistant orchestrator: channels in, a fresh headless sub-agent per request, an inbox loop that delivers  finished work before taking new work, and a three-lens quorum that reviews and ships its own process fixes.  By day two it was also babysitting the machine's other AI Agent consoles through a guarded keystroke path.  No daemon, no webhooks, no database — jsonl files, blocking CLIs, and git as the deployment mechanism — and a hands-on comparison against OpenClaw and Hermes.
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, ai-agents, ai-coding, infrastructure, workflow, self-improvement, hermes-agent, openclaw" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Personal Assistant without OpenClaw or Hermes: Just One Prompt -- Eugene Petrenko" />
+<meta name="twitter:description" content="In one afternoon — one pasted prompt, included below — we turned an interactive Claude Code session into a personal-assistant orchestrator: channels in, a fresh headless sub-agent per request, an inbox loop that delivers finished work before taking new work, and a three-lens quorum that reviews and ships its own process fixes. By day two it was also babysitting the machine's other AI Agent consoles through a guarded keystroke path. No daemon, no webhooks, no database — jsonl files, blocking CLIs, and git as the deployment mechanism — and a hands-on comparison against OpenClaw and Hermes." />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Personal Assistant without OpenClaw or Hermes: Just One Prompt -- Eugene Petrenko" />
+<meta property="og:description" content="In one afternoon — one pasted prompt, included below — we turned an interactive Claude Code session into a personal-assistant orchestrator: channels in, a fresh headless sub-agent per request, an inbox loop that delivers finished work before taking new work, and a three-lens quorum that reviews and ships its own process fixes. By day two it was also babysitting the machine's other AI Agent consoles through a guarded keystroke path. No daemon, no webhooks, no database — jsonl files, blocking CLIs, and git as the deployment mechanism — and a hands-on comparison against OpenClaw and Hermes." />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/07/19/personal-assistant-agent/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+<meta property="article:tag" content="infrastructure" />
+
+<meta property="article:tag" content="workflow" />
+
+<meta property="article:tag" content="self-improvement" />
+
+<meta property="article:tag" content="hermes-agent" />
+
+<meta property="article:tag" content="openclaw" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/07/19/personal-assistant-agent/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Personal Assistant without OpenClaw or Hermes: Just One Prompt</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li><li><a href="/tags/#infrastructure" title="Pages tagged infrastructure">infrastructure</a></li><li><a href="/tags/#workflow" title="Pages tagged workflow">workflow</a></li><li><a href="/tags/#self-improvement" title="Pages tagged self-improvement">self-improvement</a></li><li><a href="/tags/#hermes-agent" title="Pages tagged hermes-agent">hermes-agent</a></li><li><a href="/tags/#openclaw" title="Pages tagged openclaw">openclaw</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-07-19T00:00:00+00:00">July 19, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Personal+Assistant+without+OpenClaw+or+Hermes%3A+Just+One+Prompt%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/07/19/personal-assistant-agent/&amp;hashtags=ai-agents,ai-coding,infrastructure,workflow,self-improvement,hermes-agent,openclaw" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Personal+Assistant+without+OpenClaw+or+Hermes%3A+Just+One+Prompt%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AIn+one+afternoon+%E2%80%94+one+pasted+prompt%2C+included+below+%E2%80%94+we+turned+an+interactive+Claude+Code+session+into+a+personal-assistant+orchestrator%3A+channels+in%2C+a+fresh+headless+sub-agent+per+request%2C+an+inbox+loop+that+delivers++finished+work+before+taking+new+work%2C+and+a+three-lens+quorum+that+reviews+and+ships+its+own+process+fixes.++By+day+two+it+was+also+babysitting+the+machine%27s+other+AI+Agent+consoles+through+a+guarded+keystroke+path.++No+daemon%2C+no+webhooks%2C+no+database+%E2%80%94+jsonl+files%2C+blocking+CLIs%2C+and+git+as+the+deployment+mechanism+%E2%80%94+and+a+hands-on+comparison+against+OpenClaw+and+Hermes.%0A%0Ahttps://jonnyzzz.com/blog/2026/07/19/personal-assistant-agent/%0A%0A%23aiagents%20%23aicoding%20%23infrastructure%20%23workflow%20%23selfimprovement%20%23hermesagent%20%23openclaw" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p>I wanted a personal assistant for quite some time. I can message from my phone. Something absolutely
+simple and what I can understand and fine-tune to my needs. Not a chatbot — an assistant: 
+“watch that Slack DM thread and ping me when they reply”, “write down our AWS account conventions”,
+“build me a tool that inspects my iTerm2 tabs”. Requests arrive on Slack and Telegram at random times,
+some finish in a minute, some take forty, and we want the acknowledgment to land now and the result when
+it is ready — without message two waiting behind message one.</p>
+
+<p>The naive approach — one AI Agent in one chat loop that does everything itself — falls apart on exactly that
+schedule. The Agent picks up a long task, its context fills with the work, the instructions dilute, and the
+next message queues behind a forty-minute errand. Worse: when the session eventually compacts or restarts,
+half-done work simply evaporates, and nobody tells you.</p>
+
+<p>So the rule at the top of our operating contract is a role split, not a feature: <strong>“You assist and manage —
+you never do the work yourself.”</strong> The interactive session routes, tracks, follows up, and reports. Every
+actual task runs in a fresh, disposable, headless sub-agent process. The whole thing was scaffolded,
+smoke-tested, run through its first real tasks, hit its first production incident, and shipped its first
+self-authored fix in a single afternoon — 2026-07-17, 13:29 to about 15:50. Now it’s running on the second computer.</p>
+
+<p>And here is the part I want to be upfront about, because the title promises it: the founding spec was <strong>one
+message pasted into an interactive <a href="https://code.claude.com/docs/en/headless">Claude Code</a> session</strong>. Not a product install, not a config
+wizard — a prompt. Lightly redacted, the worst typos cleaned, the rest left as I typed it the first time:</p>
+
+<details>
+  <summary><strong>THE PROMPT</strong> — the message that started the whole system</summary>
+
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>you are my personal assistant, your goal is to setup and prepare the /workflows for that.
+Do the following steps to set this up:
+  - create a repository under gh jonnyzzz jonnyzzz-personal, private one
+  - configure a workflows to regularly monitor and handle all the requests via the Slack's me-only
+    private channel, it will be our communication protocol
+  - configure and setup telegram communication channel, create the scripts to poll for messages
+    and store all messages on the disk and handle them, use uv python, once done, ask me
+    for credentials, 
+  - only accept messages from my user accounts
+  - credentials are never committed to the repository, only stay locally.
+
+So the flow is the following -- you poll and process these two input channels. For each
+request -- you MUST start the new sub-agent process, use run-agent.sh for that -- once the
+process is completed -- process and send followup to the channel from which you receive
+the input.
+
+You should create the self-improvement loop -- start every 3 hours new sub-agent which
+3x quorum processes and analyzes everything what was done and self improves. Running agentic
+loops is necessary -- your task to manage that flow.
+
+Commit and push all the changes to your flows to this new gh repo, update the repo regularly
+and re-read from it too.
+
+I expect you to script the most of the tasks to simplify the processes, effectiveness, and
+outcomes. Setup hooks in this repository for yourself to always remember your goals, you are
+assisting, managing, and never doing.
+</code></pre></div>  </div>
+
+</details>
+
+<p>Everything below — the wrapper scripts, the hooks, the state files, the quorum, the iTerm2 supervisor — grew
+from these lines plus the follow-up conversation. Even this post draft did. The sub-agent mechanics trace back to the
+<a href="https://run-agent.sh">run-agent.sh</a> approach the prompt names. I am not pretending this replaces OpenClaw or Hermes;
+the point is narrower and, I think, more useful: <em>this class of assistant now costs one prompt and one agent
+session</em>, and at that price you should build one before you adopt one.</p>
+
+<blockquote>
+  <p>Discipline for an AI Agent should live in the architecture — process boundaries, files on disk, git — not in
+a paragraph of prompt the model is supposed to remember forty minutes into a session.</p>
+</blockquote>
+
+<p>This post is the build log, and then a comparison — as fair as I can make it — against the two big names in
+the personal-agent space right now: <a href="https://github.com/openclaw/openclaw">OpenClaw</a> and <a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a>.</p>
+
+<blockquote>
+  <p>The system started from <strong>one only prompt</strong> above and evolved to a really powerful and supportive buddy,
+that learns from what you do, and how it works. Below, is that it thinks of itself.</p>
+</blockquote>
+
+<p>With this post I share how my AI Agents evolved into a personal assistant, given the right context,
+and the best tools. This appers in-line with 
+<a href="/blog/2026/03/24/agentic-experience-and-tools/">my goals and program: Agentic AI Experience &amp; Tools</a>.
+Find
+me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://x.com/jonnyzzz">Twitter</a>, and if an assistant like this would fit your own workflow,
+get in touch — I am happy to help you shape one.</p>
+
+<hr />
+
+<h2 id="one-rule-at-the-top-enforced-structurally">One Rule at the Top, Enforced Structurally</h2>
+
+<p>The orchestrator is an interactive <a href="https://code.claude.com/docs/en/headless">Claude Code</a> session with a <code class="language-plaintext highlighter-rouge">CLAUDE.md</code> contract that is
+auto-loaded every session. Line 5 is the prime directive quoted above, and it is enforced three ways, because
+hoping the model remembers is not a mechanism:</p>
+
+<ul>
+  <li><strong>Process boundaries.</strong> Every request becomes a fresh <code class="language-plaintext highlighter-rouge">claude -p</code> <a href="https://code.claude.com/docs/en/headless">headless run</a> via a wrapper
+script <code class="language-plaintext highlighter-rouge">run-agent.sh</code> — one request, one process, no shared context. The orchestrator is forbidden from editing even its
+own flow files (scripts, prompts, hooks, docs) inline; flow changes also go through a sub-agent.</li>
+  <li><strong>Hooks.</strong> Claude Code <a href="https://code.claude.com/docs/en/hooks">hooks</a> re-print the directive at every session start and inject a one-line
+reminder before <em>every single prompt</em>: “You assist and manage, never do.” The session-start hook also
+appends live state pulled from the state files with <a href="https://jqlang.org/">jq</a> — active watches, agents still running — so a
+fresh session wakes up already knowing “agent X is in flight, watch Y is armed”.</li>
+  <li><strong>An inverted frame for workers.</strong> The sub-agent prompt frame has to explicitly flip the rule: “you ARE the
+worker here, so do the task yourself — the never-do-inline rule applies to the orchestrator, not you.”
+Sub-agents run in the same directory and <a href="https://code.claude.com/docs/en/memory">inherit the same <code class="language-plaintext highlighter-rouge">CLAUDE.md</code></a>; without that line the
+never-do rule would recurse forever. The best line in the whole repo</li>
+</ul>
+
+<p>There is exactly one carve-out, and it exists for an architectural reason we will get to: requests that are
+purely channel communication — send or read a Slack or Telegram message on my behalf — are handled by the
+orchestrator directly. Slack is reachable only from the orchestrator session, so there is no worker to
+delegate a Slack send to, and Telegram sends are code-restricted to my own chat either way. Even the carve-out
+leaves a trail: every direct reply is recorded through the state script, so the audit surface stays complete.</p>
+
+<h2 id="two-channels-in-one-owner">Two Channels In, One Owner</h2>
+
+<p>Slack side: a private channel, reached through the session’s Slack <a href="https://modelcontextprotocol.io/">MCP</a> tools, where only messages from my
+user id count as requests; new-message detection is a plain timestamp watermark in a state file.</p>
+
+<p>Telegram side: a dedicated bot with a hard owner allowlist — enforced <em>inside the CLI code</em>, not in the prompt. The
+poller surfaces only allowlisted senders as work; <code class="language-plaintext highlighter-rouge">send</code> refuses non-allowlisted chat ids outright; strangers
+land in a log on stderr and are never replied to. Even bootstrapping is stranger-proof: with an empty
+allowlist, the poller logs every unknown sender and warns on stderr, a <code class="language-plaintext highlighter-rouge">seen</code> command aggregates them into
+candidate ids, the flow posts those ids to Slack for me to confirm, and only then does the allowlist get
+filled — the bot never replies to an unconfirmed id, not even once.</p>
+
+<p>The Telegram CLI is a single-file Python script with <a href="https://peps.python.org/pep-0723/">PEP-723</a> inline metadata, run via
+<a href="https://docs.astral.sh/uv/guides/scripts/">uv</a>, talking to the Bot API with <a href="https://www.python-httpx.org/">httpx</a>. Its signature feature came from a direct
+directive at 14:47 on day one: <em>polling CLIs must run-and-wait, exiting after a 15-second idle bucket.</em></p>
+
+<p>Any other chats: Just the same way as we implemented Slack and Telegram – are one prompt away from
+the availability.</p>
+
+<h2 id="bucket-mode-near-realtime-from-a-blocking-poll">Bucket Mode: Near-Realtime From a Blocking Poll</h2>
+
+<p>There is no daemon, no webhook, no queue broker anywhere in this system. The “runtime” is one interactive
+session running a repeating inbox cycle. Slack ingress is the boring half — an MCP channel read against the
+timestamp watermark, once per tick. The Telegram side is where the design lives: the event source is a
+blocking CLI with carefully chosen exit semantics:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>poll --first-wait 240 --idle 15 --max-wait 280
+
+wait up to 240s for the FIRST message       # nothing arrived: quiet exit 0, tick ends
+on arrival, print it immediately            # unbuffered JSON line per message, as it lands
+then switch to idle mode: exit after 15s    # a burst of messages becomes ONE bucket of work
+never run past 280s total                   # hard cap, the poll can never block forever
+</code></pre></div></div>
+
+<p>Each underlying <a href="https://core.telegram.org/bots/api#getupdates"><code class="language-plaintext highlighter-rouge">getUpdates</code></a> long-poll timeout is clamped to the remaining budget with a hard
+~50-second cap, and a sub-second tail is slept out rather than re-polled — a deliberate courtesy, per the
+comment in the CLI itself, instead of hammering the API with near-zero-timeout calls. The result: each loop
+tick holds a roughly four-minute listen, so response latency is near-instant for the cost of one cheap
+blocking call. All updates — authorized or not — are appended to a jsonl transcript before the offset
+advances, so nothing is consumed invisibly.</p>
+
+<p>I like this trade a lot. OpenClaw and Hermes both answer “how do messages get in” with a resident gateway
+process. We answer it with a <em>budget</em>: latency comes from long-polling math, not infrastructure.</p>
+
+<h2 id="one-request-one-process">One Request, One Process</h2>
+
+<p>Dispatch is a small shell wrapper around <code class="language-plaintext highlighter-rouge">claude -p</code>, <a href="https://run-agent.sh">https://run-agent.sh</a>.
+For every request it creates a run directory with three
+artifacts — <code class="language-plaintext highlighter-rouge">prompt.md</code>, <code class="language-plaintext highlighter-rouge">result.json</code>, <code class="language-plaintext highlighter-rouge">stderr.log</code> — appends a start record <code class="language-plaintext highlighter-rouge">{id, channel, started, dir,
+pid, status:"running"}</code> to an append-only <code class="language-plaintext highlighter-rouge">agents.jsonl</code>, runs the sub-agent with JSON output, then appends a
+done record with the exit code. Every agent lifecycle event is an append-only record; every run leaves a full
+paper trail. A discipline rule sits on top: never hand-append JSON to state files — always go through the
+state script.</p>
+
+<p>The hardening matters more than the happy path: the wrapper traps EXIT, TERM, and INT, and writes an
+<code class="language-plaintext highlighter-rouge">exit:143, "aborted: dispatcher killed"</code> done-record if it dies before the normal one is written — guarded by
+a flag so it never double-writes. An id can never stick in “running” forever just because the wrapper was
+killed — the trap covers every catchable death, and the reaper we will meet below closes the one it cannot, a
+straight <code class="language-plaintext highlighter-rouge">kill -9</code>. That trap was not designed up front. It was shipped in response to an incident.</p>
+
+<h2 id="the-first-incident-and-the-fix-two-hours-later">The First Incident, and the Fix, Two Hours Later</h2>
+
+<p>At 13:45 on day one — four minutes after the first real task landed — the first concurrent dispatch of two
+sub-agents went wrong. The dispatcher combined a shell <code class="language-plaintext highlighter-rouge">&amp;</code> with the tool-level background dispatch it should
+have used, and one wrapper died mid-run. The work was recovered and the lessons were logged.</p>
+
+<p>At 15:50 the same day, the system’s first self-improvement cycle shipped the systemic fix in one commit: the
+pid tracking and abort trap above, a state script for scripted bookkeeping, a deliver-first inbox flow with an
+explicit failure path and a reaper, and codified delegation rules. The rule that came out of it landed as
+literally step 7 of the day-one inbox prompt: dispatch with the tool’s background mode — <em>“NEVER a shell
+<code class="language-plaintext highlighter-rouge">&amp;</code>“</em>. (It sits at step 9 today — the loop has since quorum-grown two more steps above it.)</p>
+
+<p>Incident → three-agent post-mortem → quorum-approved fix → committed process change, all machine-executed on
+day one. Fix shipped same afternoon as the incident. That arc, more than any feature, is why I trust the
+design.</p>
+
+<h2 id="deliver-first-fail-loudly-reap-the-dead">Deliver First, Fail Loudly, Reap the Dead</h2>
+
+<p>The inbox cycle runs every ~5 minutes and its ordering is opinionated:</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. pull the repo                # re-read your own instructions before acting
+2. deliver finished work FIRST  # before polling for anything new
+   success: read result.json, reply short, outcome first
+   failure: send a notice + the tail of stderr.log — never silence
+3. reap: entries "running" &gt;30 min AND whose dispatcher pid fails kill -0
+   → close as exit:143, note "reaped: dispatcher/agent dead", report each on its channel
+4. re-check watches             # e.g. "tell me when that thread gets a reply"; expire with a notice after 24h
+5. poll Telegram (bucket), 
+6. read Slack
+7. dispatch each new request    # ack "On it — task &lt;id&gt;", background, never shell &amp;
+8. catch late finishers, 
+9. push flow changes
+10. nothing new → end quietly, no channel noise
+</code></pre></div></div>
+
+<p>Step 1 means a changed instruction file takes effect <em>mid-cycle</em>. Step 2 means a finished task is reported
+before new work is taken. The failure path means a crashed sub-agent produces a notice with its stderr tail
+instead of vanishing. The reaper uses <a href="https://man7.org/linux/man-pages/man1/kill.1.html"><code class="language-plaintext highlighter-rouge">kill -0</code></a> as a liveness check so a genuinely long-running agent
+is left alone, while a dead dispatcher’s orphaned record gets closed and reported. Between the abort trap, the
+failure notice, and the reaper, there is no path where a dispatched request just disappears</p>
+
+<p>The listing above is already a historical document, by the way: by the end of day two the loop had
+quorum-grown to twelve steps — an early re-arm and a self-improvement catch-up — plus a standing rule that
+the cycle must never end in a terminal state. The ten steps you see are day one’s version; the upgrades came
+from the process described next.</p>
+
+<p>One pre-dispatch window remains, and it belongs on the record: the Telegram offset advances at poll time, so a
+message consumed moments before a session death lives only in the jsonl transcript, which nothing re-reads as
+work. Slack does not share the hole — its watermark is written back only after processing. A future quorum
+cycle owes us a fix.</p>
+
+<h2 id="a-quorum-that-rewrites-its-own-process">A Quorum That Rewrites Its Own Process</h2>
+
+<p>“Self-improving agent” is usually a euphemism for “the model edits its own prompt, and we hope”. Ours is a
+pipeline with an evidence phase, independence, a threshold, and verification.</p>
+
+<p>Every 3 hours: gather read-only evidence — <code class="language-plaintext highlighter-rouge">git log --stat</code> since the last cycle, both state jsonl files, the
+newest agent run directories, the previous cycle report. Then spawn <strong>three independent analysis sub-agents in
+parallel over the same evidence</strong> — in-session Agent-tool tasks this time, not headless dispatches — each with
+a distinct lens:</p>
+
+<ul>
+  <li><strong>reliability</strong> — what failed, hung, was retried, or silently dropped;</li>
+  <li><strong>effectiveness</strong> — routing speed, reply usefulness, loop closure;</li>
+  <li><strong>simplicity</strong> — what to script, simplify, or delete; where the orchestrator did work inline.</li>
+</ul>
+
+<p>Each returns proposals as <code class="language-plaintext highlighter-rouge">{file, change, rationale}</code>. The decision rule, as first shipped: accept only if at
+least 2 of 3 lenses independently support the same file and intent. Rejected proposals are written to a
+rejection log with reasons — the disagreement is an artifact, not a discard. Accepted changes are applied by
+exactly one applier sub-agent, dispatched through the same headless wrapper as any other task (the
+orchestrator never edits flows
+inline, even here), then mechanically verified — <a href="https://man7.org/linux/man-pages/man1/bash.1.html"><code class="language-plaintext highlighter-rouge">bash -n</code></a> on every changed shell script, executables
+stay executable, the Telegram CLI still authenticates, the settings file still parses with <a href="https://jqlang.org/">jq</a> — then
+pushed, with a cycle report to Slack.</p>
+
+<p>Cycle #1’s real numbers: 18 proposals, 4 bundles accepted, 8 rejected and logged, one commit. Yes, 4 + 8 ≠ 18 —
+an accepted “bundle” groups several overlapping proposals into one coherent change, which is exactly what a
+2-of-3 agreement on file and intent produces. That commit was the incident fix.</p>
+
+<p>Then <strong>the quorum rewrote its own constitution</strong>. The strict overlap rule — accept only what two lenses
+independently author — turned out to be a filter so fine it soon produced a cycle with zero accepts, so at
+22:14 on day one a cycle replaced it, through its own machinery: three analysts still propose, the proposals
+are deduped, and three <em>independent voters</em> now approve or reject each one, accept at 2-of-3 votes. One cycle
+later the scheduler got the same treatment: after one overnight run analyzed a window where nothing had
+happened, the gate became “3 hours elapsed AND new activity since the last cycle”, empty windows skipped and
+logged. Seven cycles ran in the first two days, and the process that runs them is itself the thing they keep
+amending</p>
+
+<h2 id="the-repo-is-the-source-of-truth">The Repo Is the Source of Truth</h2>
+
+<p>The closing rule of the contract: <em>“If the flows in this repo and your memory disagree, the repo wins —
+re-read it.”</em> Behavior is data on disk, not weights-in-context. Prompts are re-read every cycle and the repo
+is re-pulled before acting, so a <code class="language-plaintext highlighter-rouge">git push</code> is a live behavior deployment — including from another machine.
+The sync script is deliberately forgiving (<a href="https://git-scm.com/docs/git-pull"><code class="language-plaintext highlighter-rouge">pull --rebase --autostash</code></a>, continue offline, retry
+push next cycle) because the loop must never wedge on git.</p>
+
+<p>My favorite small artifact of this discipline: our AWS notes document that a local config file literally
+spells a profile name <code class="language-plaintext highlighter-rouge">Sanbox</code> — typo and all — instruct agents to use the typo as-is, mark fixing it as a
+pending <em>manual</em> action for me, and forbid agents from editing that file themselves. Reality documented over
+reality “fixed” out from under the human.</p>
+
+<p>Secrets follow the same locality principle. Credentials live only in a gitignored directory with tight file
+modes; state and logs are gitignored too — only flow logic is committed. A pre-commit hook blocks staged
+secrets three ways: anything under the secrets directory (only its <code class="language-plaintext highlighter-rouge">.example</code> templates and README are
+exempt), any <code class="language-plaintext highlighter-rouge">.env</code> file, and any <em>added diff line</em> matching credential shapes.
+A third layer rides in every sub-agent frame — a standing “never commit or print tokens”
+line — because defense in depth assumes any single layer will eventually miss.</p>
+
+<p>The sharpest boundary is capability asymmetry: the Slack connection exists <em>only</em> in the orchestrator session
+via MCP — there is deliberately no Slack CLI or token in the repo, so a compromised or confused sub-agent
+cannot reach Slack tokens at all. Telegram is softer, and I want to be precise about how much softer: the CLI’s send
+path is code-restricted to my own chat, so <em>through our tooling</em> the worst case is a message to me. But the
+raw bot token does live in the local secrets directory, sub-agents are permitted to read credentials, and a
+rogue or confused one could call the Bot API directly, bypassing the CLI entirely. The allowlist is a
+guarantee about the tool, not a bound on the token. That asymmetry is also why channel sends are the one thing
+the orchestrator does directly.</p>
+
+<h2 id="the-assistant-that-babysits-other-ai-agents">The Assistant That Babysits Other AI Agents</h2>
+
+<p>“Build me a tool that inspects my iTerm2 tabs” was on the wish list in the opening paragraph, and it grew into my
+favorite capability of the whole system. This machine usually runs eight to eleven <a href="https://iterm2.com/">iTerm2</a> consoles with
+other AI Agents inside — <a href="https://code.claude.com/docs/en/headless">Claude Code</a> sessions, <a href="https://github.com/openai/codex">Codex CLI</a> sessions — each grinding
+through its own long task. Somebody has to notice when one of them stalls on an approval prompt or runs its
+context to 100%. Now the assistant does.</p>
+
+<p>The read path is one <a href="https://developer.apple.com/library/archive/documentation/AppleScript/Conceptual/AppleScriptLangGuide/introduction/ASLR_intro.html">AppleScript</a> pass, strictly read-only. The <code class="language-plaintext highlighter-rouge">status</code> subcommand walks every
+window, tab, and session without activating or focusing anything, and prints for each: a header (session id,
+name, tty, window/tab position, plus iTerm2’s <code class="language-plaintext highlighter-rouge">processing</code> / <code class="language-plaintext highlighter-rouge">at-prompt</code> flags when exposed), the last twelve
+non-blank visible lines, and a first-pass status guess — WORKING, WAITING, IDLE/DONE, or BLOCKED, with a
+<code class="language-plaintext highlighter-rouge">[100% context]</code> flag when that shows on screen. The classifier is grep over screen tails, nothing smarter:
+spinner glyphs mean WORKING, “waiting for” means WAITING, a shell prompt means IDLE/DONE, a <code class="language-plaintext highlighter-rouge">[y/n]</code> or a
+“Goal blocked” means BLOCKED. BLOCKED is checked first because — the comment in the script says it plainly — a
+missed approval prompt is the costliest miss. The sub-agent running the survey is briefed to treat the guesses
+as first-pass only, re-read each tail, and report most-actionable-first. “What are my terminals doing” is now a
+routine Telegram request — the reply ledger shows three fleet summaries inside one day.</p>
+
+<p>Watching is safe; writing into another agent’s console is not. So the write path got the opposite treatment: it
+exists, and it is deliberately hard to use. The hard rule in <code class="language-plaintext highlighter-rouge">CLAUDE.md</code> says console writes go ONLY through the
+guarded <code class="language-plaintext highlighter-rouge">send</code> subcommand, never raw osascript, and <code class="language-plaintext highlighter-rouge">send</code> refuses in layers:</p>
+
+<ul>
+  <li>it resolves the target by session id AND demands the expected tty on the command line — if the session’s
+actual tty differs, it refuses: writing into the wrong console is the nightmare scenario;</li>
+  <li>it demands <code class="language-plaintext highlighter-rouge">--expect</code>, a literal substring that must be on the target screen <em>right now</em> — a <a href="https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use">TOCTOU</a>
+guard: if the prompt scrolled away or changed between survey and send, it refuses;</li>
+  <li>keystrokes come from a safe vocabulary — <code class="language-plaintext highlighter-rouge">y</code>, <code class="language-plaintext highlighter-rouge">n</code>, <code class="language-plaintext highlighter-rouge">enter</code>, a single digit; arbitrary text is an explicit
+<code class="language-plaintext highlighter-rouge">--raw</code> opt-in;</li>
+  <li>every write lands in an audit log with the exact bytes sent and content hashes of the screen before and after.</li>
+</ul>
+
+<p>On top of the tool, the approval flow adds policy: approve ONCE with the least-privilege key, never “always
+allow” or “don’t ask again”, one approval per request, abort untouched if the screen shows anything but the
+expected prompt</p>
+
+<p>The base inspector was one of day one’s first two dispatches; the survey and the guarded writer came out of
+quorum cycle #4 on day two — the guardrails themselves were proposed, 2-of-3 voted, and shipped by the same
+three-lens process as every other flow change.</p>
+
+<p>And on day two the thing earned its keep. The afternoon survey flagged window 3: a Codex agent double-stuck,
+asking approval to kill its own hung Gradle test worker and showing “Goal blocked” right above. The status
+report <em>flagged</em> it for me instead of acting on its own; the unstuck ran only after I said go. The audit log
+then records three writes in sixty-six seconds: a <code class="language-plaintext highlighter-rouge">y</code> against the expected text “confirmed stuck Gradle test
+worker” — approve the kill, once; <code class="language-plaintext highlighter-rouge">/goal resume</code> plus a newline against “Goal blocked”; and the discovery of
+the day — in the Codex TUI, Enter does not submit while the agent is mid-turn. The typed command just sat there
+on screen. So the third audited keystroke is a single Tab, which is how Codex queues input for when the current
+turn ends. Nobody documents these things. That Tab went in through the <code class="language-plaintext highlighter-rouge">--raw</code> escape hatch, under audit — and
+by the next quorum cycle it had graduated to a first-class key in the safe vocabulary, next to a new “Agent TUI
+quirks” note in the repo recording which console queues on Tab and which submits on Enter. Your assistant
+learns these things one guarded keystroke at a time, and then it writes them down.</p>
+
+<blockquote>
+  <p>An AI Agent supervising other AI Agents is only as trustworthy as the narrowest write path you give it.</p>
+</blockquote>
+
+<p>Let me be precise about what this is: best-effort supervision of peer agents, not a control plane. The consoles
+expose no API — the assistant reads the same screen text I would, and the classifications are regex guesses a
+sub-agent double-checks before reporting. What makes me comfortable anyway is the thesis this post keeps
+repeating: every intervention is id-and-tty-verified, precondition-checked, least-privilege, and audited. The
+discipline lives in the architecture, not in the model’s good intentions.</p>
+
+<p>The last quorum cycle of day two made this a standing service: the assistant now keeps a notify-only watch
+on the other consoles and pings me when one of them stalls — paired with a hard rule in the contract that
+automated watches never write to a console. Helping the agents in the other terminals is the job; pressing
+their keys stays mine.</p>
+
+<h2 id="the-field-openclaw-and-hermes">The Field: OpenClaw and Hermes</h2>
+
+<p>Now the comparison — because the two projects everyone will name in reply occupy the same niche with nearly
+opposite choices.</p>
+
+<p>First, identities, honestly hedged. <strong>OpenClaw</strong> here means the self-hosted personal-agent runtime at
+<a href="https://github.com/openclaw/openclaw">github.com/openclaw/openclaw</a> — released November 2025 as Warelay and renamed through
+CLAWDIS/Clawdbot/Moltbot to OpenClaw, <a href="https://en.wikipedia.org/wiki/OpenClaw">per Wikipedia</a>. <a href="https://api.github.com/repos/openclaw/openclaw">The GitHub API</a> gave it
+383,244 stars on 2026-07-17, while Wikipedia’s March 2026 snapshot said ~247k — treat any star count as a
+photo of a moving train. Not to be confused with <a href="https://github.com/pjasicek/OpenClaw">pjasicek/OpenClaw</a>, a C++ remake of the 1997
+game Captain Claw, no relevance to AI Agents. <strong>Hermes</strong> here means Nous Research’s
+<a href="https://github.com/NousResearch/hermes-agent">Hermes Agent</a> (216,301 stars by the <a href="https://api.github.com/repos/NousResearch/hermes-agent">same API call</a> the same day) — not the
+<a href="https://nousresearch.com/hermes3/">Hermes LLM weight series</a> from the same lab, and not <a href="https://github.com/facebook/hermes">Meta’s Hermes JS engine</a>.
+<a href="https://www.turingpost.com/p/hermes">Turing Post reported</a> Hermes overtaking OpenClaw on OpenRouter daily tokens in June 2026 — 224B
+against 186B per day — though I have not verified OpenRouter’s underlying numbers independently. Both projects
+move fast — several defaults below are as-of-mid-July-2026 and worth re-checking against their docs.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Axis</th>
+      <th>jonnyzzz-personal</th>
+      <th>OpenClaw</th>
+      <th>Hermes Agent</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Runtime</td>
+      <td>interactive session + loop</td>
+      <td>Gateway daemon</td>
+      <td>gateway service</td>
+    </tr>
+    <tr>
+      <td>Ingress</td>
+      <td>MCP read + bucket poll</td>
+      <td>persistent channel sockets</td>
+      <td>push + long-poll adapters</td>
+    </tr>
+    <tr>
+      <td>Channels</td>
+      <td>2, one owner</td>
+      <td>20+</td>
+      <td>20+</td>
+    </tr>
+    <tr>
+      <td>Session model</td>
+      <td>fresh process per request</td>
+      <td>DMs share main session</td>
+      <td>persistent per session key</td>
+    </tr>
+    <tr>
+      <td>Memory</td>
+      <td>git repo + jsonl</td>
+      <td>Markdown + daily notes</td>
+      <td>MEMORY.md + FTS5 SQLite</td>
+    </tr>
+    <tr>
+      <td>Self-improvement</td>
+      <td>3-lens quorum, 3-hourly</td>
+      <td>Skill Workshop, human-gated</td>
+      <td>per-turn background review</td>
+    </tr>
+    <tr>
+      <td>Isolation</td>
+      <td>capability asymmetry</td>
+      <td>sandbox off by default</td>
+      <td>six exec backends</td>
+    </tr>
+    <tr>
+      <td>Model coupling</td>
+      <td>Claude Code only</td>
+      <td><a href="https://docs.openclaw.ai/">model-agnostic</a></td>
+      <td><a href="https://hermes-agent.nousresearch.com/docs/">model-agnostic</a></td>
+    </tr>
+    <tr>
+      <td>Behavior deploy</td>
+      <td><code class="language-plaintext highlighter-rouge">git push</code></td>
+      <td>workspace + skill file edits</td>
+      <td>file writes + skills</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Ingress: a daemon versus a budget.</strong> OpenClaw’s <a href="https://docs.openclaw.ai/">Gateway</a> is “the single source of truth for
+sessions, routing, and channel connections” — one always-on process holding persistent connections to
+<a href="https://github.com/openclaw/openclaw">twenty-plus platforms</a>, exposing a <a href="https://docs.openclaw.ai/concepts/architecture">WebSocket API on a localhost port</a>. Hermes
+runs the same shape — one resident <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/">gateway</a> process with <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/">20+ adapters</a>. Neither is
+quite push end to end, to be fair: in both projects the Telegram channel <a href="https://docs.openclaw.ai/channels/telegram">defaults</a>
+<a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging/telegram">to long polling</a> with webhooks as the opt-in mode. But the shape holds — a resident daemon owns
+the connections. That buys instant delivery and breadth we simply do not have. It also buys daemon problems: OpenClaw’s
+docs note events are <a href="https://docs.openclaw.ai/concepts/architecture">not replayed after a gap</a> and pending sub-agent announcements are
+<a href="https://docs.openclaw.ai/tools/subagents">lost on Gateway restart</a>. Our blocking bucket poll delivers a burst as one unit of work,
+resumes after any restart (the watermark and offset are files), and costs no infrastructure while idle. Two
+channels are enough for one owner.</p>
+
+<p><strong>Sessions and trust granularity.</strong> This is the deepest philosophical split. In OpenClaw, by default all DMs
+collapse into the agent’s <em>main session</em> — the docs themselves say <a href="https://docs.openclaw.ai/concepts/multi-agent">“true isolation requires one agent per
+person”</a> — and <a href="https://docs.openclaw.ai/concepts/agent-loop">runs are serialized per session lane</a>, which as I read it means
+a shared session can head-of-line block. Hermes resolves a session key and <a href="https://hermes-agent.nousresearch.com/docs/developer-guide/architecture">carries persistent conversation
+history</a> across turns — genuine continuity, which our stateless workers lack. We chose the
+opposite: one request, one process, no carried context, and the orchestrator’s jsonl files as the only shared
+truth. Continuity lives in files we can read; isolation is the default, not the upgrade.</p>
+
+<p><strong>Self-improvement governance.</strong> All three systems admit the same thing — an agent will spot improvements to
+itself — and gate it differently. OpenClaw’s <a href="https://docs.openclaw.ai/tools/skills">Skill Workshop</a> is a human-review proposal
+queue: the agent drafts, a human approves (the viral “self-improving” framing overstates the default — though
+nothing I read in the docs blocks an agent with write access from editing skill files directly); behavior
+there deploys as edits to the agent’s <a href="https://docs.openclaw.ai/concepts/memory">workspace files</a> and skills. Hermes runs a
+<a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/memory">background review after each turn</a> — optionally on a cheaper sidecar model — that writes memory
+and skills autonomously; a <a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/skills"><code class="language-plaintext highlighter-rouge">write_approval</code> flag</a> can stage writes for human consent, but it
+ships off by default, so out of the box the agent writes freely. Ours is machine-gated rather than
+human-gated: three independent lenses over shared evidence, a 2-of-3 quorum on file+intent, a rejection log,
+one applier, and mechanical verification before push. Slower than Hermes, more autonomous than OpenClaw — and
+every change lands as a reviewable, revertable git diff. Hermes’s self-writes are mostly markdown too —
+MEMORY.md, SKILL.md, though a skill can carry helper scripts — and staged writes
+<a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/skills">can be diff-reviewed before landing</a>; what I found no mention of in its docs is version
+history after they land — a file on disk, but no <code class="language-plaintext highlighter-rouge">git log</code> behind it.</p>
+
+<p><strong>Memory and source of truth.</strong> OpenClaw is refreshingly blunt: <a href="https://docs.openclaw.ai/concepts/memory">“the model only remembers what gets saved to
+disk”</a> — curated <code class="language-plaintext highlighter-rouge">MEMORY.md</code>, daily notes, optional vector search. Hermes goes further:
+<a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/memory">bounded, agent-curated core memory</a> (over-limit writes error out, forcing consolidation) plus
+FTS5 full-text search over <em>every</em> past session in SQLite. Both beat us at recall — we cannot search old
+conversations at all, only grep the repo and the jsonl trail. What we have instead is that our entire behavior
+surface is version-controlled: no hidden state in a database, every behavior change has a hash, an author
+process, and a revert path.</p>
+
+<p><strong>Isolation defaults.</strong> OpenClaw ships with <a href="https://docs.openclaw.ai/gateway/sandboxing">sandboxing off</a> — tools execute on the host
+unless you opt into Docker with hardening flags — and that ecosystem’s attack surface is not hypothetical:
+<a href="https://blogs.cisco.com/ai/personal-ai-agents-like-openclaw-are-a-security-nightmare">Cisco’s AI threat researchers</a> documented a malicious community skill, its ranking inflated to #1 on
+the <a href="https://docs.openclaw.ai/tools/skills">public skills registry</a> (molthub then, ClawHub today), silently exfiltrating data via
+curl, prompt injection included, and <a href="https://en.wikipedia.org/wiki/OpenClaw">Wikipedia catalogs the wider fallout</a>. Hermes offers
+<a href="https://hermes-agent.nousresearch.com/docs/">six execution backends</a> from local to Docker to serverless; the same docs describe command
+approval and allowlists on top. Our answer is smaller but structural: sub-agents are fresh processes with full
+run artifacts, the Slack connection simply does not exist outside the orchestrator, and the Telegram CLI
+refuses every chat id but mine — a tool-level check, not a hard bound, as the secrets section admits. And to
+be honest on the same axis we just judged OpenClaw on: our sub-agents run headless with permission prompts
+bypassed by default (<a href="https://code.claude.com/docs/en/permission-modes"><code class="language-plaintext highlighter-rouge">--permission-mode bypassPermissions</code></a>, overridable per run to <code class="language-plaintext highlighter-rouge">acceptEdits</code>),
+executing on the host. Unattended runs need it, but it means our isolation comes from process freshness and
+capability absence, not from a sandbox — we do not ship one either.</p>
+
+<p>To be fair about what this comparison is: OpenClaw and Hermes are <em>products</em> — installable, multi-channel,
+multi-user-adjacent, with skill registries and communities. Ours is one owner’s operations repo that happens
+to embody the opposite bets. If you want WhatsApp, twenty channels, and a heartbeat that <a href="https://docs.openclaw.ai/gateway/heartbeat">thinks every 30
+minutes by default</a> — an hour under OAuth-style auth — run theirs. If you want to know exactly
+why your assistant did what it did last Tuesday, <code class="language-plaintext highlighter-rouge">git log</code> is a hard act to beat.</p>
+
+<p><strong>The compliance argument.</strong> There is one more consequence of the size gap, and for anyone working inside a
+company it may be the decisive one. Everything we <em>added</em> on top of Claude Code is the prompt folded at the
+top of this post, roughly one thousand lines of generated scripts, and a git history where every behavior
+change is a commit. A corporate security or compliance review can actually <em>read</em> that — one sitting, line by
+line. The review still inherits the vendor layer underneath, to be clear — Claude Code itself, the Slack MCP
+server, and the unsandboxed <code class="language-plaintext highlighter-rouge">bypassPermissions</code> execution admitted above — but an AI Coding tool is a thing
+your company has likely already assessed or is assessing anyway; the <em>marginal</em> surface this assistant adds
+is one prompt and a thousand lines. Now put OpenClaw or Hermes through the same review: a full runtime,
+twenty-plus channel adapters, a community skills registry with a
+<a href="https://blogs.cisco.com/ai/personal-ai-agents-like-openclaw-are-a-security-nightmare">demonstrated malicious-skill incident</a>, and a release cadence that outruns any approval process. I am
+not saying they cannot pass review — I am saying the prompt-sized system is <em>reviewable</em> in a way a platform
+is not. And building it yourself carries a bonus no product ships: you watched every piece of it land as a
+diff.</p>
+
+<h2 id="what-id-steal-and-what-stays">What I’d Steal, and What Stays</h2>
+
+<p>From Hermes I would steal searchable session history — FTS5 over past conversations is the feature I miss most,
+and jsonl grep is a poor substitute. From OpenClaw, the heartbeat contract: an explicit act-or-stay-silent
+protocol for proactive ticks is cleaner than our watches mechanism. Some of our own edges are unsolved too:
+the orchestrator is a single interactive session on a single machine, seven quorum cycles in two days are
+still a small sample to generalize from, and parts of the day-one code probably contain subtle bugs we have
+not hit yet.</p>
+
+<p>What stays, without hesitation: assist/manage/never-do as enforced architecture, deliver-first ordering with a
+loud failure path, and the repo as the only source of truth. The constraint made the design better — the same
+sentence closed a section of <a href="/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/">the Tart desktop
+post</a> three days ago, and it earned its
+repeat</p>
+
+<h2 id="show-me-yours">Show Me Yours</h2>
+
+<p>If you run OpenClaw or Hermes daily, I want to hear where my comparison is unfair — both projects move fast,
+and some defaults above will already be stale by the time you read this. And if you have built your own
+orchestrator on Claude Code — especially if it survived its own first incident — show me the post-mortem. Find
+me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://x.com/jonnyzzz">Twitter</a>, and if an assistant like this would fit your own workflow,
+get in touch — I am happy to help you shape one. Or skip the middleman: unfold the prompt at the top, swap in
+your own repo name, and paste it into a fresh agent session. That is the whole install — the rest is a
+conversation.</p>
+
+<hr />
+
+<p><em>Related reading: how we audit what agents do to git in
+<a href="/blog/2026/06/26/inside-the-git-hooks-for-ai-agents/">Inside the Git Hooks for AI Agents</a>, and
+how we gave a Linux Agent eyes and hands on macOS in
+<a href="/blog/2026/07/16/a-real-macos-desktop-for-a-linux-agent/">A Real macOS Desktop for a Linux Agent</a>.</em></p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>

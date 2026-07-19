@@ -214,7 +214,7 @@ dependency graph matters as much as the issues themselves.</li>
 recursively: the orchestrator delegates, the sub-agents do the work.</li>
 </ol>
 
-<p>The whole thing runs on [run-agent.sh][run-agent] and the [RLM methodology][rlm-post] — one task
+<p>The whole thing runs on <a href="https://run-agent.sh">run-agent.sh</a> and the <a href="/blog/2026/01/05/rlm-multi-agent-orchestration/">RLM methodology</a> — one task
 per agent, fresh context, markdown files carrying state between them.</p>
 
 <h2 id="the-pipeline-r1--r2--r3">The Pipeline: R1 → R2 → R3</h2>
@@ -223,7 +223,7 @@ per agent, fresh context, markdown files carrying state between them.</p>
 the shell orchestration managing dispatch, detecting completion, skipping already-researched
 issues, and retrying agents that time out.</p>
 
-<p><strong>Round 1 (Claude)</strong> reads the issue text, explores the codebase using [MCP Steroid][mcp-steroid],
+<p><strong>Round 1 (Claude)</strong> reads the issue text, explores the codebase using <a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a>,
 and produces a first-draft research document: problem framing, relevant source files with class
 and method references, and 2–3 solution options. Each option includes a complexity rating
 (Low / Med / High), effort estimate (S / M / L / XL), key changes, test strategy, and a trade-offs
@@ -248,14 +248,14 @@ review quorum (more on its small share below).</p>
 
 <p>Three things make this pipeline work at scale.</p>
 
-<p><strong>[run-agent.sh][run-agent-site]</strong> is the orchestration script that launches Claude, Codex, and
+<p><strong><a href="https://run-agent.sh">run-agent.sh</a></strong> is the orchestration script that launches Claude, Codex, and
 Gemini in isolated sub-processes. Each run gets its own
 timestamped directory: exact prompt, full stdout/stderr capture, PID tracking, exit codes. Full
 traceability for every agent execution. The shell orchestration loops over TASK files, detects
 completion by checking output files, skips already-researched issues, and retries timeouts. See
-the [full description here][run-agent-post].</p>
+the <a href="/blog/2026/02/06/run-agent-multi-agent-orchestration/">full description here</a>.</p>
 
-<p><strong>[MCP Steroid][mcp-steroid-site]</strong> gives agents programmatic access
+<p><strong><a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a></strong> gives agents programmatic access
 to the full codebase: PSI navigation, class resolution, call graph tracing, symbol search. Without
 it, agents produce vague references like “look in the parser module” or “check the rendering
 pipeline”. With it, they produce specific class names, method signatures, and
@@ -269,10 +269,9 @@ enough that agents parse it without extra tooling. Here are the actual task file
 run (generalized — internal identifiers removed):</p>
 
 <details>
-<summary><strong>TASK</strong> — collect the roadmap and orchestrate</summary>
+  <summary><strong>TASK</strong> — collect the roadmap and orchestrate</summary>
 
-```text
-Your main goal is to collect all the relevant issues from the release-roadmap umbrella epic
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Your main goal is to collect all the relevant issues from the release-roadmap umbrella epic
 in our issue tracker (query: all unresolved sub-tasks of the release epic).
 
 Use our small issue-tracker CLI to read the tracker. If it lacks a feature or fails, start
@@ -281,7 +280,7 @@ https://run-agent.sh to research, fix, review, deploy, and build the fix to the 
 can move on. Repeat that process as many times as you need.
 
 Pick all tasks with the PRD* prefix and the engineering tasks for the product without the
-prefix. For each task create a <task-id>.md document with discussion. Each such task has a
+prefix. For each task create a &lt;task-id&gt;.md document with discussion. Each such task has a
 tree of linked tasks, which you need to include in the document. I want the graph of linked
 sub-tasks for each root task.
 
@@ -296,14 +295,14 @@ goal is to orchestrate the research, do as little actual work as possible, and d
 everything to run-agent.sh, as suggested in RLM.md and THE_PROMPT_v5.md. Apply it recursively.
 
 When not clear, start 3x run-agents and make the quorum decisions.
-```
-&lt;/details&gt;
+</code></pre></div>  </div>
+
+</details>
 
 <details>
-<summary><strong>TASK-2</strong> — the research group of five</summary>
+  <summary><strong>TASK-2</strong> — the research group of five</summary>
 
-```text
-Now create a research group of 5 agents running on the target codebase, each via
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Now create a research group of 5 agents running on the target codebase, each via
 run-agent.sh. Our goal is to research each task as deeply as possible and provide 3 potential
 ways of solving it. Use MCP Steroid to work on the assignment. Since there are far too many
 tasks, prepare all the prompts in the prompts/ folder and a run script that calls all agents
@@ -315,14 +314,14 @@ set up a /loop so we keep running and don't stop. Work one issue at a time. For 
 linked issues, prefer the leaf issues first; create a dedicated file like
 issue-id-leaf-another-issue-id.md and place details there. Include a high-level overview in
 the initial issue.
-```
+</code></pre></div>  </div>
+
 </details>
 
 <details>
-<summary><strong>TASK-3</strong> — close the gap on the stub issues</summary>
+  <summary><strong>TASK-3</strong> — close the gap on the stub issues</summary>
 
-```text
-## Goal
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>## Goal
 Research all remaining .md files in this directory that have no proposed solutions yet
 (53 standalone stubs with only tracker metadata, plus 2 leaf files missing solutions).
 
@@ -340,14 +339,14 @@ Each agent fetches the latest issue description from the tracker before research
 THE_PROMPT_v5.md from https://run-agent.sh and use MCP Steroid to research the monorepo. Work
 2 issues in parallel. The process may already be running — check existing .md sizes before
 launching agents (skip if a file already has solution sections).
-```
+</code></pre></div>  </div>
+
 </details>
 
 <details>
-<summary><strong>TASK-4</strong> — the mid-iteration snapshot</summary>
+  <summary><strong>TASK-4</strong> — the mid-iteration snapshot</summary>
 
-```text
-Your goal now is to run a snapshot review of the investigation. Time has passed since the
+  <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Your goal now is to run a snapshot review of the investigation. Time has passed since the
 original research, and the release is still in flight — so we should be able to see what has
 moved, how the team approached features, and which approaches were selected, without expecting
 anything to be finished.
@@ -358,244 +357,321 @@ addressed. Learn from each decision and compare it against the options we propos
 Use RLM.md, run-agent.sh, and any other tools to assess all the tickets. For more context and
 approaches, look at the other TASK*.md files in this folder; they contain the necessary
 information and approaches you should re-use.
-```
+</code></pre></div>  </div>
+
 </details>
 
-## The Numbers
+<h2 id="the-numbers">The Numbers</h2>
 
-Here's what the full run produced:
+<p>Here’s what the full run produced:</p>
 
-| Metric                                    | Value                          |
-|-------------------------------------------|--------------------------------|
-| Issues analyzed                           | 130+                           |
-| Agent runs total                          | 818                            |
-| Codex runs                                | 322 (~39%)                     |
-| Claude runs                               | 318 (~39%)                     |
-| Gemini runs                               | 12 (~1%)                       |
-| Other / unattributed (orchestration, review, retries) | 166 (~20%)         |
-| Total token consumption                   | ~155–200M tokens               |
-| Total cost (API prices)                   | ~$576 (~$315 Codex, ~$259 Claude) |
-| Cost per fully-researched issue           | ~$5 (~$576 / 120)              |
-| Calendar days                             | 4 (overnight gaps)             |
-| Issues with full 3-round research         | 120                            |
-| Total output                              | 52,162 lines                   |
-| Average output per issue                  | ~435 lines                     |
-| Issues found already implemented          | 9                              |
-| Issues flagged as directly implementable  | ~39%                           |
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Issues analyzed</td>
+      <td>130+</td>
+    </tr>
+    <tr>
+      <td>Agent runs total</td>
+      <td>818</td>
+    </tr>
+    <tr>
+      <td>Codex runs</td>
+      <td>322 (~39%)</td>
+    </tr>
+    <tr>
+      <td>Claude runs</td>
+      <td>318 (~39%)</td>
+    </tr>
+    <tr>
+      <td>Gemini runs</td>
+      <td>12 (~1%)</td>
+    </tr>
+    <tr>
+      <td>Other / unattributed (orchestration, review, retries)</td>
+      <td>166 (~20%)</td>
+    </tr>
+    <tr>
+      <td>Total token consumption</td>
+      <td>~155–200M tokens</td>
+    </tr>
+    <tr>
+      <td>Total cost (API prices)</td>
+      <td>~$576 (~$315 Codex, ~$259 Claude)</td>
+    </tr>
+    <tr>
+      <td>Cost per fully-researched issue</td>
+      <td>~$5 (~$576 / 120)</td>
+    </tr>
+    <tr>
+      <td>Calendar days</td>
+      <td>4 (overnight gaps)</td>
+    </tr>
+    <tr>
+      <td>Issues with full 3-round research</td>
+      <td>120</td>
+    </tr>
+    <tr>
+      <td>Total output</td>
+      <td>52,162 lines</td>
+    </tr>
+    <tr>
+      <td>Average output per issue</td>
+      <td>~435 lines</td>
+    </tr>
+    <tr>
+      <td>Issues found already implemented</td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <td>Issues flagged as directly implementable</td>
+      <td>~39%</td>
+    </tr>
+  </tbody>
+</table>
 
-A few of those numbers deserve commentary.
+<p>A few of those numbers deserve commentary.</p>
 
-**Three agents, very uneven shares.** Codex and Claude split the pipeline almost evenly. Gemini
+<p><strong>Three agents, very uneven shares.</strong> Codex and Claude split the pipeline almost evenly. Gemini
 landed at ~1% (12 runs) — not because of model quality, but because it kept tripping over filesystem
-**sandbox path restrictions** in this setup and we fell back to the other two rather than fight
-it mid-run. Worth knowing if you're planning a three-CLI swarm: the orchestration is easy; the
-per-CLI sandbox and auth quirks are what actually cost you time.
+<strong>sandbox path restrictions</strong> in this setup and we fell back to the other two rather than fight
+it mid-run. Worth knowing if you’re planning a three-CLI swarm: the orchestration is easy; the
+per-CLI sandbox and auth quirks are what actually cost you time.</p>
 
-**~$5 per issue.** ~$576 across 120 fully-researched issues — the cost of 2–4 hours of senior
+<p><strong>~$5 per issue.</strong> ~$576 across 120 fully-researched issues — the cost of 2–4 hours of senior
 engineer analysis, done in roughly 90 minutes of wall-clock time per issue (two pipelines in
-parallel). At any reasonable engineer billing rate, the economics aren't close.
+parallel). At any reasonable engineer billing rate, the economics aren’t close.</p>
 
-**9 issues already implemented.** During research, agents cross-referenced issue descriptions
+<p><strong>9 issues already implemented.</strong> During research, agents cross-referenced issue descriptions
 against the current codebase and found nine cases where the requested functionality already
 existed — implemented at some point without closing the ticket. Catching this early avoids days
-of duplicated work.
+of duplicated work.</p>
 
-**120 of 130+ got full 3-round research.** The initial four-day swarm covered 65 issues; a later
+<p><strong>120 of 130+ got full 3-round research.</strong> The initial four-day swarm covered 65 issues; a later
 pass researched the 55 remaining stubs — 8h49m of continuous execution, two parallel workers, no
 API failures — bringing the total to 120. (Peak concurrency
-was only two workers, with a long overnight idle gap; there's easy throughput left on the table.)
+was only two workers, with a long overnight idle gap; there’s easy throughput left on the table.)</p>
 
-## What the Output Looks Like
+<h2 id="what-the-output-looks-like">What the Output Looks Like</h2>
 
-This is not summarization. It's the analyst work a senior engineer does before writing code. A
-typical fully-researched issue document contains:
+<p>This is not summarization. It’s the analyst work a senior engineer does before writing code. A
+typical fully-researched issue document contains:</p>
 
-- A **problem framing** section: what the issue requests, what the codebase does instead, where the
-  gap is
-- **File:class:method references** with line numbers — confirmed by R2 against the actual repository
-- A **git history note** on recent changes to those files — flagging active areas where merge risk
-  is higher
-- **Two or three solution options**, each with complexity, effort, key changes, test strategy, and a
-  trade-offs table
-- A **validation section** from Round 2: which references were confirmed, which were corrected,
-  which edge cases were added
-- A **final recommendation** from Round 3 with rationale, implementation sequence, and follow-up work
+<ul>
+  <li>A <strong>problem framing</strong> section: what the issue requests, what the codebase does instead, where the
+gap is</li>
+  <li><strong>File:class:method references</strong> with line numbers — confirmed by R2 against the actual repository</li>
+  <li>A <strong>git history note</strong> on recent changes to those files — flagging active areas where merge risk
+is higher</li>
+  <li><strong>Two or three solution options</strong>, each with complexity, effort, key changes, test strategy, and a
+trade-offs table</li>
+  <li>A <strong>validation section</strong> from Round 2: which references were confirmed, which were corrected,
+which edge cases were added</li>
+  <li>A <strong>final recommendation</strong> from Round 3 with rationale, implementation sequence, and follow-up work</li>
+</ul>
 
-When the output is good, a team lead reads it in 15–20 minutes and makes a prioritization decision
-with full context. The shift is real: from "I need half a day to understand this issue before I can
-scope it" to "I need to review what the agent found and decide which option makes sense."
+<p>When the output is good, a team lead reads it in 15–20 minutes and makes a prioritization decision
+with full context. The shift is real: from “I need half a day to understand this issue before I can
+scope it” to “I need to review what the agent found and decide which option makes sense.”</p>
 
-## A Mid-Iteration Snapshot, Not a Postmortem
+<h2 id="a-mid-iteration-snapshot-not-a-postmortem">A Mid-Iteration Snapshot, Not a Postmortem</h2>
 
-Here is the part that's easy to get wrong. After the research, while the release was **still in
-flight**, we ran a second pass against the same roadmap — same orchestration, same MCP Steroid,
-same `run-agent.sh` — asking a different question. Not "what should we implement," but "what is the
-team actually doing, and how does it compare to what we proposed?"
+<p>Here is the part that’s easy to get wrong. After the research, while the release was <strong>still in
+flight</strong>, we ran a second pass against the same roadmap — same orchestration, same MCP Steroid,
+same <code class="language-plaintext highlighter-rouge">run-agent.sh</code> — asking a different question. Not “what should we implement,” but “what is the
+team actually doing, and how does it compare to what we proposed?”</p>
 
-This is a **mid-iteration snapshot**, and the framing matters: at the time of the check, **nothing
-was expected to be finished.** The release hadn't shipped. So this is not a scorecard of "did the
-research come true." It's a directional read — a chance to see, on the issues where work *had*
-started, whether the research pointed the right way.
+<p>This is a <strong>mid-iteration snapshot</strong>, and the framing matters: at the time of the check, <strong>nothing
+was expected to be finished.</strong> The release hadn’t shipped. So this is not a scorecard of “did the
+research come true.” It’s a directional read — a chance to see, on the issues where work <em>had</em>
+started, whether the research pointed the right way.</p>
 
-The snapshot was map-reduce: one agent per issue (refetch status, scan git history for related
+<p>The snapshot was map-reduce: one agent per issue (refetch status, scan git history for related
 commits, compare proposal vs. current direction), then a thematic reduce across about eight
 subsystem groupings, then a final reduce into a single lessons document. Same RLM principle — one
 task per agent, fresh context, markdown carries state — with two reduce stages because the input
-was too large for one synthesis pass.
+was too large for one synthesis pass.</p>
 
-| Snapshot outcome (138 items, incl. parent/leaf) | Share |
-|--------------------------------------------------|-------|
-| Work landed — matched the proposal                | 5%    |
-| Work landed — diverged from the proposal          | 33%   |
-| In progress                                       | 23%   |
-| Still open — proposal still valid                 | 27%   |
-| Abandoned / obsolete                              | 11%   |
-| Insufficient PRD — never actionable               | 1%    |
+<table>
+  <thead>
+    <tr>
+      <th>Snapshot outcome (138 items, incl. parent/leaf)</th>
+      <th>Share</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Work landed — matched the proposal</td>
+      <td>5%</td>
+    </tr>
+    <tr>
+      <td>Work landed — diverged from the proposal</td>
+      <td>33%</td>
+    </tr>
+    <tr>
+      <td>In progress</td>
+      <td>23%</td>
+    </tr>
+    <tr>
+      <td>Still open — proposal still valid</td>
+      <td>27%</td>
+    </tr>
+    <tr>
+      <td>Abandoned / obsolete</td>
+      <td>11%</td>
+    </tr>
+    <tr>
+      <td>Insufficient PRD — never actionable</td>
+      <td>1%</td>
+    </tr>
+  </tbody>
+</table>
 
-Read against a finished release, "5% matched" would look brutal. Read as a mid-cycle snapshot, it's
-the wrong number to fixate on — because of what "diverged" means for the other 33%. In most diverged
+<p>Read against a finished release, “5% matched” would look brutal. Read as a mid-cycle snapshot, it’s
+the wrong number to fixate on — because of what “diverged” means for the other 33%. In most diverged
 cases the agent identified the right root cause or dependency, but maintainers chose a different
 implementation layer, scope, or product shape. The research was directionally right, even if the
 patch landed elsewhere — in an adjacent caller, an integration layer, or a shared platform surface
-rather than where it pointed.
+rather than where it pointed.</p>
 
-That reframes what the pipeline is for. The output is **not** a patch location to apply as-is. It's
+<p>That reframes what the pipeline is for. The output is <strong>not</strong> a patch location to apply as-is. It’s
 a structured comparison of options plus an identification of root cause and dependencies. The hit
-rate is the wrong metric; the value is in the framing and the dependency map.
+rate is the wrong metric; the value is in the framing and the dependency map.</p>
 
-## What We Learned
+<h2 id="what-we-learned">What We Learned</h2>
 
-### Some solutions aren't viable — even after three review rounds
+<h3 id="some-solutions-arent-viable--even-after-three-review-rounds">Some solutions aren’t viable — even after three review rounds</h3>
 
-This is the uncomfortable one. A non-trivial share of recommendations were simply **not good**, and
-three rounds of review didn't save them. The agents over-technicalized product questions (treating
-"should we keep this feature" as an engineering task), confidently prescribed a local patch where
+<p>This is the uncomfortable one. A non-trivial share of recommendations were simply <strong>not good</strong>, and
+three rounds of review didn’t save them. The agents over-technicalized product questions (treating
+“should we keep this feature” as an engineering task), confidently prescribed a local patch where
 the real decision was about ownership or release sequencing, overcomplicated easy tasks, and
 oversimplified hard ones. Three passes of a confident model reviewing another confident model can
-converge on a polished, plausible, **wrong** answer. More rounds did not fix wrong framing.
+converge on a polished, plausible, <strong>wrong</strong> answer. More rounds did not fix wrong framing.</p>
 
-### Agents reject their own options — then keep them anyway
+<h3 id="agents-reject-their-own-options--then-keep-them-anyway">Agents reject their own options — then keep them anyway</h3>
 
-The clearest tell came from a reviewer's note. In one document, the agent had generated three
-solution options and **explicitly marked the third "should not be implemented"** — and then left it in
-the final write-up. The agent's own judgment said *no*, and the option still shipped into the
+<p>The clearest tell came from a reviewer’s note. In one document, the agent had generated three
+solution options and <strong>explicitly marked the third “should not be implemented”</strong> — and then left it in
+the final write-up. The agent’s own judgment said <em>no</em>, and the option still shipped into the
 document, adding clutter a human had to read past. An output set that never drops the ideas its own
-author rejected isn't a research report; it's a transcript. The fix is mechanical: prune options
-the agent flags as non-viable before synthesis, instead of dutifully carrying every branch forward.
+author rejected isn’t a research report; it’s a transcript. The fix is mechanical: prune options
+the agent flags as non-viable before synthesis, instead of dutifully carrying every branch forward.</p>
 
-### We needed an *adaptive* number of iterations, not a fixed three
+<h3 id="we-needed-an-adaptive-number-of-iterations-not-a-fixed-three">We needed an <em>adaptive</em> number of iterations, not a fixed three</h3>
 
-Three rounds was the wrong constant in both directions. For small, well-groomed issues with an
+<p>Three rounds was the wrong constant in both directions. For small, well-groomed issues with an
 obvious code seam, R1 alone was enough — R2 and R3 just reworded it. For cross-module, cross-repo,
-or product-gated issues, three rounds weren't nearly enough to converge, and a fixed cap let
+or product-gated issues, three rounds weren’t nearly enough to converge, and a fixed cap let
 unresolved disagreement get written up as a confident recommendation. The right design is an
-**adaptive iteration count**: keep looping review-and-revise on a task until it *converges* — until
+<strong>adaptive iteration count</strong>: keep looping review-and-revise on a task until it <em>converges</em> — until
 a fresh reviewer adds no new finding — and stop early when it already has. A product-gated task
-should short-circuit to "ask the owner," not burn three deep-research passes on a moving foundation.
+should short-circuit to “ask the owner,” not burn three deep-research passes on a moving foundation.</p>
 
-### MCP Steroid is the force multiplier
+<h3 id="mcp-steroid-is-the-force-multiplier">MCP Steroid is the force multiplier</h3>
 
-The gap between agent outputs with and without full codebase access is large. Without it, agents
-default to generic descriptions: "update the parser", "check the rendering pipeline". With
-[MCP Steroid][mcp-steroid-site], they navigate the actual PSI tree, resolve inheritance chains,
-and trace call graphs to find where a change propagates. That's not a small specificity bump —
-it's the difference between a useful document and
+<p>The gap between agent outputs with and without full codebase access is large. Without it, agents
+default to generic descriptions: “update the parser”, “check the rendering pipeline”. With
+<a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a>, they navigate the actual PSI tree, resolve inheritance chains,
+and trace call graphs to find where a change propagates. That’s not a small specificity bump —
+it’s the difference between a useful document and
 a vague one. One pattern to fix: agents default to one file per MCP call; a small script that reads
-5–10 related files per call would cut round-trips and speed up R1 noticeably.
+5–10 related files per call would cut round-trips and speed up R1 noticeably.</p>
 
-### The message bus was useful enough to graduate
+<h3 id="the-message-bus-was-useful-enough-to-graduate">The message bus was useful enough to graduate</h3>
 
-Between rounds, findings flowed through a single append-only markdown file — `MESSAGE-BUS.md`. Each
+<p>Between rounds, findings flowed through a single append-only markdown file — <code class="language-plaintext highlighter-rouge">MESSAGE-BUS.md</code>. Each
 agent wrote what it learned; later agents and the reducers read it back. It was the most reusable
-artifact of the whole run, and it has since **graduated into the agent-orchestration framework we
-use elsewhere** as a first-class, append-only, typed protocol — messages carry a type (`FACT`,
-`DECISION`, `QUESTION`, `ANSWER`, `PROGRESS`, `ERROR`, `BLOCKER`, `COMPLETE`), an id, and a
+artifact of the whole run, and it has since <strong>graduated into the agent-orchestration framework we
+use elsewhere</strong> as a first-class, append-only, typed protocol — messages carry a type (<code class="language-plaintext highlighter-rouge">FACT</code>,
+<code class="language-plaintext highlighter-rouge">DECISION</code>, <code class="language-plaintext highlighter-rouge">QUESTION</code>, <code class="language-plaintext highlighter-rouge">ANSWER</code>, <code class="language-plaintext highlighter-rouge">PROGRESS</code>, <code class="language-plaintext highlighter-rouge">ERROR</code>, <code class="language-plaintext highlighter-rouge">BLOCKER</code>, <code class="language-plaintext highlighter-rouge">COMPLETE</code>), an id, and a
 back-reference, so a swarm can coordinate without a shared database. The honest caveat: because
 parent and leaf tickets often referenced the same root problem, the bus filled with duplicates —
-so any reducer has to **dedupe by the underlying issue** before drawing conclusions, or it
-double-counts.
+so any reducer has to <strong>dedupe by the underlying issue</strong> before drawing conclusions, or it
+double-counts.</p>
 
-### Codex buffers all output
+<h3 id="codex-buffers-all-output">Codex buffers all output</h3>
 
-Codex streams its progress to stderr and writes nothing to its stdout file until the run
+<p>Codex streams its progress to stderr and writes nothing to its stdout file until the run
 completes. A monitor that watches the stdout file size will conclude a running Codex agent is
-stuck. It isn't — it's thinking. Check the process PID (or stderr), not the stdout file size. We
-spent more time than we'd like to admit investigating "stalled" agents that were running normally.
-It's already improved in the recent version of `run-agent.sh` where we run agents with a verbose mode,
-NDJSON outout, and better monitoring of file sizes.
+stuck. It isn’t — it’s thinking. Check the process PID (or stderr), not the stdout file size. We
+spent more time than we’d like to admit investigating “stalled” agents that were running normally.
+It’s already improved in the recent version of <code class="language-plaintext highlighter-rouge">run-agent.sh</code> where we run agents with a verbose mode,
+NDJSON outout, and better monitoring of file sizes.</p>
 
-### Cost is not the constraint — human review is
+<h3 id="cost-is-not-the-constraint--human-review-is">Cost is not the constraint — human review is</h3>
 
-At ~$5 per fully-researched issue, cost doesn't register for any team with a real roadmap. The constraint is human
+<p>At ~$5 per fully-researched issue, cost doesn’t register for any team with a real roadmap. The constraint is human
 review bandwidth: the pipeline produced ~435 lines per issue, 52,000+ lines total, all waiting for
 judgment. Designing the output format for fast human review matters far more than shaving a dollar
-off the per-issue cost.
+off the per-issue cost.</p>
 
-## The Human Verdict, Honestly
+<h2 id="the-human-verdict-honestly">The Human Verdict, Honestly</h2>
 
-A senior product lead reviewed the output and gave a blunt read, which I'll paraphrase because it's
+<p>A senior product lead reviewed the output and gave a blunt read, which I’ll paraphrase because it’s
 the most useful thing in this whole post. Handing this research — with its implementation advice —
-straight to junior, mid, or even early-senior engineers is **dangerous**, because the agents:
+straight to junior, mid, or even early-senior engineers is <strong>dangerous</strong>, because the agents:</p>
 
-1. describe even complete nonsense very convincingly, instead of saying *"I don't have enough
-   information, I give up"*;
-2. charge ahead researching a technical solution without thinking about the product side;
-3. overcomplicate easy things and oversimplify hard ones.
+<ol>
+  <li>describe even complete nonsense very convincingly, instead of saying <em>“I don’t have enough
+information, I give up”</em>;</li>
+  <li>charge ahead researching a technical solution without thinking about the product side;</li>
+  <li>overcomplicate easy things and oversimplify hard ones.</li>
+</ol>
 
-His conclusion: this kind of mass research is something you show a **product lead plus a tech
-lead** for a fast review — people with enough context to validate or dismiss it quickly, and who,
+<p>His conclusion: this kind of mass research is something you show a <strong>product lead plus a tech
+lead</strong> for a fast review — people with enough context to validate or dismiss it quickly, and who,
 frankly, would have gotten there without the research anyway. The genuine upside: for small,
 well-groomed tasks where the product direction is settled, the output is exactly the spec an
-implementation pipeline can run with.
+implementation pipeline can run with.</p>
 
-He also flagged the small, human things the agents missed and the ones they nailed: handle
+<p>He also flagged the small, human things the agents missed and the ones they nailed: handle
 externally-reported issues more cautiously (have a human confirm before acting, and check whether
-the product already does the requested thing); and **diagrams and flow charts are genuinely
-helpful** — the kind a senior draws by hand to think, and the kind the agents should produce more
-of.
+the product already does the requested thing); and <strong>diagrams and flow charts are genuinely
+helpful</strong> — the kind a senior draws by hand to think, and the kind the agents should produce more
+of.</p>
 
-The honest position: agent research is a tool for **senior judgment to operate on**, not a
-substitute for it.
+<p>The honest position: agent research is a tool for <strong>senior judgment to operate on</strong>, not a
+substitute for it.</p>
 
-## What's Next
+<h2 id="whats-next">What’s Next</h2>
 
-The changes the snapshot points to — none of which remove the senior human from the loop:
+<p>The changes the snapshot points to — none of which remove the senior human from the loop:</p>
 
-- **Product-state precheck** before deep research — assignee, fix version, recent human comments,
-  decision state — so product-gated issues short-circuit instead of getting three rounds.
-- **Adaptive iteration count** — loop review-and-revise until convergence, not a fixed three.
-- **Prune agent-rejected options** before synthesis.
-- **Mandatory alternate-layer enumeration** — at least one plausible alternate implementation
-  surface per recommendation, with the rationale for the recommended one.
-- **External-repo scanning** for build/CI/release issues, which often land in adjacent repos.
-- **Dedupe by underlying issue** before any reduce.
+<ul>
+  <li><strong>Product-state precheck</strong> before deep research — assignee, fix version, recent human comments,
+decision state — so product-gated issues short-circuit instead of getting three rounds.</li>
+  <li><strong>Adaptive iteration count</strong> — loop review-and-revise until convergence, not a fixed three.</li>
+  <li><strong>Prune agent-rejected options</strong> before synthesis.</li>
+  <li><strong>Mandatory alternate-layer enumeration</strong> — at least one plausible alternate implementation
+surface per recommendation, with the rationale for the recommended one.</li>
+  <li><strong>External-repo scanning</strong> for build/CI/release issues, which often land in adjacent repos.</li>
+  <li><strong>Dedupe by underlying issue</strong> before any reduce.</li>
+</ul>
 
-The bulk-implementation idea survives the snapshot. For the subset of issues where the product
+<p>The bulk-implementation idea survives the snapshot. For the subset of issues where the product
 direction is settled, the paths still hold, and the change is self-contained, the same pipeline can
 keep going — R4 implements from the R3 spec, R5 reviews and validates tests, R6 does a final
 integration check — closing the loop from issue stub to pull request, without the over-confident
-handoffs the first round would have produced.
+handoffs the first round would have produced.</p>
 
----
+<hr />
 
-The pipeline is built on tools I've written about before: [run-agent.sh][run-agent-site] for agent
-execution, [MCP Steroid][mcp-steroid-site] for codebase access, and the [RLM methodology][rlm-post]
+<p>The pipeline is built on tools I’ve written about before: <a href="https://run-agent.sh">run-agent.sh</a> for agent
+execution, <a href="https://mcp-steroid.jonnyzzz.com">MCP Steroid</a> for codebase access, and the <a href="/blog/2026/01/05/rlm-multi-agent-orchestration/">RLM methodology</a>
 for keeping context manageable. What this experiment adds is evidence that they work together at
 scale — not for a handful of issues, but for an entire release roadmap — and an honest account of
-where the output needs a senior human in the loop.
+where the output needs a senior human in the loop.</p>
 
-**Questions about the pipeline or running research swarms at scale?**
-Find me on [LinkedIn][linkedin] or [X][twitter].
+<p><strong>Questions about the pipeline or running research swarms at scale?</strong>
+Find me on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or <a href="https://x.com/jonnyzzz">X</a>.</p>
 
-[run-agent]: https://run-agent.sh
-[run-agent-site]: https://run-agent.sh
-[mcp-steroid]: https://mcp-steroid.jonnyzzz.com
-[mcp-steroid-site]: https://mcp-steroid.jonnyzzz.com
-[run-agent-post]: /blog/2026/02/06/run-agent-multi-agent-orchestration/
-[rlm-post]: /blog/2026/01/05/rlm-multi-agent-orchestration/
-[linkedin]: https://www.linkedin.com/in/jonnyzzz/
-[twitter]: https://x.com/jonnyzzz
-</task-id></details>
 
         <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
         
