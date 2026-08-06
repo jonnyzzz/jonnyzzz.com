@@ -1,0 +1,1279 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Install, Launch, Update: Shipping a CLI on Five Platforms — the devrig Approach &#8211; Eugene Petrenko</title>
+<meta name="description" content="A JVM command-line tool is easy to write and miserable to ship. You need five platforms, a JDK the user does not have, an update path that never overwrites a running install, and a trust story for a `curl | sh` one-liner. Here is the architecture we ended up with in `devrig`: generate the install script from a model whose JDK coordinates are signature-verified, make installs content-addressed and side-by-side, let the binary own its own launcher, and make "update" mean nothing more than running a fresh install script
+"/>
+<meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, devrig, mcp-steroid, cli, jvm, kotlin, distribution, open-source, ai-agents, ai-coding" />
+
+
+<!-- Twitter Cards -->
+<meta name="twitter:title" content="Install, Launch, Update: Shipping a CLI on Five Platforms — the devrig Approach -- Eugene Petrenko" />
+<meta name="twitter:description" content="A JVM command-line tool is easy to write and miserable to ship. You need five platforms, a JDK the user does not have, an update path that never overwrites a running install, and a trust story for a `curl | sh` one-liner. Here is the architecture we ended up with in `devrig`: generate the install script from a model whose JDK coordinates are signature-verified, make installs content-addressed and side-by-side, let the binary own its own launcher, and make "update" mean nothing more than running a fresh install script" />
+<meta name="twitter:site" content="@jonnyzzz" />
+<meta name="twitter:creator" content="@jonnyzzz" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://jonnyzzz.com/images/me.jpg" />
+
+<!-- Open Graph -->
+
+<meta property="og:type" content="article" />
+<meta property="og:image" content="https://jonnyzzz.com/images/me.jpg" />
+<meta property="og:title" content="Install, Launch, Update: Shipping a CLI on Five Platforms — the devrig Approach -- Eugene Petrenko" />
+<meta property="og:description" content="A JVM command-line tool is easy to write and miserable to ship. You need five platforms, a JDK the user does not have, an update path that never overwrites a running install, and a trust story for a `curl | sh` one-liner. Here is the architecture we ended up with in `devrig`: generate the install script from a model whose JDK coordinates are signature-verified, make installs content-addressed and side-by-side, let the binary own its own launcher, and make "update" mean nothing more than running a fresh install script" />
+<meta property="og:url" content="https://jonnyzzz.com/blog/2026/08/06/devrig-install-launch-autoupdate/" />
+<meta property="og:site_name" content="Eugene Petrenko" />
+
+<meta property="article:tag" content="jonnyzzz" />
+
+<meta property="article:tag" content="Евгений Петренко" />
+
+<meta property="article:tag" content="Eugene Petrenko" />
+
+
+<meta property="article:tag" content="devrig" />
+
+<meta property="article:tag" content="mcp-steroid" />
+
+<meta property="article:tag" content="cli" />
+
+<meta property="article:tag" content="jvm" />
+
+<meta property="article:tag" content="kotlin" />
+
+<meta property="article:tag" content="distribution" />
+
+<meta property="article:tag" content="open-source" />
+
+<meta property="article:tag" content="ai-agents" />
+
+<meta property="article:tag" content="ai-coding" />
+
+
+
+<!-- Webmaster Tools verfication -->
+<meta name="google-site-verification" content="MJZCyfst2Tx4KyxbOIQu1fZyOSwA_JkQu73zJcfsl2g" />
+
+
+
+
+<link rel="canonical" href="https://jonnyzzz.com/blog/2026/08/06/devrig-install-launch-autoupdate/" />
+<link href="/feed.xml" type="application/atom+xml" rel="alternate" title="ATOM Feed" />
+
+<meta name="HandheldFriendly" content="True" />
+<meta name="MobileOptimized" content="320" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="/assets/css/main.css" />
+<!-- JetBrains Mono font for blockquotes and code -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="apple-touch-icon" sizes="57x57" href="/images/apple-icon-57x57.png" />
+<link rel="apple-touch-icon" sizes="60x60" href="/images/apple-icon-60x60.png" />
+<link rel="apple-touch-icon" sizes="72x72" href="/images/apple-icon-72x72.png" />
+<link rel="apple-touch-icon" sizes="76x76" href="/images/apple-icon-76x76.png" />
+<link rel="apple-touch-icon" sizes="114x114" href="/images/apple-icon-114x114.png" />
+<link rel="apple-touch-icon" sizes="120x120" href="/images/apple-icon-120x120.png" />
+<link rel="apple-touch-icon" sizes="144x144" href="/images/apple-icon-144x144.png" />
+<link rel="apple-touch-icon" sizes="152x152" href="/images/apple-icon-152x152.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-icon-180x180.png" />
+<link rel="icon" type="image/png" sizes="192x192"  href="/images/android-icon-192x192.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png" />
+<link rel="manifest" href="/images/manifest.json" />
+<meta name="msapplication-TileColor" content="#ffffff" />
+<meta name="msapplication-TileImage" content="/images/ms-icon-144x144.png" />
+<meta name="theme-color" content="#ffffff" />
+
+</head>
+
+<body id="post">
+
+<div class="navigation-wrapper">
+	<nav role="navigation" id="site-nav">
+	    <button class="nav-toggle" aria-label="Toggle navigation"
+	            onclick="this.closest('.navigation-wrapper').classList.toggle('nav-open')">
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	      <span class="nav-toggle-bar"></span>
+	    </button>
+	    <ul>
+      
+        
+        
+		    <li><a href="/" >Home</a></li>
+		  
+        
+        
+		    <li><a href="/about/" >About</a></li>
+		  
+        
+        
+		    <li><a href="/blog/" class="active">Blog</a></li>
+		  
+        
+        
+		    <li><a href="/projects/" >Projects</a></li>
+		  
+        
+        
+		    <li><a href="/talks/" >Talks</a></li>
+		  
+        
+        
+		    <li><a href="/tags/" >Tags</a></li>
+		  
+        
+        
+		    <li><a href="/support/" ><svg class="nav-heart" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="heart-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-grad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support</a></li>
+		  
+	    </ul>
+	    <div class="nav-social-icons">
+	      <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+	      <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+	      <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+	      <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+	      <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+	    </div>
+	</nav>
+</div><!-- /.navigation-wrapper -->
+
+<header class="masthead">
+	<div class="wrap">
+      
+      <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
+		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+	</div>
+</header><!-- /.masthead -->
+
+
+<div id="main" role="main">
+  <article class="hentry">
+    
+    <div class="entry-wrapper">
+      <header class="entry-header">
+        
+          <h1 class="entry-title">Install, Launch, Update: Shipping a CLI on Five Platforms — the devrig Approach</h1>
+        
+        <ul class="entry-tags">
+          <li><a href="/tags/#devrig" title="Pages tagged devrig">devrig</a></li><li><a href="/tags/#mcp-steroid" title="Pages tagged mcp-steroid">mcp-steroid</a></li><li><a href="/tags/#cli" title="Pages tagged cli">cli</a></li><li><a href="/tags/#jvm" title="Pages tagged jvm">jvm</a></li><li><a href="/tags/#kotlin" title="Pages tagged kotlin">kotlin</a></li><li><a href="/tags/#distribution" title="Pages tagged distribution">distribution</a></li><li><a href="/tags/#open-source" title="Pages tagged open-source">open-source</a></li><li><a href="/tags/#ai-agents" title="Pages tagged ai-agents">ai-agents</a></li><li><a href="/tags/#ai-coding" title="Pages tagged ai-coding">ai-coding</a></li>
+        </ul>
+      </header>
+      <footer class="entry-meta">
+        
+        
+          <img src="/images/me.jpg" class="bio-photo" alt="Eugene Petrenko bio photo"></a>
+        
+        <span class="author vcard">By <span class="fn">Eugene Petrenko</span></span>
+        <span class="entry-date date published"><time datetime="2026-08-06T00:00:00+00:00">August 06, 2026</time></span>
+        
+        
+        <span class="social-share-x">
+  <a href="https://x.com/intent/tweet?text=Install%2C+Launch%2C+Update%3A+Shipping+a+CLI+on+Five+Platforms+%E2%80%94+the+devrig+Approach%20by%20%40jonnyzzz&amp;url=https://jonnyzzz.com/blog/2026/08/06/devrig-install-launch-autoupdate/&amp;hashtags=devrig,mcp-steroid,cli,jvm,kotlin,distribution,open-source,ai-agents,ai-coding" title="Share on X" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Post</a>
+</span>
+<span class="social-share-linkedin">
+  <a href="https://www.linkedin.com/feed/?shareActive=true&amp;text=Install%2C+Launch%2C+Update%3A+Shipping+a+CLI+on+Five+Platforms+%E2%80%94+the+devrig+Approach%20by%20Eugene%20Petrenko%20(https%3A%2F%2Flinkedin.com%2Fin%2Fjonnyzzz)%0A%0AA+JVM+command-line+tool+is+easy+to+write+and+miserable+to+ship.+You+need+five+platforms%2C+a+JDK+the+user+does+not+have%2C+an+update+path+that+never+overwrites+a+running+install%2C+and+a+trust+story+for+a+%60curl+%7C+sh%60+one-liner.+Here+is+the+architecture+we+ended+up+with+in+%60devrig%60%3A+generate+the+install+script+from+a+model+whose+JDK+coordinates+are+signature-verified%2C+make+installs+content-addressed+and+side-by-side%2C+let+the+binary+own+its+own+launcher%2C+and+make+%22update%22+mean+nothing+more+than+running+a+fresh+install+script%0A%0Ahttps://jonnyzzz.com/blog/2026/08/06/devrig-install-launch-autoupdate/%0A%0A%23devrig%20%23mcpsteroid%20%23cli%20%23jvm%20%23kotlin%20%23distribution%20%23opensource%20%23aiagents%20%23aicoding" title="Share on LinkedIn" target="_blank"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" style="vertical-align: middle; fill: currentColor;"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> Post</a>
+</span>
+<!-- /.social-share -->
+
+      </footer>
+      <div class="entry-content">
+        <p class="notice"><strong>TL;DR</strong> — This post is about an approach to making CLI tools installable and upgradable: one pasted line
+installs the tool on five platforms, and after that it keeps itself current. The recipe: generate the install
+script at build time with every URL and SHA-256 baked in, install versions content-addressed and side-by-side,
+let the binary own the launcher on your <code class="language-plaintext highlighter-rouge">PATH</code>, and define “update” as “run today’s install script” — so update
+logic never ages with old installs. Built for <code class="language-plaintext highlighter-rouge">devrig</code>, a JVM CLI where the runtime is bigger than the program,
+but most of it applies to any CLI you distribute yourself.</p>
+
+<p>Writing a command-line tool on the JVM is a pleasant afternoon. Kotlin, a <code class="language-plaintext highlighter-rouge">main</code>, a few subcommands,
+<code class="language-plaintext highlighter-rouge">./gradlew installDist</code>, done.</p>
+
+<p>Shipping it to a stranger is the hard part. That stranger is on Windows on ARM, or on a Mac that has never
+had a JDK, or inside a container that turns out to be Alpine. They paste one line from your website into a
+terminal, and whatever happens next is your product’s first impression. In three weeks you ship an update, and
+every one of those machines has to get there without you.</p>
+
+<p>We hit this wall with <a href="https://mcp-steroid.jonnyzzz.com/docs/devrig/"><code class="language-plaintext highlighter-rouge">devrig</code></a>, the CLI that bridges AI Agents to IntelliJ-family IDEs in
+<a href="https://github.com/jonnyzzz/mcp-steroid">MCP Steroid</a>. When I wrote about <code class="language-plaintext highlighter-rouge">devrig</code> reaching
+<a href="/blog/2026/06/02/devrig-mcp-steroid-level-3/">Level 3 autonomy</a>, the honest “cons” list
+opened with this:</p>
+
+<blockquote>
+  <p><strong>JDK 25 is a hard requirement.</strong> <code class="language-plaintext highlighter-rouge">devrig</code> doesn’t bundle a JVM in 0.100; the host must provide
+Java 25.</p>
+</blockquote>
+
+<p>Open question #3 in that same post was <em>“Bundled-JRE devrig: ship a <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/binaries/&lt;os&gt;-&lt;cpu&gt;-&lt;sha&gt;/</code>
+cache with a small wrapper, so the JDK-25 prerequisite stops being a prerequisite.”</em> This post is what that
+turned into: not a bundled JRE, but a small distribution system, and the interesting part is how little of
+it lives inside the product.</p>
+
+<p>The first generation of <code class="language-plaintext highlighter-rouge">devrig</code> (<a href="https://github.com/jonnyzzz/old-devrig-private"><code class="language-plaintext highlighter-rouge">jonnyzzz/old-devrig-private</code></a>, still public) was written in
+<strong>Go</strong> — a single static binary, nothing to provision — and its bootstrap script was still 182 lines of
+POSIX <code class="language-plaintext highlighter-rouge">sh</code>. Everything below exists because we moved to Kotlin and inherited the JVM’s one real
+distribution problem: the thing that runs your program is bigger than your program. If you read one section,
+read <a href="#the-updater-that-cannot-age">the updater that cannot age</a> — the idea the rest exists to support.</p>
+
+<p>One note on vintage, because this post mixes two. Quoted scripts and on-disk paths are the <strong>released
+devrig</strong> — you can <code class="language-plaintext highlighter-rouge">curl</code> them yourself and check every hash against my directory names. Where <code class="language-plaintext highlighter-rouge">main</code> has
+since moved on, I say so and name the issue. The gap between those two is where most of the interesting
+mistakes live.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#the-problem-stated-properly" id="markdown-toc-the-problem-stated-properly">The problem, stated properly</a>    <ul>
+      <li><a href="#just-require-a-jdk-on-path" id="markdown-toc-just-require-a-jdk-on-path">“Just require a JDK on PATH”</a></li>
+      <li><a href="#publish-to-homebrew-apt-winget-chocolatey-scoop" id="markdown-toc-publish-to-homebrew-apt-winget-chocolatey-scoop">“Publish to Homebrew, apt, winget, Chocolatey, Scoop”</a></li>
+      <li><a href="#curl--sh-and-figure-it-out-at-install-time" id="markdown-toc-curl--sh-and-figure-it-out-at-install-time">“<code class="language-plaintext highlighter-rouge">curl | sh</code> and figure it out at install time”</a></li>
+      <li><a href="#install-over-the-previous-version" id="markdown-toc-install-over-the-previous-version">“Install over the previous version”</a></li>
+      <li><a href="#put-all-the-update-logic-inside-the-binary" id="markdown-toc-put-all-the-update-logic-inside-the-binary">“Put all the update logic inside the binary”</a></li>
+    </ul>
+  </li>
+  <li><a href="#the-architecture" id="markdown-toc-the-architecture">The architecture</a></li>
+  <li><a href="#the-jdk-data-model-resolved-live-pgp-verified-nothing-hand-pinned" id="markdown-toc-the-jdk-data-model-resolved-live-pgp-verified-nothing-hand-pinned">The JDK data model: resolved live, PGP-verified, nothing hand-pinned</a></li>
+  <li><a href="#the-generator-a-template-a-table-and-a-refusal-to-guess" id="markdown-toc-the-generator-a-template-a-table-and-a-refusal-to-guess">The generator: a template, a table, and a refusal to guess</a></li>
+  <li><a href="#the-generated-script-what-a-good-curl--sh-looks-like" id="markdown-toc-the-generated-script-what-a-good-curl--sh-looks-like">The generated script: what a good <code class="language-plaintext highlighter-rouge">curl | sh</code> looks like</a>    <ul>
+      <li><a href="#the-powershell-twin-and-why-it-is-not-a-translation" id="markdown-toc-the-powershell-twin-and-why-it-is-not-a-translation">The PowerShell twin, and why it is not a translation</a></li>
+    </ul>
+  </li>
+  <li><a href="#content-addressed-side-by-side-installs" id="markdown-toc-content-addressed-side-by-side-installs">Content-addressed, side-by-side installs</a></li>
+  <li><a href="#the-handoff-the-script-does-not-write-the-launcher" id="markdown-toc-the-handoff-the-script-does-not-write-the-launcher">The handoff: the script does not write the launcher</a></li>
+  <li><a href="#the-launcher-and-self-healing-on-every-start" id="markdown-toc-the-launcher-and-self-healing-on-every-start">The launcher, and self-healing on every start</a></li>
+  <li><a href="#update-the-updater-that-knows-nothing" id="markdown-toc-update-the-updater-that-knows-nothing">Update: the updater that knows nothing</a>    <ul>
+      <li><a href="#and-then-the-upgrade-is-run-the-install-script-again" id="markdown-toc-and-then-the-upgrade-is-run-the-install-script-again">And then the upgrade is: run the install script again</a></li>
+      <li><a href="#the-updater-that-cannot-age" id="markdown-toc-the-updater-that-cannot-age">The updater that cannot age</a></li>
+    </ul>
+  </li>
+  <li><a href="#distribution-and-the-release-ordering-trap" id="markdown-toc-distribution-and-the-release-ordering-trap">Distribution, and the release-ordering trap</a></li>
+  <li><a href="#signing-implemented-once-designed-twice-not-shipped-yet" id="markdown-toc-signing-implemented-once-designed-twice-not-shipped-yet">Signing: implemented once, designed twice, not shipped yet</a></li>
+  <li><a href="#testing-scripts-and-generators" id="markdown-toc-testing-scripts-and-generators">Testing scripts and generators</a></li>
+  <li><a href="#where-this-was-built-and-tested" id="markdown-toc-where-this-was-built-and-tested">Where this was built and tested</a></li>
+  <li><a href="#what-is-not-solved-yet" id="markdown-toc-what-is-not-solved-yet">What is not solved yet</a></li>
+  <li><a href="#is-this-an-open-source-project-on-its-own" id="markdown-toc-is-this-an-open-source-project-on-its-own">Is this an open-source project on its own?</a></li>
+</ul>
+
+<h2 id="the-problem-stated-properly">The problem, stated properly</h2>
+
+<p>The whole job in one sentence; every clause hides a trap.</p>
+
+<blockquote>
+  <p>Deliver a reusable JVM command-line tool to five platforms, with a runtime the user does not have,
+installed by one pasteable line, updatable without breaking a running copy, and reproducible enough
+that you can tell a security team exactly what got executed.</p>
+</blockquote>
+
+<p>Concretely: <code class="language-plaintext highlighter-rouge">macos-arm64</code>, <code class="language-plaintext highlighter-rouge">linux-x64</code>, <code class="language-plaintext highlighter-rouge">linux-arm64</code>, <code class="language-plaintext highlighter-rouge">windows-x64</code>, <code class="language-plaintext highlighter-rouge">windows-arm64</code>. Two script languages
+(POSIX <code class="language-plaintext highlighter-rouge">sh</code> and PowerShell), two archive formats, two JDK vendors, one binary. Every obvious answer is wrong
+in a way you only discover on someone else’s laptop.</p>
+
+<h3 id="just-require-a-jdk-on-path">“Just require a JDK on PATH”</h3>
+
+<p>Where <code class="language-plaintext highlighter-rouge">devrig</code> 0.100 was, and the most defensible wrong answer: it cost us more support time than every
+other issue combined. <code class="language-plaintext highlighter-rouge">JAVA_HOME</code> points at a JDK 17 the user forgot about. The shell that launches an AI
+Agent has a different <code class="language-plaintext highlighter-rouge">PATH</code> than the shell the user tested in. And “please install Java 25 first” is a
+hostile first step for a tool whose pitch is <em>removing</em> setup steps.</p>
+
+<h3 id="publish-to-homebrew-apt-winget-chocolatey-scoop">“Publish to Homebrew, apt, winget, Chocolatey, Scoop”</h3>
+
+<p>Only wrong as a <em>first</em> channel. Five package managers means five review processes, five release lags and
+five sets of packaging conventions — a part-time job for a project releasing every few weeks — and the
+versions drift, so you end up debugging a bug that exists only in one downstream package. Not worthless: a
+package manager would hand us uninstall, proxy configuration, enterprise policy and inventory, four things
+this post later admits we have not solved. A desirable second channel; not a viable first one.</p>
+
+<h3 id="curl--sh-and-figure-it-out-at-install-time">“<code class="language-plaintext highlighter-rouge">curl | sh</code> and figure it out at install time”</h3>
+
+<p>The natural install script asks the network what to install: the GitHub API for the latest release, the JDK
+vendor for the current build, resolve URLs, download. It demos well. Then: GitHub’s unauthenticated API
+rate-limits you to 60 requests per hour per IP, so a whole office behind one NAT fails at once. A vendor
+changes a URL shape and every historical install line breaks retroactively. Two users running the one-liner
+an hour apart get different versions with no way to tell. And you cannot answer “what exactly did that
+script download?” — the answer was decided at runtime, on their machine, by a server you do not control.</p>
+
+<h3 id="install-over-the-previous-version">“Install over the previous version”</h3>
+
+<p>Overwrite the install directory and you have a window where the tree is half old and half new. If a copy is
+running — and for an MCP server bridging an AI Agent to an IDE, a copy is <em>always</em> running — you have just
+swapped its files underneath it. Rollback means re-downloading the old version, which you did not keep.</p>
+
+<h3 id="put-all-the-update-logic-inside-the-binary">“Put all the update logic inside the binary”</h3>
+
+<p>The tempting one: <code class="language-plaintext highlighter-rouge">devrig self-update</code> checks a version endpoint, downloads, swaps, restarts. The problem is
+subtle and expensive: <strong>your update logic ages with the oldest installed copy.</strong> A machine running 0.99
+updates using 0.99’s updater. If that updater had a bug, or predates the archive format you switched to, or
+hardcodes a URL you retired, that machine is stranded — the only code that could fix it is the code that is
+broken. A bootstrap problem discovered exactly once, in public. That failure mode shaped everything below.</p>
+
+<h2 id="the-architecture">The architecture</h2>
+
+<p>Our answer inverts the usual layering: the install script is a <strong>generated, self-contained artifact</strong>, not a
+thin wrapper around a smart product, and the product’s only job on the install path is to register its own
+launcher. Four ideas carry the design:</p>
+
+<ol>
+  <li><strong>Resolve at build time, not install time.</strong> Every URL and SHA-256 for every platform is computed in CI
+and baked into the script, which detects <em>your</em> platform and <em>your</em> tools but never asks a server what
+to install.</li>
+  <li><strong>Content-address everything.</strong> Each artifact unpacks into <code class="language-plaintext highlighter-rouge">&lt;kind&gt;-&lt;os&gt;-&lt;cpu&gt;-&lt;version&gt;-&lt;sha12&gt;/</code>, so
+two versions cannot collide: installs are side-by-side and re-installs free.</li>
+  <li><strong>The binary owns its launcher.</strong> The script never writes the thing on your <code class="language-plaintext highlighter-rouge">PATH</code>; it hands off to
+<code class="language-plaintext highlighter-rouge">devrig install devrig</code>, and the binary re-checks and repairs that launcher on <em>every</em> start.</li>
+  <li><strong>Update is install.</strong> Upgrading is running the current install script, so upgrade logic is always the
+newest code, never the oldest. When we later automated updates, the in-binary updater’s whole job stayed
+“download today’s script and exec it”.</li>
+</ol>
+
+<p>Here is the whole system (click to zoom)</p>
+
+<pre><code class="language-mermaid">graph TB
+    subgraph BUILD["① Build time — CI, per release"]
+        VEND["Vendor metadata&lt;br/&gt;corretto.aws latest alias · Azul Metadata API&lt;br/&gt;GitHub Releases API"]
+        MODEL[":installer-gen&lt;br/&gt;resolveAllJdks() → JdkModel&lt;br/&gt;url · sha256 · javaHome · archive"]
+        PGP["PgpVerifier — BouncyCastle&lt;br/&gt;detached vendor signature vs&lt;br/&gt;PINNED fingerprint · gates every resolve"]
+        GEN[":installer-gen · InstallerGenerator&lt;br/&gt;install.sh.tmpl / install.ps1.tmpl&lt;br/&gt;+ generation-time validation"]
+        WGEN[":website-gen · WebsiteArtifacts&lt;br/&gt;reads VERSION + the GitHub release"]
+        VEND --&gt; MODEL
+        PGP -.-&gt;|"fail-fast, incl. cache hits"| MODEL
+        MODEL --&gt; GEN
+        GEN --&gt; SCRIPTS["install.sh + install.ps1&lt;br/&gt;every URL + SHA-256 baked in"]
+        WGEN --&gt; VJSON["version.json&lt;br/&gt;updatePlugins.xml"]
+    end
+
+    subgraph DIST["② Distribution"]
+        SITE["devrig.dev — GitHub Pages&lt;br/&gt;deployed from the 'website' branch&lt;br/&gt;(lags main until the release exists)"]
+        REL["GitHub Release&lt;br/&gt;devrig-&amp;lt;version&amp;gt;-&amp;lt;hash&amp;gt;.zip"]
+        CDN["Vendor CDNs, never mirrored&lt;br/&gt;corretto.aws · cdn.azul.com"]
+        SCRIPTS --&gt; SITE
+        VJSON --&gt; SITE
+    end
+
+    subgraph INSTALL["③ Install — one pasted line"]
+        ONE["curl -fsSL https://devrig.dev/install.sh #124; sh&lt;br/&gt;irm https://devrig.dev/install.ps1 #124; iex"]
+        PRE["preflight&lt;br/&gt;os/arch detect · musl reject&lt;br/&gt;downloader · hasher · extractor"]
+        DL["download → SHA-256 verify → unpack verbatim"]
+        CA["~/.mcp-steroid/binaries/&lt;br/&gt;&amp;lt;kind&amp;gt;-&amp;lt;os&amp;gt;-&amp;lt;cpu&amp;gt;-&amp;lt;version&amp;gt;-&amp;lt;sha12&amp;gt;/&lt;br/&gt;atomic promote · side-by-side"]
+        HAND["devrig install devrig&lt;br/&gt;--install-script --jdk-home"]
+        SITE --&gt; ONE --&gt; PRE --&gt; DL --&gt; CA --&gt; HAND
+        REL --&gt; DL
+        CDN --&gt; DL
+    end
+
+    subgraph RUN["④ Every run"]
+        SHIM["~/.mcp-steroid/bin/devrig · devrig.cmd&lt;br/&gt;pins DEVRIG_JAVA_HOME → exec install tree"]
+        HEAL["ensureBinLauncher()&lt;br/&gt;repair if stale · never overwrite a newer one&lt;br/&gt;PATH symlink / HKCU PATH"]
+        CHK["DevrigUpdateChecker + AutoUpdater&lt;br/&gt;GET version.json → promoted &amp;gt; current?"]
+        HAND --&gt; SHIM
+        SHIM --&gt; HEAL
+        SHIM --&gt; CHK
+    end
+
+    VJSON -.-&gt;|"version-base"| CHK
+    CHK -.-&gt;|"3–8 h tick: fetch today's script, exec it"| ONE
+
+    style BUILD fill:#e1f5ff
+    style DIST fill:#e8f5e9
+    style INSTALL fill:#fff4e6
+    style RUN fill:#f3e5f5
+</code></pre>
+
+<p><em>The diagram is dense by design — <strong>click it</strong> to open full-screen at readable size (Esc closes), or zoom the
+page in.</em></p>
+
+<p>Now the parts, one at a time.</p>
+
+<h2 id="the-jdk-data-model-resolved-live-pgp-verified-nothing-hand-pinned">The JDK data model: resolved live, PGP-verified, nothing hand-pinned</h2>
+
+<p><code class="language-plaintext highlighter-rouge">:installer-gen</code> is a build-tooling Gradle module with no IntelliJ dependencies. Its
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/JdkModel.kt"><code class="language-plaintext highlighter-rouge">resolveAllJdks(cache, http)</code></a> produces a <code class="language-plaintext highlighter-rouge">JdkModel</code> — one <code class="language-plaintext highlighter-rouge">JdkArtifact</code> per platform, every field
+<em>computed</em> from the live vendor source:</p>
+
+<ul>
+  <li><strong>Amazon Corretto 25</strong> for <code class="language-plaintext highlighter-rouge">linux-x64</code>, <code class="language-plaintext highlighter-rouge">linux-arm64</code>, <code class="language-plaintext highlighter-rouge">macos-arm64</code>, <code class="language-plaintext highlighter-rouge">windows-x64</code> (<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/CorrettoJdk.kt"><code class="language-plaintext highlighter-rouge">CorrettoJdk.kt</code></a>):
+<code class="language-plaintext highlighter-rouge">HEAD</code> the vendor’s <code class="language-plaintext highlighter-rouge">latest</code> alias, record where it redirects, pull the version out of the resolved URL.</li>
+  <li><strong>Azul Zulu 25</strong> for <code class="language-plaintext highlighter-rouge">windows-arm64</code> (<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/AzulJdk.kt"><code class="language-plaintext highlighter-rouge">AzulJdk.kt</code></a>) — the one platform Corretto does not publish — via
+the Azul Metadata API with <code class="language-plaintext highlighter-rouge">latest=true&amp;release_status=ga</code>.</li>
+</ul>
+
+<p>The <em>major</em> version is pinned in source; the patch level is not. “Latest 25” is resolved on every run,
+because a pinned <code class="language-plaintext highlighter-rouge">25.0.4.7.1</code> in source is a lie that rots quietly and the generator’s <em>output</em> is fully
+pinned anyway.</p>
+
+<p><code class="language-plaintext highlighter-rouge">javaHome</code> is the field that breaks naive implementations. Every vendor lays out its archive differently —
+<code class="language-plaintext highlighter-rouge">amazon-corretto-25.jdk/Contents/Home</code> on macOS, <code class="language-plaintext highlighter-rouge">jdk25.0.4_7</code> on Windows,
+<code class="language-plaintext highlighter-rouge">zulu25.36.15-ca-jdk25.0.4-win_aarch64</code> for Azul — so it is not guessed from a convention: the model
+streams the archive entries and <strong>takes the shallowest <code class="language-plaintext highlighter-rouge">bin/java[.exe]</code></strong>, which is also proof against
+archives nesting a <code class="language-plaintext highlighter-rouge">jre/bin/java</code> inside. Archives are downloaded and cached, never extracted.</p>
+
+<p>Then the part that matters most:</p>
+
+<blockquote>
+  <p>Both vendors publish detached OpenPGP signatures. The signing key <strong>fingerprint is pinned in source</strong>
+and asserted before the signature is trusted — and the key itself is fetched live over HTTPS, so the
+pin is what defeats a compromised key endpoint.</p>
+</blockquote>
+
+<p><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/PgpVerifier.kt"><code class="language-plaintext highlighter-rouge">PgpVerifier</code></a> (BouncyCastle <code class="language-plaintext highlighter-rouge">bcpg-jdk18on</code>) checks Corretto’s <code class="language-plaintext highlighter-rouge">&lt;file&gt;.sig</code> and Azul’s <code class="language-plaintext highlighter-rouge">signature-binary</code>
+against constants that live in the source:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">const</span> <span class="kd">val</span> <span class="py">CORRETTO_KEY_FINGERPRINT</span> <span class="p">=</span> <span class="s">"6dc3636dae534049c8b94623a122542ab04f24e3"</span>
+<span class="k">const</span> <span class="kd">val</span> <span class="py">AZUL_KEY_FINGERPRINT</span>     <span class="p">=</span> <span class="s">"27bc0c8cb3d81623f59bdadcb1998361219bd9c9"</span>
+</code></pre></div></div>
+
+<p>It also insists the signature is a <code class="language-plaintext highlighter-rouge">PGPSignature.BINARY_DOCUMENT</code>, and on a mismatch refuses with
+<em>“refusing to trust the signature (possible compromised key endpoint)”</em>. It is <strong>fail-fast and runs on
+every resolve, including cache hits</strong> — the cache directory is shared, and a cache is not a trust boundary.
+The cache is built the same way: <code class="language-plaintext highlighter-rouge">downloadWithEtag</code> <strong>fails the build if the host exposes no <code class="language-plaintext highlighter-rouge">ETag</code></strong>, and
+<code class="language-plaintext highlighter-rouge">downloadVerifyingSha256</code> re-hashes on every return.</p>
+
+<h2 id="the-generator-a-template-a-table-and-a-refusal-to-guess">The generator: a template, a table, and a refusal to guess</h2>
+
+<p><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/InstallerGenerator.kt"><code class="language-plaintext highlighter-rouge">InstallerGenerator</code></a> does something unglamorous: it renders two text templates.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>installer-gen/src/main/resources/templates/install.sh.tmpl
+installer-gen/src/main/resources/templates/install.ps1.tmpl
+</code></pre></div></div>
+
+<p>The templates hold all the <em>logic</em>; the generator injects only the <em>data</em> — <code class="language-plaintext highlighter-rouge">@@VERSION@@</code>,
+<code class="language-plaintext highlighter-rouge">@@DEVRIG_URL@@</code>, <code class="language-plaintext highlighter-rouge">@@DEVRIG_SHA256@@</code>, <code class="language-plaintext highlighter-rouge">@@DEVRIG_BINSUB@@</code>, and the per-platform JDK table
+(<code class="language-plaintext highlighter-rouge">@@PLATFORM_CASE_SH@@</code> as POSIX <code class="language-plaintext highlighter-rouge">case</code> arms, <code class="language-plaintext highlighter-rouge">@@PLATFORM_TABLE_PS@@</code> as a PowerShell hashtable). Only the
+three POSIX platforms go into the <code class="language-plaintext highlighter-rouge">sh</code> table, only the two Windows ones into the PowerShell table;
+<code class="language-plaintext highlighter-rouge">@@DEVRIG_BINSUB@@</code> is filled with a <em>different</em> value per template (<code class="language-plaintext highlighter-rouge">bin/devrig</code> vs <code class="language-plaintext highlighter-rouge">bin/devrig.bat</code>). If
+any <code class="language-plaintext highlighter-rouge">@@PLACEHOLDER@@</code> survives rendering, generation fails.</p>
+
+<p>What matters is what it refuses to do:</p>
+
+<ul>
+  <li><strong>All five platforms or nothing.</strong> <code class="language-plaintext highlighter-rouge">validateScriptTable</code> requires exactly <code class="language-plaintext highlighter-rouge">ALL_PLATFORMS</code>; missing <em>and</em>
+extra platforms both fail the build.</li>
+  <li>
+    <p><strong>Shell-safety validation on vendor-controlled strings.</strong> URLs and <code class="language-plaintext highlighter-rouge">javaHome</code> values are baked verbatim
+into single-quoted shell and PowerShell literals in a script people run via <code class="language-plaintext highlighter-rouge">curl | sh</code>, where a quote,
+backtick, <code class="language-plaintext highlighter-rouge">$</code>, backslash or control character would break out of the string:</p>
+
+    <div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">private</span> <span class="kd">val</span> <span class="py">SHELL_UNSAFE_CHARS</span> <span class="p">=</span> <span class="nf">charArrayOf</span><span class="p">(</span><span class="sc">'\''</span><span class="p">,</span> <span class="sc">'"'</span><span class="p">,</span> <span class="sc">'`'</span><span class="p">,</span> <span class="sc">'$'</span><span class="p">,</span> <span class="sc">'\\'</span><span class="p">)</span>
+
+<span class="k">private</span> <span class="k">fun</span> <span class="nf">requireShellSafe</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nc">String</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span> <span class="p">=</span>
+    <span class="nf">require</span><span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="nf">none</span> <span class="p">{</span> <span class="n">it</span> <span class="k">in</span> <span class="nc">SHELL_UNSAFE_CHARS</span> <span class="p">||</span> <span class="n">it</span><span class="p">.</span><span class="nf">isISOControl</span><span class="p">()</span> <span class="p">})</span> <span class="p">{</span>
+        <span class="s">"$label contains a shell-unsafe character: '$value'"</span>
+    <span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p>It runs on every URL, every <code class="language-plaintext highlighter-rouge">javaHome</code>, the devrig URL, both launcher subpaths and the version string.
+Today’s vendor values are clean; the check exists so a vendor URL change or a crafted archive entry name
+cannot produce an injectable installer, and <em>generation time</em> is the only place a human still sees the
+failure.</p>
+  </li>
+  <li><strong>The launcher path inside the zip is discovered, not assumed.</strong> The obvious guess is
+<code class="language-plaintext highlighter-rouge">devrig-&lt;version&gt;/bin/devrig</code>, but the real top-level directory carries the build hash —
+<code class="language-plaintext highlighter-rouge">devrig-0.101-40690055</code> — so <code class="language-plaintext highlighter-rouge">devrigLaunchers()</code> scans the actual archive entries for <code class="language-plaintext highlighter-rouge">*/bin/devrig</code> and
+<code class="language-plaintext highlighter-rouge">*/bin/devrig.bat</code> and <em>asserts</em> they exist. The devrig zip itself is resolved from the <code class="language-plaintext highlighter-rouge">v&lt;version&gt;</code>
+GitHub release, deliberately <strong>not</strong> <code class="language-plaintext highlighter-rouge">latest</code>, and the archive’s top directory must start with
+<code class="language-plaintext highlighter-rouge">devrig-&lt;version&gt;-</code>.</li>
+  <li><strong>ASCII-only output.</strong> Both rendered scripts are scanned and rejected if any character is ≥ 128.
+PowerShell 5.1 misreads BOM-less UTF-8, and legacy Windows consoles corrupt Unicode. A tidy <code class="language-plaintext highlighter-rouge">→</code> in a
+log message is not worth a broken install on Windows 10</li>
+</ul>
+
+<p>And one seam that matters more than it looks:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">fun</span> <span class="nf">writeInstallerScripts</span><span class="p">(</span><span class="n">outDir</span><span class="p">:</span> <span class="nc">Path</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="nc">Map</span><span class="p">&lt;</span><span class="nc">String</span><span class="p">,</span> <span class="nc">JdkScriptEntry</span><span class="p">&gt;,</span>
+                          <span class="n">devrig</span><span class="p">:</span> <span class="nc">DevrigEntry</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nc">String</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">writeInstallerScripts</code> is pure — no network, no vendor lookups — so tests can render a <em>real</em> installer
+from a <em>synthetic</em> model pointing at local fixtures. That is why end-to-end installer tests run in seconds
+instead of downloading 200 MB JDKs.</p>
+
+<h2 id="the-generated-script-what-a-good-curl--sh-looks-like">The generated script: what a good <code class="language-plaintext highlighter-rouge">curl | sh</code> looks like</h2>
+
+<p>The live one is <a href="https://devrig.dev/install.sh"><code class="language-plaintext highlighter-rouge">https://devrig.dev/install.sh</code></a>: 207 lines, starting with a note that it is
+generated. Every design choice in it exists because something broke.</p>
+
+<p><strong>The whole body is a function, invoked on the last line.</strong></p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>main<span class="o">()</span> <span class="o">{</span>
+  ...
+<span class="o">}</span>
+
+main <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">curl | sh</code> streams into a shell that executes as it reads, so a connection dropped at 60 % executes 60 %
+of your installer — a half-configured machine with no error message. Wrapping everything in <code class="language-plaintext highlighter-rouge">main()</code> called
+at the very end makes a truncated transfer a no-op: the highest-value line in the file.</p>
+
+<p><strong>Platform detection, then a hard stop on musl.</strong> <code class="language-plaintext highlighter-rouge">uname -s</code> and <code class="language-plaintext highlighter-rouge">uname -m</code> detect and normalize the
+platform, and <code class="language-plaintext highlighter-rouge">DEVRIG_OS</code> / <code class="language-plaintext highlighter-rouge">DEVRIG_CPU</code> override both, which is how the tests drive every platform arm. MCP
+Steroid drives IntelliJ IDEs, which need glibc, so Alpine is not a platform we can serve: the script detects
+musl three ways — <code class="language-plaintext highlighter-rouge">ldd --version</code> output, <code class="language-plaintext highlighter-rouge">/lib/ld-musl-x86_64.so.1</code>, <code class="language-plaintext highlighter-rouge">/lib/ld-musl-aarch64.so.1</code> — and
+fails <em>before any download</em>, with a message that says why.</p>
+
+<p><strong>Preflight, and a promise never to install packages.</strong></p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>have_any curl wget        <span class="o">||</span> add_missing <span class="s1">'curl (or wget) - to download files'</span>
+have_any <span class="nb">sha256sum </span>shasum <span class="o">||</span> add_missing <span class="s1">'sha256sum (or shasum) - to verify downloads'</span>
+</code></pre></div></div>
+
+<p>If anything is missing, the script prints the complete list plus the <code class="language-plaintext highlighter-rouge">apt-get</code> / <code class="language-plaintext highlighter-rouge">apk</code> / <code class="language-plaintext highlighter-rouge">dnf</code> / <code class="language-plaintext highlighter-rouge">brew</code>
+lines — all four, unconditionally, because guessing a distro badly is worse than printing an extra line —
+and stops. It never installs system packages on your behalf: a tool that <code class="language-plaintext highlighter-rouge">sudo</code>s during install has lost the
+argument about trust before it starts.</p>
+
+<p><code class="language-plaintext highlighter-rouge">install.ps1</code> has no equivalent preflight and does not need one: <code class="language-plaintext highlighter-rouge">Invoke-WebRequest</code>, <code class="language-plaintext highlighter-rouge">Get-FileHash</code> and
+<code class="language-plaintext highlighter-rouge">Expand-Archive</code> are built in. It also has no <code class="language-plaintext highlighter-rouge">main()</code> wrapper — <code class="language-plaintext highlighter-rouge">irm | iex</code> parses the whole string before
+executing any of it, so truncation safety comes free. Two asymmetries that look like oversights until you
+ask why.</p>
+
+<p><strong>Content-addressed install, with an atomic promote.</strong></p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">ia_sha12</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s2">"</span><span class="nv">$ia_sha</span><span class="s2">"</span> | <span class="nb">cut</span> <span class="nt">-c1-12</span><span class="si">)</span>
+<span class="nv">ia_target</span><span class="o">=</span><span class="s2">"</span><span class="nv">$BINARIES_DIR</span><span class="s2">/</span><span class="k">${</span><span class="nv">ia_kind</span><span class="k">}</span><span class="s2">-</span><span class="k">${</span><span class="nv">key</span><span class="k">}</span><span class="s2">-</span><span class="k">${</span><span class="nv">VERSION</span><span class="k">}</span><span class="s2">-</span><span class="k">${</span><span class="nv">ia_sha12</span><span class="k">}</span><span class="s2">"</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-d</span> <span class="s2">"</span><span class="nv">$ia_target</span><span class="s2">"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+  </span>log <span class="s2">"already installed: </span><span class="k">${</span><span class="nv">ia_target</span><span class="p">##*/</span><span class="k">}</span><span class="s2">"</span>
+  <span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$ia_target</span><span class="s2">"</span><span class="p">;</span> <span class="k">return </span>0
+<span class="k">fi</span>
+</code></pre></div></div>
+
+<p>Download to <code class="language-plaintext highlighter-rouge">.tmp.$$.…</code>, verify SHA-256, unpack into a staging directory, then <code class="language-plaintext highlighter-rouge">mv</code> the finished tree into
+its final content-addressed name, so a reader only ever sees a complete tree. <code class="language-plaintext highlighter-rouge">promote_tree</code> tolerates
+<em>losing</em> that move — two installers running concurrently is not theoretical, an agent swarm does it
+routinely — and since the target name comes from the archive’s hash, whoever won unpacked the same archive,
+so “someone beat me to it” is a success, not a conflict. There is no lock anywhere in this path; content
+addressing makes one unnecessary. The PowerShell peer needs one extra clause: unlike POSIX <code class="language-plaintext highlighter-rouge">mv</code>,
+<code class="language-plaintext highlighter-rouge">Move-Item</code> <em>nests</em> the source into an existing destination directory instead of failing, so it detects and
+cleans the nested result.</p>
+
+<p><strong>Everything goes to stderr</strong>, via one <code class="language-plaintext highlighter-rouge">log()</code> helper. <code class="language-plaintext highlighter-rouge">devrig</code> speaks MCP over stdio, and a single stray
+byte on stdout corrupts the protocol frame — the agent then reports an unexplained handshake failure.
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/Main.kt"><code class="language-plaintext highlighter-rouge">Main.kt</code></a> takes the rule to its conclusion: stdout is redirected to stderr before arguments are parsed, and
+restored only for non-MCP commands. An invariant that has to hold in the <em>shell</em>, not just in the code.</p>
+
+<h3 id="the-powershell-twin-and-why-it-is-not-a-translation">The PowerShell twin, and why it is not a translation</h3>
+
+<p><a href="https://devrig.dev/install.ps1"><code class="language-plaintext highlighter-rouge">install.ps1</code></a> is generated from the same model and mirrors the same pipeline, but its
+comments read like a field report. Two examples that were real, user-facing bugs:</p>
+
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">$ProgressPreference</code></strong> (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/274">#274</a>). PowerShell’s progress bar redraws on every byte
+<code class="language-plaintext highlighter-rouge">Invoke-WebRequest</code> reads and every entry <code class="language-plaintext highlighter-rouge">Expand-Archive</code> unpacks, turning a multi-hundred-MB download
+into a UI-bound crawl. The script silences it — and because <code class="language-plaintext highlighter-rouge">irm | iex</code> runs <em>in the caller’s scope</em>, it
+saves the previous value and restores it in a <code class="language-plaintext highlighter-rouge">finally</code>.</li>
+  <li><strong>Architecture detection</strong> (<a href="https://github.com/jonnyzzz/mcp-steroid/issues/273">#273</a>). <code class="language-plaintext highlighter-rouge">[RuntimeInformation]::OSArchitecture</code> does not exist on
+the .NET Framework 4.6.x that ships with base Windows 10, and under <code class="language-plaintext highlighter-rouge">Set-StrictMode -Version Latest</code> a
+missing property is a <em>hard abort</em>: a user ran <code class="language-plaintext highlighter-rouge">irm | iex</code> and got “OSArchitecture cannot be found on
+this object”. The fix reads <code class="language-plaintext highlighter-rouge">PROCESSOR_ARCHITEW6432</code> first (WoW64 sets <code class="language-plaintext highlighter-rouge">PROCESSOR_ARCHITECTURE=x86</code> on
+64-bit Windows but exposes the true arch there), then <code class="language-plaintext highlighter-rouge">PROCESSOR_ARCHITECTURE</code>, and only then falls back
+to the .NET property, inside a <code class="language-plaintext highlighter-rouge">try</code>.</li>
+</ul>
+
+<p>It also pins <code class="language-plaintext highlighter-rouge">[Net.ServicePointManager]::SecurityProtocol</code> to TLS 1.2 explicitly, because PowerShell 5.1
+does not necessarily negotiate it. Both scripts close the child’s stdin explicitly — <code class="language-plaintext highlighter-rouge">&lt; /dev/null</code> in <code class="language-plaintext highlighter-rouge">sh</code>,
+<code class="language-plaintext highlighter-rouge">$null |</code> in PowerShell — because a subprocess that inherits the bootstrapping shell’s stdin and decides to
+prompt will hang forever.</p>
+
+<h2 id="content-addressed-side-by-side-installs">Content-addressed, side-by-side installs</h2>
+
+<p>The on-disk layout does most of the work:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~/.mcp-steroid/
+├── bin/
+│   └── devrig                                    # the stable launcher on your PATH
+└── binaries/
+    ├── devrig-macos-arm64-0.101-a7c8cf0d16e2/    # &lt;kind&gt;-&lt;os&gt;-&lt;cpu&gt;-&lt;version&gt;-&lt;sha12&gt;
+    │   └── devrig-0.101-40690055/bin/devrig      #   &lt;- the zip's own top dir: version + git hash
+    └── jdk-macos-arm64-0.101-614107ed76e9/
+        └── amazon-corretto-25.jdk/Contents/Home
+</code></pre></div></div>
+
+<p>That <code class="language-plaintext highlighter-rouge">a7c8cf0d16e2</code> is the first 12 hex characters of the SHA-256 of the <em>downloaded archive</em> — the same
+value that appears as <code class="language-plaintext highlighter-rouge">DEVRIG_SHA256</code> in the install script. You can verify the claim from your own shell,
+which is the point.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">0.101</code> in the <em>JDK</em> directory name is a bug, and we shipped it. Both artifacts got stamped with the
+devrig release version, so a Corretto 25.0.4 tree ended up in a directory labelled <code class="language-plaintext highlighter-rouge">0.101</code>. It survived
+review because there is a story you can tell about it — “the directory records which release chose this
+JDK” — and that story is wrong: two consecutive releases pinning the <em>same</em> Corretto build download and
+store it twice, and the name lies about its contents. <a href="https://github.com/jonnyzzz/mcp-steroid/issues/362">#362</a> fixed it; each artifact now carries
+its own vendor-native version, and the integration test pins a JDK version deliberately different from the
+devrig version so the two can never silently re-merge. A plausible rationalization is the most expensive
+kind of comment.</p>
+
+<p>What the naming buys: the target directory existing <em>is</em> the “already installed” check, so re-running the
+one-liner on a current machine touches the network only for the script itself; 0.101 and 0.102 have
+different names, so a new install cannot touch an old one and a running process keeps its files, which makes
+rollback a path edit rather than a download; and the unpack is verbatim — no <code class="language-plaintext highlighter-rouge">--strip-components</code>, no
+rearranging, which is why <code class="language-plaintext highlighter-rouge">javaHome</code> has to ride along in the baked table. The weak spot is that the check
+is <em>directory existence</em>, not content: a tree a user edited, or one a half-finished <code class="language-plaintext highlighter-rouge">rm -rf</code> left behind, is
+trusted forever. A sentinel file recording the full hash would fix that cheaply and does not exist yet.</p>
+
+<p>The honest cost: <strong>nothing garbage-collects old versions.</strong> Every upgrade leaves a full devrig tree and a
+full JDK behind — the 0.101 devrig zip alone is 237 MB, most of it the bundled IDE plugin. And the naming
+scheme is <strong>not parseable by splitting on <code class="language-plaintext highlighter-rouge">-</code></strong>, because the version segment can itself contain a hyphen
+(<code class="language-plaintext highlighter-rouge">0.0.0-test</code>, in the tests), so the GC has a parsing problem before it even reaches a policy problem. The
+v7 deployment spec designs the sweep, with a keep-set of current plus most-recent-previous and per-directory
+locks; none of it is implemented. Retention is only safe once you know nothing points at a tree, and the
+whole point of content addressing was to not track that.</p>
+
+<h2 id="the-handoff-the-script-does-not-write-the-launcher">The handoff: the script does not write the launcher</h2>
+
+<p>The install script does <strong>not</strong> create <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/bin/devrig</code>, does not touch <code class="language-plaintext highlighter-rouge">PATH</code>, does not edit
+shell profiles. Its last real action is:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">DEVRIG_JAVA_HOME</span><span class="o">=</span><span class="s2">"</span><span class="nv">$jdk_home</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$launcher</span><span class="s2">"</span> <span class="nb">install </span>devrig <span class="se">\</span>
+    <span class="nt">--install-script</span><span class="o">=</span><span class="s2">"</span><span class="nv">$launcher</span><span class="s2">"</span> <span class="nt">--jdk-home</span><span class="o">=</span><span class="s2">"</span><span class="nv">$jdk_home</span><span class="s2">"</span> &lt; /dev/null <span class="se">\</span>
+  <span class="o">||</span> fail <span class="s2">"'devrig install devrig' failed - the launcher could not register itself"</span>
+</code></pre></div></div>
+
+<p>It runs the freshly-unpacked binary and asks <em>it</em> to register itself. Note the variable: the handoff runs
+under <code class="language-plaintext highlighter-rouge">DEVRIG_JAVA_HOME</code>, <strong>never</strong> by setting the user’s <code class="language-plaintext highlighter-rouge">JAVA_HOME</code> — process-scoped, so the user’s
+environment is untouched. (The 0.101 script still uses <code class="language-plaintext highlighter-rouge">JAVA_HOME</code>; the contract below fixed it, and there
+is a test pinning it.) The two flags are belt-and-braces: devrig accepts them and can equally derive both
+paths itself, which is what it does on every later start.</p>
+
+<p>Why give up that responsibility? Because <strong>the shape of the launcher is product knowledge, and it changes.</strong>
+Adding a pathing JAR to work around Windows’ “input line is too long” limit changed what the launcher must
+contain. Had the install script owned it, every existing machine would carry a stale launcher written by
+whichever installer version happened to run there, and fixing it would mean asking users to re-run an
+installer. Because the <em>binary</em> owns it, the fix shipped with the binary and applied itself on the next
+start.</p>
+
+<p>What the installer must <em>not</em> do is a written, locked document —
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/install-scripts-contract.md"><code class="language-plaintext highlighter-rouge">docs/install-scripts-contract.md</code></a>, titled <em>“install devrig, register PATH — nothing else”</em>.
+Two prohibitions: never auto-register <code class="language-plaintext highlighter-rouge">devrig</code> with an AI Agent, because that edits Claude’s / Codex’s /
+Gemini’s own config files, state outside <code class="language-plaintext highlighter-rouge">~/.mcp-steroid</code> that belongs to the user; and never auto-install
+the MCP Steroid plugin into an IDE. Both stay explicit — <code class="language-plaintext highlighter-rouge">devrig install &lt;agent&gt;</code>, <code class="language-plaintext highlighter-rouge">devrig install plugin</code>.
+Instead the flow <strong>promotes</strong> them: <code class="language-plaintext highlighter-rouge">devrig install devrig</code> ends by listing the exact commands you may run
+next, and the scripts print no next-steps block of their own, so guidance cannot drift as the command set
+changes. Writing that down as a contract rather than leaving it as taste turns “should the installer wire up
+my agent?” into a closed question: an installer that silently rewires your tools turns a “download this CLI”
+decision into a “modify my agents” decision you never made.</p>
+
+<h2 id="the-launcher-and-self-healing-on-every-start">The launcher, and self-healing on every start</h2>
+
+<p><code class="language-plaintext highlighter-rouge">~/.mcp-steroid/bin/devrig</code> on my machine, in full:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/sh</span>
+<span class="c"># devrig launcher — managed by the devrig binary. Writes nothing to stdout (MCP stdio channel).</span>
+<span class="c"># Pins the JDK devrig runs under via DEVRIG_JAVA_HOME (its supported runtime), then hands off to</span>
+<span class="c"># the install-tree devrig launcher.</span>
+<span class="nv">DEVRIG_JAVA_HOME</span><span class="o">=</span><span class="s2">"/Users/jonnyzzz/.mcp-steroid/binaries/jdk-macos-arm64-0.101-614107ed76e9/amazon-corretto-25.jdk/Contents/Home"</span><span class="p">;</span> <span class="nb">export </span>DEVRIG_JAVA_HOME
+<span class="nb">exec</span> <span class="s2">"/Users/jonnyzzz/.mcp-steroid/binaries/devrig-macos-arm64-0.101-a7c8cf0d16e2/devrig-0.101-40690055/bin/devrig"</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>Six lines, three of them comments — the entire user-facing surface of the installation. The JDK pin answers
+“which Java does it run under?”: not the user’s <code class="language-plaintext highlighter-rouge">PATH</code>, not their <code class="language-plaintext highlighter-rouge">JAVA_HOME</code>, but the runtime it shipped
+with. On <code class="language-plaintext highlighter-rouge">main</code>, after 0.101, the header gained two machine-parseable lines —
+<code class="language-plaintext highlighter-rouge"># devrig launcher version:</code> and <code class="language-plaintext highlighter-rouge"># devrig launcher source:</code> — for a reason we get to in a moment.</p>
+
+<p>The Windows peer is <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/bin/devrig.cmd</code>, same shape:</p>
+
+<div class="language-bat highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@echo <span class="na">off</span>
+<span class="kd">set</span> <span class="s2">"DEVRIG_JAVA_HOME=&lt;jdk home&gt;"</span>
+<span class="k">call</span> <span class="s2">"&lt;install tree&gt;\bin\devrig.bat"</span> <span class="err">%</span><span class="o">*</span>
+</code></pre></div></div>
+
+<p>Deliberately <strong>no PowerShell at launch</strong> — a unit test asserts the generated launcher does not contain the
+string. The first generation used a <code class="language-plaintext highlighter-rouge">devrig.bat</code> that trampolined into a <code class="language-plaintext highlighter-rouge">devrig.ps1</code>, and paying
+PowerShell startup on every agent call is the mistake that taught us not to. <code class="language-plaintext highlighter-rouge">DEVRIG_JAVA_HOME</code> works
+because the build patches Gradle’s own start-script templates in <code class="language-plaintext highlighter-rouge">startScripts.doLast</code>, injecting a
+<code class="language-plaintext highlighter-rouge">JAVA_HOME</code> override ahead of Gradle’s “Determine the Java command” marker, under a <code class="language-plaintext highlighter-rouge">require(...)</code> that
+fails the build if Gradle ever moves that marker.</p>
+
+<p><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/BinLauncher.kt"><code class="language-plaintext highlighter-rouge">BinLauncher.ensureBinLauncher()</code></a> runs on <strong>every</strong> devrig start and makes sure, first, that the launcher
+exists and points at devrig’s <em>own</em> current install tree and the JDK it is <em>currently</em> running under — so
+it self-heals if it was deleted, or went stale because an upgrade landed a new tree; and second, that the
+launcher is reachable on <code class="language-plaintext highlighter-rouge">PATH</code>: on POSIX by symlinking it into the first <code class="language-plaintext highlighter-rouge">PATH</code> directory that is both
+writable and under <code class="language-plaintext highlighter-rouge">$HOME</code> (pure Java, no subprocess), on Windows by registering the bin directory in the
+HKCU user <code class="language-plaintext highlighter-rouge">PATH</code>, gated by a <code class="language-plaintext highlighter-rouge">bin/.user-path-registered</code> marker file. Windows needs a PowerShell helper for
+exactly one reason: pure Java cannot <em>persist</em> a user <code class="language-plaintext highlighter-rouge">PATH</code> entry, only check membership.</p>
+
+<p><strong>And here is the part that “rewrite on every start” gets wrong if you stop there.</strong> Two versions coexist
+by design, so the moment an <em>older</em> devrig starts — an agent still holding a stale registration, a session
+that outlived an upgrade — it would happily rewrite the launcher backwards, and the newest install would
+lose. <a href="https://github.com/jonnyzzz/mcp-steroid/issues/373">#373</a> is the guard: the launcher carries its writer’s version in that header line, and
+<code class="language-plaintext highlighter-rouge">shouldKeepNewerLauncher</code> refuses to overwrite a launcher stamped strictly newer than the running build
+(SNAPSHOT counts as newest). A kept-newer launcher still gets its <code class="language-plaintext highlighter-rouge">+x</code> bit repaired. Self-healing without
+that check is not self-healing, it is a race — and it took shipping side-by-side installs to see it.</p>
+
+<p>The rest is other people’s edge cases:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">writeIfChanged</code> compares against the intended content, normalizing CRLF/LF and a trailing newline, and
+returns early when they match — but still repairs a lost <code class="language-plaintext highlighter-rouge">+x</code>.</li>
+  <li>A real write stages to a sibling <code class="language-plaintext highlighter-rouge">&lt;name&gt;.new&lt;pid&gt;</code>, <code class="language-plaintext highlighter-rouge">chmod +x</code> <em>before</em> the move, then moves atomically.
+If that is blocked — Windows holding the launcher open — it renames the original to <code class="language-plaintext highlighter-rouge">&lt;name&gt;.old&lt;pid&gt;</code>,
+which NTFS permits on an open file, moves again, and deletes the old one; five attempts, 10 ms apart.
+Crash leftovers are never swept: a stray <code class="language-plaintext highlighter-rouge">.old1234</code> is cheaper than a sweeper that could delete a live
+launcher.</li>
+  <li><code class="language-plaintext highlighter-rouge">DEVRIG_BIN_NO_AUTO_REGISTER</code> is an undocumented opt-out, and self-registration defaults to <em>off</em> for
+<code class="language-plaintext highlighter-rouge">SNAPSHOT</code> builds so a local dev build never clobbers a real launcher; an explicit <code class="language-plaintext highlighter-rouge">devrig install</code>
+forces it regardless. The whole thing is best-effort — failing to heal the launcher must never take down
+<code class="language-plaintext highlighter-rouge">devrig mcp</code>.</li>
+</ul>
+
+<p>Whatever you typed to launch it, you end up pointing at the one stable launcher. That is the invariant, and
+it is why agent registrations point at <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/bin/devrig</code> and survive every upgrade without being
+rewritten.</p>
+
+<h2 id="update-the-updater-that-knows-nothing">Update: the updater that knows nothing</h2>
+
+<p><code class="language-plaintext highlighter-rouge">:website-gen</code> publishes a <code class="language-plaintext highlighter-rouge">version.json</code> next to the scripts. It is not a manifest:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"version-base"</span><span class="p">:</span><span class="s2">"0.101"</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>One field — what version is promoted right now. <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/DevrigUpdateChecker.kt"><code class="language-plaintext highlighter-rouge">DevrigUpdateChecker</code></a> fetches it with a cache-busting query
+and 10-second timeouts, and when a newer version exists it writes to stderr <em>and</em> pushes an MCP
+<code class="language-plaintext highlighter-rouge">notifications/message</code> so the agent sees it too. Any failure returns <code class="language-plaintext highlighter-rouge">null</code> and is swallowed at debug
+level: an update check must never be able to break a run. The same endpoint serves the in-IDE plugin’s
+checker, which adds an <code class="language-plaintext highlighter-rouge">?intellij-version=&lt;build&gt;</code> query so the answer can be build-aware.</p>
+
+<p>Comparing versions deserved its own type. The first version compared strings by prefix, which is how we got
+<a href="https://github.com/jonnyzzz/mcp-steroid/issues/360">#360</a>: our release tags and our CI tags were not mutually orderable, so either could look like
+an update to the other. <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/mcp-core/src/main/kotlin/com/jonnyzzz/mcpSteroid/util/text/DevrigVersion.kt"><code class="language-plaintext highlighter-rouge">DevrigVersion</code></a> now implements <code class="language-plaintext highlighter-rouge">Comparable</code> with two product rules — a <code class="language-plaintext highlighter-rouge">SNAPSHOT</code>
+build sorts above anything promoted, and build metadata after the first <code class="language-plaintext highlighter-rouge">-</code> carries no precedence, so
+<code class="language-plaintext highlighter-rouge">0.86.0-a1b2c3d</code> does not rank below <code class="language-plaintext highlighter-rouge">0.86.0</code> — and the decision is a plain
+<code class="language-plaintext highlighter-rouge">isUpdateAvailable(current, promoted) = promoted &gt; current</code>, which also means a <em>downgrade</em> is not an
+update.</p>
+
+<h3 id="and-then-the-upgrade-is-run-the-install-script-again">And then the upgrade is: run the install script again</h3>
+
+<p>Everything above is what makes that sentence sufficient —</p>
+
+<ul>
+  <li>the script is regenerated per release, so it always carries the <em>current</em> URLs and hashes;</li>
+  <li>installs are content-addressed, so a new version lands beside the old one instead of over it;</li>
+  <li>the binary owns the launcher, so the new binary repoints it on its first start;</li>
+  <li>agent registrations point at the stable launcher path, so nothing needs re-registering;</li>
+  <li>the script is idempotent, so running it when you are already current prints <code class="language-plaintext highlighter-rouge">already installed</code> and
+downloads nothing.</li>
+</ul>
+
+<p>For 0.101 — the release you get if you run the one-liner today — that is the whole story: <code class="language-plaintext highlighter-rouge">devrig</code> tells
+you, you re-run the line. And then we shipped the obvious next step, and the shape of it is the reason this
+post exists.</p>
+
+<h3 id="the-updater-that-cannot-age">The updater that cannot age</h3>
+
+<p><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/AutoUpdater.kt"><code class="language-plaintext highlighter-rouge">AutoUpdater</code></a> is merged on <code class="language-plaintext highlighter-rouge">main</code> and not in 0.101 — install today and you get the
+notify-only behaviour above; the next release turns this on. It does genuinely self-update, and here is the
+interesting part of it:</p>
+
+<div class="language-kotlin highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">val</span> <span class="py">scriptUrl</span> <span class="p">=</span> <span class="k">if</span> <span class="p">(</span><span class="n">isWin</span><span class="p">)</span> <span class="s">"https://devrig.dev/install.ps1"</span> <span class="k">else</span> <span class="s">"https://devrig.dev/install.sh"</span>
+</code></pre></div></div>
+
+<p>That is the entire update algorithm: download today’s install script, run it, supervise it. There is no
+archive handling in the binary, no URL construction, no hash table, no unpack logic, no launcher
+rewriting — <strong>none of the artifact knowledge that goes stale.</strong> The parts that rot fastest live in a file
+fetched fresh from the website seconds before it runs.</p>
+
+<p>The title oversells slightly, so let me undersell it: the binary still hardcodes the two script URLs, the
+OS branch, the process-spawning and timeout behaviour, the marker protocol, and the version semantics. A
+real aging surface — just a small, slow-moving one, and none of it is the part that changes when a vendor
+moves a URL or we switch an archive format.</p>
+
+<p>Which answers the objection from the top of this post. “Put the updater inside the binary” fails because
+<em>your update logic ages with the oldest installed copy.</em> The escape is not to refuse to self-update, it is
+to make the in-binary part contain no logic to age. A machine that sat on 0.99 for a year does not upgrade
+using 0.99’s ideas about archive formats or vendor URLs; it upgrades using today’s, because all 0.99 knows
+how to do is fetch and exec.</p>
+
+<p>What is <em>around</em> that one line is the part I underestimated:</p>
+
+<ul>
+  <li><strong>Scheduling — and only where it is safe.</strong> The active updater runs <em>only</em> in <code class="language-plaintext highlighter-rouge">devrig mcp</code> sessions: it
+ticks, then sleeps <code class="language-plaintext highlighter-rouge">Random.nextLong(180, 481).minutes</code> — 3 to 8 hours, jittered so a fleet does not
+stampede the CDN — and repeats forever. A short one-shot command keeps the passive notice and never
+spawns an installer. Nobody’s <code class="language-plaintext highlighter-rouge">devrig --version</code> should turn into a 200 MB download.</li>
+  <li><strong>Multi-process coordination</strong>, because on this machine six agents routinely each hold a <code class="language-plaintext highlighter-rouge">devrig mcp</code>.
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/devrig-common/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/UpdateCoordination.kt"><code class="language-plaintext highlighter-rouge">UpdateCoordination</code></a> writes an <code class="language-plaintext highlighter-rouge">update-&lt;pid&gt;-version-&lt;v&gt;</code> marker under <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/update/</code>, then
+<strong>re-checks after announcing</strong> and yields if a lower pid is also in progress. Lowest pid wins; losers
+exit silently. An <code class="language-plaintext highlighter-rouge">updated-&lt;v&gt;</code> marker means “already installed here” and turns the tick into a restart
+notice, once per process.</li>
+  <li><strong>Supervision.</strong> The installer is spawned detached with a one-hour timeout and its own per-pid log file.
+On Windows it prefers <code class="language-plaintext highlighter-rouge">powershell.exe</code> by absolute System32 path, falling back to whatever <code class="language-plaintext highlighter-rouge">powershell</code>
+or <code class="language-plaintext highlighter-rouge">pwsh</code> is on <code class="language-plaintext highlighter-rouge">PATH</code>.</li>
+  <li><strong>No retry cap, deliberately.</strong> Too many transient root causes exist, and the goal is to keep users
+current, so every failure retries on the next 3–8 hour tick, forever. Diagnosis lives in stderr and the
+log files rather than in a state machine.</li>
+  <li><strong>Never downgrade</strong>, and the marker GC is bounded below <code class="language-plaintext highlighter-rouge">min(current, promoted)</code> so a session running
+<em>newer</em> than the promoted version — what a rollback looks like — cannot delete records older sessions
+still need.</li>
+  <li><strong>Three ways off.</strong> SNAPSHOT builds skip the whole thing, and either <code class="language-plaintext highlighter-rouge">DEVRIG_NO_AUTO_UPDATE</code> or the
+launcher-write opt-out <code class="language-plaintext highlighter-rouge">DEVRIG_BIN_NO_AUTO_REGISTER</code> disables it.</li>
+</ul>
+
+<p>Two things I would still flag. <code class="language-plaintext highlighter-rouge">version.json</code> is <strong>unsigned</strong>, and it just stopped being advisory: that one
+field now decides whether a script is downloaded and executed. And nothing pins a <em>session</em> to a version —
+the update repoints the shared launcher, so the next thing an agent launches is the new binary, mid-task.
+“The fleet finishes on the version it started with” is a property we describe and do not yet enforce.</p>
+
+<h2 id="distribution-and-the-release-ordering-trap">Distribution, and the release-ordering trap</h2>
+
+<p>The scripts and <code class="language-plaintext highlighter-rouge">version.json</code> are static files on GitHub Pages at <a href="https://devrig.dev/">devrig.dev</a> — one
+canonical host, with the older <code class="language-plaintext highlighter-rouge">mcp-steroid.jonnyzzz.com</code> 307-redirecting to it rather than serving a
+second copy, and the code (both update checkers, both install scripts) pointing at the canonical
+name. <code class="language-plaintext highlighter-rouge">:website-gen</code>’s <code class="language-plaintext highlighter-rouge">generateWebsite</code> task depends on <code class="language-plaintext highlighter-rouge">:installer-gen:generateInstaller</code> and writes
+<code class="language-plaintext highlighter-rouge">version.json</code>, <code class="language-plaintext highlighter-rouge">updatePlugins.xml</code>, <code class="language-plaintext highlighter-rouge">install.sh</code> and <code class="language-plaintext highlighter-rouge">install.ps1</code> into <code class="language-plaintext highlighter-rouge">website/build/generated-static</code>,
+which Hugo folds into the site root. Nothing generated is committed. The binaries live on the GitHub
+Release; the JDKs are never mirrored — users download them straight from the vendor.</p>
+
+<p>The non-obvious component here is a <em>branch</em>. The site does not deploy from <code class="language-plaintext highlighter-rouge">main</code>:</p>
+
+<blockquote>
+  <p>Deploy from the long-lived <code class="language-plaintext highlighter-rouge">website</code> branch, NOT <code class="language-plaintext highlighter-rouge">main</code>. <code class="language-plaintext highlighter-rouge">website</code> tracks <code class="language-plaintext highlighter-rouge">main</code> but can deliberately
+lag it so website changes that depend on an UNRELEASED devrig binary — e.g. a new <code class="language-plaintext highlighter-rouge">install.sh</code> /
+<code class="language-plaintext highlighter-rouge">install.ps1</code> contract — stay off the live site until a matching GitHub release exists.</p>
+</blockquote>
+
+<p>The install script’s content depends on a GitHub release that does not exist until you publish it, and the
+release notes point at an install script that must not go live early. Deploy from <code class="language-plaintext highlighter-rouge">main</code> and there is a
+window — minutes or days — where <code class="language-plaintext highlighter-rouge">devrig.dev/install.sh</code> references a release tag that 404s, and every new
+user in that window gets a broken install with no explanation. A separate deploy branch, fast-forwarded
+<em>after</em> the release is published, closes it — as long as nobody advances the branch by hand out of order,
+which is convention plus a release-readiness check, not a permission. The Pages workflow also rebuilds on
+<code class="language-plaintext highlighter-rouge">release: published</code>, because generating <code class="language-plaintext highlighter-rouge">updatePlugins.xml</code> requires querying the release for its asset
+URL.</p>
+
+<p>The ordering constraint is worth stating as a sequence, because getting it wrong is how you serve a 404:</p>
+
+<ol>
+  <li>Build the artifacts and <strong>publish the GitHub release</strong> for <code class="language-plaintext highlighter-rouge">v&lt;version&gt;</code>. Nothing about the website has
+moved yet, so the live site still describes the previous release, correctly.</li>
+  <li><strong>Generate</strong> — <code class="language-plaintext highlighter-rouge">:installer-gen:generateInstaller</code> resolves the devrig zip <em>from that release</em>, which is
+why the release has to exist first, and resolves the JDKs live from the vendors.</li>
+  <li><strong>Fast-forward <code class="language-plaintext highlighter-rouge">website</code> to <code class="language-plaintext highlighter-rouge">main</code>.</strong> This is the deploy: Hugo folds in the generated <code class="language-plaintext highlighter-rouge">install.sh</code>,
+<code class="language-plaintext highlighter-rouge">install.ps1</code> and <code class="language-plaintext highlighter-rouge">version.json</code>, and the one-liner starts pointing at the new release in the same push
+that starts announcing it.</li>
+  <li>Only now does a <code class="language-plaintext highlighter-rouge">devrig</code> on someone’s laptop see a new <code class="language-plaintext highlighter-rouge">version-base</code> and tell its user.</li>
+</ol>
+
+<p>In between steps 1 and 3, <code class="language-plaintext highlighter-rouge">main</code> can carry an install script for a release that does not exist yet, and no
+user is exposed to it.</p>
+
+<h2 id="signing-implemented-once-designed-twice-not-shipped-yet">Signing: implemented once, designed twice, not shipped yet</h2>
+
+<p>The current chain of trust, hop by hop, with no softening:</p>
+
+<ol>
+  <li><strong>You paste a URL.</strong> HTTPS to <code class="language-plaintext highlighter-rouge">devrig.dev</code> (GitHub Pages, behind a CDN). <em>Unauthenticated beyond
+TLS.</em></li>
+  <li><strong>The script runs.</strong> Its contents are whatever that host served. <strong>Not signed.</strong> Ask for
+<code class="language-plaintext highlighter-rouge">install.sh.asc</code> today and you get a 404.</li>
+  <li><strong>Artifacts download.</strong> Each is checked against a SHA-256 baked into the script at generation time.
+<em>Strong — but only as strong as hop 2, since whoever can change the script can change the hashes.</em></li>
+  <li><strong>The JDK hashes were earned.</strong> At generation time the vendor JDK archives were OpenPGP-verified
+against fingerprints pinned in source, fail-fast, on every resolve including cache hits. <em>This part is
+real — with one honest asterisk: it protects the release engineer, not the user. None of that evidence
+travels to the machine, so a user cannot re-check it.</em></li>
+  <li><strong>The devrig zip itself has no signature at all.</strong> Its only credential is a hash written by the same
+unsigned script. The runtime we did not build gets stronger provenance than the binary we did, which
+is a funny thing to discover about your own pipeline.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">version.json</code> is fetched on every run, and it is not signed.</strong> Until recently the worst a tampered one
+could do was fake an update <em>notice</em>. Now it decides whether a script is downloaded and executed. That
+one unsigned field is the weakest thing in this post, and it got weaker the day auto-update shipped.</li>
+</ol>
+
+<p>So the gap is hop 2, the classic <code class="language-plaintext highlighter-rouge">curl | sh</code> circularity: verifying a script before executing it requires
+something already trusted on the machine.</p>
+
+<p><strong>We solved this before, in the project’s own prehistory.</strong> The Go generation fetched
+<code class="language-plaintext highlighter-rouge">https://devrig.dev/download/latest.json</code> with a <code class="language-plaintext highlighter-rouge">.sig</code> and verified it natively against <strong>two embedded SSH
+public keys</strong> — one ed25519, one RSA-4096 — using <code class="language-plaintext highlighter-rouge">golang.org/x/crypto/ssh</code>, no <code class="language-plaintext highlighter-rouge">ssh-keygen</code> subprocess;
+the release side had <code class="language-plaintext highlighter-rouge">ssh-sign.sh</code> and <code class="language-plaintext highlighter-rouge">sync-release.sh</code>. Its bootstrap script also re-verified the
+binary’s SHA-512 on <em>every</em> run, not just after download.</p>
+
+<p>The current design, written up as v7 of <code class="language-plaintext highlighter-rouge">docs/devrig-deployment-spec.md</code> and marked <em>“design ready for
+implementation”</em>, resolves the circularity rather than ignoring it: a <code class="language-plaintext highlighter-rouge">version.properties</code> manifest, a
+<code class="language-plaintext highlighter-rouge">version.properties.signatures</code> file holding <strong>two ed25519 SSH signatures</strong>, and an <code class="language-plaintext highlighter-rouge">allowed_signers</code> file
+in OpenSSH format pinning both public keys — <strong>two keys, two operators, two machines</strong>, both of which must
+verify, so one compromised laptop is not enough. <strong>Verification is Java-only</strong>: the shell wrapper <em>fetches
+and stores</em> the signatures and never checks them, and the installed binary verifies on upgrade. That is the
+key move — the initial install is trust-on-first-use over HTTPS, and every subsequent update is
+verified by code already installed and already trusted, so you stop trying to bootstrap trust from a pipe.
+The manifest also carries a SHA for each wrapper script, so an upgrade can verify the <em>launchers</em> too, and
+a weekly CI job <code class="language-plaintext highlighter-rouge">HEAD</code>s every URL in the manifest and spot-checks the SHAs, so a dead vendor URL fails a
+build rather than a user’s install.</p>
+
+<p>None of that ships today. The honest one-line summary is <em>HTTPS, plus generation-time vendor PGP, plus
+install-time SHA-256 — with the bootstrap hop unauthenticated, the promoted-version field unsigned, and a
+worked-out design for closing both.</em> If you are evaluating this pattern for your own tool, that is the
+sentence to weigh.</p>
+
+<h2 id="testing-scripts-and-generators">Testing scripts and generators</h2>
+
+<p>Shell scripts and code generators are both famously untested, usually with the same excuse: “you’d need a
+real machine”. You need a container, and a seam.</p>
+
+<p><strong>The seam</strong> is <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/InstallerGenerator.kt"><code class="language-plaintext highlighter-rouge">writeInstallerScripts(outDir, table, devrig, version)</code></a> — network-free, wrapping a
+<code class="language-plaintext highlighter-rouge">renderInstallerScripts</code> that touches neither network nor disk. A test hands it a synthetic five-platform
+table pointing at a local HTTP server and gets a real installer out. Every lane below rests on it.</p>
+
+<p><strong>Hermetic unit tests</strong> (<code class="language-plaintext highlighter-rouge">./gradlew :installer-gen:test</code>) — no network at all; the URL-routing fakes
+hard-error on anything they were not given:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Test</th>
+      <th>What it pins down</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/test/kotlin/com/jonnyzzz/mcpSteroid/installer/InstallerGeneratorTest.kt"><code class="language-plaintext highlighter-rouge">InstallerGeneratorTest</code></a></td>
+      <td>24 tests: placeholders all resolved, exactly-five-platform validation, ASCII-only, unsafe version strings, <code class="language-plaintext highlighter-rouge">resolveDevrig</code> version-mismatch</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/test/kotlin/com/jonnyzzz/mcpSteroid/installer/JdkArtifactsTest.kt"><code class="language-plaintext highlighter-rouge">JdkArtifactsTest</code></a></td>
+      <td>Vendor parsing, the shallowest-<code class="language-plaintext highlighter-rouge">bin/java</code> scan with a nested <code class="language-plaintext highlighter-rouge">jre</code> decoy, and <em>“expected 4 Corretto + 1 Azul”</em> as a hard assertion</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/test/kotlin/com/jonnyzzz/mcpSteroid/installer/PgpVerifierTest.kt"><code class="language-plaintext highlighter-rouge">PgpVerifierTest</code></a></td>
+      <td>Tampered data, key-not-in-keyring, wrong pinned fingerprint, fingerprint matching that ignores case and spaces — against keys generated in-test</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/test/kotlin/com/jonnyzzz/mcpSteroid/installer/CacheTest.kt"><code class="language-plaintext highlighter-rouge">CacheTest</code></a></td>
+      <td>Hash-mismatch rejection, <strong>re-verification on a cache hit with a corrupted cache file</strong>, and “must not download when caching can’t be validated” for the missing-ETag case</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Two are worth stealing as a technique. The <code class="language-plaintext highlighter-rouge">$ProgressPreference</code> test does not assert the line is
+<em>present</em>: it asserts it appears <strong>exactly once, at an index before</strong> both <code class="language-plaintext highlighter-rouge">Invoke-WebRequest -Uri</code> and
+<code class="language-plaintext highlighter-rouge">Expand-Archive -Path</code>, and is <em>absent</em> from <code class="language-plaintext highlighter-rouge">install.sh</code>. The #273 test requires any <code class="language-plaintext highlighter-rouge">RuntimeInformation</code>
+access to sit inside a <em>preceding</em> <code class="language-plaintext highlighter-rouge">try {</code>. Both encode the property that mattered, not the diff that fixed
+it. Fingerprints are injectable into <code class="language-plaintext highlighter-rouge">resolveAllJdks</code> for the same reason — so the PGP tests can pin a
+generated key.</p>
+
+<p><strong>Docker integration lanes</strong> (<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/installerIntegrationTest/kotlin/com/jonnyzzz/mcpSteroid/installer/tests/InstallerBootstrapTest.kt"><code class="language-plaintext highlighter-rouge">InstallerBootstrapTest</code></a> and its PowerShell peer, in a
+separate <code class="language-plaintext highlighter-rouge">installerIntegrationTest</code> source set gated so a plain <code class="language-plaintext highlighter-rouge">./gradlew check</code> compiles but never runs
+them):</p>
+
+<ul>
+  <li><em>“end-to-end on ubuntu (glibc)”</em> — a fake devrig zip and fake JDK tarball served by an <strong>nginx side-car
+started first</strong>, so the test learns its bridge IP and bakes those URLs plus the fixtures’ real SHA-256s
+through the seam. In a digest-pinned Ubuntu image it then checks both downloads, SHA verified, trees at
+<code class="language-plaintext highlighter-rouge">devrig-linux-x64-0.0.0-test-&lt;sha12&gt;</code>, <code class="language-plaintext highlighter-rouge">bin/java</code> executable, the delegation carrying the exact
+<code class="language-plaintext highlighter-rouge">--install-script=</code> / <code class="language-plaintext highlighter-rouge">--jdk-home=</code> values, and <strong>no agent registration</strong> — then a second run asserting
+<code class="language-plaintext highlighter-rouge">already installed:</code> and zero downloads.</li>
+  <li><em>“refuses musl (alpine)”</em> — the real script in <code class="language-plaintext highlighter-rouge">alpine:3.21</code>: non-zero exit, the message explains musl,
+and the output <strong>never contains “downloading”</strong>, which proves the ordering rather than the wording.</li>
+  <li><em>the <code class="language-plaintext highlighter-rouge">pwsh</code> lane</em> — <code class="language-plaintext highlighter-rouge">mcr.microsoft.com/powershell:lts-7.4-ubuntu-22.04</code>, because Windows-native Docker is
+not something this CI provisions. <code class="language-plaintext highlighter-rouge">DEVRIG_OS</code> / <code class="language-plaintext highlighter-rouge">DEVRIG_CPU</code> stay unset so the real auto-detect branch
+runs, and the template <em>anticipates</em> it: a <code class="language-plaintext highlighter-rouge">bin/java</code> stub is accepted where <code class="language-plaintext highlighter-rouge">bin/java.exe</code> would be.</li>
+</ul>
+
+<p>The best line in the suite is a constant: <code class="language-plaintext highlighter-rouge">INSTALLER_HOME_DIR = "/home/tester one"</code>. <code class="language-plaintext highlighter-rouge">HOME</code> with a space in
+it. Every quoting bug in a shell installer dies there, permanently, for free.</p>
+
+<p><strong>The native Windows lane.</strong> A <code class="language-plaintext highlighter-rouge">pwsh</code>-on-Linux test cannot catch a PowerShell 5.1 / .NET Framework bug,
+which is exactly what <a href="https://github.com/jonnyzzz/mcp-steroid/issues/273">#273</a> was. So <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration-agent-launch/src/test/kotlin/com/jonnyzzz/mcpSteroid/agentlaunch/InstallerPs1ExecutionTest.kt"><code class="language-plaintext highlighter-rouge">InstallerPs1ExecutionTest</code></a> runs the installer for real on
+<code class="language-plaintext highlighter-rouge">windows-latest</code> under both <code class="language-plaintext highlighter-rouge">powershell.exe</code> (5.1) and <code class="language-plaintext highlighter-rouge">pwsh</code> (7.x), serving fixtures from an in-process
+<code class="language-plaintext highlighter-rouge">com.sun.net.httpserver.HttpServer</code> (<code class="language-plaintext highlighter-rouge">Invoke-WebRequest</code> rejects <code class="language-plaintext highlighter-rouge">file://</code>), and asserts by <em>negative</em>: the
+output must not contain <code class="language-plaintext highlighter-rouge">"The property 'OSArchitecture' cannot be found"</code>. <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration-agent-launch/src/test/kotlin/com/jonnyzzz/mcpSteroid/agentlaunch/InstallerScriptTest.kt"><code class="language-plaintext highlighter-rouge">InstallerScriptTest</code></a> adds a
+cheap syntax gate — the PowerShell AST parser under 5.1, <code class="language-plaintext highlighter-rouge">sh -n</code> on Linux. Both lanes run on every branch
+push, with TeamCity carrying the same suites internally.</p>
+
+<p><code class="language-plaintext highlighter-rouge">resolveAllJdks</code> leans on two vendor APIs that can change under you, so it is covered three ways:
+hermetically over synthetic archives; by the fail-fast PGP check on every resolve, so a vendor serving
+something unexpected fails the <em>build</em> and not a user’s install; and by <code class="language-plaintext highlighter-rouge">generateInstaller</code> running for
+real in the release pipeline. Tests that intentionally hit public vendor feeds are tagged live-network and
+<strong>excluded from the default test task</strong>.</p>
+
+<p>So: the scripts’ <em>logic</em> is tested hermetically, their <em>behaviour</em> in real shells in real containers, their
+<em>content</em> at generation time, and the one thing you cannot fake — Windows’ own PowerShell — gets a dedicated
+runner.</p>
+
+<h2 id="where-this-was-built-and-tested">Where this was built and tested</h2>
+
+<p>Everything above lives in <a href="https://github.com/jonnyzzz/mcp-steroid">jonnyzzz/mcp-steroid</a>. The vendor endpoints, regexes and API field
+names this post deliberately does not transcribe are all in these files:</p>
+
+<ul>
+  <li><strong>The JDK model</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/JdkModel.kt"><code class="language-plaintext highlighter-rouge">JdkModel.kt</code></a>, <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/CorrettoJdk.kt"><code class="language-plaintext highlighter-rouge">CorrettoJdk.kt</code></a>, <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/AzulJdk.kt"><code class="language-plaintext highlighter-rouge">AzulJdk.kt</code></a>,
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/PgpVerifier.kt"><code class="language-plaintext highlighter-rouge">PgpVerifier.kt</code></a>, <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/Cache.kt"><code class="language-plaintext highlighter-rouge">Cache.kt</code></a>.</li>
+  <li><strong>The generator</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/kotlin/com/jonnyzzz/mcpSteroid/installer/InstallerGenerator.kt"><code class="language-plaintext highlighter-rouge">InstallerGenerator.kt</code></a> and the two templates,
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/resources/templates/install.sh.tmpl"><code class="language-plaintext highlighter-rouge">install.sh.tmpl</code></a> / <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/main/resources/templates/install.ps1.tmpl"><code class="language-plaintext highlighter-rouge">install.ps1.tmpl</code></a>. The templates are the installer; the
+generator is 300 lines of validation around them.</li>
+  <li><strong>The CLI side</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/BinLauncher.kt"><code class="language-plaintext highlighter-rouge">BinLauncher.kt</code></a>, <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/InstallCommand.kt"><code class="language-plaintext highlighter-rouge">InstallCommand.kt</code></a>,
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/DevrigUpdateChecker.kt"><code class="language-plaintext highlighter-rouge">DevrigUpdateChecker.kt</code></a>, <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/npx-kt/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/AutoUpdater.kt"><code class="language-plaintext highlighter-rouge">AutoUpdater.kt</code></a>. In <code class="language-plaintext highlighter-rouge">devrig-common</code>:
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/devrig-common/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/HomePaths.kt"><code class="language-plaintext highlighter-rouge">HomePaths.kt</code></a> (the layout, pinned by tests and deliberately not configurable) and
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/devrig-common/src/main/kotlin/com/jonnyzzz/mcpSteroid/devrig/UpdateCoordination.kt"><code class="language-plaintext highlighter-rouge">UpdateCoordination.kt</code></a> (the marker protocol).</li>
+  <li><strong>The contracts</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/install-scripts-contract.md"><code class="language-plaintext highlighter-rouge">docs/install-scripts-contract.md</code></a> (locked) and
+<a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/updates-check/devrig-auto-update.md"><code class="language-plaintext highlighter-rouge">docs/updates-check/devrig-auto-update.md</code></a>.</li>
+  <li><strong>The tests</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/installer-gen/src/installerIntegrationTest/kotlin/com/jonnyzzz/mcpSteroid/installer/tests/InstallerBootstrapTest.kt"><code class="language-plaintext highlighter-rouge">InstallerBootstrapTest.kt</code></a> is the one to read. The Windows lanes live
+in <code class="language-plaintext highlighter-rouge">test-integration-agent-launch</code>.</li>
+  <li><strong>The design doc</strong> — <a href="https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/devrig-deployment-spec.md"><code class="language-plaintext highlighter-rouge">docs/devrig-deployment-spec.md</code></a>, v7, including the signing and GC work
+that is designed but unshipped. Its iteration history runs v1 → v7.</li>
+  <li><strong>The prehistory</strong> — <a href="https://github.com/jonnyzzz/old-devrig-private"><code class="language-plaintext highlighter-rouge">jonnyzzz/old-devrig-private</code></a>, the Go generation: a per-project
+<code class="language-plaintext highlighter-rouge">.devrig</code> home, SHA-512 content addressing, re-verification on every run, and a <code class="language-plaintext highlighter-rouge">latest.json</code> update feed
+signed under two embedded SSH keys we have not yet re-adopted.</li>
+</ul>
+
+<p>Almost none of the sharp edges above were found by design review. The Windows work exists because people
+ran <code class="language-plaintext highlighter-rouge">irm | iex</code> and got an error message instead of a tool, then told us. The two open items on the JDK
+model — folding the resolved URL into the cache key, tightening Azul’s <code class="language-plaintext highlighter-rouge">latest</code> selection — came out of a
+quorum review of that PR, not from the author. Distribution code is exactly the kind of thing where a
+second and third reader pay for themselves, because the failure modes live on machines you do not own. One
+more warning from the old generation: <code class="language-plaintext highlighter-rouge">IsUpdateAvailable()</code> there returned <code class="language-plaintext highlighter-rouge">info.Version == thisVersion</code>,
+the inverse of what its own comment described, so it announced an update precisely when you were current.
+Update paths need tests more than they need cleverness.</p>
+
+<h2 id="what-is-not-solved-yet">What is not solved yet</h2>
+
+<p>The list I would want to read if I were evaluating this for my own project.</p>
+
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">version.json</code> is unsigned, and it now triggers code execution.</strong> Top of the list. Everything else here
+is inconvenience; this one is a trust gap that auto-update promoted from theoretical to live.</li>
+  <li><strong>The bootstrap hop is unauthenticated</strong>, as laid out above. Design exists; implementation does not.</li>
+  <li><strong>No session pinning.</strong> An update repoints the shared launcher under a running fleet.</li>
+  <li><strong>No garbage collection, and no uninstall.</strong> Old trees accumulate forever; <code class="language-plaintext highlighter-rouge">devrig gc</code> does not exist.
+And between the launcher, a <code class="language-plaintext highlighter-rouge">PATH</code> symlink, an HKCU <code class="language-plaintext highlighter-rouge">PATH</code> entry, marker files, agent registrations and a
+few hundred MB per version, there is no supported way to remove any of it.</li>
+  <li><strong>No rollback command, and no health-checked activation</strong>, despite the design assuming rollbacks happen —
+the auto-updater’s GC bound explicitly handles “a session running newer than the promoted version,
+post-rollback”. A release that downloads and unpacks cleanly but fails to <em>start</em> still becomes the
+launcher’s target, and rolling back means hand-editing two paths in <code class="language-plaintext highlighter-rouge">~/.mcp-steroid/bin/devrig</code>.</li>
+  <li><strong>The signing design stops at the happy path.</strong> Two keys and an <code class="language-plaintext highlighter-rouge">allowed_signers</code> file is the easy half.
+Rotation, revocation, recovery after a compromise, anti-replay for a signed-but-stale manifest, and a
+migration story for clients installed <em>before</em> a verifier exists are all unwritten. So is macOS
+notarization and Windows code-signing for the artifacts themselves.</li>
+  <li><strong>No proxy or custom-CA story.</strong> The one that bothers us most: the person we keep describing — corporate
+Windows box, no admin rights — is exactly the person behind a TLS-inspecting proxy. Neither script is
+documented as honouring <code class="language-plaintext highlighter-rouge">HTTPS_PROXY</code> or an enterprise root CA. <code class="language-plaintext highlighter-rouge">curl</code> and <code class="language-plaintext highlighter-rouge">Invoke-WebRequest</code> pick some
+of that up from the environment by accident; “by accident” is not a support answer.</li>
+  <li><strong>No download retry or resume.</strong> A transfer that dies at 80 % is a failed install and a re-run from zero,
+on a 200 MB JDK. The auto-updater’s answer is “try again in 3–8 hours”, which is fine for it and no help
+to a human watching a progress line.</li>
+  <li><strong>Test gaps we know about.</strong> <code class="language-plaintext highlighter-rouge">requireShellSafe</code> — showcased above as security-critical — has no test of
+its own. Nothing exercises the <code class="language-plaintext highlighter-rouge">wget</code> fallback. And <code class="language-plaintext highlighter-rouge">windows-latest</code> is Windows Server 2025 with a modern .NET,
+so the machine that actually broke in <a href="https://github.com/jonnyzzz/mcp-steroid/issues/273">#273</a> — base Windows 10 with .NET Framework 4.6.x — is
+still not in CI.</li>
+  <li><strong>Vendor drift is only caught at release time.</strong> The weekly “HEAD every URL and re-check the SHAs” job is
+in the design, not in <code class="language-plaintext highlighter-rouge">.github/workflows</code>, so a vendor pulling a build is discovered by the next release
+or by a user. And because generation resolves live and the output is not committed, there is no retained
+record proving which coordinates a given release actually served — awkward for a post that opened by
+promising you could tell a security team exactly what got executed.</li>
+  <li><strong>One user per machine.</strong> <code class="language-plaintext highlighter-rouge">~/.mcp-steroid</code> is per-<code class="language-plaintext highlighter-rouge">$HOME</code> and explicitly not configurable — the
+plugin↔devrig marker contract pins the location. A shared CI box gets one installation.</li>
+  <li><strong>Two vendors, five platforms.</strong> No Temurin, no GraalVM, no Intel macOS, no musl. All deliberate, and all
+a real “sorry” to real people.</li>
+</ul>
+
+<h2 id="is-this-an-open-source-project-on-its-own">Is this an open-source project on its own?</h2>
+
+<p>I think so, and I keep coming back to it because the <em>reusable</em> part is genuinely small. Strip out
+everything MCP Steroid–specific and what is left is:</p>
+
+<ol>
+  <li>A JDK data model resolved live from vendor sources and PGP-verified against pinned fingerprints
+(~three files plus a cache).</li>
+  <li>A generator that renders two script templates from that model, with generation-time validation (one
+file plus the templates).</li>
+  <li>A convention: content-addressed side-by-side installs under a fixed home, with the <em>binary</em> owning
+the launcher, and “update” defined as “run the current install script”.</li>
+  <li>A test harness: a pure render seam, an nginx side-car, three container lanes plus one native Windows
+runner, and a <code class="language-plaintext highlighter-rouge">HOME</code> with a space in it.</li>
+</ol>
+
+<p>That is a plausible <em>toolkit</em> — call it <em>ship-your-jvm-cli</em>. Not a library yet: the binary-side half
+(launcher registration, update supervision, version policy, multi-process coordination) is still welded to
+this product, and a library has to offer those as APIs rather than as a description. And what makes the
+generator half work is mostly <strong>conventions and negative constraints</strong> rather than code — the rules:
+resolve at build time, verify vendor signatures at generation time, never let the script own the launcher,
+make update mean install, and put everything the script prints on stderr.</p>
+
+<p>Becoming a real project would mean pluggable artifact coordinates rather than “devrig on
+<code class="language-plaintext highlighter-rouge">jonnyzzz/mcp-steroid</code> releases”; a configurable home, which conflicts with the marker contract that made
+it fixed in the first place — a design argument, not a refactor; Temurin and GraalVM alongside Corretto and
+Zulu; and a finished signing story.</p>
+
+<p>If you have shipped a JVM CLI to strangers, I would like to compare notes — particularly on two things.
+First, <strong>signing a <code class="language-plaintext highlighter-rouge">curl | sh</code> bootstrap</strong>: our <em>designed</em> answer is trust-on-first-use plus two-key
+ed25519 verification for every update thereafter, and since it is designed rather than shipped, this is a
+genuine question and not a humblebrag — has anyone done better without shipping a package manager?
+Second, <strong>retention</strong>: how do you decide an old install tree is safe to delete, when the whole point of
+content addressing was to never track what points at it?</p>
+
+<p>Open an issue on <a href="https://github.com/jonnyzzz/mcp-steroid">jonnyzzz/mcp-steroid</a>, or reply on <a href="https://www.linkedin.com/in/jonnyzzz/">LinkedIn</a> or
+<a href="https://twitter.com/jonnyzzz">Twitter</a> — and if <em>ship-your-jvm-cli</em> is something you would actually use rather than nod at,
+say so, because that is the only signal that would make us extract it</p>
+
+
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        
+      </div><!-- /.entry-content -->
+    </div><!-- /.entry-wrapper -->
+  </article>
+</div><!-- /#main -->
+
+<div class="footer-wrapper">
+  <footer role="contentinfo" class="entry-wrapper">
+    
+
+<span>
+  &copy; 2005—2026 Eugene Petrenko.
+  <br />
+  Unless otherwise noted, the content on the website is licensed under a
+  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+</span>
+<div class="social-icons">
+  <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  <a href="https://linkedin.com/in/jonnyzzz" title="Eugene Petrenko on LinkedIn" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a>
+  <a href="https://github.com/jonnyzzz" title="Eugene Petrenko on Github" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg></a>
+  <a href="https://www.youtube.com/@jonnyzzz" title="Eugene Petrenko on YouTube" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.498 6.186a2.959 2.959 0 0 0-2.079-2.08C19.58 3.6 12 3.6 12 3.6s-7.58 0-9.419.507a2.959 2.959 0 0 0-2.08 2.079C0 8.025 0 12 0 12s0 3.975.501 5.814a2.959 2.959 0 0 0 2.08 2.079C4.42 20.4 12 20.4 12 20.4s7.58 0 9.419-.507a2.959 2.959 0 0 0 2.08-2.079C24 15.975 24 12 24 12s0-3.975-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+  <a href="/feed.xml" title="Atom/RSS feed"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg></a>
+</div><!-- /.social-icons -->
+
+  </footer>
+</div><!-- /.footer-wrapper -->
+
+<script>
+  // Open external links in new tab
+  Array.from(document.links).forEach(link => {
+    // For development: 0.0.0.0, localhost, 127.0.0.1 are all local
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const linkIsLocal = localHosts.includes(link.hostname);
+    const pageIsLocal = localHosts.includes(window.location.hostname);
+
+    // Internal if: both are local dev hosts, or hostnames match exactly
+    const isInternal = (linkIsLocal && pageIsLocal) ||
+                       (link.hostname === window.location.hostname);
+
+    if (!isInternal) {
+      link.target = '_blank';
+    }
+  });
+</script>
+
+
+<!-- Google Analytics (gtag.js) -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+  });
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BXXDX0ERFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BXXDX0ERFP');
+</script>
+<!-- End Google Analytics -->
+
+<!-- PostHog Analytics -->
+<script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog && window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init rs ls wi ns us ts ss capture calculateEventProperties vs register register_once register_for_session unregister unregister_for_session gs getFeatureFlag getFeatureFlagPayload getFeatureFlagResult isFeatureEnabled reloadFeatureFlags updateFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey displaySurvey cancelPendingSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException startExceptionAutocapture stopExceptionAutocapture loadToolbar get_property getSessionProperty fs ds createPersonProfile setInternalOrTestUser ps Qr opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing get_explicit_consent_status is_capturing clear_opt_in_out_capturing hs debug M cs getPageViewId captureTraceFeedback captureTraceMetric Kr".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_IPtbjwwy9YIGg0YNHNxYBePijvTvHEcKAjohah6obYW', {
+        api_host: 'https://us.i.posthog.com',
+        defaults: '2025-11-30',
+        person_profiles: 'identified_only',
+    })
+</script>
+<!-- End PostHog Analytics -->
+
+
+
+
+<!-- Mermaid diagrams - lazy loads Mermaid.js only when Mermaid code blocks are present -->
+<style>
+.mermaid {
+  text-align: center;
+  margin: 2em auto;
+  display: block;
+}
+</style>
+<script>
+(function() {
+  var mermaidCodeBlocks = document.querySelectorAll('pre code.language-mermaid, pre code.mermaid');
+  if (!mermaidCodeBlocks.length) return;
+
+  Array.prototype.forEach.call(mermaidCodeBlocks, function(codeBlock) {
+    var pre = codeBlock.parentNode;
+    if (!pre || !pre.parentNode) return;
+
+    var diagram = document.createElement('div');
+    diagram.className = 'mermaid';
+    diagram.textContent = codeBlock.textContent;
+    pre.parentNode.replaceChild(diagram, pre);
+  });
+
+  var script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+  script.onload = function() {
+    if (!window.mermaid) return;
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: 'loose'
+    });
+
+    window.mermaid.run({
+      querySelector: '.mermaid'
+    });
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+<script src="/assets/js/mermaid-zoom.js" defer></script>
+<!--SYNTAX HIGHLIGHTER - Lazy loads PrismJS only when code blocks are present-->
+<script>
+(function() {
+  // Check if page has any code blocks that need highlighting
+  if (!document.querySelector('pre code, code[class*="language-"]')) return;
+
+  // Load CSS
+  var cssFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/themes/prism.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.css',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.css'
+  ];
+  cssFiles.forEach(function(href) {
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  });
+
+  // Load JS in sequence (core first, then plugins)
+  var jsFiles = [
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/components/prism-core.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/autoloader/prism-autoloader.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/line-numbers/prism-line-numbers.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/toolbar/prism-toolbar.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/show-language/prism-show-language.min.js',
+    'https://cdn.jsdelivr.net/npm/prismjs@1.30.0/plugins/normalize-whitespace/prism-normalize-whitespace.min.js'
+  ];
+
+  function loadScript(index) {
+    if (index >= jsFiles.length) {
+      // All scripts loaded, highlight code
+      if (window.Prism) Prism.highlightAll();
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = jsFiles[index];
+    script.onload = function() { loadScript(index + 1); };
+    document.head.appendChild(script);
+  }
+  loadScript(0);
+})();
+</script>
+
+
+
+</body>
+</html>
