@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <title>devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents &#8211; Eugene Petrenko</title>
+
+
 <meta name="description" content="The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt.
 "/>
 <meta name="keywords" content="jonnyzzz, Евгений Петренко, Eugene Petrenko, mcp, mcp-steroid, ai-agents, ai-coding, agentic-experience, intellij, cli, devrig" />
@@ -92,6 +94,7 @@
 
 <body id="post">
 
+
 <div class="navigation-wrapper">
 	<nav role="navigation" id="site-nav">
 	    <button class="nav-toggle" aria-label="Toggle navigation"
@@ -112,7 +115,11 @@
 		  
         
         
-		    <li><a href="/blog/" class="active">Blog</a></li>
+		    <li><a href="/services/" >Work with me</a></li>
+		  
+        
+        
+		    <li class="nav-secondary"><a href="/blog/" class="active">Blog</a></li>
 		  
         
         
@@ -124,7 +131,7 @@
 		  
         
         
-		    <li><a href="/tags/" >Tags</a></li>
+		    <li class="nav-secondary"><a href="/tags/" >Tags</a></li>
 		  
         
         
@@ -145,7 +152,7 @@
 	<div class="wrap">
       
       <h1 class="site-title"><a href="/">Eugene Petrenko</a></h1>
-		<h2 class="site-description" itemprop="description">Founding Engineering Leader | Agentic AI DevTools & Experience</h2>
+		<h2 class="site-description" itemprop="description"><a href="/services/">Consulting</a> · Agentic AI Experience & Tools · ex-JetBrains expert</h2>
 	</div>
 </header><!-- /.masthead -->
 
@@ -192,7 +199,7 @@ no matter how many are open. If the right IDE is not running, <code class="langu
 And the agent’s MCP config? <code class="language-plaintext highlighter-rouge">devrig install claude</code> writes it for you — and from then on <code class="language-plaintext highlighter-rouge">devrig mcp</code>
 connects to every running IDE that has the MCP Steroid plugin installed.</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-bridge.svg" alt="One devrig bridge connects your AI Agent to all running IDEs at once — and can start more" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-bridge.svg" alt="One devrig bridge connects your AI Agent to all running IDEs at once — and can start more" /></p>
 
 <p><strong>This is what I call Level 3 of MCP Steroid:</strong> the agent is no longer the customer of a manually
 configured environment. The environment configures itself for the agent.</p>
@@ -288,7 +295,7 @@ stock IDE with no plugin installed — is planned for a future release.</p>
 
 <p>The current subcommand surface, straight from <code class="language-plaintext highlighter-rouge">devrig --help</code>:</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-help.png" alt="devrig --help in iTerm2 with JetBrains Mono" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-help.png" alt="devrig --help in iTerm2 with JetBrains Mono" /></p>
 
 <p>The agent only ever sees <code class="language-plaintext highlighter-rouge">devrig mcp</code>. Everything else is for humans or CLI integrations, or for swarm scripts
 (<a href="/blog/2026/03/17/run-agent-v2-release/">run-agent.sh</a> and friends) orchestrating fleets. <code class="language-plaintext highlighter-rouge">devrig</code> ships without a bundled
@@ -302,7 +309,7 @@ Amazon Corretto 25 works; so does any other JDK 25.</p>
 <p>For most users, the very first command they run is the one that wires <code class="language-plaintext highlighter-rouge">devrig</code> into their coding
 agent. It landed in 0.100 to close <a href="https://github.com/jonnyzzz/mcp-steroid/issues/64">issue #64</a>:</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-install.png" alt="devrig install claude in iTerm2 with JetBrains Mono" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-install.png" alt="devrig install claude in iTerm2 with JetBrains Mono" /></p>
 
 <p>Three flavors, all delegating to the agent’s own CLI under the hood so the resulting config is
 exactly the one the agent itself expects:</p>
@@ -332,7 +339,7 @@ the user actually has on their host is the one the agent will use, not whatever 
 <p>Pop a few JetBrains IDEs open and run <code class="language-plaintext highlighter-rouge">devrig backend</code>. On my workstation right now, with one real
 IntelliJ open and one previously-downloaded managed Community sitting on disk:</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-backend.png" alt="devrig backend discovery in iTerm2 with JetBrains Mono" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-backend.png" alt="devrig backend discovery in iTerm2 with JetBrains Mono" /></p>
 
 <p>Two paths feed that list:</p>
 
@@ -368,7 +375,7 @@ ambiguous, and the agent will not be impressed by “tried to open <code class="
 become two distinct exposed names. Windows route the same way (used by screenshots and
 window-targeted actions).</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-project.png" alt="devrig project listing in iTerm2 with JetBrains Mono" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-project.png" alt="devrig project listing in iTerm2 with JetBrains Mono" /></p>
 
 <p>There is one subtlety worth knowing, and it is where the first follow-up to 0.100 landed. In 0.100, when
 the agent called <code class="language-plaintext highlighter-rouge">steroid_open_project</code>, <code class="language-plaintext highlighter-rouge">devrig</code> <em>guessed</em> the target IDE — any running <em>managed</em>
@@ -389,7 +396,7 @@ restarts, so the rule is <em>re-read <code class="language-plaintext highlighter
 available, <em>and</em> declares which IDEs are compatible with the plugin version that ships in this
 build of <code class="language-plaintext highlighter-rouge">devrig</code>:</p>
 
-<p><img src="/images/posts/2026-06-02-devrig-backend-download.png" alt="devrig backend download list in iTerm2 with JetBrains Mono" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-devrig-backend-download.png" alt="devrig backend download list in iTerm2 with JetBrains Mono" /></p>
 
 <p>A few interesting things here:</p>
 
@@ -576,7 +583,7 @@ it landed; the same template works for anything on the list above.</p>
 products with the AI Agent as the <em>user</em>, not as a feature bolted onto a human-facing UI. MCP
 Steroid is that bet, and it has a deliberate arc:</p>
 
-<p><img src="/images/posts/2026-06-02-mcp-steroid-arc.svg" alt="MCP Steroid's arc — the in-IDE plugin, then devrig the bridge, then remote IDE fleets" /></p>
+<p><img src="https://jonnyzzz.com/images/posts/2026-06-02-mcp-steroid-arc.svg" alt="MCP Steroid's arc — the in-IDE plugin, then devrig the bridge, then remote IDE fleets" /></p>
 
 <p>The plugin came first: hand the agent the <strong>full</strong> IntelliJ runtime instead of a curated tool menu.
 <code class="language-plaintext highlighter-rouge">devrig</code> is the next move — wrap that capability in one stdio bridge so the agent reaches <em>every</em>
@@ -597,7 +604,7 @@ for next I genuinely do not know yet; that is what the open questions above are 
 one is yours.</p>
 
 
-        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a></p>
+        <p class="post-support"><a href="/support/"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" style="vertical-align: -2px;"><defs><linearGradient id="heart-post" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="50%" stop-color="#ee5a9f"/><stop offset="100%" stop-color="#ff8e53"/></linearGradient></defs><path fill="url(#heart-post)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Support my work</a> · <a href="/services/">Work with me</a></p>
         
       </div><!-- /.entry-content -->
     </div><!-- /.entry-wrapper -->
@@ -609,10 +616,7 @@ one is yours.</p>
     
 
 <span>
-  &copy; 2005—2026 Eugene Petrenko.
-  <br />
-  Unless otherwise noted, the content on the website is licensed under a
-  <a href="https://creativecommons.org/licenses/by-nc-sa/4.0">CC BY-NC-SA 4.0</a> license.
+  &copy; 2005—2026 Eugene Petrenko
 </span>
 <div class="social-icons">
   <a href="https://x.com/jonnyzzz" title="Eugene Petrenko on X" target="_blank"><svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
