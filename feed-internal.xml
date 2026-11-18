@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-11-17T17:31:06+00:00</updated>
+  <updated>2026-11-18T20:48:25+00:00</updated>
   <id>https://jonnyzzz.com/</id>
 
   
@@ -17,6 +17,176 @@
   
 
   
+  
+  <entry>
+    <title type="html">What If Rewriting Software Becomes Cheaper Than Maintaining It?</title>
+    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/11/18/rewriting-cheaper-than-maintaining/" rel="alternate" type="text/html" title="What If Rewriting Software Becomes Cheaper Than Maintaining It?" />
+    <published>2026-11-18T00:00:00+00:00</published>
+    <updated>2026-11-18T00:00:00+00:00</updated>
+    <id>https://jonnyzzz.com/blog/2026/11/18/rewriting-cheaper-than-maintaining</id>
+    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/11/18/rewriting-cheaper-than-maintaining/">&lt;p&gt;Today I was discussing the cost of maintaining software with a friend. We both come from software engineering
+backgrounds. We quickly started talking about architecture and maintainability. And then we wondered whether
+our experience was getting in the way.&lt;/p&gt;
+
+&lt;p&gt;We assume code is expensive. We design it so that someone can maintain it for years.
+What happens if writing it again becomes cheaper?&lt;/p&gt;
+
+&lt;h2 id=&quot;a-project-that-just-works&quot;&gt;A Project That Just Works&lt;/h2&gt;
+
+&lt;p&gt;Imagine someone builds a seasonal (reporting) application for your company. An internal tool, maybe external,
+used a few times a year.
+The developer uses AI Agents to implement most, perhaps all, of it.&lt;/p&gt;
+
+&lt;p&gt;The result works. It’s tested. There might still be bugs, questionable architecture, or code that experienced engineers
+would never approve. But it solves the business problem. Users are happy&lt;/p&gt;
+
+&lt;p&gt;They need their report. They probably don’t care whether the application follows SOLID principles or uses our favorite
+framework. Those choices matter when they affect the result.&lt;/p&gt;
+
+&lt;p&gt;A year passes. The application needs changes, and the original developer is no longer available. What do you do?&lt;/p&gt;
+
+&lt;h2 id=&quot;our-first-instinct-maintainability&quot;&gt;Our First Instinct: Maintainability&lt;/h2&gt;
+
+&lt;p&gt;Was the architecture designed properly? Can another engineer understand and safely extend it?
+We started discussing frameworks, documentation, and the skills the next developer would need.
+That was our first instinct too&lt;/p&gt;
+
+&lt;p&gt;I spent &lt;a href=&quot;/blog/2024/09/17/Eugene-20-years/&quot;&gt;22 years at JetBrains&lt;/a&gt; building developer tools,
+creating products, and leading engineering teams.
+Much of that work was about helping people understand, maintain, and evolve software. This is how I’ve learned to think.&lt;/p&gt;
+
+&lt;p&gt;But for this small application, &lt;strong&gt;what if we’re solving yesterday’s problem?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;in-2027-why-not-just-ask-an-agent&quot;&gt;In 2027, Why Not Just Ask an Agent?&lt;/h2&gt;
+
+&lt;p&gt;Imagine revisiting that application in 2027. We could try either approach. Would one even attempt reading
+the code without AI?&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Option 1: Maintain the existing implementation.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Ask an AI Agent to understand the codebase, identify where the changes belong, implement them, and verify the results.
+Perhaps we don’t need the original developer, or another engineer who already knows this framework deeply.
+We still need someone who can judge whether the change is correct&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Option 2: Rewrite the application.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;If the architecture gets in the way, dependencies are outdated, or the changes don’t fit the design, we could try this:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Ask an AI Agent to analyze the existing application and extract its specifications.&lt;/li&gt;
+  &lt;li&gt;Recover the business rules, edge cases, and expected behavior.&lt;/li&gt;
+  &lt;li&gt;Update the specifications with the new requirements.&lt;/li&gt;
+  &lt;li&gt;Review the specifications yourself or with another AI Agent.&lt;/li&gt;
+  &lt;li&gt;Ask AI Agents to implement the application again.&lt;/li&gt;
+  &lt;li&gt;Validate the new implementation against the old behavior and the updated requirements.&lt;/li&gt;
+  &lt;li&gt;Migrate existing data if necessary, verify the result, and deploy.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;The challenging part is recovering what the application actually does. The code may contain undocumented business rules.
+It may also contain bugs we don’t want to reproduce. A new implementation can introduce its own bugs.
+Comparing the two gives us evidence, but we still have to decide which behavior is correct.&lt;/p&gt;
+
+&lt;p&gt;For small enough project, could doing all of this cost less than understanding and maintaining the implementation?
+I think that is becoming a realistic option. It is a hypothesis we need to test with actual costs.&lt;/p&gt;
+
+&lt;h2 id=&quot;remember-rewrite-it-in-rust&quot;&gt;Remember “Rewrite It in Rust”?&lt;/h2&gt;
+
+&lt;p&gt;“Rewrite It in Rust”, or RIIR, is a familiar idea and a meme. &lt;a href=&quot;https://docs.astral.sh/ruff/&quot;&gt;Ruff&lt;/a&gt;
+and &lt;a href=&quot;https://astral.sh/blog/uv&quot;&gt;uv&lt;/a&gt; are examples of new Rust implementations of familiar tooling concepts.
+They are useful parallels, rather than examples of the AI workflow above.&lt;/p&gt;
+
+&lt;p&gt;The usual argument for a rewrite is that we get something better: performance, memory safety, reliability,
+or an architecture that fits the problem. Rewriting costs enough that we need to justify the investment.&lt;/p&gt;
+
+&lt;p&gt;If AI Agents reduce the cost of implementation far enough, the calculation changes.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;We might rewrite simply because it costs less than maintaining what we already have.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I would expect this to become practical first for small applications, internal tools, prototypes,
+and relatively isolated business workflows.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-becomes-valuable-when-code-becomes-cheap&quot;&gt;What Becomes Valuable When Code Becomes Cheap?&lt;/h2&gt;
+
+&lt;p&gt;We protect source code, document it, refactor it, and invest in keeping it maintainable.
+But what would we need if we wanted to reproduce this application next year?&lt;/p&gt;
+
+&lt;p&gt;The requirements, business rules, test cases, data models, expected behavior, and the reasons behind product decisions.
+Also the conversations and prompts that helped us discover them.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Version your prompts, requirements, conversations, and decisions. Keep the acceptance tests.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;An archive of every AI conversation is not automatically a specification. We still need reliable description of the
+product: what was agreed, what changed, and which behavior the tests should verify. The existing code remains useful
+evidence, especially where that description is incomplete.&lt;/p&gt;
+
+&lt;p&gt;If we can regenerate the implementation, this knowledge becomes the part we can least afford to lose.&lt;/p&gt;
+
+&lt;h2 id=&quot;does-architecture-still-matter&quot;&gt;Does Architecture Still Matter?&lt;/h2&gt;
+
+&lt;p&gt;Yes. I wouldn’t casually rewrite a banking platform, a large distributed system, or safety-critical infrastructure.
+Complex integrations, security, compliance, persistent data, performance, and accumulated business logic still have
+to be understood and verified. AI Agents don’t make that work disappear.&lt;/p&gt;
+
+&lt;p&gt;Even the seasonal reporting tool needs reliable testing and deployment. Its data may matter a lot to its users.
+The cost of a rewrite includes recovering behavior, reviewing it, migrating data, and operating the replacement.
+Generating code is only one part of the comparison.&lt;/p&gt;
+
+&lt;p&gt;Still, a reporting tool used by ten people and a platform serving millions are different engineering problems.
+Maybe we overengineer some small projects because we assume writing code will remain the expensive part.
+Users want an application that works today and can adapt when their needs change. Architecture should help us do that.&lt;/p&gt;
+
+&lt;h2 id=&quot;from-writing-code-to-delivering-outcomes&quot;&gt;From Writing Code to Delivering Outcomes&lt;/h2&gt;
+
+&lt;p&gt;In January, I wrote about &lt;a href=&quot;/blog/2026/01/27/coding-in-english-with-ai/&quot;&gt;coding in English with AI&lt;/a&gt;.
+Recently I’ve seen a linter for English – &lt;a href=&quot;https://serejke.github.io/stelint-site/&quot;&gt;stelint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;This is the next question for me. If AI Agents can implement, test, debug, and eventually regenerate applications,
+more of our work moves to defining what needs to exist, how it should behave, and how we can prove it works.&lt;/p&gt;
+
+&lt;p&gt;After 22 years at JetBrains, this is where I’m focusing my work: AI-native developer tools such as
+&lt;a href=&quot;https://devrig.dev/&quot;&gt;devrig&lt;/a&gt; and &lt;a href=&quot;https://run-agent.sh/&quot;&gt;run-agent.sh&lt;/a&gt;, and how multiple AI Agents can collaborate
+on engineering problems.&lt;/p&gt;
+
+&lt;p&gt;I also work independently with founders and engineering teams on AI engineering, developer tools,
+0→1 product development, and technical leadership. I want to help teams find where AI Coding changes how they build
+and deliver software. If you are trying this with your own applications, I’d like to compare experiences.
+You can find my work and consulting at &lt;a href=&quot;https://jonnyzzz.com/services/&quot;&gt;jonnyzzz.com/services&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;what-will-2027-look-like&quot;&gt;What Will 2027 Look Like?&lt;/h2&gt;
+
+&lt;p&gt;I don’t know whether rewriting will become the default way to maintain applications or libraries.
+But I think it could become an ordinary option in our engineering decisions.&lt;/p&gt;
+
+&lt;p&gt;Our old assumption: code is expensive, so we design it for long-term maintenance.
+If code becomes cheap, understanding requirements and verifying outcomes may still be expensive.
+That changes what we should preserve, and what we can afford to generate again&lt;/p&gt;
+
+&lt;p&gt;Will you maintain your small software projects in 2027, or simply regenerate them?&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="software-engineering" />
+  
+    <category term="skills" />
+  
+    <summary type="html">What if a complete rewrite becomes cheaper than maintaining a small application? Requirements, business rules, and acceptance tests may become the assets worth preserving.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">Install, Launch, Update: Shipping a CLI on Five Platforms — the devrig Approach</title>
@@ -4306,534 +4476,6 @@ directly it shapes what &lt;code class=&quot;language-plaintext highlighter-roug
     <category term="cli" />
   
     <summary type="html">The obvious way to connect an AI Agent to a running IntelliJ is an HTTP MCP server inside the IDE. I built it, shipped it, and used it daily — and it kept breaking on real workstations: dynamic ports, start-order lottery, multiple IDEs, and the agent-up/IDE-down dead end. Here is why I moved the whole thing to stdio and a CLI coordinator called devrig, and what the journey taught me.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">130 Release-Roadmap Issues, 818 Agent Runs: A Mid-Iteration Reality Check</title>
-    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/04/28/ai-agent-roadmap-research/" rel="alternate" type="text/html" title="130 Release-Roadmap Issues, 818 Agent Runs: A Mid-Iteration Reality Check" />
-    <published>2026-04-28T00:00:00+00:00</published>
-    <updated>2026-04-28T00:00:00+00:00</updated>
-    <id>https://jonnyzzz.com/blog/2026/04/28/ai-agent-roadmap-research</id>
-    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/04/28/ai-agent-roadmap-research/">&lt;p&gt;Every product team running toward a release has the same artifact: a roadmap. Not the whole
-backlog — the &lt;strong&gt;umbrella epic for the next release&lt;/strong&gt;, with a hundred-plus sub-issues hanging off
-it. Most are stubs: a title, a description, maybe some comments. No implementation plan. No
-code-level analysis. No effort estimate. No dependency map.&lt;/p&gt;
-
-&lt;p&gt;A senior engineer researching one such issue typically spends 2–4 hours: reading the codebase,
-understanding the architecture, scoping the change, writing it up as an actionable spec. For a
-release roadmap of 130+ issues against a multi-million-line codebase, that’s weeks of analyst
-work before anyone writes a single line of code.&lt;/p&gt;
-
-&lt;p&gt;We ran an AI agent swarm instead — &lt;strong&gt;three different agent CLIs, Claude, Codex, and Gemini&lt;/strong&gt;,
-orchestrated together. Four calendar days. 818 agent runs. ~$576 total cost. Every roadmap issue
-researched. Then, &lt;strong&gt;while the release was still in flight&lt;/strong&gt;, we ran a second pass to check the
-research against what the team was actually doing — explicitly &lt;em&gt;not&lt;/em&gt; a “did it ship” scorecard,
-because nothing was expected to be done yet. Here’s how it works, what it produced, and the
-honest verdict.&lt;/p&gt;
-
-&lt;h2 id=&quot;its-a-release-roadmap-and-there-is-a-process&quot;&gt;It’s a release roadmap, and there is a process&lt;/h2&gt;
-
-&lt;p&gt;This was not “point a swarm at a backlog and see what happens.” It was a release roadmap, and the
-swarm followed a defined process, orchestrated by a root agent that does as little work as
-possible and delegates everything:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Collect.&lt;/strong&gt; Pull every unresolved sub-issue of the release umbrella epic from the issue
-tracker (through a small tracker CLI we built). Pick the product-requirements (PRD-prefixed)
-issues and the engineering issues, and reconstruct the &lt;strong&gt;tree of linked sub-issues&lt;/strong&gt; for each root — the
-dependency graph matters as much as the issues themselves.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Research.&lt;/strong&gt; Run each issue through the multi-round pipeline below.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Review by quorum.&lt;/strong&gt; When a root issue is done, or whenever a decision is unclear, spin up
-&lt;strong&gt;three review agents&lt;/strong&gt; and take the quorum verdict — not one model’s opinion.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Loop.&lt;/strong&gt; Keep going in a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/loop&lt;/code&gt; until the roadmap is covered, applying the same principle
-recursively: the orchestrator delegates, the sub-agents do the work.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;The whole thing runs on &lt;a href=&quot;https://run-agent.sh&quot;&gt;run-agent.sh&lt;/a&gt; and the &lt;a href=&quot;/blog/2026/01/05/rlm-multi-agent-orchestration/&quot;&gt;RLM methodology&lt;/a&gt; — one task
-per agent, fresh context, markdown files carrying state between them.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-pipeline-r1--r2--r3&quot;&gt;The Pipeline: R1 → R2 → R3&lt;/h2&gt;
-
-&lt;p&gt;Each issue goes through three rounds of agent work. Two issues run in parallel at all times, with
-the shell orchestration managing dispatch, detecting completion, skipping already-researched
-issues, and retrying agents that time out.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Round 1 (Claude)&lt;/strong&gt; reads the issue text, explores the codebase using &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;,
-and produces a first-draft research document: problem framing, relevant source files with class
-and method references, and 2–3 solution options. Each option includes a complexity rating
-(Low / Med / High), effort estimate (S / M / L / XL), key changes, test strategy, and a trade-offs
-table.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Round 2 (Codex)&lt;/strong&gt; validates every file reference from Round 1 against the actual codebase. It
-finds exact line numbers, checks git history for recent changes to the relevant files, and flags
-edge cases Round 1 missed. Every file reference gets a validation status: confirmed, renamed, or
-not found. This is the mechanical correctness pass.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Round 3 (Claude)&lt;/strong&gt; synthesises Round 1 + Round 2, resolves conflicts, and writes the final
-recommendation: a concrete implementation plan with validated code references, a test strategy,
-and follow-up work.&lt;/p&gt;
-
-&lt;p&gt;Claude for R1/R3 and Codex for R2 reflects what each model does well in practice. R2 is largely
-mechanical — check that this file exists, find this class, confirm this method — and Codex handles
-that efficiently. R1 and R3 require reasoning across options and writing a coherent
-recommendation, where Claude produces better outputs. Gemini was in the swarm too, mostly in the
-review quorum (more on its small share below).&lt;/p&gt;
-
-&lt;h2 id=&quot;the-tools&quot;&gt;The Tools&lt;/h2&gt;
-
-&lt;p&gt;Three things make this pipeline work at scale.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://run-agent.sh&quot;&gt;run-agent.sh&lt;/a&gt;&lt;/strong&gt; is the orchestration script that launches Claude, Codex, and
-Gemini in isolated sub-processes. Each run gets its own
-timestamped directory: exact prompt, full stdout/stderr capture, PID tracking, exit codes. Full
-traceability for every agent execution. The shell orchestration loops over TASK files, detects
-completion by checking output files, skips already-researched issues, and retries timeouts. See
-the &lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;full description here&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;&lt;/strong&gt; gives agents programmatic access
-to the full codebase: PSI navigation, class resolution, call graph tracing, symbol search. Without
-it, agents produce vague references like “look in the parser module” or “check the rendering
-pipeline”. With it, they produce specific class names, method signatures, and
-line ranges — navigating the actual PSI tree and resolving inheritance chains. This is the
-difference between a summary and a useful research document.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;TASK* files&lt;/strong&gt; are structured task definitions written once and consumed by many agents (they
-carry no extension — the orchestration matches &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TASK&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;TASK-2&lt;/code&gt;, and friends by name). The shell
-script loops over them and dispatches agent runs accordingly. The format is simple and consistent
-enough that agents parse it without extra tooling. Here are the actual task files that drove the
-run (generalized — internal identifiers removed):&lt;/p&gt;
-
-&lt;details&gt;
-  &lt;summary&gt;&lt;strong&gt;TASK&lt;/strong&gt; — collect the roadmap and orchestrate&lt;/summary&gt;
-
-  &lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Your main goal is to collect all the relevant issues from the release-roadmap umbrella epic
-in our issue tracker (query: all unresolved sub-tasks of the release epic).
-
-Use our small issue-tracker CLI to read the tracker. If it lacks a feature or fails, start
-run-agent.sh with a task to fix it. Equip that agent with THE_PROMPT_v5.md from
-https://run-agent.sh to research, fix, review, deploy, and build the fix to the CLI, so you
-can move on. Repeat that process as many times as you need.
-
-Pick all tasks with the PRD* prefix and the engineering tasks for the product without the
-prefix. For each task create a &amp;lt;task-id&amp;gt;.md document with discussion. Each such task has a
-tree of linked tasks, which you need to include in the document. I want the graph of linked
-sub-tasks for each root task.
-
-Do that work in parallel using https://jonnyzzz.com/RLM.md. Our main goal is descriptive
-write-ups for all selected tasks, and the related/linked issue tree.
-
-Once a selected root issue is done, start 3 agents with run-agent.sh to review the work and
-do the fixes.
-
-Repeat that work in a /loop until the work is complete. You are the root agent; your main
-goal is to orchestrate the research, do as little actual work as possible, and delegate
-everything to run-agent.sh, as suggested in RLM.md and THE_PROMPT_v5.md. Apply it recursively.
-
-When not clear, start 3x run-agents and make the quorum decisions.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-
-&lt;/details&gt;
-
-&lt;details&gt;
-  &lt;summary&gt;&lt;strong&gt;TASK-2&lt;/strong&gt; — the research group of five&lt;/summary&gt;
-
-  &lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Now create a research group of 5 agents running on the target codebase, each via
-run-agent.sh. Our goal is to research each task as deeply as possible and provide 3 potential
-ways of solving it. Use MCP Steroid to work on the assignment. Since there are far too many
-tasks, prepare all the prompts in the prompts/ folder and a run script that calls all agents
-on all tasks. For each task, 3 runs: claude -&amp;gt; codex -&amp;gt; claude. Each run includes the same
-run-agent.sh and THE_PROMPT_v5.md, and refers to MCP Steroid&apos;s AGENTS.md as the usage guide.
-Write all the outcomes to the issue-id.md file respectively. Make each agent use run-agent.sh
-to research different parts of the monorepo. Your goal is to delegate and manage the process;
-set up a /loop so we keep running and don&apos;t stop. Work one issue at a time. For issues with
-linked issues, prefer the leaf issues first; create a dedicated file like
-issue-id-leaf-another-issue-id.md and place details there. Include a high-level overview in
-the initial issue.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-
-&lt;/details&gt;
-
-&lt;details&gt;
-  &lt;summary&gt;&lt;strong&gt;TASK-3&lt;/strong&gt; — close the gap on the stub issues&lt;/summary&gt;
-
-  &lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;## Goal
-Research all remaining .md files in this directory that have no proposed solutions yet
-(53 standalone stubs with only tracker metadata, plus 2 leaf files missing solutions).
-
-For each issue:
-1. Check tracker status via our issue-tracker CLI — if already resolved/closed, append
-   &quot;Status: Resolved&quot; and skip deep research.
-2. Check for sufficient information — if the description is primarily marketing/strategy
-   language with no concrete technical requirements (no user-facing behaviour, no API
-   contract, no acceptance criteria), append &quot;Status: Insufficient information — PRD lacks
-   technical detail&quot; and list what is missing. Do NOT fabricate solutions for thin PRDs.
-3. If still open and detailed enough, run the full R1 -&amp;gt; R2 -&amp;gt; R3 pipeline
-   (claude -&amp;gt; codex -&amp;gt; claude) via run-agent.sh, writing solutions into the issue&apos;s .md file.
-
-Each agent fetches the latest issue description from the tracker before researching. Apply
-THE_PROMPT_v5.md from https://run-agent.sh and use MCP Steroid to research the monorepo. Work
-2 issues in parallel. The process may already be running — check existing .md sizes before
-launching agents (skip if a file already has solution sections).
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-
-&lt;/details&gt;
-
-&lt;details&gt;
-  &lt;summary&gt;&lt;strong&gt;TASK-4&lt;/strong&gt; — the mid-iteration snapshot&lt;/summary&gt;
-
-  &lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Your goal now is to run a snapshot review of the investigation. Time has passed since the
-original research, and the release is still in flight — so we should be able to see what has
-moved, how the team approached features, and which approaches were selected, without expecting
-anything to be finished.
-
-For each suggested ticket, run a batch of run-agent.sh agents to review whether and how it was
-addressed. Learn from each decision and compare it against the options we proposed.
-
-Use RLM.md, run-agent.sh, and any other tools to assess all the tickets. For more context and
-approaches, look at the other TASK*.md files in this folder; they contain the necessary
-information and approaches you should re-use.
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;  &lt;/div&gt;
-
-&lt;/details&gt;
-
-&lt;h2 id=&quot;the-numbers&quot;&gt;The Numbers&lt;/h2&gt;
-
-&lt;p&gt;Here’s what the full run produced:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Metric&lt;/th&gt;
-      &lt;th&gt;Value&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Issues analyzed&lt;/td&gt;
-      &lt;td&gt;130+&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Agent runs total&lt;/td&gt;
-      &lt;td&gt;818&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Codex runs&lt;/td&gt;
-      &lt;td&gt;322 (~39%)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Claude runs&lt;/td&gt;
-      &lt;td&gt;318 (~39%)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Gemini runs&lt;/td&gt;
-      &lt;td&gt;12 (~1%)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Other / unattributed (orchestration, review, retries)&lt;/td&gt;
-      &lt;td&gt;166 (~20%)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Total token consumption&lt;/td&gt;
-      &lt;td&gt;~155–200M tokens&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Total cost (API prices)&lt;/td&gt;
-      &lt;td&gt;~$576 (~$315 Codex, ~$259 Claude)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Cost per fully-researched issue&lt;/td&gt;
-      &lt;td&gt;~$5 (~$576 / 120)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Calendar days&lt;/td&gt;
-      &lt;td&gt;4 (overnight gaps)&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Issues with full 3-round research&lt;/td&gt;
-      &lt;td&gt;120&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Total output&lt;/td&gt;
-      &lt;td&gt;52,162 lines&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Average output per issue&lt;/td&gt;
-      &lt;td&gt;~435 lines&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Issues found already implemented&lt;/td&gt;
-      &lt;td&gt;9&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Issues flagged as directly implementable&lt;/td&gt;
-      &lt;td&gt;~39%&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;A few of those numbers deserve commentary.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Three agents, very uneven shares.&lt;/strong&gt; Codex and Claude split the pipeline almost evenly. Gemini
-landed at ~1% (12 runs) — not because of model quality, but because it kept tripping over filesystem
-&lt;strong&gt;sandbox path restrictions&lt;/strong&gt; in this setup and we fell back to the other two rather than fight
-it mid-run. Worth knowing if you’re planning a three-CLI swarm: the orchestration is easy; the
-per-CLI sandbox and auth quirks are what actually cost you time.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;~$5 per issue.&lt;/strong&gt; ~$576 across 120 fully-researched issues — the cost of 2–4 hours of senior
-engineer analysis, done in roughly 90 minutes of wall-clock time per issue (two pipelines in
-parallel). At any reasonable engineer billing rate, the economics aren’t close.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;9 issues already implemented.&lt;/strong&gt; During research, agents cross-referenced issue descriptions
-against the current codebase and found nine cases where the requested functionality already
-existed — implemented at some point without closing the ticket. Catching this early avoids days
-of duplicated work.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;120 of 130+ got full 3-round research.&lt;/strong&gt; The initial four-day swarm covered 65 issues; a later
-pass researched the 55 remaining stubs — 8h49m of continuous execution, two parallel workers, no
-API failures — bringing the total to 120. (Peak concurrency
-was only two workers, with a long overnight idle gap; there’s easy throughput left on the table.)&lt;/p&gt;
-
-&lt;h2 id=&quot;what-the-output-looks-like&quot;&gt;What the Output Looks Like&lt;/h2&gt;
-
-&lt;p&gt;This is not summarization. It’s the analyst work a senior engineer does before writing code. A
-typical fully-researched issue document contains:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;A &lt;strong&gt;problem framing&lt;/strong&gt; section: what the issue requests, what the codebase does instead, where the
-gap is&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;File:class:method references&lt;/strong&gt; with line numbers — confirmed by R2 against the actual repository&lt;/li&gt;
-  &lt;li&gt;A &lt;strong&gt;git history note&lt;/strong&gt; on recent changes to those files — flagging active areas where merge risk
-is higher&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Two or three solution options&lt;/strong&gt;, each with complexity, effort, key changes, test strategy, and a
-trade-offs table&lt;/li&gt;
-  &lt;li&gt;A &lt;strong&gt;validation section&lt;/strong&gt; from Round 2: which references were confirmed, which were corrected,
-which edge cases were added&lt;/li&gt;
-  &lt;li&gt;A &lt;strong&gt;final recommendation&lt;/strong&gt; from Round 3 with rationale, implementation sequence, and follow-up work&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;When the output is good, a team lead reads it in 15–20 minutes and makes a prioritization decision
-with full context. The shift is real: from “I need half a day to understand this issue before I can
-scope it” to “I need to review what the agent found and decide which option makes sense.”&lt;/p&gt;
-
-&lt;h2 id=&quot;a-mid-iteration-snapshot-not-a-postmortem&quot;&gt;A Mid-Iteration Snapshot, Not a Postmortem&lt;/h2&gt;
-
-&lt;p&gt;Here is the part that’s easy to get wrong. After the research, while the release was &lt;strong&gt;still in
-flight&lt;/strong&gt;, we ran a second pass against the same roadmap — same orchestration, same MCP Steroid,
-same &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; — asking a different question. Not “what should we implement,” but “what is the
-team actually doing, and how does it compare to what we proposed?”&lt;/p&gt;
-
-&lt;p&gt;This is a &lt;strong&gt;mid-iteration snapshot&lt;/strong&gt;, and the framing matters: at the time of the check, &lt;strong&gt;nothing
-was expected to be finished.&lt;/strong&gt; The release hadn’t shipped. So this is not a scorecard of “did the
-research come true.” It’s a directional read — a chance to see, on the issues where work &lt;em&gt;had&lt;/em&gt;
-started, whether the research pointed the right way.&lt;/p&gt;
-
-&lt;p&gt;The snapshot was map-reduce: one agent per issue (refetch status, scan git history for related
-commits, compare proposal vs. current direction), then a thematic reduce across about eight
-subsystem groupings, then a final reduce into a single lessons document. Same RLM principle — one
-task per agent, fresh context, markdown carries state — with two reduce stages because the input
-was too large for one synthesis pass.&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Snapshot outcome (138 items, incl. parent/leaf)&lt;/th&gt;
-      &lt;th&gt;Share&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Work landed — matched the proposal&lt;/td&gt;
-      &lt;td&gt;5%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Work landed — diverged from the proposal&lt;/td&gt;
-      &lt;td&gt;33%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;In progress&lt;/td&gt;
-      &lt;td&gt;23%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Still open — proposal still valid&lt;/td&gt;
-      &lt;td&gt;27%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Abandoned / obsolete&lt;/td&gt;
-      &lt;td&gt;11%&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Insufficient PRD — never actionable&lt;/td&gt;
-      &lt;td&gt;1%&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;Read against a finished release, “5% matched” would look brutal. Read as a mid-cycle snapshot, it’s
-the wrong number to fixate on — because of what “diverged” means for the other 33%. In most diverged
-cases the agent identified the right root cause or dependency, but maintainers chose a different
-implementation layer, scope, or product shape. The research was directionally right, even if the
-patch landed elsewhere — in an adjacent caller, an integration layer, or a shared platform surface
-rather than where it pointed.&lt;/p&gt;
-
-&lt;p&gt;That reframes what the pipeline is for. The output is &lt;strong&gt;not&lt;/strong&gt; a patch location to apply as-is. It’s
-a structured comparison of options plus an identification of root cause and dependencies. The hit
-rate is the wrong metric; the value is in the framing and the dependency map.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-we-learned&quot;&gt;What We Learned&lt;/h2&gt;
-
-&lt;h3 id=&quot;some-solutions-arent-viable--even-after-three-review-rounds&quot;&gt;Some solutions aren’t viable — even after three review rounds&lt;/h3&gt;
-
-&lt;p&gt;This is the uncomfortable one. A non-trivial share of recommendations were simply &lt;strong&gt;not good&lt;/strong&gt;, and
-three rounds of review didn’t save them. The agents over-technicalized product questions (treating
-“should we keep this feature” as an engineering task), confidently prescribed a local patch where
-the real decision was about ownership or release sequencing, overcomplicated easy tasks, and
-oversimplified hard ones. Three passes of a confident model reviewing another confident model can
-converge on a polished, plausible, &lt;strong&gt;wrong&lt;/strong&gt; answer. More rounds did not fix wrong framing.&lt;/p&gt;
-
-&lt;h3 id=&quot;agents-reject-their-own-options--then-keep-them-anyway&quot;&gt;Agents reject their own options — then keep them anyway&lt;/h3&gt;
-
-&lt;p&gt;The clearest tell came from a reviewer’s note. In one document, the agent had generated three
-solution options and &lt;strong&gt;explicitly marked the third “should not be implemented”&lt;/strong&gt; — and then left it in
-the final write-up. The agent’s own judgment said &lt;em&gt;no&lt;/em&gt;, and the option still shipped into the
-document, adding clutter a human had to read past. An output set that never drops the ideas its own
-author rejected isn’t a research report; it’s a transcript. The fix is mechanical: prune options
-the agent flags as non-viable before synthesis, instead of dutifully carrying every branch forward.&lt;/p&gt;
-
-&lt;h3 id=&quot;we-needed-an-adaptive-number-of-iterations-not-a-fixed-three&quot;&gt;We needed an &lt;em&gt;adaptive&lt;/em&gt; number of iterations, not a fixed three&lt;/h3&gt;
-
-&lt;p&gt;Three rounds was the wrong constant in both directions. For small, well-groomed issues with an
-obvious code seam, R1 alone was enough — R2 and R3 just reworded it. For cross-module, cross-repo,
-or product-gated issues, three rounds weren’t nearly enough to converge, and a fixed cap let
-unresolved disagreement get written up as a confident recommendation. The right design is an
-&lt;strong&gt;adaptive iteration count&lt;/strong&gt;: keep looping review-and-revise on a task until it &lt;em&gt;converges&lt;/em&gt; — until
-a fresh reviewer adds no new finding — and stop early when it already has. A product-gated task
-should short-circuit to “ask the owner,” not burn three deep-research passes on a moving foundation.&lt;/p&gt;
-
-&lt;h3 id=&quot;mcp-steroid-is-the-force-multiplier&quot;&gt;MCP Steroid is the force multiplier&lt;/h3&gt;
-
-&lt;p&gt;The gap between agent outputs with and without full codebase access is large. Without it, agents
-default to generic descriptions: “update the parser”, “check the rendering pipeline”. With
-&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt;, they navigate the actual PSI tree, resolve inheritance chains,
-and trace call graphs to find where a change propagates. That’s not a small specificity bump —
-it’s the difference between a useful document and
-a vague one. One pattern to fix: agents default to one file per MCP call; a small script that reads
-5–10 related files per call would cut round-trips and speed up R1 noticeably.&lt;/p&gt;
-
-&lt;h3 id=&quot;the-message-bus-was-useful-enough-to-graduate&quot;&gt;The message bus was useful enough to graduate&lt;/h3&gt;
-
-&lt;p&gt;Between rounds, findings flowed through a single append-only markdown file — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MESSAGE-BUS.md&lt;/code&gt;. Each
-agent wrote what it learned; later agents and the reducers read it back. It was the most reusable
-artifact of the whole run, and it has since &lt;strong&gt;graduated into the agent-orchestration framework we
-use elsewhere&lt;/strong&gt; as a first-class, append-only, typed protocol — messages carry a type (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FACT&lt;/code&gt;,
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DECISION&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;QUESTION&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ANSWER&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PROGRESS&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ERROR&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;BLOCKER&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;COMPLETE&lt;/code&gt;), an id, and a
-back-reference, so a swarm can coordinate without a shared database. The honest caveat: because
-parent and leaf tickets often referenced the same root problem, the bus filled with duplicates —
-so any reducer has to &lt;strong&gt;dedupe by the underlying issue&lt;/strong&gt; before drawing conclusions, or it
-double-counts.&lt;/p&gt;
-
-&lt;h3 id=&quot;codex-buffers-all-output&quot;&gt;Codex buffers all output&lt;/h3&gt;
-
-&lt;p&gt;Codex streams its progress to stderr and writes nothing to its stdout file until the run
-completes. A monitor that watches the stdout file size will conclude a running Codex agent is
-stuck. It isn’t — it’s thinking. Check the process PID (or stderr), not the stdout file size. We
-spent more time than we’d like to admit investigating “stalled” agents that were running normally.
-It’s already improved in the recent version of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;run-agent.sh&lt;/code&gt; where we run agents with a verbose mode,
-NDJSON outout, and better monitoring of file sizes.&lt;/p&gt;
-
-&lt;h3 id=&quot;cost-is-not-the-constraint--human-review-is&quot;&gt;Cost is not the constraint — human review is&lt;/h3&gt;
-
-&lt;p&gt;At ~$5 per fully-researched issue, cost doesn’t register for any team with a real roadmap. The constraint is human
-review bandwidth: the pipeline produced ~435 lines per issue, 52,000+ lines total, all waiting for
-judgment. Designing the output format for fast human review matters far more than shaving a dollar
-off the per-issue cost.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-human-verdict-honestly&quot;&gt;The Human Verdict, Honestly&lt;/h2&gt;
-
-&lt;p&gt;A senior product lead reviewed the output and gave a blunt read, which I’ll paraphrase because it’s
-the most useful thing in this whole post. Handing this research — with its implementation advice —
-straight to junior, mid, or even early-senior engineers is &lt;strong&gt;dangerous&lt;/strong&gt;, because the agents:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;describe even complete nonsense very convincingly, instead of saying &lt;em&gt;“I don’t have enough
-information, I give up”&lt;/em&gt;;&lt;/li&gt;
-  &lt;li&gt;charge ahead researching a technical solution without thinking about the product side;&lt;/li&gt;
-  &lt;li&gt;overcomplicate easy things and oversimplify hard ones.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;His conclusion: this kind of mass research is something you show a &lt;strong&gt;product lead plus a tech
-lead&lt;/strong&gt; for a fast review — people with enough context to validate or dismiss it quickly, and who,
-frankly, would have gotten there without the research anyway. The genuine upside: for small,
-well-groomed tasks where the product direction is settled, the output is exactly the spec an
-implementation pipeline can run with.&lt;/p&gt;
-
-&lt;p&gt;He also flagged the small, human things the agents missed and the ones they nailed: handle
-externally-reported issues more cautiously (have a human confirm before acting, and check whether
-the product already does the requested thing); and &lt;strong&gt;diagrams and flow charts are genuinely
-helpful&lt;/strong&gt; — the kind a senior draws by hand to think, and the kind the agents should produce more
-of.&lt;/p&gt;
-
-&lt;p&gt;The honest position: agent research is a tool for &lt;strong&gt;senior judgment to operate on&lt;/strong&gt;, not a
-substitute for it.&lt;/p&gt;
-
-&lt;h2 id=&quot;whats-next&quot;&gt;What’s Next&lt;/h2&gt;
-
-&lt;p&gt;The changes the snapshot points to — none of which remove the senior human from the loop:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Product-state precheck&lt;/strong&gt; before deep research — assignee, fix version, recent human comments,
-decision state — so product-gated issues short-circuit instead of getting three rounds.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Adaptive iteration count&lt;/strong&gt; — loop review-and-revise until convergence, not a fixed three.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Prune agent-rejected options&lt;/strong&gt; before synthesis.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Mandatory alternate-layer enumeration&lt;/strong&gt; — at least one plausible alternate implementation
-surface per recommendation, with the rationale for the recommended one.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;External-repo scanning&lt;/strong&gt; for build/CI/release issues, which often land in adjacent repos.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Dedupe by underlying issue&lt;/strong&gt; before any reduce.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;The bulk-implementation idea survives the snapshot. For the subset of issues where the product
-direction is settled, the paths still hold, and the change is self-contained, the same pipeline can
-keep going — R4 implements from the R3 spec, R5 reviews and validates tests, R6 does a final
-integration check — closing the loop from issue stub to pull request, without the over-confident
-handoffs the first round would have produced.&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;p&gt;The pipeline is built on tools I’ve written about before: &lt;a href=&quot;https://run-agent.sh&quot;&gt;run-agent.sh&lt;/a&gt; for agent
-execution, &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com&quot;&gt;MCP Steroid&lt;/a&gt; for codebase access, and the &lt;a href=&quot;/blog/2026/01/05/rlm-multi-agent-orchestration/&quot;&gt;RLM methodology&lt;/a&gt;
-for keeping context manageable. What this experiment adds is evidence that they work together at
-scale — not for a handful of issues, but for an entire release roadmap — and an honest account of
-where the output needs a senior human in the loop.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Questions about the pipeline or running research swarms at scale?&lt;/strong&gt;
-Find me on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;X&lt;/a&gt;.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="ai-agents" />
-  
-    <category term="ai-coding" />
-  
-    <category term="multi-agent" />
-  
-    <category term="orchestration" />
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="run-agent" />
-  
-    <summary type="html">We turned one release&apos;s roadmap — 130+ umbrella-epic issues — into fully-researched implementation specs using a swarm of three different agent CLIs (Claude, Codex, Gemini): 818 runs, ~155M+ tokens, ~$576, four days. Then, mid-release-cycle, we ran a snapshot to compare the research against reality — with no expectation that anything was &quot;done&quot; yet. Here is the pipeline, the numbers, and the honest verdict.</summary>
   
   </entry>
   
