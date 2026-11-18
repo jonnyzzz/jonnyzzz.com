@@ -2,7 +2,7 @@
 
 **Date:** November 18, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, ai-coding, software-engineering, skills
+**Tags:** ai-agents, ai-coding, software-engineering, skills, disposable-software
 
 ---
 
@@ -142,3 +142,5 @@ If code becomes cheap, understanding requirements and verifying outcomes may sti
 That changes what we should preserve, and what we can afford to generate again
 
 Will you maintain your small software projects in 2027, or simply regenerate them?
+
+**Are we getting to disposable software?**
