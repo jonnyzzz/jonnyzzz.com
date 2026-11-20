@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-11-18T21:02:42+00:00</updated>
+  <updated>2026-11-20T14:44:37+00:00</updated>
   <id>https://jonnyzzz.com/</id>
 
   
@@ -17,6 +17,170 @@
   
 
   
+  
+  <entry>
+    <title type="html">Disposable Software – Abstractions Are the Complexity?</title>
+    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/11/20/complexity-abstractions/" rel="alternate" type="text/html" title="Disposable Software -- Abstractions Are the Complexity?" />
+    <published>2026-11-20T00:00:00+00:00</published>
+    <updated>2026-11-20T00:00:00+00:00</updated>
+    <id>https://jonnyzzz.com/blog/2026/11/20/complexity-abstractions</id>
+    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/11/20/complexity-abstractions/">&lt;p&gt;In the &lt;a href=&quot;/blog/2026/11/18/rewriting-cheaper-than-maintaining/&quot;&gt;previous post&lt;/a&gt; we discussed
+whether rewriting software could become cheaper than maintaining it. This time I want to look
+at &lt;a href=&quot;https://en.wikipedia.org/wiki/Abstraction_(computer_science)&quot;&gt;abstractions&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;abstractions&quot;&gt;Abstractions&lt;/h2&gt;
+
+&lt;p&gt;Software engineering is full of abstractions. Consider the basic Internet. It starts with
+a browser, which uses &lt;a href=&quot;https://en.wikipedia.org/wiki/HTTP&quot;&gt;HTTP&lt;/a&gt; (of some version) to fetch the content
+of the page, next it deals with &lt;a href=&quot;https://en.wikipedia.org/wiki/HTML&quot;&gt;HTML&lt;/a&gt;,
+&lt;a href=&quot;https://en.wikipedia.org/wiki/JavaScript&quot;&gt;JavaScript&lt;/a&gt;, graphics,
+&lt;a href=&quot;https://en.wikipedia.org/wiki/Process_isolation&quot;&gt;process isolation&lt;/a&gt; and many things
+in the &lt;a href=&quot;https://en.wikipedia.org/wiki/Browser_engine&quot;&gt;browser engine&lt;/a&gt; to render a page for you,
+on your phone. HTTP usually runs over &lt;a href=&quot;https://en.wikipedia.org/wiki/Transmission_Control_Protocol&quot;&gt;TCP&lt;/a&gt;,
+or, with &lt;a href=&quot;https://www.rfc-editor.org/rfc/rfc9114.html&quot;&gt;HTTP/3&lt;/a&gt;,
+&lt;a href=&quot;https://en.wikipedia.org/wiki/QUIC&quot;&gt;QUIC&lt;/a&gt; over &lt;a href=&quot;https://en.wikipedia.org/wiki/User_Datagram_Protocol&quot;&gt;UDP&lt;/a&gt;.
+Underneath, we use &lt;a href=&quot;https://en.wikipedia.org/wiki/IPv4&quot;&gt;IPv4&lt;/a&gt; or &lt;a href=&quot;https://en.wikipedia.org/wiki/IPv6&quot;&gt;IPv6&lt;/a&gt;,
+stacked into the &lt;a href=&quot;https://en.wikipedia.org/wiki/Internet_protocol_suite&quot;&gt;Internet protocol suite&lt;/a&gt;.
+It all runs on top of &lt;a href=&quot;https://en.wikipedia.org/wiki/Operating_system&quot;&gt;operating systems&lt;/a&gt;, which are based on
+&lt;a href=&quot;https://en.wikipedia.org/wiki/Hardware_abstraction&quot;&gt;hardware abstractions&lt;/a&gt; and software abstractions.&lt;/p&gt;
+
+&lt;p&gt;My point here is to highlight that we accept complexity of some components or layers
+of our solutions. That is normal to assume that a basic Internet page just works, and
+most of the time we do not go beyond that abstraction to the deep technical details.&lt;/p&gt;
+
+&lt;p&gt;There are, of course, rare cases when one needs to dig as deep as possible to optimize
+their software and gain drastic improvements in performance, stability and other aspects.
+Joel Spolsky called it
+&lt;a href=&quot;https://www.joelonsoftware.com/2002/11/11/the-law-of-leaky-abstractions/&quot;&gt;The Law of Leaky Abstractions&lt;/a&gt; –
+every non-trivial abstraction leaks to some degree&lt;/p&gt;
+
+&lt;p&gt;I hit that when &lt;a href=&quot;/blog/2020/08/12/listing-files/&quot;&gt;listing files on macOS&lt;/a&gt; – it ended up
+in native APIs and system calls.&lt;/p&gt;
+
+&lt;p&gt;We accept complexity and abstractions when doing software.&lt;/p&gt;
+
+&lt;h2 id=&quot;ai-agents&quot;&gt;AI Agents&lt;/h2&gt;
+
+&lt;p&gt;With the rise of AI Agents I see another abstraction which comes into play.&lt;/p&gt;
+
+&lt;p&gt;Now you may not even know how your application works, or what code is written there. You may
+trust your AI Agents did the right work and covered it with enough tests. It can be
+specs, it may be no specs, it may just work. I wrote before that
+&lt;a href=&quot;/blog/2026/01/16/code-review-bottleneck/&quot;&gt;code review is the real bottleneck&lt;/a&gt;
+once AI Agents generate code faster than we can read it.&lt;/p&gt;
+
+&lt;p&gt;Of course, for more complex applications, people tend to understand, review, test,
+and manage AI-assisted changes. I want to share my own experience doing &lt;a href=&quot;https://devrig.dev/&quot;&gt;devrig.dev&lt;/a&gt;:&lt;/p&gt;
+
+&lt;p&gt;I have deep experience dealing with Java/Kotlin applications, IntelliJ API, and related
+backend/desktop software application stacks.
+And if I were to review the code – it would be a deep review with enough fixes and improvements.
+On the other hand, I can understand HTML, &lt;a href=&quot;https://en.wikipedia.org/wiki/CSS&quot;&gt;CSS&lt;/a&gt;, JavaScript,
+&lt;a href=&quot;https://en.wikipedia.org/wiki/TypeScript&quot;&gt;TypeScript&lt;/a&gt; and other web technologies, but I have much less
+experience to have a deep opinion on the code, given the code renders decently.
+I wrote more about devrig &lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-new-abstraction&quot;&gt;The New Abstraction&lt;/h2&gt;
+
+&lt;p&gt;With AI Agents, we can create
+&lt;a href=&quot;/blog/2026/11/18/rewriting-cheaper-than-maintaining/&quot;&gt;Disposable Software&lt;/a&gt; to solve problems faster.
+There is no requirement to fully understand that software, how it’s tested, and so on. We may trust
+and validate an AI Agent’s work.
+In my case, &lt;a href=&quot;/blog/2026/05/20/http-mcp-to-stdio-lessons/&quot;&gt;integration tests kept the MCP contract&lt;/a&gt;
+while AI Agents and I rewrote the transport.&lt;/p&gt;
+
+&lt;p&gt;Given that, I believe we are going to shift the abstraction level of complexity even further.&lt;/p&gt;
+
+&lt;p&gt;Just assume, you are running a service which does the work, it uses the database, and other tools
+internally to work. Or even &lt;a href=&quot;https://en.wikipedia.org/wiki/SAP_ERP&quot;&gt;SAP&lt;/a&gt; or
+&lt;a href=&quot;https://en.wikipedia.org/wiki/Spring_Framework&quot;&gt;Spring Framework&lt;/a&gt;. And you have no idea what’s inside.
+These are the implementation details, and such details are now hidden behind a new abstraction,
+very much like the classic &lt;a href=&quot;https://en.wikipedia.org/wiki/Information_hiding&quot;&gt;information hiding&lt;/a&gt; principle&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;With AI Agents we hide software implementation details behind the new abstraction level.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;complex-systems&quot;&gt;Complex Systems&lt;/h2&gt;
+
+&lt;p&gt;You may want to stop me and say that there are still huge and complex systems, which
+had been created for decades, such systems have way too many edge cases, and tricks, and
+details, and these are the details the business wants to keep untouched.&lt;/p&gt;
+
+&lt;p&gt;I am not against that. And I personally believe I can &lt;a href=&quot;/services/&quot;&gt;help&lt;/a&gt; you use AI Agents to work with
+such big &lt;a href=&quot;https://en.wikipedia.org/wiki/Monolithic_application&quot;&gt;monoliths&lt;/a&gt;. We did it for a
+&lt;a href=&quot;/blog/2026/04/28/ai-agent-roadmap-research/&quot;&gt;release roadmap of a large product&lt;/a&gt;,
+and with &lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;MCP Steroid&lt;/a&gt; AI Agents work inside IntelliJ
+on big codebases.&lt;/p&gt;
+
+&lt;p&gt;Our industry invented &lt;a href=&quot;https://en.wikipedia.org/wiki/Microservices&quot;&gt;&lt;strong&gt;microservices architecture&lt;/strong&gt;&lt;/a&gt;
+(&lt;a href=&quot;https://martinfowler.com/articles/microservices.html&quot;&gt;Martin Fowler’s article&lt;/a&gt;) to solve the complexity
+problems of such complex systems. And it’s still an open discussion if microservices are the best solution,
+see &lt;a href=&quot;https://martinfowler.com/bliki/MonolithFirst.html&quot;&gt;Monolith First&lt;/a&gt; and
+&lt;a href=&quot;https://martinfowler.com/articles/microservice-trade-offs.html&quot;&gt;Microservice Trade-Offs&lt;/a&gt;.
+With AI Agents, I see it’s changing.&lt;/p&gt;
+
+&lt;h2 id=&quot;agentic-microservices&quot;&gt;Agentic Microservices&lt;/h2&gt;
+
+&lt;p&gt;Let’s borrow the idea of &lt;a href=&quot;https://en.wikipedia.org/wiki/Mathematical_induction&quot;&gt;mathematical induction&lt;/a&gt; as an analogy.
+Given one can create a service that solves the basic business needs with AI, and such service implementation
+is fully hidden behind the new abstraction. How would you deal with more complex systems?&lt;/p&gt;
+
+&lt;p&gt;My answer is to use Agentic Microservices. The whole idea is to turn a complex system
+into a swarm of smaller services, each created with AI Agents, and each is talking
+to each other to create a more complex solution. Even the binding of such services
+can be implemented as yet another service. It is similar to what we do with AI Agents
+themselves, when &lt;a href=&quot;/blog/2026/01/30/orchestrating-ai-fleets/&quot;&gt;AI Agents manage AI Agents&lt;/a&gt;
+via &lt;a href=&quot;/blog/2026/02/06/run-agent-multi-agent-orchestration/&quot;&gt;run-agent.sh&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The interfaces and interactions still need to be tested, for example with
+&lt;a href=&quot;https://martinfowler.com/bliki/ContractTest.html&quot;&gt;contract tests&lt;/a&gt;.
+I think that approach will bring similar discussions and technical challenges as we had
+with monolithic systems and microservices. It will open new opportunities to create
+solutions with AI Agents on the other hand.&lt;/p&gt;
+
+&lt;h2 id=&quot;summary&quot;&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;The first – &lt;strong&gt;we are doing disposable software&lt;/strong&gt;. The code and the implementation details are the new abstraction
+which hides everything.&lt;/p&gt;
+
+&lt;p&gt;The second – &lt;strong&gt;we connect such services together as Agentic Microservices&lt;/strong&gt;. It will allow to create
+even more complex systems.&lt;/p&gt;
+
+&lt;p&gt;This will move the most of our software development to use the natural language and prompts,
+to describe the system and its services, just as I wrote in
+&lt;a href=&quot;/blog/2026/01/27/coding-in-english-with-ai/&quot;&gt;Coding in English with AI&lt;/a&gt;.
+Just like one may not know today how exactly the CPU’s
+&lt;a href=&quot;https://en.wikipedia.org/wiki/CPU_cache#Multi-level_caches&quot;&gt;L3 cache&lt;/a&gt; works when a web page is rendered.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="software-engineering" />
+  
+    <category term="complexity" />
+  
+    <category term="abstractions" />
+  
+    <category term="disposable-software" />
+  
+    <category term="agentic-ai" />
+  
+    <summary type="html">A continuation of Disposable Software: we already accept complexity hidden behind abstractions. AI Agents add a new one -- the implementation itself -- and lead us to Agentic Microservices.</summary>
+  
+  </entry>
   
   <entry>
     <title type="html">What If Rewriting Software Becomes Cheaper Than Maintaining It?</title>
@@ -4196,290 +4360,6 @@ one is yours.&lt;/p&gt;</content>
     <category term="devrig" />
   
     <summary type="html">The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE</title>
-    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/" rel="alternate" type="text/html" title="From HTTP MCP to stdio: Lessons Connecting an AI Agent to a Desktop IDE" />
-    <published>2026-05-20T00:00:00+00:00</published>
-    <updated>2026-05-20T00:00:00+00:00</updated>
-    <id>https://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons</id>
-    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/05/20/http-mcp-to-stdio-lessons/">&lt;p&gt;If you want to connect an AI Agent to a locally running desktop application — in my case the
-IntelliJ family — there is one obvious idea. Run an MCP server &lt;em&gt;inside&lt;/em&gt; the application. Bind it to a
-port. Point the agent at that port as an HTTP MCP server. Done.&lt;/p&gt;
-
-&lt;p&gt;It is the obvious idea because it is the correct first idea. I built exactly that, shipped it
-as part of my independent experiment, and
-used it every day. It kept breaking in real workstation setups — including my own. This is the
-story of why, and why the answer turned out to be the least glamorous transport in the spec:
-&lt;strong&gt;stdio&lt;/strong&gt;, behind a small CLI that does the routing.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-obvious-approach-an-http-mcp-server-inside-the-ide&quot;&gt;The obvious approach: an HTTP MCP server inside the IDE&lt;/h2&gt;
-
-&lt;p&gt;The MCP standard defines two transports: &lt;a href=&quot;https://modelcontextprotocol.io/specification/2025-03-26/basic/transports&quot;&gt;stdio and Streamable HTTP&lt;/a&gt; (the older
-HTTP+SSE transport was deprecated in the 2025-03-26 spec). For a desktop app the HTTP route looks
-natural — the IDE is already a long-running statefull process, so let it open a socket and answer MCP calls.&lt;/p&gt;
-
-&lt;p&gt;So I implemented the HTTP layer and reached for the &lt;a href=&quot;https://github.com/modelcontextprotocol/kotlin-sdk&quot;&gt;Ktor MCP integration in the Kotlin SDK&lt;/a&gt;.
-And immediately hit the first snag (state January 2026): at the time, that integration only spoke the &lt;strong&gt;SSE&lt;/strong&gt; transport,
-not the newer &lt;strong&gt;Streamable HTTP&lt;/strong&gt; the latest spec wanted. I was stuck on a spec-version mismatch
-before I had connected a single agent. (The Kotlin SDK has since grown &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcpStreamableHttp()&lt;/code&gt; helpers;
-back then it had not.)&lt;/p&gt;
-
-&lt;p&gt;The thing that saved me here was not clever code. It was &lt;strong&gt;integration tests for the MCP layer&lt;/strong&gt;.
-It was using Docker image, where an agent (claude, codex, gemini) is started and connected
-to the MCP server running in the test. It asks an agent to look at the MCP tools and call them.&lt;/p&gt;
-
-&lt;p&gt;Every time I or an AI Agent re-implemented the transport, a test would go red and tell me I had broken the contract.
-I re-did that layer more than once, and the test suite caught a regression every single time. If you
-take one portable lesson from this whole post, take that one: an agent-facing protocol is exactly the
-kind of surface that deserves real integration tests, because the consumer – an LLM – will not file a
-bug report unless you ask it explicitly (which I often do)&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Good integration-test coverage of the MCP layer paid for itself many times over.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h2 id=&quot;where-http-against-a-desktop-app-falls-apart&quot;&gt;Where HTTP-against-a-desktop-app falls apart&lt;/h2&gt;
-
-&lt;p&gt;The naive model assumes one user, one machine, one IDE. That is not what a real agentic-coding
-workstation looks like. Here is the pile of complications, roughly in the order they bit me.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;A dynamic port at startup, with no limit on instances.&lt;/strong&gt; Nothing stops you from running several
-instances of the same IDE at once — distinct processes, each launched with its own config directory.
-A &lt;em&gt;fixed&lt;/em&gt; port is therefore impossible — the first IDE would grab it and every other instance would
-have to fail to bind. So each IDE has to pick its port dynamically: start
-from a configurable base and increment until one is free. This is, not coincidentally, exactly how
-the &lt;a href=&quot;https://www.jetbrains.com/help/idea/settings-tools-built-in-server.html&quot;&gt;IntelliJ built-in web server&lt;/a&gt; behaves (it starts from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;63342&lt;/code&gt;). It works. But it
-turns the port into a moving target.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Several IDEs at once, by design.&lt;/strong&gt; IntelliJ is not a single app — JetBrains ships a &lt;a href=&quot;https://www.jetbrains.com/products/&quot;&gt;whole family
-of IDEs&lt;/a&gt; (IDEA, PyCharm, GoLand, WebStorm, Rider, and more). One can have
-two or three of them open at once; power users run more than one
-instance — distinct processes with their own config directories — for different projects. Some use
-EAP versions in a row with release builds. Each such IntelliJ-based IDE
-process is its own MCP server on its own base-plus-increment port. (Several project &lt;em&gt;windows&lt;/em&gt; in one
-instance are a different axis — one port, several projects.) Now I have a &lt;em&gt;set&lt;/em&gt; of endpoints to
-discover and route between, not one.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Start-order dependence.&lt;/strong&gt; Because the ports are assigned first-come-first-served from the base, the
-port a given IDE gets depends on the order you launched everything in. To make the agent talk to a
-&lt;em&gt;specific&lt;/em&gt; IDE, you have to start that IDE first so it grabs the predictable port. That is a terrible
-thing to ask a human to remember, and an impossible thing to ask an agent to reason about. That is
-not manageable to maintain each time the port changes.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Agents can’t disambiguate identically-named MCP servers.&lt;/strong&gt; This was the quiet killer. You cannot
-simply register five “mcp-steroid” servers with an agent and expect it to choose wisely — to the
-agent they look like the same server, and it does not understand that they are different IDEs. In
-practice, I ended up registering exactly one server, on the first port in the range — and then back to
-the start-order ritual to make sure the right IDE owned that port.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Nested IDEs.&lt;/strong&gt; Sometimes an IDE is launched &lt;em&gt;from&lt;/em&gt; another IDE. Now the set of processes the MCP
-server must cover is not even stable for the duration of a session.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Agent up, IDE down.&lt;/strong&gt; The one that hurt the most in daily use. The agent runs for hours; the IDE
-does not. I shut an IDE down to update it, or it crashed, or I just forgot to open it — and the agent
-was instantly dead in the water, frequently unable to reconnect even after the IDE came back. An HTTP
-client dialing a port that no longer answers has nowhere to go. The MCP Steroid implementation
-specifically handles unknown sessions to keep an agent working after an IDE is restarted.&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Real-world setup&lt;/th&gt;
-      &lt;th&gt;What HTTP-in-the-IDE breaks&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Two instances of the same IDE&lt;/td&gt;
-      &lt;td&gt;Can’t share a port; base+increment; which one answers?&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;IDEA + PyCharm + GoLand open at once&lt;/td&gt;
-      &lt;td&gt;Several servers, several ports, agent picks one&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;“Use &lt;em&gt;this&lt;/em&gt; IDE” intent&lt;/td&gt;
-      &lt;td&gt;Depends on launch order — start it first or lose&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Agent registered with N identical servers&lt;/td&gt;
-      &lt;td&gt;Agent can’t disambiguate; only one ends up usable&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;IDE shut down to update while the agent runs&lt;/td&gt;
-      &lt;td&gt;Agent dead, often can’t reconnect&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;None of these is fatal on its own. I worked around every one of them and kept using the tool. But the
-workarounds stack into a fragile pile, and the pile is the point: HTTP-against-a-desktop-app is
-fighting the environment instead of fitting it.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-pivot-the-app-doesnt-care-about-the-transport&quot;&gt;The pivot: the app doesn’t care about the transport&lt;/h2&gt;
-
-&lt;p&gt;Here is the schema that unlocked everything.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;The IDE side does not care whether the bytes arrive over HTTP or stdio. MCP is MCP. The transport
-is a detail at the edge.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Instead of forcing the &lt;em&gt;application&lt;/em&gt; to host the network endpoint, move all the routing and
-connection-handling to a small program the agent launches directly — and let &lt;em&gt;that&lt;/em&gt; talk to the IDEs
-however it likes.&lt;/p&gt;
-
-&lt;p&gt;That program is a CLI. The agent speaks MCP to it over &lt;strong&gt;stdio&lt;/strong&gt;: launch a subprocess, talk over
-pipes. No agent-facing ports, no DNS, no firewall, no “which IDE answered?”. And because the CLI owns
-the routing,
-it can do all the things the IDE-hosted server could not: discover every running IDE, pick the right
-one, start one if none exists, and survive an IDE restarting underneath it.&lt;/p&gt;
-
-&lt;p&gt;In MCP Steroid this CLI is &lt;strong&gt;devrig&lt;/strong&gt;. The agent’s entire configuration becomes one stdio command;
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is the coordinator that connects to all your IDEs, regardless of how many are running. The
-mechanics of what &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; discovers, downloads, and routes — and the screenshots — are the subject of
-a follow-up, the &lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;Level 3 post&lt;/a&gt;; this post is about &lt;em&gt;why&lt;/em&gt; it has to exist.&lt;/p&gt;
-
-&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;        Coding Agent
-            │  MCP over stdio  (one subprocess, no ports)
-            ▼
-        devrig  ── coordinator / router ──┐
-            │            │            │   │
-            ▼            ▼            ▼   ▼
-        IDEA #1      PyCharm       GoLand   (start one on demand if none)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;why-stdio--a-coordinator-is-actually-more-powerful&quot;&gt;Why stdio + a coordinator is actually more powerful&lt;/h2&gt;
-
-&lt;p&gt;Moving to stdio is not just “the same thing without ports.” It changes what is &lt;em&gt;possible&lt;/em&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Sessionless routing, because the state lives on disk.&lt;/strong&gt; MCP Steroid is a &lt;em&gt;stateful&lt;/em&gt; MCP — its
-commands change the IDE’s state (files, refactorings, run configs, etc.). That sounds like it would
-&lt;em&gt;need&lt;/em&gt; sticky sessions, but it is the opposite: because the durable state is in the process,
-there is no MCP session to pin. Any command can be routed to &lt;strong&gt;any&lt;/strong&gt; backend capable of
-executing it. That is what makes multi-IDE-per-project realistic — GoLand handling the Go module,
-an IntelliJ handling the Java service, both serving the same checkout. The one catch I am still
-sharpening: the project key has to encode the &lt;em&gt;IDE type&lt;/em&gt;, or the agent can’t reliably tell the
-GoLand-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; from the IDEA-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; and route to the right one. The data is there; making it obvious
-to the agent is the open challenge.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Restart resilience.&lt;/strong&gt; The stdio coordinator can let connections come and go. The “agent up, IDE
-down” dead end stops being a dead end — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; can reconnect, or start an IDE, instead of leaving the
-agent staring at a closed socket. It can also provision the IDE configurations if neccessary for the project.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Provision on demand.&lt;/strong&gt; Once the agent talks to a coordinator instead of a fixed socket, “no IDE is
-running” stops being a dead end — the coordinator can bring one into existence for the task rather
-than asking a human to “please leave the IDE open for the next four hours.” How that will work once
-devrig ships it is the story for the follow-up &lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;Level 3 post&lt;/a&gt;; the point here is that the
-architecture is what makes it possible at all.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;A path to remote.&lt;/strong&gt; Once the agent talks to a coordinator instead of a fixed local socket, the
-particular local IDE stops being the center of the architecture. The same protocol extends to remote
-IDEs — and eventually to fleets of them. That is the part I am most interested in commercially, and
-the reason &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; itself is the thing worth promoting, not any single IDE behind it.&lt;/p&gt;
-
-&lt;h2 id=&quot;routing-to-a-project-project_name-and-discovery&quot;&gt;Routing to a project: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt; and discovery&lt;/h2&gt;
-
-&lt;p&gt;A coordinator only helps if the agent can say &lt;em&gt;which&lt;/em&gt; project it means without knowing anything about
-ports, process ids, or how many IDEs are open. So the most important thing the coordinator does is
-turn “all the IDEs on this machine” into one flat, addressable list of projects. Two halves make that
-work: &lt;strong&gt;discovery&lt;/strong&gt; and a single addressing key, &lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt;&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;Discovery&lt;/strong&gt; is the coordinator’s live picture of the world. It keeps an up-to-date view of the
-IDEs running on the machine and the projects each one currently has open, as one map — every open
-project, across every running IDE, in a single table. When an IDE opens or closes a project, the map
-updates; the agent never has to be told.&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt;&lt;/strong&gt; is the only thing the agent has to care about. The coordinator exposes each
-discovered project under a stable name and hands the agent that list. Every project-targeting tool
-takes exactly one project argument — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt; — and nothing else about &lt;em&gt;where&lt;/em&gt; the project
-lives. The agent reads the list, picks a name, and calls the tool.&lt;/p&gt;
-
-&lt;p&gt;The routing itself is then almost boring, which is the point. On each call the coordinator looks the
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt; up in its discovery map, finds the IDE that actually has that project open, and
-forwards the call there — translating the exposed name back to whatever that IDE calls the project
-internally. If two IDEs happen to have a project with the same name open, the coordinator makes the
-exposed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt; unique, so the agent can still aim at exactly one. The agent addresses a name;
-the coordinator does the plumbing.&lt;/p&gt;
-
-&lt;p&gt;This is the concrete shape of the sessionless routing above: the key is the &lt;em&gt;project&lt;/em&gt;, not a session,
-so any call for a given &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;project_name&lt;/code&gt; simply lands wherever that project lives. That’s the whole
-trick behind “one agent, many IDEs” — the agent holds a list of names, and discovery keeps that list
-honest.&lt;/p&gt;
-
-&lt;h2 id=&quot;mcp-cli-or-skill-there-is-no-single-answer&quot;&gt;MCP, CLI, or skill? There is no single answer&lt;/h2&gt;
-
-&lt;p&gt;One more thing the journey clarified, and I want to leave it as an open question rather than a verdict.
-There is a real design-space discussion hiding under all of this: should a capability be exposed as an
-&lt;strong&gt;MCP&lt;/strong&gt; tool, a &lt;strong&gt;CLI&lt;/strong&gt;, or an agent &lt;strong&gt;skill&lt;/strong&gt; — or some combination, skill+CLI, skill+MCP?&lt;/p&gt;
-
-&lt;p&gt;These are at least three distinct axes in a multidimensional feature space, not a ranked list. Some
-combinations are clearly more powerful for specific scenarios, and I do not believe there is one
-correct point. The honest design move is to assume you will want several of them and factor your
-architecture so that adding another surface is cheap. Choosing stdio + a CLI coordinator was partly a
-bet on exactly that flexibility: the CLI is a substrate the MCP, the skills, and the human-facing
-commands can all sit on top of.&lt;/p&gt;
-
-&lt;p&gt;Give &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; a try. And let me know what MCP+CLI+Skills equation looks like for you.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-i-would-tell-my-earlier-self&quot;&gt;What I would tell my earlier self&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Start with the obvious transport, but treat it as a hypothesis.&lt;/strong&gt; HTTP-in-the-IDE was the right
-thing to try first and the right thing to abandon once the environment voted against it.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Match the transport to the environment, not to the protocol’s defaults.&lt;/strong&gt; A desktop app full of
-swappable, restartable, multi-instance processes wants a subprocess-and-pipes model, not a
-server-and-port one.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Push routing to the edge you control.&lt;/strong&gt; The IDE can’t own discovery sanely; a CLI the agent
-launches can.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Stateful-on-disk means sessionless.&lt;/strong&gt; That inversion is what makes many-backends routing simple.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Test the agent-facing layer like a public API.&lt;/strong&gt; Your most demanding consumer can’t describe what
-you broke.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;This is experimental, in-progress work — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is the go-to direction now, but I am still learning
-where it bends. It has rough edges I am not hiding: a runtime prerequisite you have to satisfy by
-hand, single-user assumptions, and lifecycle operations that serialize. Rather than restate the exact
-version numbers here (they will move release to release), the prerequisites, the trade-offs I am
-least sure about, and an explicit list of open questions are what the follow-up &lt;a href=&quot;/blog/2026/06/02/devrig-mcp-steroid-level-3/&quot;&gt;Level 3 post&lt;/a&gt;
-will cover — head there when you want to actually run it.&lt;/p&gt;
-
-&lt;p&gt;If you have wired an agent to a desktop app and hit a different wall than these — or solved one of
-them a better way — I want to hear it. Reply on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt; or &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;, or open an
-issue on &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;jonnyzzz/mcp-steroid&lt;/a&gt;. The more concrete the workstation you describe, the more
-directly it shapes what &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; does next.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="devrig" />
-  
-    <category term="ai-agents" />
-  
-    <category term="ai-coding" />
-  
-    <category term="intellij" />
-  
-    <category term="architecture" />
-  
-    <category term="cli" />
-  
-    <summary type="html">The obvious way to connect an AI Agent to a running IntelliJ is an HTTP MCP server inside the IDE. I built it, shipped it, and used it daily — and it kept breaking on real workstations: dynamic ports, start-order lottery, multiple IDEs, and the agent-up/IDE-down dead end. Here is why I moved the whole thing to stdio and a CLI coordinator called devrig, and what the journey taught me.</summary>
   
   </entry>
   
