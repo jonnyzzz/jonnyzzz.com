@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.comhttps://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-11-20T14:44:37+00:00</updated>
+  <updated>2026-11-21T17:24:28+00:00</updated>
   <id>https://jonnyzzz.com/</id>
 
   
@@ -353,6 +353,151 @@ That changes what we should preserve, and what we can afford to generate again&l
     <category term="disposable-software" />
   
     <summary type="html">What if a complete rewrite becomes cheaper than maintaining a small application? Requirements, business rules, and acceptance tests may become the assets worth preserving.</summary>
+  
+  </entry>
+  
+  <entry>
+    <title type="html">My Software Could Have Been a Skill: Stevedore</title>
+    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/09/27/my-software-could-have-been-a-skill/" rel="alternate" type="text/html" title="My Software Could Have Been a Skill: Stevedore" />
+    <published>2026-09-27T00:00:00+00:00</published>
+    <updated>2026-09-27T00:00:00+00:00</updated>
+    <id>https://jonnyzzz.com/blog/2026/09/27/my-software-could-have-been-a-skill</id>
+    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/09/27/my-software-could-have-been-a-skill/">&lt;p&gt;Stevedore has been running my services for almost a year. I never used it myself. I have not seen the code either.
+It could have been a Skill.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Updated in November 2026 with more reflections.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;how-it-started&quot;&gt;How It Started&lt;/h2&gt;
+
+&lt;p&gt;This story starts about a year ago, when I got a Raspberry Pi with 16GB of RAM at home. I had several
+services to run on it, mainly to manage the home, TVs, and other devices. I was all into containers and
+systems to manage containers at scale, such as Kubernetes.&lt;/p&gt;
+
+&lt;p&gt;Quickly I realized that my hardware is not enough to run Kubernetes, and I am not eager to invest my time
+into managing it for a few home services. In my real projects, I used Kubernetes as a service, from dedicated
+teams or from a cloud provider such as GCP or AWS. Somebody else was keeping the cluster alive, not me.&lt;/p&gt;
+
+&lt;p&gt;I looked for a simple solution to manage a few containers on a small box, but did not find one that fit
+my setup. I decided to tightly couple containers with Git/GitHub repositories, so a commit would rebuild
+and redeploy the container.
+That is how &lt;a href=&quot;https://github.com/jonnyzzz/stevedore&quot;&gt;Stevedore&lt;/a&gt; was born. I covered the story in the older posts:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/introducing-stevedore/&quot;&gt;Stevedore: GitOps for your Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/stevedore-architecture/&quot;&gt;Under the Hood: How Stevedore Works&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2025/12/24/getting-started-with-stevedore/&quot;&gt;Tutorial: Deploying Your First App with Stevedore&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/01/production-raspberry-pi-deployment/&quot;&gt;Production Notes: Deploying Stevedore on a Raspberry Pi&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;/blog/2026/01/02/stevedore-dyndns/&quot;&gt;Stevedore DynDNS: Dynamic DNS and HTTPS for Your Homelab&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Now I have my simplistic solution to run all the services I need. In this post, I want to reflect on the
+actual operation and usage of Stevedore and the services.&lt;/p&gt;
+
+&lt;h2 id=&quot;stevedore&quot;&gt;Stevedore&lt;/h2&gt;
+
+&lt;p&gt;I created Stevedore with AI Agents. I cannot remember how many of the commits were done by hand,
+most likely none. I instructed my agents to create a decent piece of software with enough integration tests
+and specifications. It was a part of my &lt;a href=&quot;/blog/2025/01/06/holiday-sprint-with-ai/&quot;&gt;holiday sprint&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The numbers from GitHub in November 2026: the repository was created on December 13, 2025, it has 139 commits,
+and it is about 400KB of Go code. 99 of these commits were made in the remaining two weeks of December. The last
+change was in April 2026. It is a real project, with a self-update, a watchdog, integration tests, and a CI.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-actual-usage&quot;&gt;The Actual Usage&lt;/h2&gt;
+
+&lt;p&gt;The actual usage was quite the same. I’ve been creating services and adding them to the system. And each
+service was created with AI, extensively with AI. For example, my LG TV management service, or
+&lt;a href=&quot;/blog/2026/01/03/roomtone-single-room-call/&quot;&gt;Roomtone&lt;/a&gt;, the single-room call for home.
+All my services were added that way.&lt;/p&gt;
+
+&lt;p&gt;All my deployments were made with AI Agents too. Apparently, I have never used Stevedore from the CLI for my routine
+deployments. It has always been much easier to ask Claude or Codex to update a service via SSH.
+The agent opens the SSH connection, checks the state, runs the commands, reads the logs, and reports back&lt;/p&gt;
+
+&lt;h2 id=&quot;the-twist&quot;&gt;The Twist&lt;/h2&gt;
+
+&lt;p&gt;From my standpoint back in 2025, it was clear – I need Stevedore to manage my deployments on the Raspberry Pi.
+For a human like me, it was necessary to have a system that manages all the containers, helps to spend
+much less time on every next step, and protects me from errors.&lt;/p&gt;
+
+&lt;p&gt;In fact, I never used it like that. All the time, an AI Agent was managing, changing, and updating my deployments.
+It was never done by me. Never.&lt;/p&gt;
+
+&lt;p&gt;During the summer of 2026, my LG TV management service stopped working. It was no longer able to connect to the
+TV. I decided to look at it manually – the only time I tried to do it by hand. I started with the Stevedore CLI,
+then the service logs, then the details. It was not easy to catch up with the project – it was, apparently,
+a new codebase for me. I did not have enough time to learn it. Next attempt – I asked an AI Agent. The problem
+was solved with a dependency update. Surprisingly, some other features started to work as well. The AI Agent
+spent just several minutes on that task, much less time than I spent learning about that system.&lt;/p&gt;
+
+&lt;p&gt;I did not have time to learn my own tool. The AI Agent fixed the service in minutes.&lt;/p&gt;
+
+&lt;h2 id=&quot;the-skill&quot;&gt;The Skill&lt;/h2&gt;
+
+&lt;p&gt;Given all the facts, I could have had a Skill instead. An AI Agent (or a sub-agent) could easily follow the steps
+from the skill to complete the deployment or update of a service. As an example, you can even just say
+to your AI Agent: here is a Raspberry Pi over SSH, I need you to deploy this service as a Docker container.
+For most of the cases – it’s enough.&lt;/p&gt;
+
+&lt;p&gt;It is my home server with a few services. I have not tried that with a production infrastructure.
+Even at home, I need to check deployments, know how to recover, and decide what the AI Agent can change.&lt;/p&gt;
+
+&lt;p&gt;A Skill is a short Markdown file. It does not need a release, a CI, or a self-update. It describes the
+conventions: where the services live, how the containers are named, where the secrets are, how to check that
+a service is healthy. The AI Agent follows the steps and checks the logs. I still have
+to test the steps and keep them up to date. For more production solution, I’d put the skill to Git or GitHub.&lt;/p&gt;
+
+&lt;p&gt;My &lt;a href=&quot;/blog/2026/07/19/personal-assistant-agent/&quot;&gt;personal assistant&lt;/a&gt; started the same way –
+one prompt, the scripts came later, where they were useful.&lt;/p&gt;
+
+&lt;p&gt;I still see the value of Stevedore. The GitOps polling and reconciliation run without anyone, a human or an agent,
+and keep the services updated. The AI Agent benefits from these checks too, and a Skill alone does not poll Git.
+Still, my impression is that a big part of the code is about making operations safe and easy for a human,
+and the human was never there.&lt;/p&gt;
+
+&lt;h2 id=&quot;reflections-from-november-2026&quot;&gt;Reflections from November 2026&lt;/h2&gt;
+
+&lt;p&gt;By using Skills and AI-made services, we are moving the needle of abstractions. I describe what I need
+&lt;a href=&quot;/blog/2026/01/27/coding-in-english-with-ai/&quot;&gt;in English&lt;/a&gt;. AI Agents pick the implementation.
+I no longer know
+most of the technical and implementation details of my services. I do not even control
+the programming languages behind them. In fact, most of the containers are using Python with uv inside Docker.&lt;/p&gt;
+
+&lt;p&gt;I consider most of the services as
+&lt;a href=&quot;/blog/2026/11/18/rewriting-cheaper-than-maintaining/&quot;&gt;Disposable Software&lt;/a&gt;, where I need
+it to work, and I can easily recreate it once needed. What I still keep are the requirements, the configuration,
+and the data. The implementation becomes the next abstraction, as I wrote in
+&lt;a href=&quot;/blog/2026/11/20/complexity-abstractions/&quot;&gt;Abstractions Are the Complexity?&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;closing&quot;&gt;Closing&lt;/h2&gt;
+
+&lt;p&gt;Consider the software you create – it could have been a Skill. Have you replaced a small tool with a Skill?
+What still needed code? Looking forward to reading about your examples
+on &lt;a href=&quot;https://x.com/jonnyzzz&quot;&gt;X&lt;/a&gt; or &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt;.&lt;/p&gt;</content>
+
+  
+  
+  
+  
+  
+
+    <author>
+      <name>Eugene Petrenko</name>
+    </author>
+
+  
+    <category term="ai-agents" />
+  
+    <category term="ai-coding" />
+  
+    <category term="stevedore" />
+  
+    <category term="infrastructure" />
+  
+    <category term="homelab" />
+  
+    <category term="disposable-software" />
+  
+    <summary type="html">Stevedore has been running my home services for almost a year. I have never used it myself. AI Agents did all the routine deployments, and I start to think it could have been a Skill.</summary>
   
   </entry>
   
@@ -3908,458 +4053,6 @@ covered in the follow-up post.&lt;/p&gt;
     <category term="workflow" />
   
     <summary type="html">When you hand a repo to an autonomous AI Agent, you need to bound what it can touch and capture what it did. Part 1 — the approach — keep the keys away from the agent, a git proxy as the hard boundary, and git hooks as the lighter alternative.</summary>
-  
-  </entry>
-  
-  <entry>
-    <title type="html">devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents</title>
-    <link href="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/" rel="alternate" type="text/html" title="devrig: MCP Steroid Goes Level 3 — Autonomous IDE Setup for AI Agents" />
-    <published>2026-06-02T00:00:00+00:00</published>
-    <updated>2026-06-02T00:00:00+00:00</updated>
-    <id>https://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3</id>
-    <content type="html" xml:base="https://jonnyzzz.comhttps://jonnyzzz.com/blog/2026/06/02/devrig-mcp-steroid-level-3/">&lt;p&gt;If you have ever wired an AI Agent to an IntelliJ-family IDE through MCP, you know the routine:
-start the IDE, install the plugin, write down the port number, paste an HTTP URL into your agent’s
-config, restart the agent, hope you guessed which project the agent is supposed to see. Two IDEs
-open? Pick one. PyCharm &lt;em&gt;and&lt;/em&gt; IntelliJ both running? Hope the port-number lottery favors you.&lt;/p&gt;
-
-&lt;p&gt;The new &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; CLI in &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/releases/0.100/&quot;&gt;MCP Steroid 0.100&lt;/a&gt; kills that ritual. One stdio command —
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig mcp&lt;/code&gt; — and the agent gets a deterministic view of every IDE, every project, every window,
-no matter how many are open. If the right IDE is not running, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; downloads it and starts it.
-And the agent’s MCP config? &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install claude&lt;/code&gt; writes it for you — and from then on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig mcp&lt;/code&gt;
-connects to every running IDE that has the MCP Steroid plugin installed.&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-bridge.svg&quot; alt=&quot;One devrig bridge connects your AI Agent to all running IDEs at once — and can start more&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;This is what I call Level 3 of MCP Steroid:&lt;/strong&gt; the agent is no longer the customer of a manually
-configured environment. The environment configures itself for the agent.&lt;/p&gt;
-
-&lt;p&gt;The headline number: the e2e test in &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DevrigManagedBackendAgentE2ETest.kt&lt;/code&gt;&lt;/a&gt; provisions an IntelliJ
-Community via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;, opens &lt;a href=&quot;https://github.com/keycloak/keycloak&quot;&gt;Keycloak&lt;/a&gt;, and asks Claude to find PSI usages of
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;org.keycloak.models.UserModel&lt;/code&gt; over its &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ReferencesSearch&lt;/code&gt;. The verified count is &lt;strong&gt;4,633&lt;/strong&gt;, in
-one prompt.&lt;/p&gt;
-
-&lt;p&gt;I want to show what it does, why it matters, where the trade-offs are, and — most importantly —
-ask what &lt;em&gt;you&lt;/em&gt; would have it do next.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-three-levels&quot;&gt;The three levels&lt;/h2&gt;
-
-&lt;p&gt;I have been organizing the work in my head as three levels of autonomy. They line up roughly with
-Swarmia’s &lt;a href=&quot;https://www.swarmia.com/blog/five-levels-ai-agent-autonomy/&quot;&gt;five levels of coding-agent autonomy&lt;/a&gt;, but applied to the &lt;strong&gt;agent ⇄ IDE&lt;/strong&gt;
-boundary:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Level 1 — Manual.&lt;/strong&gt; The user starts the IDE, installs the plugin, copies the port into the
-agent’s MCP config. Every step is human. This is where most teams still live.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Level 2 — Auto-discovery.&lt;/strong&gt; The agent’s MCP client finds whichever IDE happens to be running,
-reads its open projects, routes calls correctly. The user still has to launch the IDE.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Level 3 — Fully autonomous lifecycle.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt; writes the agent’s MCP config.
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download/start&lt;/code&gt; brings the IDE into existence. Open project, route calls, stop
-cleanly. The human is out of the loop.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is the first thing in the MCP Steroid family that delivers Level 3 end-to-end.&lt;/p&gt;
-
-&lt;h2 id=&quot;a-quick-map-of-where-we-were&quot;&gt;A quick map of where we were&lt;/h2&gt;
-
-&lt;p&gt;The &lt;a href=&quot;/blog/2026/01/04/mcp-steroids-intellij/&quot;&gt;original MCP Steroid post&lt;/a&gt; argued that AI Agents need the &lt;strong&gt;full&lt;/strong&gt; IntelliJ runtime,
-not a curated list of tool functions. The MCP standard defines two transports:
-&lt;a href=&quot;https://modelcontextprotocol.io/specification/2025-03-26/basic/transports&quot;&gt;stdio and Streamable HTTP&lt;/a&gt;. JetBrains’ own bundled MCP Server picks HTTP — it
-listens on a port and the agent dials in. Stdio still dominates IDE use cases though (~67 % of
-deployments in 2026 per a &lt;a href=&quot;https://www.digitalapplied.com/blog/mcp-adoption-statistics-2026-model-context-protocol&quot;&gt;recent adoption survey&lt;/a&gt;), and for good reason: it maps 1:1
-to “launch a subprocess; talk to it over pipes”. No ports, no DNS, no firewall, no “which IDE
-answered?”.&lt;/p&gt;
-
-&lt;p&gt;For one user, one machine, one IDE, the HTTP model is fine. For a real agentic-coding workstation
-it is a small disaster:&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;Real-world setup&lt;/th&gt;
-      &lt;th&gt;What breaks&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;IntelliJ + PyCharm + Rider open simultaneously&lt;/td&gt;
-      &lt;td&gt;Each grabs a different port; agent picks one&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Two windows of the same product&lt;/td&gt;
-      &lt;td&gt;Same port, two projects, ambiguous routing&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Project on a remote dev machine&lt;/td&gt;
-      &lt;td&gt;Manual SSH tunnel, manual port-forward&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;First-time setup on a clean laptop&lt;/td&gt;
-      &lt;td&gt;Install IDE → install plugin → restart → …&lt;/td&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;Background batch job needing an IDE&lt;/td&gt;
-      &lt;td&gt;“Please leave the IDE open” — for hours&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;This is the swamp &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is built to drain. The product website calls it
-“&lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/docs/devrig/&quot;&gt;one bridge, every IDE&lt;/a&gt;” — one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig mcp&lt;/code&gt; process connects your AI Agent to
-&lt;strong&gt;all&lt;/strong&gt; the IntelliJ-family IDEs running on your machine at once, across projects, and can
-download and start more on demand.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-devrig-actually-is&quot;&gt;What &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; actually is&lt;/h2&gt;
-
-&lt;p&gt;Architecturally, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is the smallest possible thing the agent talks to: a Kotlin-based
-command-line program that speaks MCP over stdio on its front and routes everything else to
-whatever IntelliJ-family IDE makes sense. The same binary doubles as an admin CLI you can run
-by hand.&lt;/p&gt;
-
-&lt;p&gt;One scope note, because it is a common question: today &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is a suite that bridges the agent
-to IDEs running the &lt;strong&gt;MCP Steroid plugin&lt;/strong&gt; — that is what gives the agent the full IntelliJ
-runtime. It is &lt;strong&gt;not&lt;/strong&gt; a front-end for the &lt;strong&gt;IntelliJ-native MCP Server&lt;/strong&gt; (JetBrains’ own bundled
-one). &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; already &lt;em&gt;detects&lt;/em&gt; those IDEs so it can offer to fix them, but it does not route the
-agent through them yet. Speaking to the IntelliJ-native MCP Server directly — so an agent reaches a
-stock IDE with no plugin installed — is planned for a future release.&lt;/p&gt;
-
-&lt;p&gt;The current subcommand surface, straight from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig --help&lt;/code&gt;:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-help.png&quot; alt=&quot;devrig --help in iTerm2 with JetBrains Mono&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The agent only ever sees &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig mcp&lt;/code&gt;. Everything else is for humans or CLI integrations, or for swarm scripts
-(&lt;a href=&quot;/blog/2026/03/17/run-agent-v2-release/&quot;&gt;run-agent.sh&lt;/a&gt; and friends) orchestrating fleets. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; ships without a bundled
-runtime and is compiled for &lt;strong&gt;Java 25&lt;/strong&gt;: provide a JDK 25 on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PATH&lt;/code&gt;, via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DEVRIG_JAVA_HOME&lt;/code&gt;.
-Amazon Corretto 25 works; so does any other JDK 25.&lt;/p&gt;
-
-&lt;p&gt;We are going to automatically fetch the required runtime JDK in the next versions.&lt;/p&gt;
-
-&lt;h2 id=&quot;devrig-install--the-new-entry-point&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt; — the new entry point&lt;/h2&gt;
-
-&lt;p&gt;For most users, the very first command they run is the one that wires &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; into their coding
-agent. It landed in 0.100 to close &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/64&quot;&gt;issue #64&lt;/a&gt;:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-install.png&quot; alt=&quot;devrig install claude in iTerm2 with JetBrains Mono&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Three flavors, all delegating to the agent’s own CLI under the hood so the resulting config is
-exactly the one the agent itself expects:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install claude&lt;/code&gt; → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;claude mcp add --scope user mcp-steroid -- devrig mcp&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install codex&lt;/code&gt; → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;codex mcp add mcp-steroid -- devrig mcp&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install gemini&lt;/code&gt; → &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gemini mcp add --type stdio --scope user --trust mcp-steroid devrig mcp&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;These three syntaxes were the &lt;em&gt;single biggest source of setup failures&lt;/em&gt; while scripting the demo.
-Three CLIs, two of which have the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;--&lt;/code&gt; argv-forwarding gotcha,
-one with a different flag spelling each release. The bug-of-the-week was forgetting the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp&lt;/code&gt;
-subcommand and registering &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; with nothing after it — at which point the agent tried to run
-plain &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;, got the help banner on stdout, and reported “MCP server initialize failed” with no
-explanation. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt; subcommand makes that class of failure unrepresentable. (The
-subcommand was originally spelled &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mpc&lt;/code&gt;; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp&lt;/code&gt; is now the canonical name and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mpc&lt;/code&gt; stays as a hidden
-alias so older registrations keep working.) Re-running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt; is a safe, idempotent upsert:
-it finds every prior devrig/&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp-steroid&lt;/code&gt; entry and consolidates them into one.&lt;/p&gt;
-
-&lt;p&gt;It also records &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;JAVA_HOME&lt;/code&gt; explicitly so the registered MCP command is reproducible — the JDK
-the user actually has on their host is the one the agent will use, not whatever the user’s shell
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;JAVA_HOME&lt;/code&gt; resolves to next month.&lt;/p&gt;
-
-&lt;h2 id=&quot;discovery-the-unglamorous-backbone&quot;&gt;Discovery, the unglamorous backbone&lt;/h2&gt;
-
-&lt;p&gt;Pop a few JetBrains IDEs open and run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend&lt;/code&gt;. On my workstation right now, with one real
-IntelliJ open and one previously-downloaded managed Community sitting on disk:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-backend.png&quot; alt=&quot;devrig backend discovery in iTerm2 with JetBrains Mono&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;Two paths feed that list:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Marker files&lt;/strong&gt; — every IDE with MCP Steroid installed writes a schema-versioned JSON file at
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.mcp-steroid/markers/&amp;lt;pid&amp;gt;.mcp-steroid&lt;/code&gt; carrying its pid, MCP URL, IDE identity, plugin
-version, bearer token, and a per-JVM &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;bootHash&lt;/code&gt;. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; reads them and subscribes to each
-IDE’s NDJSON projects-stream endpoint for a live snapshot of open projects.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Active port scan&lt;/strong&gt; of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;127.0.0.1:63342..63361&lt;/code&gt; (the &lt;a href=&quot;https://www.jetbrains.com/help/idea/settings-tools-built-in-server.html&quot;&gt;IntelliJ built-in Netty server&lt;/a&gt;,
-which picks the first free port from 63342) and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;:64342..64361&lt;/code&gt; (JetBrains’ own bundled
-&lt;a href=&quot;https://www.jetbrains.com/help/idea/mcp-server.html&quot;&gt;MCP server&lt;/a&gt;). This catches IDEs running &lt;em&gt;without&lt;/em&gt; MCP Steroid so we can offer to
-fix them.&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend&lt;/code&gt; lists &lt;em&gt;managed&lt;/em&gt; backends too — IDEs &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; itself downloaded under
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.mcp-steroid/backends/&lt;/code&gt; — even when they are not currently running. That’s the second row in
-the screenshot. Discovery, install state, and lifecycle state share one consolidated view, and
-every row carries the &lt;strong&gt;plugin version&lt;/strong&gt; so an out-of-date MCP Steroid is visible at a glance.&lt;/p&gt;
-
-&lt;p&gt;Names are not the same string the IDE uses internally. The &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/docs/devrig-naming.md&quot;&gt;devrig naming spec&lt;/a&gt;
-defines an &lt;em&gt;exposed&lt;/em&gt; form: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;slug(originalName)-projectHash&lt;/code&gt;, where &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;projectHash&lt;/code&gt; is a
-SHA-256-derived &lt;strong&gt;base62&lt;/strong&gt; string (8 chars) over canonical inputs. Base62 was a deliberate switch
-from base64url — the earlier scheme produced exposed names like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp-steroid-gumou---&lt;/code&gt; whenever
-the encoder spilled trailing &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_&lt;/code&gt; characters. Identifier-safe alphabet, always 8 chars,
-stable across IDE restarts.&lt;/p&gt;
-
-&lt;h2 id=&quot;routing-across-many-ides-many-projects&quot;&gt;Routing across many IDEs, many projects&lt;/h2&gt;
-
-&lt;p&gt;When two IDEs both have a project called &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; open, what does the agent see? Names alone are
-ambiguous, and the agent will not be impressed by “tried to open &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt;, got the wrong one”.&lt;/p&gt;
-
-&lt;p&gt;Same scheme as above — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;lt;slug&amp;gt;-&amp;lt;projectHash&amp;gt;&lt;/code&gt; — applied per project per IDE pid. Two &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt;s
-become two distinct exposed names. Windows route the same way (used by screenshots and
-window-targeted actions).&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-project.png&quot; alt=&quot;devrig project listing in iTerm2 with JetBrains Mono&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;There is one subtlety worth knowing, and it is where the first follow-up to 0.100 landed. In 0.100, when
-the agent called &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; &lt;em&gt;guessed&lt;/em&gt; the target IDE — any running &lt;em&gt;managed&lt;/em&gt;
-backend first (the agent’s own sandbox), the newest discovered IDE otherwise. That guess is fine
-until two IDEs could each plausibly answer. So &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/pull/87&quot;&gt;issue #87&lt;/a&gt; made the choice explicit:
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt; now self-describes a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backends[]&lt;/code&gt; list, each entry carrying an opaque,
-routable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_open_project&lt;/code&gt; now &lt;strong&gt;requires&lt;/strong&gt; that &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt; on the
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; surface to say &lt;em&gt;exactly&lt;/em&gt; which IDE opens the project. It is a &lt;strong&gt;devrig-only&lt;/strong&gt; parameter — a
-direct one-IDE connection does not expose it, and ignores it if sent — and an unknown value comes
-back as a self-correcting error listing the routable ones. The guidance
-the agent gets: prefer the backend that already has the same repository — or a sibling git worktree
-of it — open. One catch worth repeating in the prompt: those ids are &lt;strong&gt;not&lt;/strong&gt; stable across IDE
-restarts, so the rule is &lt;em&gt;re-read &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt;, don’t cache &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt;&lt;/em&gt;.&lt;/p&gt;
-
-&lt;h2 id=&quot;auto-downloading-and-auto-starting-a-managed-ide&quot;&gt;Auto-downloading and auto-starting a managed IDE&lt;/h2&gt;
-
-&lt;p&gt;The biggest jump from Level 2 to Level 3. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download&lt;/code&gt; (no id) lists what is
-available, &lt;em&gt;and&lt;/em&gt; declares which IDEs are compatible with the plugin version that ships in this
-build of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-devrig-backend-download.png&quot; alt=&quot;devrig backend download list in iTerm2 with JetBrains Mono&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;A few interesting things here:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Community editions&lt;/strong&gt; come from the real GitHub releases of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;idea-community&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pycharm-community&lt;/code&gt;,
-not from the marketing-version JetBrains feed — the JetBrains products API doesn’t surface true
-IC/PC release artifacts in a stable enough way. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; resolves them directly from the
-open-source repos.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Android Studio&lt;/strong&gt; comes from the &lt;a href=&quot;https://developer.android.com/studio&quot;&gt;Quail canary feed&lt;/a&gt; — there is no
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;data.services.jetbrains.com&lt;/code&gt; row for it, but Quail publishes a canonical SHA-256 per archive.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Plugin compatibility is gated at download time.&lt;/strong&gt; Every row carries the IDE’s build baseline
-(e.g. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;261&lt;/code&gt;). The bundled MCP Steroid plugin’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;since-build&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;until-build&lt;/code&gt; from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;plugin.xml&lt;/code&gt;
-is read at startup, and IDEs whose baseline falls outside the supported range are marked
-&lt;em&gt;incompatible&lt;/em&gt; — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download&lt;/code&gt; refuses to fetch them rather than letting the agent
-land in an IDE that silently won’t load the plugin. Primary baseline today: &lt;strong&gt;2026.1 (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;261&lt;/code&gt;)&lt;/strong&gt;,
-with &lt;strong&gt;2026.2 EAP (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;262&lt;/code&gt;)&lt;/strong&gt; as secondary verification. &lt;strong&gt;2025.3 (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;253&lt;/code&gt;) is dropped.&lt;/strong&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Archive caching is hash-qualified.&lt;/strong&gt; Community and Ultimate archives that happen to share a
-filename cannot collide; both unpacked trees carry a SHA-derived prefix.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;language-text highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;$ devrig backend download idea-ultimate
-… resolving IDE 2026.1.2 from data.services.jetbrains.com …
-… downloading idea-ultimate-2026.1.2 (≈ 1.2 GB) …
-id:       idea-ultimate-2026.1.2
-state:    installed
-install:  /Users/jonnyzzz/.mcp-steroid/backends/idea-ultimate-2026.1.2
-cache:    /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2
-
-$ devrig backend start idea-ultimate
-pid:    67890
-log:    /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2/logs/managed.log
-config: /Users/jonnyzzz/.mcp-steroid/caches/idea-ultimate-2026.1.2/config
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;The started IDE is &lt;strong&gt;headless from the user’s perspective&lt;/strong&gt; — it can stay in the background as
-long as the agent needs it, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend stop&lt;/code&gt; reaps it cleanly. A global lock serialises
-download / start / stop so two concurrent agents can’t trash the same on-disk install. Managed
-backends emit anonymous PostHog beacons (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig_session_initialized&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig_exec_code&lt;/code&gt;,
-start / stop, errors) so I can tell whether agents are actually using the lifecycle or working
-around it.&lt;/p&gt;
-
-&lt;h2 id=&quot;the-whole-flow-end-to-end&quot;&gt;The whole flow, end to end&lt;/h2&gt;
-
-&lt;p&gt;The sequence above is exactly what the end-to-end test does, and it is the cleanest demonstration of
-Level 3 I have. In one prompt, with no MCP config and no IDE running up front: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install claude&lt;/code&gt;, then
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download idea-community&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend start idea-community&lt;/code&gt;, and then Claude
-opens &lt;strong&gt;Keycloak&lt;/strong&gt; and runs
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;JavaPsiFacade.findClass(&quot;org.keycloak.models.UserModel&quot;) → ReferencesSearch.search(psiClass).findAll().size&lt;/code&gt;.
-The return value is real:&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;strong&gt;4,633 PSI usages of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;org.keycloak.models.UserModel&lt;/code&gt; — in one prompt.&lt;/strong&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;It comes straight from the e2e test (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt&quot;&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DevrigManagedBackendAgentE2ETest.kt&lt;/code&gt;&lt;/a&gt;). One honesty note: the IDE
-archive and Keycloak’s Maven indices are pre-warmed before the run, so the wall-clock stays short —
-but that only changes the &lt;em&gt;timing&lt;/em&gt;. The agent’s actual work — provision the IDE, open the project,
-run the PSI search — is byte-identical whether the caches are warm or cold.&lt;/p&gt;
-
-&lt;h2 id=&quot;what-0100-changed-beyond-devrig&quot;&gt;What 0.100 changed beyond &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;&lt;/h2&gt;
-
-&lt;p&gt;The &lt;a href=&quot;https://mcp-steroid.jonnyzzz.com/releases/0.100/&quot;&gt;0.100 release notes&lt;/a&gt; (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/releases/tag/v0.100&quot;&gt;GitHub release &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;v0.100&lt;/code&gt;&lt;/a&gt;) cover the full
-delta, but the agent-facing items worth naming alongside &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;Typed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;modal&lt;/code&gt; mode for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt;.&lt;/strong&gt; The earlier mix of dialog-killer and
-allow-modal booleans is replaced with one explicit parameter: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;smart_non_modal&lt;/code&gt; (default — close
-stray dialogs, verify non-modal, commit + refresh, wait for smart mode), &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;non_modal&lt;/code&gt; (assert
-only, no mid-run policy), or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;unleashed&lt;/code&gt; (intentional modal-dialog workflows).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;The tool surface narrowed from 10 → 8.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_action_discovery&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_apply_patch&lt;/code&gt;
-are gone; the same workflows live as recipes (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp-steroid://ide/action-discovery&lt;/code&gt;,
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp-steroid://ide/apply-patch&lt;/code&gt; with the in-script &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;applyPatch { }&lt;/code&gt; DSL) reached only through
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_fetch_resource&lt;/code&gt;. The IDE-conditional context the resource carries is the reason for
-not advertising recipes via the generic MCP &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;resources/list&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_input&lt;/code&gt; switched to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;window_id&lt;/code&gt;&lt;/strong&gt; (from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt; /
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_take_screenshot&lt;/code&gt;). Breaking change to that tool’s input — worth flagging if you have
-scripts pinning the old &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;screenshot_execution_id&lt;/code&gt;.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;The devrig↔plugin wire contract is pinned&lt;/strong&gt;, additive-only, with contract tests covering the
-full &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; parameter set (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/23&quot;&gt;issue #23&lt;/a&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Token-efficient tabular output.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;printCsv&lt;/code&gt; / &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;printToon&lt;/code&gt; script-context helpers let
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_execute_code&lt;/code&gt; return compact tables without token bloat (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/34&quot;&gt;#34&lt;/a&gt; / &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/35&quot;&gt;#35&lt;/a&gt;).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Human review mode is gone in full&lt;/strong&gt; — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;review.*&lt;/code&gt; registry keys, the
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcp.steroid.review.mode&lt;/code&gt; system property, the storage helpers, the docs and website pages.
-The product is focused on agent-driven IDE execution rather than a human-gated review step.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;pros--what-changes-for-the-agent&quot;&gt;Pros — what changes for the agent&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;One transport, one server.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig mcp&lt;/code&gt; is the only thing the agent’s MCP config has to
-know. No ports, no URLs, no per-machine drift. Stdio is the dominant IDE transport for a reason.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;The install is a single command.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install claude|codex|gemini&lt;/code&gt; writes the agent
-config the way the agent itself expects. The three-CLI argv-forwarding tax is paid once, in
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt;, not on every user’s machine.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Multi-IDE, multi-window, multi-project — out of the box.&lt;/strong&gt; Hash-suffixed routing makes
-“which one?” disambiguation explicit; base62 hashes are identifier-safe.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Compatibility gating.&lt;/strong&gt; If the bundled plugin can’t load in a given IDE build, that IDE is
-flagged at &lt;em&gt;download time&lt;/em&gt;. Fewer silent dead-ends.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;First run is one command, not a setup checklist.&lt;/strong&gt; No “go install the IDE first” step in the
-agent’s bring-up guide — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend download&lt;/code&gt; &lt;em&gt;is&lt;/em&gt; the install step (a real download the first
-time, cached after).&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Background mode is normal.&lt;/strong&gt; Spinning up an IDE for a 4-hour batch job stops being weird; it
-is just &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;start&lt;/code&gt; + &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;stop&lt;/code&gt;. The Docker test matrix exercises that path daily.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Inspectable.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend --json&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig project --json&lt;/code&gt; give swarm scripts a
-deterministic snapshot to make decisions on. Managed backends report their lifecycle via
-PostHog beacons.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;cons--and-i-want-you-to-read-these-honestly&quot;&gt;Cons — and I want you to read these honestly&lt;/h2&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;strong&gt;JDK 25 is a hard requirement.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; doesn’t bundle a JVM in 0.100; the host must provide
-Java 25. A bundled-runtime story is on the roadmap (the deployment spec exists), not in the box
-yet.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Port-range assumption.&lt;/strong&gt; The active scanner pings exactly &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;63342..63361&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;64342..64361&lt;/code&gt;.
-Anything outside those ranges is invisible. Right default in 2026; still a default.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Managed-IDE operations are one-at-a-time.&lt;/strong&gt; A global lock prevents concurrent download / start
-/ stop. Two agents on the same machine launching different IDEs in parallel will serialise.
-Probably the right call; worth knowing.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Detection lag.&lt;/strong&gt; A crashed IDE stays in the routing table for ~2 seconds until the next poll.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;The trust dialog can still block a fully-autonomous open.&lt;/strong&gt; On 2026.1.2 the project-trust
-auto-grant regressed (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/65&quot;&gt;issue #65&lt;/a&gt;): a freshly opened project can stall on the Trust
-dialog — the one human gate that quietly defeats the “human out of the loop” pitch until someone
-clicks it. Embarrassing for a Level 3 story, and it belongs near the top of the fix list.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Multi-IDE labeling is still settling.&lt;/strong&gt; With several IDEs open, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_projects&lt;/code&gt; /
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;steroid_list_windows&lt;/code&gt; could mislabel which backend a project belongs to (&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/89&quot;&gt;issue #89&lt;/a&gt;).
-The explicit &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt; model above points the right way, but making the labels themselves
-reliable across many IDEs is the actual fix, and that part is still in flight.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Plugin install on user-launched IDEs still has a human seam.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig backend provision&lt;/code&gt;
-prints instructions — it does not yet drop the plugin file into the user’s main IDE config
-automatically. Closing that seam is on the list.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Single-user assumption.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.mcp-steroid/&lt;/code&gt; is per user. Multi-tenant CI servers will need a
-story; today they get one home directory.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;macOS / Linux first.&lt;/strong&gt; Windows is supported (the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt; PowerShell path is real),
-but most production hours so far live on macOS arm64.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;2025.3 is dropped.&lt;/strong&gt; If you are on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;253&lt;/code&gt;, the plugin will refuse to load and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; will
-refuse to download the matching managed backend. Upgrade to 2026.1.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;open-questions--what-should-it-do-next&quot;&gt;Open questions — what should it do next?&lt;/h2&gt;
-
-&lt;p&gt;This is the part I really wrote this post for. 0.100 is shipped, a fast follow-up added explicit
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt; routing, and the foundation works. Now I want to choose what to build next based on
-what &lt;em&gt;you&lt;/em&gt; actually need.&lt;/p&gt;
-
-&lt;p&gt;A few directions on the whiteboard — please tell me which ones matter, and what I am missing:&lt;/p&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;&lt;strong&gt;Remote IDEs as a first-class concept.&lt;/strong&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; already routes between local IDEs. Same
-abstraction wants to extend to a JetBrains Gateway / SSH host: tell &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; “use the IDE on
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dev-box-7&lt;/code&gt;” and it sets up the channel. Niche, or the next obvious step?&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Fully autonomous plugin install into a user-launched IDE.&lt;/strong&gt; Drop the plugin file in the
-right directory, restart the IDE, verify the marker appeared, report back. Worth it, or do
-most users want a manual confirmation step?&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Bundled-JRE devrig.&lt;/strong&gt; Ship a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.mcp-steroid/binaries/&amp;lt;os&amp;gt;-&amp;lt;cpu&amp;gt;-&amp;lt;sha&amp;gt;/&lt;/code&gt; cache with a small
-wrapper, so the JDK-25 prerequisite stops being a prerequisite. The deployment spec is written.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Fleet mode.&lt;/strong&gt; One &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; server, N parallel agents, one user — each agent gets its own
-managed IDE window without trampling the others. The lock today serialises; fleet mode would
-need a different concurrency story.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig doctor&lt;/code&gt;.&lt;/strong&gt; Self-diagnostic command: “your plugin is out of date in IDE 2, port 63344
-is taken by a different process, your JDK is missing on Linux/arm64, your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;claude&lt;/code&gt; MCP entry
-points at a stale path.”&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Sandboxed IDE profiles.&lt;/strong&gt; Spawn an IDE with a throwaway config dir for one task, then
-delete. Reproducible runs without polluting the user’s main IDE setup.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;CI-friendly mode.&lt;/strong&gt; Headless start optimised for GitHub Actions / TeamCity where the
-“human in the loop” assumption no longer holds.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Plugin auto-update.&lt;/strong&gt; When &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; itself updates and ships a newer plugin, push it into
-every managed IDE on the machine.&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;Auth and policy.&lt;/strong&gt; The per-IDE bearer token is already on the marker file. The next question
-is who is allowed to do what — does that matter to teams, or is it overkill outside enterprise?&lt;/li&gt;
-  &lt;li&gt;&lt;strong&gt;More agent CLIs.&lt;/strong&gt; Cursor, Aider, Continue, IntelliJ AI Assistant chat — &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig install&lt;/code&gt;
-today knows three. Adding a fourth is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mcpAddStdioArgs&lt;/code&gt; plus an enum entry. Which one would
-actually unblock you?&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Reply on &lt;a href=&quot;https://www.linkedin.com/in/jonnyzzz/&quot;&gt;LinkedIn&lt;/a&gt;, &lt;a href=&quot;https://twitter.com/jonnyzzz&quot;&gt;Twitter&lt;/a&gt;, or open an issue on
-&lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid&quot;&gt;jonnyzzz/mcp-steroid&lt;/a&gt; — and the more concrete the workflow you describe, the more
-directly I can shape this around it. Issue &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/issues/64&quot;&gt;#64&lt;/a&gt; tracked the auto-install ask before
-it landed; the same template works for anything on the list above.&lt;/p&gt;
-
-&lt;h2 id=&quot;where-this-is-going-and-where-it-is&quot;&gt;Where this is going, and where it is&lt;/h2&gt;
-
-&lt;p&gt;I have been writing about &lt;a href=&quot;/blog/2026/03/24/agentic-experience-and-tools/&quot;&gt;Agentic Experience and Tools&lt;/a&gt; as the discipline of building
-products with the AI Agent as the &lt;em&gt;user&lt;/em&gt;, not as a feature bolted onto a human-facing UI. MCP
-Steroid is that bet, and it has a deliberate arc:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;https://jonnyzzz.com/images/posts/2026-06-02-mcp-steroid-arc.svg&quot; alt=&quot;MCP Steroid&apos;s arc — the in-IDE plugin, then devrig the bridge, then remote IDE fleets&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;The plugin came first: hand the agent the &lt;strong&gt;full&lt;/strong&gt; IntelliJ runtime instead of a curated tool menu.
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;devrig&lt;/code&gt; is the next move — wrap that capability in one stdio bridge so the agent reaches &lt;em&gt;every&lt;/em&gt;
-MCP Steroid–enabled IDE on the machine, and can bring a managed one into existence on its own. The
-step after that is remote: the same protocol pointed at IDEs on other hosts, and eventually fleets
-of them, which is probably where the commercial product starts to make sense.&lt;/p&gt;
-
-&lt;p&gt;So where are we, honestly? Level 3 has worked end to end — the &lt;a href=&quot;https://github.com/jonnyzzz/mcp-steroid/blob/main/test-integration/src/test/kotlin/com/jonnyzzz/mcpSteroid/integration/tests/DevrigManagedBackendAgentE2ETest.kt&quot;&gt;Keycloak run&lt;/a&gt; is not a mock,
-and the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;backend_name&lt;/code&gt; routing that landed right after 0.100 makes “which IDE?” an explicit,
-answerable question. The foundation is real. It is also still an independent experiment with sharp
-edges: the 2026.1.2 trust-dialog regression can still stall an autonomous open, the JDK-25
-prerequisite is unbundled, plugin promotion into a user’s own IDE still has a manual step, and
-&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;~/.mcp-steroid/&lt;/code&gt; assumes a single user. Remote and fleet mode are designed, not shipped.&lt;/p&gt;
-
-&lt;p&gt;The honest summary: the agent can now stop asking a human for help just to &lt;em&gt;get started&lt;/em&gt; against a
-real IDE — and that, I think, is where this kind of tooling gets interesting. What it should reach
-for next I genuinely do not know yet; that is what the open questions above are for. Tell me which
-one is yours.&lt;/p&gt;</content>
-
-  
-  
-  
-  
-  
-
-    <author>
-      <name>Eugene Petrenko</name>
-    </author>
-
-  
-    <category term="mcp" />
-  
-    <category term="mcp-steroid" />
-  
-    <category term="ai-agents" />
-  
-    <category term="ai-coding" />
-  
-    <category term="agentic-experience" />
-  
-    <category term="intellij" />
-  
-    <category term="cli" />
-  
-    <category term="devrig" />
-  
-    <summary type="html">The new `devrig` CLI in MCP Steroid 0.100 turns the IDE bring-up ritual into one stdio command. `devrig install ` writes the MCP config; `devrig backend download/start` brings an IntelliJ-family IDE into existence and gives the agent an IDE of its own. In the e2e test, Claude provisions an IDE and finds 4,633 PSI usages of one class in Keycloak — in one prompt.</summary>
   
   </entry>
   
