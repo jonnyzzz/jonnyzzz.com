@@ -2,7 +2,7 @@
 
 **Date:** March 17, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, multi-agent, orchestration, cli, testing, automation, ai-coding, dev-tools, sub-agent
+**Tags:** ai-agents, multi-agent, orchestration, cli, testing, automation, ai-coding, dev-tools, sub-agent, run-agent-sh
 
 ---
 

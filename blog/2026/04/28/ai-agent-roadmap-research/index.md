@@ -2,7 +2,7 @@
 
 **Date:** April 28, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** ai-agents, ai-coding, multi-agent, orchestration, mcp, mcp-steroid, run-agent
+**Tags:** ai-agents, ai-coding, multi-agent, orchestration, mcp, mcp-steroid, run-agent-sh
 
 ---
 

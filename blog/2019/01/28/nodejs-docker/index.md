@@ -2,7 +2,7 @@
 
 **Date:** January 28, 2019  
 **Author:** Eugene Petrenko  
-**Tags:** docker, javascript, nodejs, webpack, build
+**Tags:** docker, javascript, node-js, webpack, build
 
 ---
 
