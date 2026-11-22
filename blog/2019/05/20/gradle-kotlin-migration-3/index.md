@@ -2,7 +2,7 @@
 
 **Date:** May 20, 2019  
 **Author:** Eugene Petrenko  
-**Tags:** gradle, gradle/groovy, gradle/kotlin, kts, kotlin, groovy, build
+**Tags:** gradle, gradle-groovy, gradle-kotlin, kts, kotlin, groovy, build
 
 ---
 

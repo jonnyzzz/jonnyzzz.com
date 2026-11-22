@@ -2,7 +2,7 @@
 
 **Date:** July 23, 2018  
 **Author:** Eugene Petrenko  
-**Tags:** terraform, aws, api gateway, cloud, infrastructure
+**Tags:** terraform, aws, api-gateway, cloud, infrastructure
 
 ---
 

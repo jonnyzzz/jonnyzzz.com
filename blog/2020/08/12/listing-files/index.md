@@ -2,7 +2,7 @@
 
 **Date:** August 12, 2020  
 **Author:** Eugene Petrenko  
-**Tags:** jvm, java, jni, native, macOS
+**Tags:** jvm, java, jni, native, macos
 
 ---
 

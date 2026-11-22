@@ -2,7 +2,7 @@
 
 **Date:** November 24, 2015  
 **Author:** Eugene Petrenko  
-**Tags:** docker, git, integration tests, ci
+**Tags:** docker, git, integration-tests, ci
 
 ---
 

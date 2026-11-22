@@ -2,7 +2,7 @@
 
 **Date:** May 28, 2018  
 **Author:** Eugene Petrenko  
-**Tags:** mac, macOS, linker, kotlin, kotlin/native
+**Tags:** mac, macos, linker, kotlin, kotlin-native
 
 ---
 

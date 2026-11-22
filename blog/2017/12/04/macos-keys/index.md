@@ -2,7 +2,7 @@
 
 **Date:** December 04, 2017  
 **Author:** Eugene Petrenko  
-**Tags:** mac, macOS, keys
+**Tags:** mac, macos, keys
 
 ---
 

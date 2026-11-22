@@ -2,7 +2,7 @@
 
 **Date:** November 26, 2025  
 **Author:** Eugene Petrenko  
-**Tags:** ai, ollama, gpt-oss, intellij, hardware, ai-agents, LocalAI, nvidia, spark, aws, reinvent
+**Tags:** ai, ollama, gpt-oss, intellij, hardware, ai-agents, localai, nvidia, spark, aws, reinvent
 
 ---
 

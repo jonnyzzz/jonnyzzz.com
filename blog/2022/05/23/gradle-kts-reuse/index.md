@@ -2,7 +2,7 @@
 
 **Date:** May 23, 2022  
 **Author:** Eugene Petrenko  
-**Tags:** gradle, gradle accessors, accessors, gradle/groovy, gradle/kotlin, kts, kotlin, groovy, build
+**Tags:** gradle, gradle-accessors, accessors, gradle-groovy, gradle-kotlin, kts, kotlin, groovy, build
 
 ---
 

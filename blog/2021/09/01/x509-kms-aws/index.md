@@ -2,7 +2,7 @@
 
 **Date:** September 01, 2021  
 **Author:** Eugene Petrenko  
-**Tags:** pki-tree, x509, jvm, kotlin, AWS, certificates
+**Tags:** pki-tree, x509, jvm, kotlin, aws, certificates
 
 ---
 

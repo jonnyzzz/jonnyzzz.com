@@ -2,7 +2,7 @@
 
 **Date:** March 08, 2016  
 **Author:** Eugene Petrenko  
-**Tags:** gradle, kotlin, dsl, teamcity2dsl, the dsl way
+**Tags:** gradle, kotlin, dsl, teamcity2dsl, the-dsl-way
 
 ---
 

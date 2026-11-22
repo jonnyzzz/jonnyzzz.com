@@ -2,7 +2,7 @@
 
 **Date:** January 14, 2019  
 **Author:** Eugene Petrenko  
-**Tags:** kotlin, kotlin/native, c
+**Tags:** kotlin, kotlin-native, c
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Date:** April 09, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** nvidia, jetson, LocalAI, hardware, cuda
+**Tags:** nvidia, jetson, localai, hardware, cuda
 
 ---
 

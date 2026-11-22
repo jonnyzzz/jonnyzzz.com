@@ -2,7 +2,7 @@
 
 **Date:** July 25, 2025  
 **Author:** Eugene Petrenko  
-**Tags:** kotlin, ktor, reverse proxy, proxy, design, components, dependencies
+**Tags:** kotlin, ktor, reverse-proxy, proxy, design, components, dependencies
 
 ---
 

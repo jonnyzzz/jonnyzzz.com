@@ -2,7 +2,7 @@
 
 **Date:** May 16, 2018  
 **Author:** Eugene Petrenko  
-**Tags:** mac, macOS, linker, kotlin, kotlin/native, curl
+**Tags:** mac, macos, linker, kotlin, kotlin-native, curl
 
 ---
 

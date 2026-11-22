@@ -2,7 +2,7 @@
 
 **Date:** January 06, 2016  
 **Author:** Eugene Petrenko  
-**Tags:** kotlin, xml, kotlin.xml.bind, jdom, dsl, gradle, teamcity2dsl, the dsl way
+**Tags:** kotlin, xml, kotlin-xml-bind, jdom, dsl, gradle, teamcity2dsl, the-dsl-way
 
 ---
 

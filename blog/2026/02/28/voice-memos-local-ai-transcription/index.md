@@ -2,7 +2,7 @@
 
 **Date:** February 28, 2026  
 **Author:** Eugene Petrenko  
-**Tags:** LocalAI, python, macos, whisper, ai-coding, automation, apple-silicon, voice-memos
+**Tags:** localai, python, macos, whisper, ai-coding, automation, apple-silicon, voice-memos
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Date:** September 09, 2016  
 **Author:** Eugene Petrenko  
-**Tags:** log4j, logging, dsl, the dsl way, kotlin, jvm, ide
+**Tags:** log4j, logging, dsl, the-dsl-way, kotlin, jvm, ide
 
 ---
 

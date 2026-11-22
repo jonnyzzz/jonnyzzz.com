@@ -2,7 +2,7 @@
 
 **Date:** September 02, 2016  
 **Author:** Eugene Petrenko  
-**Tags:** dsl, kotlin, jvm, ide, the dsl way
+**Tags:** dsl, kotlin, jvm, ide, the-dsl-way
 
 ---
 

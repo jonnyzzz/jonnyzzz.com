@@ -2,7 +2,7 @@
 
 **Date:** October 29, 2018  
 **Author:** Eugene Petrenko  
-**Tags:** curl, libcurl, windows, kotlin, kotlin/native
+**Tags:** curl, libcurl, windows, kotlin, kotlin-native
 
 ---
 
