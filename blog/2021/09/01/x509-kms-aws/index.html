@@ -197,7 +197,7 @@ API calls. It is fine to use that for a root certificate, but it looks too much 
 multiplied by <code class="language-plaintext highlighter-rouge">N</code>, as in my case. There is no API for signatures for an ACM managed
 certificate too, so one would have to deal with private keys.</p>
 
-<h3 id="hosted-keys">Hosted Keys</h3>
+<h2 id="hosted-keys">Hosted Keys</h2>
 
 <p>Hosted (hardware or HSM) keys or certificates give a nice 
 advantage — we can avoid having direct access to private keys material bytes.
@@ -212,7 +212,7 @@ One minimizes risks via the <a href="https://aws.amazon.com/iam">IAM</a> setup a
 RSA keys this way, having this in mind, I’ve started researching how to generate
 certificates with keys in the KMS for my solution.</p>
 
-<h3 id="openssl">OpenSSL</h3>
+<h2 id="openssl">OpenSSL</h2>
 
 <p>OpenSSL supports all necessary operations with X509 certificates.
 The <code class="language-plaintext highlighter-rouge">openssl</code> console command could help to
@@ -231,7 +231,7 @@ there are many obsolete or old examples online, and it needs to
 be cleared up. Let me know in the comments or 
 on <a href="https://twitter.com/jonnyzzz">Twitter</a>, so it would happen earlier.</p>
 
-<h3 id="bouncy-castle-on-jvm">Bouncy Castle on JVM</h3>
+<h2 id="bouncy-castle-on-jvm">Bouncy Castle on JVM</h2>
 
 <p>One usually generates a child X509 certificate using the <code class="language-plaintext highlighter-rouge">JcaX509v3CertificateBuilder</code>
 from <a href="https://www.bouncycastle.org/">Bouncy Castle</a>.
@@ -263,7 +263,7 @@ the RSA public key of the child certificate. No secretes so far.</p>
 Usually, we use <code class="language-plaintext highlighter-rouge">JcaContentSignerBuilder</code> to create an instance 
 from a private key of the parent certificate. It is not the case here.</p>
 
-<h3 id="contentsigner-implementation-via-kms">ContentSigner implementation via KMS</h3>
+<h2 id="contentsigner-implementation-via-kms">ContentSigner implementation via KMS</h2>
 
 <p>We implement the <code class="language-plaintext highlighter-rouge">ContentSigner</code> directly, and do a remote
 call to the AWS service for the signature. We do not have

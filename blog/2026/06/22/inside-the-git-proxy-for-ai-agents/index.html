@@ -197,7 +197,7 @@ commands and located the pack — everything below works on that pack.</p>
 
 <hr />
 
-<h3 id="make-https-the-only-way-in">Make HTTPS the Only Way In</h3>
+<h2 id="make-https-the-only-way-in">Make HTTPS the Only Way In</h2>
 
 <p>From my standpoint, the SSH is the best transport one should use with Git. On the other hand, 
 Git supports multiple transports, and the tricks we are covering here are similar for all of them.</p>
@@ -269,7 +269,7 @@ behind your back). One endpoint deserves a hard no: the dumb <code class="langua
 <code class="language-plaintext highlighter-rouge">http-alternates</code>) can point the client at object stores <em>outside</em> your proxy, so reject it — otherwise an
 allow-listed clone can quietly source objects from somewhere you don’t audit.</p>
 
-<h3 id="capture-log-every-commit-that-was-pushed">Capture: log every commit that was pushed</h3>
+<h2 id="capture-log-every-commit-that-was-pushed">Capture: log every commit that was pushed</h2>
 
 <p>The proxy already knows <em>which refs</em> moved — that was enforcement, in Part 1. Provenance needs the
 <em>commits</em>. We want to read the pack and log each commit’s hash, author and subject — ideally store the pack
@@ -340,7 +340,7 @@ plus a per-ref <code class="language-plaintext highlighter-rouge">ok &lt;ref&gt;
 <p>Run the capture off to the side — a detached, best-effort task. If logging fails, the developer’s push
 must still succeed. Observability that breaks the thing it observes is worse than no observability</p>
 
-<h3 id="a-pack-is-snapshots-not-diffs">A Pack Is Snapshots, Not Diffs</h3>
+<h2 id="a-pack-is-snapshots-not-diffs">A Pack Is Snapshots, Not Diffs</h2>
 
 <p>There is a deeper limit worth stating plainly, because it surprises people and it decides what you can
 actually recover. <strong>Git stores snapshots, not diffs.</strong> A blob is the <em>whole</em> file, never a change to it;
@@ -368,7 +368,7 @@ capturing the agent’s pushes is necessary but not sufficient: you also have to
 reachable. That is why you back up <em>heads</em> in git, not just archive packs — pin the heads so the old
 commits, trees and blobs survive long enough to tell you what actually changed.</p>
 
-<h3 id="keep-the-objects-alive-backup-marker-refs">Keep the objects alive: backup marker refs</h3>
+<h2 id="keep-the-objects-alive-backup-marker-refs">Keep the objects alive: backup marker refs</h2>
 
 <p>There is a subtle way to lose the very data you just captured. The agent pushes to a branch, you record
 it, the agent (or a cleanup job) deletes that branch, and now those objects are unreferenced on the server
@@ -429,7 +429,7 @@ world: a custom ref namespace like <code class="language-plaintext highlighter-r
 and <code class="language-plaintext highlighter-rouge">refs/tags/*</code> and silently reject the rest, so a lightweight <strong>tag</strong> is often the most portable pin.
 Tags auto-follow into clones, though, so remember to clean them up after recovery</p>
 
-<h3 id="side-effects-to-watch">Side-Effects to Watch</h3>
+<h2 id="side-effects-to-watch">Side-Effects to Watch</h2>
 
 <p>A proxy that parses pushes is a man-in-the-middle by design, and a few of its side-effects bite in
 production rather than in the demo:</p>

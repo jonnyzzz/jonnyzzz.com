@@ -22,7 +22,7 @@ commands and located the pack — everything below works on that pack.
 
 ----
 
-### Make HTTPS the Only Way In
+## Make HTTPS the Only Way In
 
 From my standpoint, the SSH is the best transport one should use with Git. On the other hand, 
 Git supports multiple transports, and the tricks we are covering here are similar for all of them.
@@ -61,7 +61,7 @@ behind your back). One endpoint deserves a hard no: the dumb `objects/info/alter
 `http-alternates`) can point the client at object stores *outside* your proxy, so reject it — otherwise an
 allow-listed clone can quietly source objects from somewhere you don't audit.
 
-### Capture: log every commit that was pushed
+## Capture: log every commit that was pushed
 
 The proxy already knows *which refs* moved — that was enforcement, in Part 1. Provenance needs the
 *commits*. We want to read the pack and log each commit's hash, author and subject — ideally store the pack
@@ -132,7 +132,7 @@ capture(response, pack):                           # runs only after the server 
 Run the capture off to the side — a detached, best-effort task. If logging fails, the developer's push
 must still succeed. Observability that breaks the thing it observes is worse than no observability
 
-### A Pack Is Snapshots, Not Diffs
+## A Pack Is Snapshots, Not Diffs
 
 There is a deeper limit worth stating plainly, because it surprises people and it decides what you can
 actually recover. **Git stores snapshots, not diffs.** A blob is the *whole* file, never a change to it;
@@ -160,7 +160,7 @@ capturing the agent's pushes is necessary but not sufficient: you also have to k
 reachable. That is why you back up *heads* in git, not just archive packs — pin the heads so the old
 commits, trees and blobs survive long enough to tell you what actually changed.
 
-### Keep the objects alive: backup marker refs
+## Keep the objects alive: backup marker refs
 
 There is a subtle way to lose the very data you just captured. The agent pushes to a branch, you record
 it, the agent (or a cleanup job) deletes that branch, and now those objects are unreferenced on the server
@@ -222,7 +222,7 @@ world: a custom ref namespace like `refs/captures/*` is not portable — some ho
 and `refs/tags/*` and silently reject the rest, so a lightweight **tag** is often the most portable pin.
 Tags auto-follow into clones, though, so remember to clean them up after recovery
 
-### Side-Effects to Watch
+## Side-Effects to Watch
 
 A proxy that parses pushes is a man-in-the-middle by design, and a few of its side-effects bite in
 production rather than in the demo:

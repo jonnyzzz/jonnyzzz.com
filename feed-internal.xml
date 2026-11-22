@@ -3,7 +3,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <link href="https://jonnyzzz.com/feed-internal.xml" rel="self" type="application/atom+xml" />
   <link href="https://jonnyzzz.com/" rel="alternate" type="text/html" />
-  <updated>2026-11-22T12:21:00+00:00</updated>
+  <updated>2026-11-22T13:02:30+00:00</updated>
   <id>https://jonnyzzz.com/</id>
 
   
@@ -3289,7 +3289,7 @@ commands and located the pack — everything below works on that pack.&lt;/p&gt;
 
 &lt;hr /&gt;
 
-&lt;h3 id=&quot;make-https-the-only-way-in&quot;&gt;Make HTTPS the Only Way In&lt;/h3&gt;
+&lt;h2 id=&quot;make-https-the-only-way-in&quot;&gt;Make HTTPS the Only Way In&lt;/h2&gt;
 
 &lt;p&gt;From my standpoint, the SSH is the best transport one should use with Git. On the other hand, 
 Git supports multiple transports, and the tricks we are covering here are similar for all of them.&lt;/p&gt;
@@ -3361,7 +3361,7 @@ behind your back). One endpoint deserves a hard no: the dumb &lt;code class=&quo
 &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;http-alternates&lt;/code&gt;) can point the client at object stores &lt;em&gt;outside&lt;/em&gt; your proxy, so reject it — otherwise an
 allow-listed clone can quietly source objects from somewhere you don’t audit.&lt;/p&gt;
 
-&lt;h3 id=&quot;capture-log-every-commit-that-was-pushed&quot;&gt;Capture: log every commit that was pushed&lt;/h3&gt;
+&lt;h2 id=&quot;capture-log-every-commit-that-was-pushed&quot;&gt;Capture: log every commit that was pushed&lt;/h2&gt;
 
 &lt;p&gt;The proxy already knows &lt;em&gt;which refs&lt;/em&gt; moved — that was enforcement, in Part 1. Provenance needs the
 &lt;em&gt;commits&lt;/em&gt;. We want to read the pack and log each commit’s hash, author and subject — ideally store the pack
@@ -3432,7 +3432,7 @@ plus a per-ref &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&g
 &lt;p&gt;Run the capture off to the side — a detached, best-effort task. If logging fails, the developer’s push
 must still succeed. Observability that breaks the thing it observes is worse than no observability&lt;/p&gt;
 
-&lt;h3 id=&quot;a-pack-is-snapshots-not-diffs&quot;&gt;A Pack Is Snapshots, Not Diffs&lt;/h3&gt;
+&lt;h2 id=&quot;a-pack-is-snapshots-not-diffs&quot;&gt;A Pack Is Snapshots, Not Diffs&lt;/h2&gt;
 
 &lt;p&gt;There is a deeper limit worth stating plainly, because it surprises people and it decides what you can
 actually recover. &lt;strong&gt;Git stores snapshots, not diffs.&lt;/strong&gt; A blob is the &lt;em&gt;whole&lt;/em&gt; file, never a change to it;
@@ -3460,7 +3460,7 @@ capturing the agent’s pushes is necessary but not sufficient: you also have to
 reachable. That is why you back up &lt;em&gt;heads&lt;/em&gt; in git, not just archive packs — pin the heads so the old
 commits, trees and blobs survive long enough to tell you what actually changed.&lt;/p&gt;
 
-&lt;h3 id=&quot;keep-the-objects-alive-backup-marker-refs&quot;&gt;Keep the objects alive: backup marker refs&lt;/h3&gt;
+&lt;h2 id=&quot;keep-the-objects-alive-backup-marker-refs&quot;&gt;Keep the objects alive: backup marker refs&lt;/h2&gt;
 
 &lt;p&gt;There is a subtle way to lose the very data you just captured. The agent pushes to a branch, you record
 it, the agent (or a cleanup job) deletes that branch, and now those objects are unreferenced on the server
@@ -3521,7 +3521,7 @@ world: a custom ref namespace like &lt;code class=&quot;language-plaintext highl
 and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;refs/tags/*&lt;/code&gt; and silently reject the rest, so a lightweight &lt;strong&gt;tag&lt;/strong&gt; is often the most portable pin.
 Tags auto-follow into clones, though, so remember to clean them up after recovery&lt;/p&gt;
 
-&lt;h3 id=&quot;side-effects-to-watch&quot;&gt;Side-Effects to Watch&lt;/h3&gt;
+&lt;h2 id=&quot;side-effects-to-watch&quot;&gt;Side-Effects to Watch&lt;/h2&gt;
 
 &lt;p&gt;A proxy that parses pushes is a man-in-the-middle by design, and a few of its side-effects bite in
 production rather than in the demo:&lt;/p&gt;

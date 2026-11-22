@@ -20,7 +20,7 @@ API calls. It is fine to use that for a root certificate, but it looks too much 
 multiplied by `N`, as in my case. There is no API for signatures for an ACM managed
 certificate too, so one would have to deal with private keys.
 
-### Hosted Keys
+## Hosted Keys
 
 Hosted (hardware or HSM) keys or certificates give a nice 
 advantage — we can avoid having direct access to private keys material bytes.
@@ -35,7 +35,7 @@ One minimizes risks via the [IAM](https://aws.amazon.com/iam) setup and audit.
 RSA keys this way, having this in mind, I've started researching how to generate
 certificates with keys in the KMS for my solution.
 
-### OpenSSL
+## OpenSSL
 
 OpenSSL supports all necessary operations with X509 certificates.
 The `openssl` console command could help to
@@ -54,7 +54,7 @@ there are many obsolete or old examples online, and it needs to
 be cleared up. Let me know in the comments or 
 on [Twitter](https://twitter.com/jonnyzzz), so it would happen earlier.
 
-### Bouncy Castle on JVM
+## Bouncy Castle on JVM
 
 One usually generates a child X509 certificate using the `JcaX509v3CertificateBuilder`
 from [Bouncy Castle](https://www.bouncycastle.org/).
@@ -87,7 +87,7 @@ The `ContentSigner` interface encapsulates the signature need.
 Usually, we use `JcaContentSignerBuilder` to create an instance 
 from a private key of the parent certificate. It is not the case here. 
 
-### ContentSigner implementation via KMS
+## ContentSigner implementation via KMS
 
 We implement the `ContentSigner` directly, and do a remote
 call to the AWS service for the signature. We do not have
