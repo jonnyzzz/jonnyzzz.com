@@ -81,7 +81,7 @@ Now the example above will work, and the following would work:
 val property by base::foo
 ```
 
-<a name="code"></a>
+<a id="code"></a>
 ## The Code
 
 To summarize, the full example is as follows. We may keep that `getValue` function somewhere
