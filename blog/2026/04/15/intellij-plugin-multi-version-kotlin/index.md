@@ -38,7 +38,7 @@ and the seven approaches I explored. The PoC for approaches 1 + 5 is at
   - [Option 3: Reflection](#option-3-reflection)
   - [Option 4: Shims / Typed Adapters](#option-4-shims--typed-adapters)
   - [Option 5: Template Build Scripts](#option-5-template-build-scripts)
-  - [Option 6: Simplify IntelliJ's API Surface](#option-6-simplify-intellijs-api-surface)
+  - [Option 6: Simplify IntelliJ's API Surface](#option-6-simplify-intellijs-api-surface-long-term)
   - [Option 7: Docker-based Build Compatibility Tests](#option-7-docker-based-build-compatibility-tests)
 - [The Single-Invocation Approach: What JetBrains Uses Internally](#the-single-invocation-approach-what-jetbrains-uses-internally)
 - [Build-time Verification: ClassFile Reference Checking](#build-time-verification-classfile-reference-checking)
