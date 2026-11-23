@@ -13,6 +13,10 @@ our experience was getting in the way.
 We assume code is expensive. We design it so that someone can maintain it for years.
 What happens if writing it again becomes cheaper?
 
+<img src="{{ site.url }}/images/rewriting-cheaper-than-maintaining.jpg"
+     alt="Disposable software: maintain, or just rewrite?"
+     style="display: block; width: 75%; margin: 0 auto;">
+
 ## A Project That Just Works
 
 Imagine someone builds a seasonal (reporting) application for your company. An internal tool, maybe external,

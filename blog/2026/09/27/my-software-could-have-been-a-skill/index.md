@@ -11,6 +11,10 @@ It could have been a Skill.
 
 _Updated in November 2026 with more reflections._
 
+<img src="{{ site.url }}/images/my-software-could-have-been-a-skill.jpg"
+     alt="Software or a Skill deploying containers"
+     style="display: block; width: 75%; margin: 0 auto;">
+
 ## How It Started
 
 This story starts about a year ago, when I got a Raspberry Pi with 16GB of RAM at home. I had several
