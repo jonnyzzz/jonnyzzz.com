@@ -80,7 +80,7 @@ the personal-agent space right now: [OpenClaw][openclaw-gh] and [Hermes Agent][h
 
 With this post I share how my AI Agents evolved into a personal assistant, given the right context,
 and the best tools. This appers in-line with 
-[my goals and program: Agentic AI Experience & Tools]({% post_url blog/2026-03-24-agentic-experience-and-tools %}).
+[my goals and program: Agentic Experience & Tools]({% post_url blog/2026-03-24-agentic-experience-and-tools %}).
 Find
 me on [LinkedIn][linkedin] or [Twitter][twitter], and if an assistant like this would fit your own workflow,
 get in touch — I am happy to help you shape one.
