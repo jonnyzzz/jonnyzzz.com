@@ -174,8 +174,8 @@
     </span>
   </div>
 
-  <div class="services-page__areas">
-    <section aria-labelledby="services-leadership">
+  <div class="services-page__areas" data-services-tabs="">
+    <section aria-labelledby="services-leadership" data-tab-label="Fractional CTO">
       <h2 id="services-leadership">Fractional &amp; Interim CTO</h2>
       <p>I provide ongoing part-time technology leadership or temporary leadership through a transition.
         Depending on your needs, engagements can be at Director, VP Engineering, or CTO level.
@@ -183,13 +183,13 @@
         hiring, and delivery.</p>
       <p>We agree the scope, decision authority, and time commitment before starting.</p>
     </section>
-    <section aria-labelledby="services-product">
+    <section aria-labelledby="services-product" data-tab-label="0→1 Product">
       <h2 id="services-product">0→1 Product Development</h2>
       <p>I take a technical idea to a first working product or service: exploring the architecture,
         testing assumptions, and writing code alongside your team. We can focus on a prototype to test
         one risky idea, with code you own.</p>
     </section>
-    <section aria-labelledby="services-ai">
+    <section aria-labelledby="services-ai" data-tab-label="AI Engineering">
       <h2 id="services-ai">AI Engineering &amp; Developer Tools</h2>
       <p>I build AI-powered features and custom AI tools into existing products, connecting models and
         AI agents to your APIs, data, tools, and workflows.</p>
@@ -197,13 +197,31 @@
         testing, and internal tools. We look for useful applications that fit your architecture and data,
         and work with your team to put them into practice.</p>
     </section>
-    <section aria-labelledby="services-jetbrains">
+    <section aria-labelledby="services-jetbrains" data-tab-label="JetBrains Ecosystem">
       <h2 id="services-jetbrains">JetBrains Integrations &amp; Plugins</h2>
       <p>I bring <a href="/about/">deep experience with JetBrains technology and developer tools</a>.
         I can build integrations and plugins for IntelliJ-based IDEs, including Android Studio,
         and JetBrains TeamCity. I also know IDE Services and Toolbox Enterprise from the inside and can help 
         with migration, its architecture, and integrations.</p>
       <p>I can connect your AI Agents and tools with your JetBrains experiences to empower your AI Agents and/or people.</p>
+
+      <h3 id="services-plugin-testing">IntelliJ Plugin Testing with AI Agents</h3>
+      <p>Your plugin runs in a real JetBrains IDE in a Docker container with Xvfb, configured via
+        IntelliJ APIs. Claude Code, Codex, or Gemini drives the IDE through your scenarios.</p>
+      <p>Every run records video, screenshots, agent tool calls, and IDE logs, with a thread dump on hangs.
+        It covers 12 IDE products. The same plugin binary runs on newer releases and EAP, plus Plugin Verifier.
+        The report is computed from the run data, and failures stay in. Linux by default, macOS and Windows
+        on request.</p>
+      <ul>
+        <li><strong>Free.</strong> Watch the
+          <a href="https://www.youtube.com/playlist?list=PLitZWClhc4Qgz3w8qrtctMR_lpIc81n0f">videos</a>
+          and use the <a href="https://github.com/jonnyzzz/mcp-steroid/tree/main/test-integration">code</a>,
+          built to measure devrig.</li>
+        <li><strong>As a service.</strong> I run your scenarios.</li>
+        <li><strong>Consulting.</strong> I help you build it in your CI.</li>
+      </ul>
+      <p><a href="https://redvig.dev/plugin-testing/">redvig.dev/plugin-testing</a> ·
+        <a href="mailto:poc@redvig.dev">poc@redvig.dev</a></p>
     </section>
   </div>
 
@@ -243,6 +261,70 @@
     </span>
   </div>
 </div>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-services-tabs]');
+  if (!root) return;
+  var panels = Array.prototype.filter.call(root.children, function (el) { return el.tagName === 'SECTION'; });
+  var list = document.createElement('div');
+  list.className = 'services-tabs__list';
+  list.setAttribute('role', 'tablist');
+  list.setAttribute('aria-label', 'Services');
+  var tabs = panels.map(function (panel, i) {
+    var heading = panel.querySelector('h2');
+    var tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = 'services-tabs__tab';
+    tab.id = heading.id + '-tab';
+    tab.textContent = panel.getAttribute('data-tab-label') || heading.textContent;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', heading.id + '-panel');
+    panel.id = heading.id + '-panel';
+    panel.setAttribute('role', 'tabpanel');
+    panel.setAttribute('aria-labelledby', tab.id);
+    panel.setAttribute('tabindex', '0');
+    tab.addEventListener('click', function () {
+      select(i);
+      if (history.replaceState) history.replaceState(null, '', '#' + heading.id);
+    });
+    tab.addEventListener('keydown', function (e) {
+      var next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: panels.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      next = (next + panels.length) % panels.length;
+      select(next);
+      tabs[next].focus();
+    });
+    list.appendChild(tab);
+    return tab;
+  });
+  function select(index) {
+    tabs.forEach(function (tab, i) {
+      var on = i === index;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.tabIndex = on ? 0 : -1;
+      panels[i].hidden = !on;
+    });
+  }
+  function fromHash() {
+    var id = decodeURIComponent(location.hash.slice(1));
+    var target = id && document.getElementById(id);
+    for (var i = 0; target && i < panels.length; i++) {
+      if (panels[i].contains(target)) {
+        select(i);
+        if (target.tagName !== 'H2') target.scrollIntoView();
+        return true;
+      }
+    }
+    return false;
+  }
+  root.insertBefore(list, root.firstChild);
+  root.classList.add('services-tabs--ready');
+  if (!fromHash()) select(0);
+  window.addEventListener('hashchange', fromHash);
+}());
+</script>
 
 <script>
 (function () {
